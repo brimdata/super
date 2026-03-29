@@ -657,7 +657,7 @@ func (a Analyzer) convertType(sctx *super.Context, typ ast.Type) (super.Type, er
 			// We avoid the nil-interface bug here by assigning to named
 			// and then typ because assigning directly to typ will create
 			// a nin-nil interface pointer for a nil result.
-			named := sctx.LookupTypeDef(t.Name)
+			named := sctx.LookupNamedByName(t.Name)
 			if named == nil {
 				return nil, fmt.Errorf("no such type name: %q", t.Name)
 			}

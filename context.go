@@ -31,18 +31,10 @@ type TypeFetcher interface {
 // Contexts obviously do not have this property.)
 type Context struct {
 	mu        sync.RWMutex
-	byID      []Type
-	typedefs  map[string]*TypeNamed
+	byID      map[uint32]Type
+	typedefs  *TypeDefs
+	named     map[string]*TypeNamed
 	stringErr atomic.Pointer[TypeError]
-	recs      map[string]*TypeRecord
-	arrays    map[Type]*TypeArray
-	sets      map[Type]*TypeSet
-	maps      map[string]*TypeMap
-	unions    map[string]*TypeUnion
-	enums     map[string]*TypeEnum
-	nameds    map[string]*TypeNamed
-	errors    map[Type]*TypeError
-	fusions   map[Type]*TypeFusion
 	toValue   map[Type]scode.Bytes
 	toType    map[string]Type
 }
@@ -51,30 +43,19 @@ var _ TypeFetcher = (*Context)(nil)
 
 func NewContext() *Context {
 	return &Context{
-		byID: make([]Type, IDTypeComplex, 2*IDTypeComplex),
+		byID:     make(map[uint32]Type),
+		typedefs: NewTypeDefs(),
 	}
 }
 
 func (c *Context) Reset() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.byID = c.byID[:IDTypeComplex]
+	c.byID = make(map[uint32]Type)
+	c.typedefs = NewTypeDefs()
 	c.toValue = nil
 	c.toType = nil
-	c.recs = nil
-	c.arrays = nil
-	c.sets = nil
-	c.maps = nil
-	c.unions = nil
-	c.enums = nil
-	c.nameds = nil
-	c.errors = nil
-	c.fusions = nil
-	c.typedefs = nil
-}
-
-func (c *Context) nextIDWithLock() int {
-	return len(c.byID)
+	c.named = nil
 }
 
 func (c *Context) LookupType(id int) (Type, error) {
@@ -86,13 +67,11 @@ func (c *Context) LookupType(id int) (Type, error) {
 	}
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	if id >= len(c.byID) {
-		return nil, fmt.Errorf("type id (%d) not in type context (size %d)", id, len(c.byID))
+	typ, ok := c.byID[uint32(id)]
+	if !ok {
+		return nil, fmt.Errorf("no type found for type id %d", id)
 	}
-	if typ := c.byID[id]; typ != nil {
-		return typ, nil
-	}
-	return nil, fmt.Errorf("no type found for type id %d", id)
+	return typ, nil
 }
 
 var keyPool = sync.Pool{
@@ -119,34 +98,17 @@ func (d *DuplicateFieldError) Error() string {
 // this type context.  If you want to use fields from a different type context,
 // use TranslateTypeRecord.
 func (c *Context) LookupTypeRecord(fields []Field) (*TypeRecord, error) {
-	key := keyPool.Get().(*[]byte)
-	bytes := (*key)[:0]
-	for _, field := range fields {
-		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(field.Name)))
-		bytes = append(bytes, field.Name...)
-		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(field.Type)))
-		var opt byte
-		if field.Opt {
-			opt = 1
-		}
-		bytes = append(bytes, opt)
-	}
-	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.recs == nil {
-		c.recs = make(map[string]*TypeRecord)
-	}
-	if typ, ok := c.recs[string(bytes)]; ok {
-		keyPool.Put(key)
-		return typ, nil
+	id := c.typedefs.LookupTypeRecord(fields)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeRecord), nil
 	}
 	if name, ok := duplicateField(fields); ok {
 		return nil, &DuplicateFieldError{name}
 	}
-	typ := NewTypeRecord(c.nextIDWithLock(), slices.Clone(fields))
-	c.recs[string(bytes)] = typ
-	c.enterWithLock(typ)
+	typ := NewTypeRecord(int(id), slices.Clone(fields))
+	c.byID[id] = typ
 	return typ, nil
 }
 
@@ -191,111 +153,78 @@ func (c *Context) MustLookupTypeRecord(fields []Field) *TypeRecord {
 func (c *Context) LookupTypeArray(inner Type) *TypeArray {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.arrays == nil {
-		c.arrays = make(map[Type]*TypeArray)
+	id := c.typedefs.LookupTypeWrapped(TypeDefArray, inner)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeArray)
 	}
-	if typ, ok := c.arrays[inner]; ok {
-		return typ
-	}
-	typ := NewTypeArray(c.nextIDWithLock(), inner)
-	c.enterWithLock(typ)
-	c.arrays[inner] = typ
+	typ := NewTypeArray(int(id), inner)
+	c.byID[id] = typ
 	return typ
 }
 
 func (c *Context) LookupTypeSet(inner Type) *TypeSet {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.sets == nil {
-		c.sets = make(map[Type]*TypeSet)
+	id := c.typedefs.LookupTypeWrapped(TypeDefSet, inner)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeSet)
 	}
-	if typ, ok := c.sets[inner]; ok {
-		return typ
-	}
-	typ := NewTypeSet(c.nextIDWithLock(), inner)
-	c.enterWithLock(typ)
-	c.sets[inner] = typ
+	typ := NewTypeSet(int(id), inner)
+	c.byID[id] = typ
 	return typ
 }
 
 func (c *Context) LookupTypeMap(keyType, valType Type) *TypeMap {
-	key := keyPool.Get().(*[]byte)
-	bytes := (*key)[:0]
-	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(keyType)))
-	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(valType)))
-	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.maps == nil {
-		c.maps = make(map[string]*TypeMap)
+	id := c.typedefs.LookupTypeMap(keyType, valType)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeMap)
 	}
-	if typ, ok := c.maps[string(bytes)]; ok {
-		keyPool.Put(key)
-		return typ
-	}
-	typ := NewTypeMap(c.nextIDWithLock(), keyType, valType)
-	c.enterWithLock(typ)
-	c.maps[string(bytes)] = typ
+	typ := NewTypeMap(int(id), keyType, valType)
+	c.byID[id] = typ
 	return typ
 }
 
 func (c *Context) LookupTypeUnion(types []Type) *TypeUnion {
+	//XXX undo this...
+	// XXX should just call sort.IsSortedFunc as assertion
+	types = slices.Clone(types)
 	sort.SliceStable(types, func(i, j int) bool {
 		return CompareTypes(types[i], types[j]) < 0
 	})
-	key := keyPool.Get().(*[]byte)
-	bytes := (*key)[:0]
-	for _, typ := range types {
-		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(typ)))
-	}
-	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.unions == nil {
-		c.unions = make(map[string]*TypeUnion)
+	id := c.typedefs.LookupTypeUnion(types)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeUnion)
 	}
-	if typ, ok := c.unions[string(bytes)]; ok {
-		keyPool.Put(key)
-		return typ
-	}
-	typ := NewTypeUnion(c.nextIDWithLock(), slices.Clone(types))
-	c.enterWithLock(typ)
-	c.unions[string(bytes)] = typ
+	typ := NewTypeUnion(int(id), slices.Clone(types))
+	c.byID[id] = typ
 	return typ
 }
 
 func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
-	key := keyPool.Get().(*[]byte)
-	bytes := (*key)[:0]
-	for _, symbol := range symbols {
-		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(symbol)))
-		bytes = append(bytes, symbol...)
-	}
-	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.enums == nil {
-		c.enums = make(map[string]*TypeEnum)
+	id := c.typedefs.LookupTypeEnum(symbols)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeEnum)
 	}
-	if typ, ok := c.enums[string(bytes)]; ok {
-		keyPool.Put(key)
-		return typ
-	}
-	typ := NewTypeEnum(c.nextIDWithLock(), slices.Clone(symbols))
-	c.enterWithLock(typ)
-	c.enums[string(bytes)] = typ
+	typ := NewTypeEnum(int(id), symbols)
+	c.byID[id] = typ
 	return typ
 }
 
 // LookupTypeDef returns the named type last bound to name by LookupTypeNamed.
 // It returns nil if name is unbound.
-func (c *Context) LookupTypeDef(name string) *TypeNamed {
+func (c *Context) LookupNamedByName(name string) *TypeNamed {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.typedefs == nil {
+	if c.named == nil {
 		return nil
 	}
-	return c.typedefs[name]
+	return c.named[name]
 }
 
 // LookupTypeNamed returns the named type for name and inner.  It also binds
@@ -308,42 +237,32 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 	if LookupPrimitive(name) != nil {
 		return nil, fmt.Errorf("bad type name %q: primitive type name", name)
 	}
-	key := keyPool.Get().(*[]byte)
-	bytes := (*key)[:0]
-	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(name)))
-	bytes = append(bytes, name...)
-	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(inner)))
-	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.nameds == nil {
-		c.nameds = make(map[string]*TypeNamed)
-		c.typedefs = make(map[string]*TypeNamed)
+	if c.named == nil {
+		c.named = make(map[string]*TypeNamed)
 	}
-	if typ, ok := c.nameds[string(bytes)]; ok {
-		keyPool.Put(key)
-		c.typedefs[name] = typ
-		return typ, nil
+	id := c.typedefs.LookupTypeNamed(name, inner)
+	if typ, ok := c.byID[id]; ok {
+		named := typ.(*TypeNamed)
+		c.named[name] = named
+		return named, nil
 	}
-	typ := NewTypeNamed(c.nextIDWithLock(), name, inner)
-	c.typedefs[name] = typ
-	c.enterWithLock(typ)
-	c.nameds[string(bytes)] = typ
+	typ := NewTypeNamed(int(id), name, inner)
+	c.byID[id] = typ
+	c.named[name] = typ
 	return typ, nil
 }
 
 func (c *Context) LookupTypeError(inner Type) *TypeError {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.errors == nil {
-		c.errors = make(map[Type]*TypeError)
+	id := c.typedefs.LookupTypeWrapped(TypeDefError, inner)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeError)
 	}
-	if typ, ok := c.errors[inner]; ok {
-		return typ
-	}
-	typ := NewTypeError(c.nextIDWithLock(), inner)
-	c.enterWithLock(typ)
-	c.errors[inner] = typ
+	typ := NewTypeError(int(id), inner)
+	c.byID[id] = typ
 	if inner == TypeString {
 		c.stringErr.Store(typ)
 	}
@@ -353,15 +272,12 @@ func (c *Context) LookupTypeError(inner Type) *TypeError {
 func (c *Context) LookupTypeFusion(inner Type) *TypeFusion {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.fusions == nil {
-		c.fusions = make(map[Type]*TypeFusion)
+	id := c.typedefs.LookupTypeWrapped(TypeDefFusion, inner)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeFusion)
 	}
-	if typ, ok := c.fusions[inner]; ok {
-		return typ
-	}
-	typ := NewTypeFusion(c.nextIDWithLock(), inner)
-	c.enterWithLock(typ)
-	c.fusions[inner] = typ
+	typ := NewTypeFusion(int(id), inner)
+	c.byID[id] = typ
 	return typ
 }
 
@@ -394,10 +310,6 @@ func (c *Context) LookupByValue(tv scode.Bytes) (Type, error) {
 // type in this context.
 func (c *Context) TranslateType(ext Type) (Type, error) {
 	return c.LookupByValue(EncodeTypeValue(ext))
-}
-
-func (c *Context) enterWithLock(typ Type) {
-	c.byID = append(c.byID, typ)
 }
 
 func (c *Context) LookupTypeValue(typ Type) Value {
@@ -445,7 +357,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 		if tv == nil {
 			return nil, nil
 		}
-		typ := c.LookupTypeDef(name)
+		typ := c.LookupNamedByName(name)
 		if typ == nil {
 			return nil, nil
 		}
@@ -688,4 +600,178 @@ func (t *TypeCache) LookupType(id int) (Type, error) {
 	}
 	t.cache[id] = typ
 	return typ, nil
+}
+
+const (
+	TypeDefRecord = 0
+	TypeDefArray  = 1
+	TypeDefSet    = 2
+	TypeDefMap    = 3
+	TypeDefUnion  = 4
+	TypeDefEnum   = 5
+	TypeDefError  = 6
+	TypeDefNamed  = 7
+	TypeDefFusion = 8
+)
+
+// XXX we use end of bytes buffer to look stuff up for good cache locality...
+// at each point int he recursion it's safe to tack on the candidate typeval
+// for lookup, then if it's new, that position becomes the new ID and
+// we don't need another copy.
+type TypeDefs struct {
+	offsets []uint32
+	bytes   []byte
+	lut     map[string]uint32
+}
+
+func NewTypeDefs() *TypeDefs {
+	return &TypeDefs{
+		offsets: make([]uint32, 1),
+		lut:     make(map[string]uint32),
+	}
+}
+
+func (t *TypeDefs) Value(id uint32) []byte {
+	//XXX we subtract IDTypeComplex since all IDs are always stored
+	// in their natural form (XXX maybe we should change this)...
+	// slot 0 corresponds to the first complex type ID, i.e., IDTypeComplex
+	slot := id - IDTypeComplex
+	return t.bytes[t.offsets[slot]:t.offsets[slot+1]]
+}
+
+func (t *TypeDefs) Append(bytes []byte) uint32 {
+	slot := uint32(len(t.offsets) - 1)
+	t.bytes = append(t.bytes, bytes...)
+	t.offsets = append(t.offsets, uint32(len(t.bytes)))
+	return slot + IDTypeComplex
+}
+
+func (t *TypeDefs) AppendInPlace() uint32 {
+	// Do an append but use the bytes that are poking off
+	// the end as the new value and compute the slot from that.
+	slot := uint32(len(t.offsets) - 1)
+	before := t.offsets[slot]
+	after := uint32(len(t.bytes))
+	t.offsets = append(t.offsets, after-before)
+	return slot + IDTypeComplex
+}
+
+func (t *TypeDefs) Lookup(at int) uint32 {
+	key := string(t.bytes[at:])
+	id, ok := t.lut[key]
+	if !ok {
+		id = t.AppendInPlace()
+		t.lut[key] = id
+	} else {
+		t.bytes = t.bytes[:at]
+	}
+	return id
+}
+
+func (t *TypeDefs) LookupType(ext Type) uint32 {
+	if id := TypeID(ext); id < IDTypeComplex {
+		return uint32(id)
+	}
+	switch ext := ext.(type) {
+	case *TypeRecord:
+		return t.LookupTypeRecord(ext.Fields)
+	case *TypeArray:
+		return t.LookupTypeWrapped(TypeDefArray, ext.Type)
+	case *TypeSet:
+		return t.LookupTypeWrapped(TypeDefSet, ext.Type)
+	case *TypeMap:
+		return t.LookupTypeMap(ext.KeyType, ext.ValType)
+	case *TypeUnion:
+		return t.LookupTypeUnion(ext.Types)
+	case *TypeEnum:
+		return t.LookupTypeEnum(ext.Symbols)
+	case *TypeError:
+		return t.LookupTypeWrapped(TypeDefError, ext.Type)
+	case *TypeNamed:
+		return t.LookupTypeNamed(ext.Name, ext.Type)
+	case *TypeFusion:
+		return t.LookupTypeWrapped(TypeDefFusion, ext.Type)
+	default:
+		panic(ext)
+	}
+}
+
+func (t *TypeDefs) LookupTypeRecord(fields []Field) uint32 {
+	//XXX use pool for ids
+	var ids []uint32
+	for _, f := range fields {
+		ids = append(ids, t.LookupType(f.Type))
+	}
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, TypeDefRecord)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(fields)))
+	for k, f := range fields {
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(len(f.Name)))
+		t.bytes = append(t.bytes, f.Name...)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(ids[k]))
+		var opt byte
+		if f.Opt {
+			opt = 1
+		}
+		t.bytes = append(t.bytes, opt)
+	}
+	return t.Lookup(at)
+}
+
+func (t *TypeDefs) LookupTypeWrapped(typedef int, inner Type) uint32 {
+	id := t.LookupType(inner)
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, byte(typedef))
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	return t.Lookup(at)
+}
+
+func (t *TypeDefs) LookupTypeMap(keyType, valType Type) uint32 {
+	keyID := t.LookupType(keyType)
+	valID := t.LookupType(valType)
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, TypeDefMap)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(keyID))
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(valID))
+	return t.Lookup(at)
+}
+
+func (t *TypeDefs) LookupTypeUnion(types []Type) uint32 {
+	sort.SliceStable(types, func(i, j int) bool {
+		return CompareTypes(types[i], types[j]) < 0
+	})
+	//XXX use pool for ids
+	var ids []uint32
+	for _, typ := range types {
+		id := t.LookupType(typ)
+		ids = append(ids, id)
+	}
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, TypeDefUnion)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(ids)))
+	for _, id := range ids {
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	}
+	return t.Lookup(at)
+}
+
+func (t *TypeDefs) LookupTypeEnum(symbols []string) uint32 {
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, TypeDefEnum)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(symbols)))
+	for _, s := range symbols {
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(len(s)))
+		t.bytes = append(t.bytes, s...)
+	}
+	return t.Lookup(at)
+}
+
+func (t *TypeDefs) LookupTypeNamed(name string, inner Type) uint32 {
+	id := t.LookupType(inner)
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, TypeDefNamed)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
+	t.bytes = append(t.bytes, name...)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	return t.Lookup(at)
 }

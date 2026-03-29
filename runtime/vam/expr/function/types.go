@@ -176,7 +176,7 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 	out := vector.NewTypeValueEmpty(0)
 	for i := range vec.Len() {
 		s := vector.StringValue(vec, i)
-		if typ := t.sctx.LookupTypeDef(s); typ == nil {
+		if typ := t.sctx.LookupNamedByName(s); typ == nil {
 			errs = append(errs, i)
 		} else {
 			out.Append(t.sctx.LookupTypeValue(typ).Bytes())
