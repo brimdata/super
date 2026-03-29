@@ -107,18 +107,10 @@ func (w *Writer) EndStream() error {
 }
 
 func (w *Writer) Write(val super.Value) error {
-	typ := w.types.Lookup(val.Type())
-	if typ == nil {
-		var err error
-		typ, err = w.types.Encode(val.Type())
-		if err != nil {
-			return err
-		}
-	}
-	id := super.TypeID(typ)
+	id := w.types.Encode(val.Type())
 	w.values = binary.AppendUvarint(w.values, uint64(id))
 	w.values = scode.Append(w.values, val.Bytes())
-	if thresh := w.opts.FrameThresh; len(w.values) >= thresh || len(w.types.bytes) >= thresh {
+	if thresh := w.opts.FrameThresh; len(w.values) >= thresh || w.types.Len() >= thresh {
 		return w.flush()
 	}
 	return nil
@@ -138,13 +130,12 @@ func (w *Writer) WriteControl(b []byte, format uint8) error {
 }
 
 func (w *Writer) flush() error {
-	if err := w.writeBlock(TypesFrame, w.types.bytes); err != nil {
+	if err := w.writeBlock(TypesFrame, w.types.nextBuffer()); err != nil {
 		return nil
 	}
 	if err := w.writeBlock(ValuesFrame, w.values); err != nil {
 		return nil
 	}
-	w.types.Flush()
 	w.values = w.values[:0]
 	return nil
 }
