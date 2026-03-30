@@ -239,7 +239,7 @@ to get at the underlying type,
 but we can't use that function on the top-level value
 ```sh
 $ clickhouse -q "SELECT dynamicType(a) FROM 'example.json'"
-Code: 43. DB::Exception: First argument for function dynamicType must be Dynamic, got Array(Dynamic) instead: In scope SELECT dynamicType(a) FROM `example.json`. (ILLEGAL_TYPE_OF_ARGUMENT)
+Code: 43. DB::Exception: A value of illegal type was provided as 1st argument 'dynamic' to function 'dynamicType'. Expected: Dynamic, got: Array(Dynamic): In scope SELECT dynamicType(a) FROM `example.json`. (ILLEGAL_TYPE_OF_ARGUMENT)
 ```
 Instead we must ask for the type of the array element
 ```sh
