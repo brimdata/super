@@ -35,7 +35,7 @@ This installs the `super` binary in your `$GOPATH/bin`.
 
 >[!TIP]
 > If you don't have Go installed, download and install it from the
-> [Go install page](https://golang.org/doc/install). Go 1.24 or later is
+> [Go install page](https://golang.org/doc/install). Go 1.26 or later is
 > required.
 
 ## Try It
