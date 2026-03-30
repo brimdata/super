@@ -204,9 +204,9 @@ func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
 	return typ
 }
 
-// LookupTypeDef returns the named type last bound to name by LookupTypeNamed.
+// LookupByName returns the named type last bound to name by LookupTypeNamed.
 // It returns nil if name is unbound.
-func (c *Context) LookupNamedByName(name string) *TypeNamed {
+func (c *Context) LookupByName(name string) *TypeNamed {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.named == nil {
@@ -345,7 +345,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 		if tv == nil {
 			return nil, nil
 		}
-		typ := c.LookupNamedByName(name)
+		typ := c.LookupByName(name)
 		if typ == nil {
 			return nil, nil
 		}
@@ -631,8 +631,8 @@ func (t *TypeDefs) Len() int {
 	return len(t.bytes)
 }
 
-func (t *TypeDefs) BytesFrom(at int) []byte {
-	return t.bytes[at:]
+func (t *TypeDefs) Bytes() []byte {
+	return t.bytes
 }
 
 func (t *TypeDefs) Value(id uint32) []byte {

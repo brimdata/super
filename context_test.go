@@ -22,19 +22,19 @@ func TestContextLookupTypeNamedErrors(t *testing.T) {
 func TestContextLookupTypeNamedAndLookupTypeDef(t *testing.T) {
 	sctx := super.NewContext()
 
-	assert.Nil(t, sctx.LookupNamedByName("x"))
+	assert.Nil(t, sctx.LookupByName("x"))
 
 	named1, err := sctx.LookupTypeNamed("x", super.TypeNull)
 	require.NoError(t, err)
-	assert.Same(t, named1, sctx.LookupNamedByName("x"))
+	assert.Same(t, named1, sctx.LookupByName("x"))
 
 	named2, err := sctx.LookupTypeNamed("x", super.TypeInt8)
 	require.NoError(t, err)
-	assert.Same(t, named2, sctx.LookupNamedByName("x"))
+	assert.Same(t, named2, sctx.LookupByName("x"))
 
 	named3, err := sctx.LookupTypeNamed("x", super.TypeNull)
 	require.NoError(t, err)
-	assert.Same(t, named3, sctx.LookupNamedByName("x"))
+	assert.Same(t, named3, sctx.LookupByName("x"))
 	assert.Same(t, named3, named1)
 }
 

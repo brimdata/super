@@ -33,7 +33,7 @@ func (e *Encoder) Len() int {
 }
 
 func (e *Encoder) nextBuffer() []byte {
-	b := e.defs.BytesFrom(e.off)
+	b := e.defs.Bytes()[e.off:]
 	e.off = e.defs.Len()
 	return b
 }

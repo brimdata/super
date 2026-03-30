@@ -48,7 +48,7 @@ func (t *typeName) Call(args []super.Value) super.Value {
 		return t.sctx.WrapError("typename: argument must be a string", args[0])
 	}
 	name := string(args[0].Bytes())
-	typ := t.sctx.LookupNamedByName(name)
+	typ := t.sctx.LookupByName(name)
 	if typ == nil {
 		return t.sctx.Missing()
 	}
