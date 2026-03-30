@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 )
 
 func die(err error) {
@@ -32,7 +33,7 @@ func init() {
 }
 
 func main() {
-	r, _, err := os.Pipe()
+	r, w, err := os.Pipe()
 	die(err)
 
 	if portfile == "" {
@@ -43,6 +44,9 @@ func main() {
 		fmt.Fprintln(os.Stderr, "must provide -pidfile arg")
 		os.Exit(1)
 	}
+	// ExtraFiles[0] is always fd 3 in the child (after stdin=0, stdout=1,
+	// stderr=2), regardless of what fd r has in the parent process.
+	const brimFDInChild = 3
 	args := []string{
 		"db",
 		"serve",
@@ -50,7 +54,7 @@ func main() {
 		"-db=" + dbroot,
 		"-log.level=warn",
 		"-portfile=" + portfile,
-		fmt.Sprintf("-brimfd=%d", r.Fd()),
+		fmt.Sprintf("-brimfd=%d", brimFDInChild),
 	}
 	stderr := bytes.NewBuffer(nil)
 	cmd := exec.Command("super", args...)
@@ -63,4 +67,9 @@ func main() {
 	err = os.WriteFile(pidfile, []byte(pid), 0644)
 	die(err)
 	cmd.Wait()
+	// Keep w alive so the pipe's write end isn't closed by the GC
+	// finalizer before mockzui is killed. Closing the write end early
+	// would cause the super db serve child to see EOF on brimfd and
+	// shut down prematurely.
+	runtime.KeepAlive(w)
 }
