@@ -5,58 +5,124 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 )
 
 func Materialize(sctx *super.Context, b *Builder) vector.Any {
-	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
-		return expr.Unblend(sctx, vecs[0])
-	}, materialize(sctx, b.stack[0]))
+	m := &materializer{
+		sctx: sctx,
+		defs: super.NewTypeDefs(),
+	}
+	vec, subtypes := m.value(b.stack[0], false)
+	if subtypes != nil {
+		panic(subtypes)
+	}
+	return vec
 }
 
-func materialize(sctx *super.Context, v Value) vector.Any {
+type materializer struct {
+	sctx *super.Context
+	defs *super.TypeDefs
+}
+
+func (m *materializer) value(v Value, fuse bool) (vector.Any, []uint32) {
 	switch v := v.(type) {
 	case *Null:
-		return vector.NewNull(v.len)
+		return vector.NewNull(v.len), nil
 	case *Bool:
-		return vector.NewBool(v.Value)
+		return vector.NewBool(v.Value), nil
 	case *Int:
-		return v.Value
+		return v.Value, nil
 	case *Float:
-		return v.Value
+		return v.Value, nil
 	case *String:
-		return v.Value
+		return v.Value, nil
 	case *Union:
-		return materializeUnion(sctx, v)
+		return m.union(v, fuse)
 	case *Array:
-		inner := materialize(sctx, v.Inner)
-		typ := sctx.LookupTypeArray(inner.Type())
-		return vector.NewArray(typ, v.Offsets, inner)
+		return m.array(v, fuse)
 	case *Record:
-		return materializeRecord(sctx, v)
+		return m.record(v, fuse)
+	case *Empty:
+		// This happens when an array value never saw any contents
+		// so all of the inner values of the array are zero length
+		// and thus have an unknown inner type.  We return a
+		// a zero-length null value here so that the type of the
+		// array is [null] as the value will never be used.
+		return vector.NewNull(0), nil
 	default:
 		panic(v)
 	}
 }
 
-func materializeUnion(sctx *super.Context, u *Union) vector.Any {
+func (m *materializer) union(u *Union, fuse bool) (vector.Any, []uint32) {
 	var types []super.Type
 	var vecs []vector.Any
-	for _, v := range u.Values() {
-		vec := materialize(sctx, v)
-		types = append(types, vec.Type())
+	vals := u.Values()
+	dynamic := make([][]uint32, 0, len(vals))
+	fixed := make([]uint32, 0, len(vals))
+	for _, v := range vals {
+		vec, ids := m.value(v, true)
+		dynamic = append(dynamic, ids)
+		var id uint32
+		if ids == nil {
+			id = m.defs.LookupType(vec.Type())
+		}
+		fixed = append(fixed, uint32(id))
 		vecs = append(vecs, vec)
+		types = append(types, vec.Type())
 	}
-	subTypes := make([]super.Type, len(u.Tags))
-	for i, tag := range u.Tags {
-		subTypes[i] = types[tag]
+	utyp := m.sctx.LookupTypeUnion(super.UniqueTypes(types))
+	subtypes := m.makeUnionSubtypes(u.Tags, dynamic, fixed)
+	typ := m.sctx.LookupTypeFusion(utyp)
+	loader := &subtypeLoader{
+		mapper:   super.NewTypeDefsMapper(m.sctx, m.defs),
+		subtypes: subtypes,
 	}
-	utyp := sctx.LookupTypeUnion(types)
-	return vector.NewUnion(utyp, u.Tags, vecs)
+	vec := vector.NewUnion(utyp, u.Tags, vecs)
+	if !fuse {
+		subtypes = nil
+	}
+	return vector.NewFusionWithLoader(m.sctx, typ, loader, vec), subtypes
 }
 
-func materializeRecord(sctx *super.Context, r *Record) vector.Any {
+func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixed []uint32) []uint32 {
+	subtypes := make([]uint32, 0, len(tags))
+	for _, tag := range tags {
+		var id uint32
+		if dynamic[tag] != nil {
+			id = dynamic[tag][0]
+			dynamic[tag] = dynamic[tag][1:]
+		} else {
+			id = fixed[tag]
+		}
+		subtypes = append(subtypes, id)
+	}
+	return subtypes
+}
+
+func (m *materializer) array(a *Array, fuse bool) (vector.Any, []uint32) {
+	inner, ids := m.value(a.Inner, fuse)
+	typ := m.sctx.LookupTypeArray(inner.Type())
+	subtypes := m.makeArraySubtypes(ids)
+	return vector.NewArray(typ, a.Offsets, inner), subtypes
+}
+
+func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
+	if ids == nil {
+		return nil
+	}
+	subtypes := make([]uint32, 0, len(ids))
+	for _, id := range ids {
+		subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
+	}
+	return subtypes
+}
+
+func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
+	//XXX test for empty record
+	fuseHere := len(r.perm) > 1
+	fuseChildren := fuseHere || fuse
 	fieldNames := make([]string, len(r.LUT))
 	for name, id := range r.LUT {
 		fieldNames[id] = name
@@ -64,49 +130,112 @@ func materializeRecord(sctx *super.Context, r *Record) vector.Any {
 	n := r.Len()
 	var vecs []vector.Any
 	var allFields []super.Field
+	// dynamic and fixed are index by the supertype's column number.
+	// dynamic holds the subtype ID vectors of fields that have them
+	// attached (because there is a fusion type below).
+	// Otherwise, fixed holds the constant ID for all all rows in that
+	// field in each column position.
+	dynamic := make([][]uint32, len(r.Fields))
+	fixed := make([]uint32, len(r.Fields))
 	for i, field := range r.Fields {
 		rle := r.RLEs[i].End(n)
-		vec := materialize(sctx, field.Value)
+		vec, ids := m.value(field.Value, fuseChildren)
+		dynamic[i] = ids
+		// XXX We shouldn't always pollute the typedefs with this
+		// type... only if there is a demand for fusion, i.e.,
+		// don't put the type ID in the typedefs if it's going to
+		// be thrown away?!  This isn't all that big a deal
+		// and we can cleanup later.
+		if ids == nil {
+			fixed[i] = m.defs.LookupType(vec.Type())
+		}
 		field := super.NewFieldWithOpt(fieldNames[i], vec.Type(), len(rle) > 0)
-		vecs = append(vecs, vector.NewFieldFromRLE(sctx, vec, n, rle))
+		vecs = append(vecs, vector.NewFieldFromRLE(m.sctx, vec, n, rle))
 		allFields = append(allFields, field)
 	}
-	rtyp := sctx.MustLookupTypeRecord(allFields)
+	rtyp := m.sctx.MustLookupTypeRecord(allFields)
 	record := vector.NewRecord(rtyp, vecs, n)
-	if len(r.typeToTag) == 1 {
-		return record
+	if !fuseHere && !fuseChildren {
+		return record, nil
 	}
-	subTypeFieldIds := make([][]int, len(r.typeToTag))
-	subTypeMap := make([]*super.TypeRecord, len(r.typeToTag))
-	for desc, tag := range r.typeToTag {
+	subtypes := m.makeRecordSubtypes(r.perm, allFields, dynamic, fixed, r.tags)
+	if fuseHere {
+		typ := m.sctx.LookupTypeFusion(rtyp)
+		loader := &subtypeLoader{
+			mapper:   super.NewTypeDefsMapper(m.sctx, m.defs),
+			subtypes: subtypes,
+		}
+		if !fuse {
+			subtypes = nil
+		}
+		return vector.NewFusionWithLoader(m.sctx, typ, loader, record), subtypes
+	}
+	if !fuse {
+		subtypes = nil
+	}
+	return record, subtypes
+}
+
+func (m *materializer) makeRecordSubtypes(perm map[string]uint32, fields []super.Field, dynamic [][]uint32, fixed []uint32, tags []uint32) []uint32 {
+	// We make a template for each permutation, which is a list of
+	// type IDs corresponding to the types of each field.  These
+	// will get overwrriten on each lookup to the actual type based
+	// on any children subtypes or fixed type ID.  There is also
+	// a names slice for each pemutation.
+	templates := make([][]int32, len(perm))
+	names := make([][]string, len(perm))
+	for desc, tag := range perm {
 		r := strings.NewReader(desc)
-		var subFields []super.Field
-		var fieldIds []int
 		for {
-			fieldId, err := binary.ReadUvarint(r)
+			col, err := binary.ReadUvarint(r)
 			if err != nil {
 				break
 			}
-			fieldIds = append(fieldIds, int(fieldId))
-			f := allFields[fieldId]
-			subFields = append(subFields, super.NewField(f.Name, f.Type))
+			templates[tag] = append(templates[tag], int32(col))
+			names[tag] = append(names[tag], fields[col].Name)
 		}
-		subTypeFieldIds[tag] = fieldIds
-		subTypeMap[tag] = sctx.MustLookupTypeRecord(subFields)
 	}
-	indexes := make([][]uint32, len(subTypeMap))
-	dtags := make([]uint32, n)
-	for i, tag := range r.tags {
-		indexes[tag] = append(indexes[tag], uint32(i))
-		dtags[i] = tag
-	}
-	var recs []vector.Any
-	for i, typ := range subTypeMap {
-		var subvecs []vector.Any
-		for _, fieldId := range subTypeFieldIds[i] {
-			subvecs = append(subvecs, vector.Pick(vecs[fieldId], indexes[i]))
+	// XXX There are a couple optimizations we could do here.
+	// First, we could serialize the scatch lookup as the actual
+	// typedefs table key directly instead of serializing scratch IDs
+	// then making the typedefs key in BindTypeRecord. Second, we
+	// could limit the lookups to just each permutation of the
+	// record types that is equal to the cardinality of the subtypes
+	// slice output.  We will wait on these ideas until profiling
+	// suggests otherwise.
+	var scratch []uint32
+	subtypes := make([]uint32, len(tags))
+	for i, tag := range tags {
+		scratch = scratch[:0]
+		for _, col := range templates[tag] {
+			if dynamic[col] != nil {
+				scratch = append(scratch, dynamic[col][0])
+				dynamic[col] = dynamic[col][1:]
+			} else {
+				scratch = append(scratch, fixed[col])
+			}
 		}
-		recs = append(recs, vector.NewRecord(typ, subvecs, uint32(len(indexes[i]))))
+		subtypes[i] = m.defs.BindTypeRecord(names[tag], scratch, nil)
 	}
-	return vector.NewUnionFromDynamic(sctx, vector.NewDynamic(dtags, recs))
+	return subtypes
+}
+
+// XXX we will move subtypeLoader to package vector so it can be
+// shared by the CSUP typedefs table when we change CSUP to use
+// typedefs instead of type values.
+type subtypeLoader struct {
+	mapper   *super.TypeDefsMapper
+	subtypes []uint32
+}
+
+func (s *subtypeLoader) Load() []super.Type {
+	types := make([]super.Type, 0, len(s.subtypes))
+	for _, id := range s.subtypes {
+		typ := s.mapper.LookupType(id)
+		if typ == nil {
+			panic(id)
+		}
+		types = append(types, typ)
+	}
+	return types
 }

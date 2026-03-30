@@ -11,18 +11,29 @@ var _ Value = (*Record)(nil)
 type Record struct {
 	Fields []*Element
 	RLEs   []vector.RLE
-	LUT    map[string]int
-
+	// LUT maps a field name to a column number in the fused record
+	LUT map[string]int
+	// tags encodes the permute number and has the same length of the
+	// the Record vector, so in a sense, are like union tags.
+	// As different permuations of field names are encountered
+	// they are tracked in the permutation map and each unique arrangement
+	// assigned a unique tag.  Note that there may ultimately be
+	// more types that unique tags because each field underneath
+	// may have fusion types but this is handled in materialize.
 	tags []uint32
-	// typeToTag map[super.Type]uint32
-	typeToTag map[string]uint32
-	scratch   []byte
+	// perm keeps track of each unique permutation of fields
+	// as they appear in the fused record.  We index this map with
+	// a uvarint coded string of the field positions that each pattern
+	// has with respect to the fused fields.  scratch is used by
+	// the visitor calls to build up the array.
+	perm    map[string]uint32
+	scratch []byte
 }
 
 func NewRecord() *Record {
 	return &Record{
-		LUT:       make(map[string]int),
-		typeToTag: make(map[string]uint32),
+		LUT:  make(map[string]int),
+		perm: make(map[string]uint32),
 	}
 }
 
@@ -40,16 +51,15 @@ func (r *Record) Field(name string) Value {
 		r.RLEs = append(r.RLEs, vector.RLE{})
 	}
 	r.scratch = binary.AppendUvarint(r.scratch, uint64(idx))
-	f := r.Fields[idx]
 	r.RLEs[idx].Touch(uint32(len(r.tags)))
-	return f
+	return r.Fields[idx]
 }
 
 func (r *Record) EndRecord() {
-	tag, ok := r.typeToTag[string(r.scratch)]
+	tag, ok := r.perm[string(r.scratch)]
 	if !ok {
-		tag = uint32(len(r.typeToTag))
-		r.typeToTag[string(r.scratch)] = tag
+		tag = uint32(len(r.perm))
+		r.perm[string(r.scratch)] = tag
 	}
 	r.tags = append(r.tags, tag)
 }

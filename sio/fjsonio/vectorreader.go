@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-var VecBatchSize uint32 = 1024
+var VecBatchSize uint32 = 10 * 1024
 
 type VectorReader struct {
 	sctx     *super.Context

@@ -494,6 +494,14 @@ func DecodeLength(tv scode.Bytes) (int, scode.Bytes) {
 	return int(namelen), tv[n:]
 }
 
+func DecodeID(b []byte) (uint32, []byte) {
+	v, n := binary.Uvarint(b)
+	if n <= 0 {
+		return 0, nil
+	}
+	return uint32(v), b[n:]
+}
+
 func (c *Context) Missing() Value {
 	return NewValue(c.StringTypeError(), Missing)
 }
@@ -651,9 +659,7 @@ func (t *TypeDefs) AppendInPlace() uint32 {
 	// Do an append but use the bytes that are poking off
 	// the end as the new value and compute the slot from that.
 	slot := uint32(len(t.offsets) - 1)
-	before := t.offsets[slot]
-	after := uint32(len(t.bytes))
-	t.offsets = append(t.offsets, after-before)
+	t.offsets = append(t.offsets, uint32(len(t.bytes)))
 	return slot + IDTypeComplex
 }
 
@@ -719,11 +725,35 @@ func (t *TypeDefs) LookupTypeRecord(fields []Field) uint32 {
 	return t.Lookup(at)
 }
 
+func (t *TypeDefs) BindTypeRecord(names []string, fields []uint32, opts []bool) uint32 {
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, TypeDefRecord)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(fields)))
+	for k, id := range fields {
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(len(names[k])))
+		t.bytes = append(t.bytes, names[k]...)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+		var opt byte
+		if opts != nil && opts[k] {
+			opt = 1
+		}
+		t.bytes = append(t.bytes, opt)
+	}
+	return t.Lookup(at)
+}
+
 func (t *TypeDefs) LookupTypeWrapped(typedef int, inner Type) uint32 {
 	id := t.LookupType(inner)
 	at := len(t.bytes)
 	t.bytes = append(t.bytes, byte(typedef))
 	t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	return t.Lookup(at)
+}
+
+func (t *TypeDefs) BindTypeWrapped(typedef int, inner uint32) uint32 {
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, byte(typedef))
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(inner))
 	return t.Lookup(at)
 }
 
@@ -775,4 +805,167 @@ func (t *TypeDefs) LookupTypeNamed(name string, inner Type) uint32 {
 	t.bytes = append(t.bytes, name...)
 	t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
 	return t.Lookup(at)
+}
+
+type TypeDefsMapper struct {
+	*TypeDefs
+	sctx  *Context
+	cache map[uint32]Type
+}
+
+func NewTypeDefsMapper(sctx *Context, defs *TypeDefs) *TypeDefsMapper {
+	return &TypeDefsMapper{
+		TypeDefs: defs,
+		sctx:     sctx,
+		cache:    make(map[uint32]Type),
+	}
+}
+
+func (t *TypeDefsMapper) LookupType(id uint32) Type {
+	typ, ok := t.cache[id]
+	if !ok {
+		typ = t.lookupType(id)
+		t.cache[id] = typ
+	}
+	return typ
+}
+
+func (t *TypeDefsMapper) lookupType(id uint32) Type {
+	if id < IDTypeComplex {
+		t, _ := LookupPrimitiveByID(int(id))
+		return t
+	}
+	b := t.Value(id)
+	typedef := b[0]
+	b = b[1:]
+	switch typedef {
+	case TypeDefNamed:
+		name, b := DecodeName(b)
+		if b == nil {
+			return nil
+		}
+		id, b := DecodeID(b)
+		typ := t.LookupType(id)
+		if typ == nil {
+			return nil
+		}
+		named, err := t.sctx.LookupTypeNamed(name, typ)
+		if err != nil {
+			return nil
+		}
+		return named
+	case TypeDefRecord:
+		n, b := DecodeLength(b)
+		if b == nil || n > MaxRecordFields {
+			return nil
+		}
+		fields := make([]Field, 0, n)
+		for range n {
+			var name string
+			name, b = DecodeName(b)
+			if b == nil {
+				return nil
+			}
+			var id uint32
+			id, b = DecodeID(b)
+			typ := t.LookupType(id)
+			if typ == nil {
+				return nil
+			}
+			optByte := b[0]
+			b = b[1:]
+			var opt bool
+			if optByte != 0 {
+				opt = true
+			}
+			fields = append(fields, Field{name, typ, opt})
+		}
+		typ, err := t.sctx.LookupTypeRecord(fields)
+		if err != nil {
+			return nil
+		}
+		return typ
+	case TypeDefArray:
+		var id uint32
+		id, _ = DecodeID(b)
+		inner := t.LookupType(id)
+		if inner == nil {
+			return nil
+		}
+		return t.sctx.LookupTypeArray(inner)
+	case TypeDefSet:
+		var id uint32
+		id, _ = DecodeID(b)
+		inner := t.LookupType(id)
+		if inner == nil {
+			return nil
+		}
+		return t.sctx.LookupTypeSet(inner)
+	case TypeDefMap:
+		var keyID, valID uint32
+		keyID, b = DecodeID(b)
+		if b == nil {
+			return nil
+		}
+		valID, _ = DecodeID(b)
+		keyType := t.LookupType(keyID)
+		valType := t.LookupType(valID)
+		if keyType == nil || valType == nil {
+			return nil
+		}
+		return t.sctx.LookupTypeMap(keyType, valType)
+	case TypeDefUnion:
+		n, b := DecodeLength(b)
+		if b == nil || n > MaxUnionTypes {
+			return nil
+		}
+		types := make([]Type, 0, n)
+		for range n {
+			var id uint32
+			id, b = DecodeID(b)
+			typ := t.LookupType(id)
+			if typ == nil {
+				return nil
+			}
+			types = append(types, typ)
+		}
+		return t.sctx.LookupTypeUnion(types)
+	case TypeDefEnum:
+		n, b := DecodeLength(b)
+		if b == nil || n > MaxEnumSymbols {
+			return nil
+		}
+		var symbols []string
+		for range n {
+			var symbol string
+			symbol, b = DecodeName(b)
+			if b == nil {
+				return nil
+			}
+			symbols = append(symbols, symbol)
+		}
+		return t.sctx.LookupTypeEnum(symbols)
+	case TypeDefError:
+		id, b := DecodeID(b)
+		if b == nil {
+			return nil
+		}
+		inner := t.LookupType(id)
+		if inner == nil {
+			return nil
+		}
+		return t.sctx.LookupTypeError(inner)
+	case TypeDefFusion:
+		id, b := DecodeID(b)
+		if b == nil {
+			return nil
+		}
+		inner := t.LookupType(id)
+		if inner == nil {
+			return nil
+		}
+		return t.sctx.LookupTypeFusion(inner)
+	default:
+		panic(id)
+	}
 }

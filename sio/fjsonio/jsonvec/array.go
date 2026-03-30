@@ -23,7 +23,7 @@ func (a *Array) EndArray(inner Value) {
 	a.Inner = inner
 	n := a.Inner.Len()
 	if n == 0 {
-		a.Inner = new(Null)
+		a.Inner = new(Empty)
 	}
 	a.Offsets = append(a.Offsets, n)
 }
@@ -36,5 +36,9 @@ func (a *Array) OnString(v string) Value { return ToUnion(a).OnString(v) }
 func (a *Array) BeginRecord() Value      { return ToUnion(a).BeginRecord() }
 func (a *Array) Field(v string) Value    { panic("system error") }
 func (a *Array) EndRecord()              { panic("system error") }
-func (a *Array) Kind() vector.Kind       { return vector.KindNull }
+func (a *Array) Kind() vector.Kind       { return vector.KindArray }
 func (a *Array) Len() uint32             { return uint32(len(a.Offsets)) - 1 }
+
+type Empty struct {
+	Unknown
+}
