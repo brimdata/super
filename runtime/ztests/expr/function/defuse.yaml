@@ -24,6 +24,16 @@ output: *input
 spq: fuse | defuse(this)
 
 input: &input |
+  {a:{b:1}}
+  {a:{b:1,c:2}::=n1}::=n2
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
   1::=p1
   {a:{b:1::=r1}::=r2}::=r3
   [[1::=a1]::=a2]::=a3

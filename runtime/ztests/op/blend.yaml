@@ -136,11 +136,11 @@ input: |
   error(1::=er1)::=er2
 
 output: |
-  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  {a:1::=r1}::(int64|(u3=string)|{a:r1}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  [1::=a1]::(int64|(u3=string)|{a:r1=int64}|[a1]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  |[1::=s1]|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  |{1::=m1:2::=m2}|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1:m2}||enum(a,b)|error(er1=int64))
-  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  "a"::enum(a,b)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  error(1::=er1)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  1::(int64|(u3=string)|{a:r1=int64}|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(en1=enum(a,b))|(er2=error(er1=int64)))
+  {a:1::=r1}::(int64|(u3=string)|{a:r1}|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(en1=enum(a,b))|(er2=error(er1=int64)))
+  [1::=a1]::=a2::(int64|(u3=string)|{a:r1=int64}|a2|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(en1=enum(a,b))|(er2=error(er1=int64)))
+  |[1::=s1]|::=s2::(int64|(u3=string)|{a:r1=int64}|(a2=[a1=int64])|s2|(m3=|{m1=int64:m2=int64}|)|(en1=enum(a,b))|(er2=error(er1=int64)))
+  |{1::=m1:2::=m2}|::=m3::(int64|(u3=string)|{a:r1=int64}|(a2=[a1=int64])|(s2=|[s1=int64]|)|m3|(en1=enum(a,b))|(er2=error(er1=int64)))
+  1::(int64|(u3=string)|{a:r1=int64}|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(en1=enum(a,b))|(er2=error(er1=int64)))
+  "a"::(en1=enum(a,b))::(int64|(u3=string)|{a:r1=int64}|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|en1|(er2=error(er1=int64)))
+  error(1::=er1)::=er2::(int64|(u3=string)|{a:r1=int64}|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(en1=enum(a,b))|er2)

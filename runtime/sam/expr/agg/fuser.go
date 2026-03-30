@@ -38,7 +38,6 @@ func (f *Fuser) Type() super.Type {
 }
 
 func (f *Fuser) fuse(a, b super.Type) super.Type {
-	a, b = super.TypeUnder(a), super.TypeUnder(b)
 	if a == b {
 		return a
 	}
@@ -116,15 +115,17 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		if b, ok := b.(*super.TypeError); ok {
 			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
+	case *super.TypeNamed:
+		return f.fusion(f.fuse(a.Type, b))
 	}
-	if _, ok := b.(*super.TypeUnion); ok {
+	switch b.(type) {
+	case *super.TypeUnion, *super.TypeNamed:
 		return f.fuse(b, a)
 	}
 	return f.fusion(f.sctx.LookupTypeUnion([]super.Type{a, b}))
 }
 
 func (f *Fuser) fuseMono(typ super.Type) super.Type {
-	typ = super.TypeUnder(typ)
 	if typ, ok := typ.(*super.TypeFusion); ok {
 		return f.fusion(f.fuseMono(typ.Type))
 	}
@@ -157,6 +158,8 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 		if inner := f.fuseMono(typ.Type); inner != typ.Type {
 			// If type changed, drop the name.
 			out = inner
+		} else {
+			out = typ
 		}
 	default:
 		out = typ
