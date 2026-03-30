@@ -5,7 +5,7 @@ import (
 	"io"
 	"slices"
 
-	"github.com/bytedance/sonic/decoder"
+	"github.com/brimdata/super/pkg/jsonskip"
 )
 
 const maxSize = 512 * 1024 * 1024
@@ -22,7 +22,7 @@ func newValReader(r io.Reader) *valReader {
 }
 
 func (r *valReader) Next() ([]byte, error) {
-	start, end := decoder.Skip(r.cursor)
+	start, end := jsonskip.Skip(r.cursor)
 	if start < 0 {
 		// XXX There's an issue here if we encounter a value that is larger than
 		// the default buffer size. We should probably include functionality to
@@ -32,7 +32,7 @@ func (r *valReader) Next() ([]byte, error) {
 		if err := r.fill(); err != nil {
 			return nil, err
 		}
-		start, end = decoder.Skip(r.cursor)
+		start, end = jsonskip.Skip(r.cursor)
 		if start < 0 {
 			// if cursor is full size increase to make buffer size and try
 			// again.
