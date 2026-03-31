@@ -26,7 +26,7 @@ type VectorReader struct {
 	metaFilters   []*metafilter
 	readerAt      io.ReaderAt
 	hasClosed     bool
-	vecs          []vector.Any
+	vecs          [][]vector.Any
 }
 
 func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
@@ -53,15 +53,17 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 			}
 		}
 	}
-
+	activeReaders := new(atomic.Int64)
+	activeReaders.Store(int64(concurrentReaders))
 	return &VectorReader{
 		ctx:           ctx,
 		sctx:          sctx,
-		activeReaders: &atomic.Int64{},
+		activeReaders: activeReaders,
 		stream:        &stream{ctx: ctx, r: ra},
 		pushdown:      p,
 		metaFilters:   metaFilters,
 		readerAt:      ra,
+		vecs:          make([][]vector.Any, concurrentReaders),
 	}, nil
 }
 
@@ -83,18 +85,23 @@ func (v *VectorReader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 		return nil, err
 	}
 	for {
-		if n := len(v.vecs); n > 0 {
+		if k := len(v.vecs[n]); k > 0 {
 			// Return these last to first so v.vecs gets resued.
-			vec := v.vecs[n-1]
-			v.vecs = v.vecs[:n-1]
+			vec := v.vecs[n][k-1]
+			v.vecs[n] = v.vecs[n][:k-1]
 			return vec, nil
 		}
 		hdr, off, err := v.stream.next()
-		if hdr == nil || err != nil {
+		if err != nil {
+			v.close()
 			return nil, err
+		}
+		if hdr == nil {
+			return nil, v.close()
 		}
 		o, err := csup.NewObjectFromHeader(io.NewSectionReader(v.readerAt, off, math.MaxInt64), *hdr)
 		if err != nil {
+			v.close()
 			return nil, err
 		}
 		// XXX using the query context for the metadata filter unnecessarily
@@ -104,16 +111,18 @@ func (v *VectorReader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 		if len(v.metaFilters) == 0 || !pruneObject(v.sctx, v.metaFilters[n], o) {
 			vo := vcache.NewObjectFromCSUP(o)
 			if v.pushdown.Unordered() {
-				v.vecs, err = vo.FetchUnordered(v.vecs[:0], v.sctx, v.pushdown.Projection())
+				v.vecs[n], err = vo.FetchUnordered(v.vecs[n][:0], v.sctx, v.pushdown.Projection())
 				if err != nil {
+					v.close()
 					return nil, err
 				}
 			} else {
 				vec, err := vo.Fetch(v.sctx, v.pushdown.Projection())
 				if err != nil {
+					v.close()
 					return nil, err
 				}
-				v.vecs = append(v.vecs, vec)
+				v.vecs[n] = append(v.vecs[n], vec)
 			}
 		}
 	}
@@ -130,13 +139,9 @@ func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 }
 
 func (v *VectorReader) close() error {
-	if v.hasClosed {
-		return nil
-	}
-	v.hasClosed = true
-	if v.activeReaders.Add(-1) <= 0 {
+	if v.activeReaders.Add(-1) == 0 {
 		if closer, ok := v.readerAt.(io.Closer); ok {
-			return closer.Close() // coffee is for closers
+			return closer.Close()
 		}
 	}
 	return nil
