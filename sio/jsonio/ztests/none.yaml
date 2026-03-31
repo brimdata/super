@@ -1,0 +1,11 @@
+spq: pass
+
+input: |
+  {a:1,b?:2}
+  {a:3,b?:_::int64}
+
+output-flags: -f json
+
+output: |
+  {"a":1,"b":2}
+  {"a":3}
