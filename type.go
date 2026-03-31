@@ -1,12 +1,3 @@
-// Package bsup implements a data typing system based on the zeek type system.
-// All zeek types are defined here and implement the Type interface while instances
-// of values implement the Value interface.  All values conform to exactly one type.
-// The package provides a fast-path for comparing a value to a byte slice
-// without having to create a zeek value from the byte slice.  To exploit this,
-// all values include a Comparison method that returns a Predicate function that
-// takes a byte slice and a Type and returns a boolean indicating whether the
-// the byte slice with the indicated Type matches the value.  The package also
-// provides mechanism for coercing values in well-defined and natural ways.
 package super
 
 import (
