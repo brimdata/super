@@ -186,8 +186,8 @@ func (w *Writer) writeEnum(typ *super.TypeEnum, bytes scode.Bytes) {
 }
 
 func convertEnum(typ *super.TypeEnum, bytes scode.Bytes) string {
-	if k := int(super.DecodeUint(bytes)); k < len(typ.Symbols) {
-		return typ.Symbols[k]
+	if selector := super.DecodeUint(bytes); selector < uint64(len(typ.Symbols)) {
+		return typ.Symbols[selector]
 	}
 	return "<bad enum>"
 }

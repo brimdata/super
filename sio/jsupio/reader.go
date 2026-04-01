@@ -296,6 +296,12 @@ func (r *Reader) decodeEnum(b *scode.Builder, typ *super.TypeEnum, body any) err
 	if err != nil {
 		return errors.New("JSUP enum index value is not a string integer")
 	}
+	if index < 0 {
+		return errors.New("JSUP enum index value is negative")
+	}
+	if index >= len(typ.Symbols) {
+		return errors.New("JSUP enum index value out of range")
+	}
 	b.Append(super.EncodeUint(uint64(index)))
 	return nil
 }

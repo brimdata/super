@@ -1,6 +1,7 @@
 package super_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/brimdata/super"
@@ -81,5 +82,11 @@ func TestValueValidate(t *testing.T) {
 			}),
 			b.Bytes())
 		assert.NoError(t, r.Validate())
+	})
+	t.Run("enum/error/out-of-range-selector", func(t *testing.T) {
+		sctx := super.NewContext()
+		enumType := sctx.LookupTypeEnum([]string{"ok"})
+		val := super.NewValue(enumType, super.EncodeUint(math.MaxUint64))
+		assert.EqualError(t, val.Validate(), "enum selector out of range")
 	})
 }

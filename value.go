@@ -519,7 +519,7 @@ func checkSet(body scode.Bytes) error {
 }
 
 func checkEnum(typ *TypeEnum, body scode.Bytes) error {
-	if selector := DecodeUint(body); int(selector) >= len(typ.Symbols) {
+	if selector := DecodeUint(body); selector >= uint64(len(typ.Symbols)) {
 		return errors.New("enum selector out of range")
 	}
 	return nil
