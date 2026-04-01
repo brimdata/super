@@ -97,9 +97,7 @@ func (d *Dematerializer) Pull(done bool) (vector.Any, error) {
 }
 
 func (d *Dematerializer) ConcurrentPull(done bool, _ int) (vector.Any, error) {
-	d.mu.Lock()
-	batch, err := d.parent.Pull(done)
-	d.mu.Unlock()
+	batch, err := d.parentPull(done)
 	if batch == nil || err != nil {
 		return nil, err
 	}
@@ -109,6 +107,13 @@ func (d *Dematerializer) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 		builder.Write(val)
 	}
 	return builder.Build(d.sctx), nil
+}
+
+func (d *Dematerializer) parentPull(done bool) (Batch, error) {
+	d.mu.Lock()
+	// Defer to ensure lock is released if d.parent.Pull panics.
+	defer d.mu.Unlock()
+	return d.parent.Pull(done)
 }
 
 func WriteVec(w sio.Writer, vec vector.Any) error {
