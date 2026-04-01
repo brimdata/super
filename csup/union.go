@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
@@ -34,10 +35,51 @@ func (u *UnionEncoder) Write(vec vector.Any) {
 	}
 	union := vec.(*vector.Union)
 	u.count += vec.Len()
-	u.tags.Append(union.Tags)
-	for tag := range u.values {
-		u.values[tag].Write(union.Values[tag])
+	// Union vectors do not require that the values slice has
+	// alignment with the types in the union type.  Thus, we can
+	// have vectors land here that have different orderings for
+	// the same union type.  We could optimize this by adopting the
+	// order of the first vector and recomputing the tags for each
+	// subsequent incoming vector so that we don't have to rewrite
+	// the tags of the first vector, but for now, we just map
+	// everything to canonical order of the union types.
+	vecs, tags := u.reorder(u.typ, union)
+	u.tags.Append(tags)
+	for k, vec := range vecs {
+		u.values[k].Write(vec)
 	}
+}
+
+func (u *UnionEncoder) reorder(typ *super.TypeUnion, vec *vector.Union) ([]vector.Any, []uint32) {
+	if canonOrder(typ, vec.Values) {
+		return vec.Values, vec.Tags
+	}
+	tagmap := make([]uint32, len(vec.Values))
+	for inTag, vec := range vec.Values {
+		localTag := typ.TagOf(vec.Type())
+		if localTag < 0 {
+			panic(sup.String(vec.Type()))
+		}
+		tagmap[inTag] = uint32(localTag)
+	}
+	tags := make([]uint32, len(vec.Tags))
+	for k, intag := range vec.Tags {
+		tags[k] = tagmap[intag]
+	}
+	vals := make([]vector.Any, len(vec.Values))
+	for inTag, v := range vec.Values {
+		vals[tagmap[inTag]] = v
+	}
+	return vals, tags
+}
+
+func canonOrder(typ *super.TypeUnion, vecs []vector.Any) bool {
+	for inTag, vec := range vecs {
+		if inTag != typ.TagOf(vec.Type()) {
+			return false
+		}
+	}
+	return true
 }
 
 func (u *UnionEncoder) Emit(w io.Writer) error {
