@@ -51,6 +51,8 @@ spq: defuse(this)
 
 input: |
   {a:fusion(1::(int64|string),<int64>)}
+  {a?:_::int64,b:1,c:fusion(2,<int64>)}
 
 output: |
   {a:1}
+  {b:1,c:2}
