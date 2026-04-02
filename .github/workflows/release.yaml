@@ -22,15 +22,14 @@ jobs:
     - run: make test-heavy
     - name: Install SSL.com CodeSignTool
       run: |
-        wget https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -O /tmp/codesigntool.zip
+        curl -o /tmp/codesigntool.zip https://www.ssl.com/download/codesigntool-for-linux-and-macos/
         unzip /tmp/codesigntool.zip -d /tmp/codesigntool
         cat > /usr/local/bin/CodeSignTool << 'EOF'
         #!/bin/sh
         CODE_SIGN_TOOL_PATH=/tmp/codesigntool bash /tmp/codesigntool/CodeSignTool.sh "$@"
         EOF
-        chmod +x /tmp/codesigntool/CodeSignTool.sh /usr/local/bin/CodeSignTool
-    - name: Setup Java
-      uses: actions/setup-java@v4
+        chmod +x /usr/local/bin/CodeSignTool
+    - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -39,12 +38,12 @@ jobs:
         args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        SSLDOTCOM_USERNAME: ${{ secrets.SSLDOTCOM_USERNAME }}
-        SSLDOTCOM_PASSWORD: ${{ secrets.SSLDOTCOM_PASSWORD }}
-        SSLDOTCOM_CREDENTIAL_ID: ${{ secrets.SSLDOTCOM_CREDENTIAL_ID }}
-        SSLDOTCOM_TOTP_SECRET: ${{ secrets.SSLDOTCOM_TOTP_SECRET }}
         MACOS_SIGN_P12: ${{ secrets.MACOS_SIGN_P12 }}
         MACOS_SIGN_PASSWORD: ${{ secrets.MACOS_SIGN_PASSWORD }}
         MACOS_NOTARY_ISSUER_ID: ${{ secrets.MACOS_NOTARY_ISSUER_ID }}
         MACOS_NOTARY_KEY_ID: ${{ secrets.MACOS_NOTARY_KEY_ID }}
         MACOS_NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}
+        SSLDOTCOM_USERNAME: ${{ secrets.SSLDOTCOM_USERNAME }}
+        SSLDOTCOM_PASSWORD: ${{ secrets.SSLDOTCOM_PASSWORD }}
+        SSLDOTCOM_CREDENTIAL_ID: ${{ secrets.SSLDOTCOM_CREDENTIAL_ID }}
+        SSLDOTCOM_TOTP_SECRET: ${{ secrets.SSLDOTCOM_TOTP_SECRET }}
