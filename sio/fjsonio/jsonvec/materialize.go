@@ -120,7 +120,6 @@ func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
 }
 
 func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
-	//XXX test for empty record
 	fuseHere := len(r.perm) > 1
 	fuseChildren := fuseHere || fuse
 	fieldNames := make([]string, len(r.LUT))
