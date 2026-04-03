@@ -49,7 +49,7 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 	}
 	start, end := vector.ContainerOffset(array, slot)
 	values := array.Values
-	if start > 0 || end < vec.Len() {
+	if start > 0 || end < values.Len() {
 		index := make([]uint32, end-start)
 		for i := range index {
 			index[i] = start + uint32(i)
