@@ -1,0 +1,15 @@
+# The input data leads with the UTF-8 representation of byte-order mark (BOM).
+# See https://en.wikipedia.org/wiki/Byte_order_mark
+
+script: |
+  head -c 3 with-bom.csv | xxd
+  super -s -i csv -c "cut a" with-bom.csv
+
+inputs:
+  - name: with-bom.csv
+
+outputs:
+  - name: stdout
+    data: |
+      00000000: efbb bf                                  ...
+      {a:"foo"}

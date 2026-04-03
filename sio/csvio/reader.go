@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"unicode"
 
+	utext "golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
 )
@@ -35,7 +38,8 @@ type ReaderOpts struct {
 //}
 
 func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
-	preprocess := newPreprocess(r, opts.Delim)
+	utf8Reader := transform.NewReader(r, utext.UTF8BOM.NewDecoder())
+	preprocess := newPreprocess(utf8Reader, opts.Delim)
 	reader := csv.NewReader(preprocess)
 	if opts.Delim != 0 {
 		reader.Comma = opts.Delim
