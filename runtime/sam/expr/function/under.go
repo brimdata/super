@@ -2,18 +2,17 @@ package function
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 )
 
 type Under struct {
 	sctx     *super.Context
-	downcast Caster
+	downcast *downcast
 }
 
 func NewUnder(sctx *super.Context) *Under {
 	return &Under{
 		sctx:     sctx,
-		downcast: NewDowncast(sctx),
+		downcast: &downcast{sctx, "under"},
 	}
 }
 
@@ -25,19 +24,11 @@ func (u *Under) Call(args []super.Value) super.Value {
 	case *super.TypeError:
 		return super.NewValue(typ.Type, val.Bytes())
 	case *super.TypeFusion:
-		it := val.Bytes().Iter()
-		bytes := it.Next()
-		subType, err := u.sctx.LookupByValue(it.Next())
-		if err != nil {
-			panic(err)
+		val, errVal := u.downcast.defuse(typ, val.Bytes())
+		if errVal != nil {
+			return *errVal
 		}
-		out, ok := u.downcast.Cast(super.NewValue(typ.Type, bytes), subType)
-		if !ok {
-			// The runtime should never allow creation of a super value that
-			// doesn't follow the subtype invariant.
-			panic(sup.FormatValue(val))
-		}
-		return out
+		return val
 	case *super.TypeUnion:
 		return super.NewValue(typ.Untag(val.Bytes()))
 	case *super.TypeOfType:

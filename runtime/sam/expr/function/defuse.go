@@ -16,7 +16,7 @@ type defuse struct {
 func NewDefuse(sctx *super.Context) *defuse {
 	return &defuse{
 		sctx:     sctx,
-		downcast: &downcast{sctx: sctx},
+		downcast: &downcast{sctx: sctx, name: "defuse"},
 		has:      make(map[super.Type]bool),
 	}
 }
@@ -95,11 +95,11 @@ func (d *defuse) eval(in super.Value) super.Value {
 	case *super.TypeUnion:
 		return d.eval(in.DeunionIntoNameds())
 	case *super.TypeFusion:
-		_, subType := typ.Deref(d.sctx, in.Bytes())
-		if out, ok := d.downcast.Cast(in, subType); ok {
-			return out
+		out, errVal := d.downcast.defuse(typ, in.Bytes())
+		if errVal != nil {
+			return *errVal
 		}
-		return d.sctx.WrapError("cannot defuse super value", in)
+		return out
 	default:
 		// primitives, named types, enums
 		// BTW, named types are a barrier to defuse.
