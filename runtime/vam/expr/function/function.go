@@ -36,7 +36,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "compare":
 		argmin = 2
 		argmax = 3
-		f = &samFunc{sctx, function.NewCompare(sctx)}
+		f = newSamFunc(sctx, function.NewCompare(sctx))
 	case "concat":
 		argmin = 1
 		argmax = -1
@@ -46,7 +46,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmax = 2
 		f = &DatePart{sctx}
 	case "defuse":
-		f = &samFunc{sctx, function.NewDefuse(sctx)}
+		f = newSamFunc(sctx, function.NewDefuse(sctx))
 	case "error":
 		f = &Error{sctx}
 	case "fields":
@@ -156,7 +156,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = newUnflatten(sctx)
 	case "upcast":
 		argmin, argmax = 2, 2
-		f = &samFunc{sctx, function.NewUpcast(sctx)}
+		f = newSamFunc(sctx, function.NewUpcast(sctx))
 	case "upper":
 		f = &ToUpper{sctx}
 	default:
@@ -183,20 +183,25 @@ func underAll(args []vector.Any) []vector.Any {
 type samFunc struct {
 	sctx *super.Context
 	fn   samexpr.Function
+
+	builders []scode.Builder
+	values   []super.Value
+}
+
+func newSamFunc(sctx *super.Context, fn samexpr.Function) *samFunc {
+	return &samFunc{sctx: sctx, fn: fn}
 }
 
 func (f *samFunc) Call(args ...vector.Any) vector.Any {
-	builders := make([]scode.Builder, len(args))
-	vals := make([]super.Value, len(args))
+	f.builders = slices.Grow(f.builders[:0], len(args))[:len(args)]
 	b := vector.NewDynamicBuilder()
 	for i := range args[0].Len() {
-		for k := range args {
-			b := &builders[k]
-			b.Truncate()
-			args[k].Serialize(b, i)
-			vals[k] = super.NewValue(args[k].Type(), b.Bytes().Body())
+		f.values = f.values[:0]
+		for j, vec := range args {
+			val := vector.ValueAt(&f.builders[j], vec, i)
+			f.values = append(f.values, val)
 		}
-		b.Write(f.fn.Call(vals))
+		b.Write(f.fn.Call(f.values))
 	}
 	return b.Build(f.sctx)
 }
