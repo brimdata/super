@@ -4,3 +4,14 @@ input: &input |
   [{x:1},{y:1}]
 
 output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  "foo"::(int64|string)
+  "foo"::=named
+  "foo"::(named=int64|string)
+
+output: *input

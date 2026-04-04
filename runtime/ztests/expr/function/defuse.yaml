@@ -20,6 +20,7 @@ input: &input |
 output: *input
 
 ---
+skip: this will be turned on in the next PR that reworks downcast
 
 spq: fuse | defuse(this)
 

@@ -116,10 +116,12 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
 	case *super.TypeNamed:
-		return f.fusion(f.fuse(a.Type, b))
+		if b, ok := b.(*super.TypeNamed); ok && a.Name == b.Name {
+			named, _ := f.sctx.LookupTypeNamed(a.Name, f.fuse(a.Type, b.Type))
+			return f.fusion(named)
+		}
 	}
-	switch b.(type) {
-	case *super.TypeUnion, *super.TypeNamed:
+	if _, ok := b.(*super.TypeUnion); ok {
 		return f.fuse(b, a)
 	}
 	return f.fusion(f.sctx.LookupTypeUnion([]super.Type{a, b}))
@@ -155,12 +157,7 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 	case *super.TypeError:
 		out = f.sctx.LookupTypeError(f.fuseMono(typ.Type))
 	case *super.TypeNamed:
-		if inner := f.fuseMono(typ.Type); inner != typ.Type {
-			// If type changed, drop the name.
-			out = inner
-		} else {
-			out = typ
-		}
+		out, _ = f.sctx.LookupTypeNamed(typ.Name, f.fuseMono(typ.Type))
 	default:
 		out = typ
 	}
@@ -173,8 +170,10 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 // fuseIntoUnionTypes fuses typ into types while maintaining the invariant that
 // types contains at most one type of each complex kind but no unions.
 func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.Type {
-	typUnder := super.TypeUnder(typ)
-	switch typ := typUnder.(type) {
+	if named, ok := typ.(*super.TypeNamed); ok {
+		return f.addNamed(types, named)
+	}
+	switch typ := typ.(type) {
 	case *super.TypeUnion:
 		for _, t := range typ.Types {
 			types = f.fuseIntoUnionTypes(types, t)
@@ -189,20 +188,35 @@ func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.T
 		case t == typ:
 			// This is already in the union.
 			return types
-
-		case super.TypeUnder(t) == typUnder:
-			types[i] = typUnder
-			return types
 		case typKind != super.PrimitiveKind && typKind == t.Kind():
-			typ := f.fuse(t, typ)
-			if s, ok := typ.(*super.TypeFusion); ok {
-				typ = s.Type
-			}
-			types[i] = typ
+			types[i] = noFusion(f.fuse(t, typ))
 			return types
 		}
 	}
-	return append(types, typ)
+	return append(types, noFusion(typ))
+}
+
+func (f *Fuser) addNamed(types []super.Type, named *super.TypeNamed) []super.Type {
+	for i, t := range types {
+		if existingNamed, ok := t.(*super.TypeNamed); ok && existingNamed.Name == named.Name {
+			out := slices.Clone(types)
+			fused := f.fuseWithoutFusion(existingNamed.Type, noFusion(named.Type))
+			out[i], _ = f.sctx.LookupTypeNamed(named.Name, fused)
+			return out
+		}
+	}
+	return append(types, named)
+}
+
+func (f *Fuser) fuseWithoutFusion(t1, t2 super.Type) super.Type {
+	return noFusion(f.fuse(t1, t2))
+}
+
+func noFusion(typ super.Type) super.Type {
+	if s, ok := typ.(*super.TypeFusion); ok {
+		return s.Type
+	}
+	return typ
 }
 
 func (f *Fuser) fusion(typ super.Type) super.Type {
