@@ -173,16 +173,19 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 // fuseIntoUnionTypes fuses typ into types while maintaining the invariant that
 // types contains at most one type of each complex kind but no unions.
 func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.Type {
-	typUnder := super.TypeUnder(typ)
-	switch typ := typUnder.(type) {
+	switch typ := typ.(type) {
 	case *super.TypeUnion:
+		// Nested unions are flatted by fusion
 		for _, t := range typ.Types {
 			types = f.fuseIntoUnionTypes(types, t)
 		}
 		return types
 	case *super.TypeFusion:
+		// Recursively created fusion types are not part of the union as the
+		// union type is instead the fusion with subtypes identifying the original types.
 		return f.fuseIntoUnionTypes(types, typ.Type)
 	}
+	name := super.NameOf(typ)
 	typKind := typ.Kind()
 	for i, t := range types {
 		switch {
@@ -190,19 +193,23 @@ func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.T
 			// This is already in the union.
 			return types
 
-		case super.TypeUnder(t) == typUnder:
-			types[i] = typUnder
+		case name != "" && name == super.NameOf(t):
+			types[i] = f.fuseWithoutFusion(t, typ)
 			return types
 		case typKind != super.PrimitiveKind && typKind == t.Kind():
-			typ := f.fuse(t, typ)
-			if s, ok := typ.(*super.TypeFusion); ok {
-				typ = s.Type
-			}
-			types[i] = typ
+			types[i] = f.fuseWithoutFusion(t, typ)
 			return types
 		}
 	}
 	return append(types, typ)
+}
+
+func (f *Fuser) fuseWithoutFusion(t1, t2 super.Type) super.Type {
+	typ := f.fuse(t1, t2)
+	if s, ok := typ.(*super.TypeFusion); ok {
+		return s.Type
+	}
+	return typ
 }
 
 func (f *Fuser) fusion(typ super.Type) super.Type {

@@ -183,6 +183,13 @@ func TypeUnder(typ Type) Type {
 	return typ
 }
 
+func NameOf(typ Type) string {
+	if named, ok := typ.(*TypeNamed); ok {
+		return named.Name
+	}
+	return ""
+}
+
 // Field defines the name and type of a field for [TypeRecord].
 type Field struct {
 	Name string
