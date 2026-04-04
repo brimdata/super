@@ -78,7 +78,11 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 			}
 		} else {
 			for _, e := range a.aggs {
-				vals = append(vals, e.Eval(vec))
+				v := e.Eval(vec)
+				if e.Name == "fuse" {
+					v = &vector.NoRip{Any: v}
+				}
+				vals = append(vals, v)
 			}
 		}
 		vector.Apply(true, func(args ...vector.Any) vector.Any {

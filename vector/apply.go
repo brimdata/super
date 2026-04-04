@@ -4,6 +4,10 @@ import (
 	"iter"
 )
 
+type NoRip struct {
+	Any
+}
+
 // Apply applies eval to vecs. If any element of vecs is a Dynamic, Apply rips
 // vecs accordingly, applies eval to the ripped vectors, and stitches the
 // results together into a Dynamic. If ripUnions is true, Apply also rips

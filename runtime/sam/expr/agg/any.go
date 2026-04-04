@@ -14,9 +14,10 @@ func NewAny() *Any {
 }
 
 func (a *Any) Consume(val super.Value) {
-	// Copy any value from the input while favoring any-typed non-null values
-	// over null values.
-	if (*super.Value)(a).Type() == nil || (*super.Value)(a).IsNull() && !val.IsNull() {
+	if val.Deunion().IsNull() {
+		return
+	}
+	if (*super.Value)(a).Type() == nil {
 		*a = Any(val.Copy())
 	}
 }

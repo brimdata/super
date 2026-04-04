@@ -19,9 +19,12 @@ func NewUnion() *Union {
 }
 
 func (u *Union) Consume(val super.Value) {
-	if val.IsNull() {
+	if val.Deunion().IsNull() {
 		return
 	}
+	// XXX we shouldn't strip named types from union inputs but this requires
+	// a change to how we do partials.
+	val = val.Deunion()
 	u.Update(val.Type(), val.Bytes())
 }
 
@@ -94,7 +97,7 @@ func (u *Union) ConsumeAsPartial(val super.Value) {
 	for it := val.ContainerIter(); !it.Done(); {
 		typ := styp.Type
 		b := it.Next()
-		if union, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
+		if union, ok := typ.(*super.TypeUnion); ok {
 			typ, b = union.Untag(b)
 		}
 		u.Update(typ, b)

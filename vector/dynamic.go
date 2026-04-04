@@ -32,6 +32,7 @@ func (*Dynamic) Kind() Kind {
 }
 
 func (*Dynamic) Type() super.Type {
+	return nil
 	panic("can't call Type() on a vector.Dynamic")
 }
 

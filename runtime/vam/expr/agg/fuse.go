@@ -23,7 +23,25 @@ func newFuse(complete bool) *fuse {
 }
 
 func (f *fuse) Consume(vec vector.Any) {
-	typ := vec.Type()
+	if view, ok := vec.(*vector.View); ok {
+		vec = view.Any
+	}
+	if v, ok := vec.(*vector.NoRip); ok {
+		vec = v.Any
+	}
+	if d, ok := vec.(*vector.Dynamic); ok {
+		for slot := range vec.Len() {
+			f.consume(d.TypeOf(slot))
+		}
+		return
+	}
+	if vec.Type() == nil {
+		fmt.Printf("vec panic %T\n", vec)
+	}
+	f.consume(vec.Type())
+}
+
+func (f *fuse) consume(typ super.Type) {
 	if _, ok := f.seen[typ]; !ok {
 		f.seen[typ] = struct{}{}
 		f.types = append(f.types, typ)

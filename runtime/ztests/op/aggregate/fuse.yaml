@@ -42,3 +42,27 @@ input: |
 
 output: |
   <{a:fusion([fusion(int64|string|null)])}>
+
+---
+
+spq: fuse(this)
+
+vector: true
+
+input: |
+  1::=u1::(u2=(u1|string))
+
+output: |
+  <u2=(u1=int64)|string>
+
+---
+
+spq: fuse(this) by x:=1
+
+vector: true
+
+input: |
+  1::=u1::(u2=(u1|string))
+
+output: |
+  {x:1,fuse:<u2=(u1=int64)|string>}
