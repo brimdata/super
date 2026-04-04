@@ -78,8 +78,8 @@ func (m *materializer) union(u *Union, fuse bool) (vector.Any, []uint32) {
 	}
 	subtypes := m.makeUnionSubtypes(u.Tags, dynamic, fixed)
 	typ := m.sctx.LookupTypeFusion(utyp)
-	loader := &subtypeLoader{
-		mapper:   super.NewTypeDefsMapper(m.sctx, m.defs),
+	loader := &subtypesLoader{
+		defs:     m.defs,
 		subtypes: subtypes,
 	}
 	vec := vector.NewUnion(utyp, u.Tags, vecs)
@@ -163,8 +163,8 @@ func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
 	subtypes := m.makeRecordSubtypes(r.perm, allFields, dynamic, fixed, r.tags)
 	if fuseHere {
 		typ := m.sctx.LookupTypeFusion(rtyp)
-		loader := &subtypeLoader{
-			mapper:   super.NewTypeDefsMapper(m.sctx, m.defs),
+		loader := &subtypesLoader{
+			defs:     m.defs,
 			subtypes: subtypes,
 		}
 		if !fuse {
@@ -222,22 +222,11 @@ func (m *materializer) makeRecordSubtypes(perm map[string]uint32, fields []super
 	return subtypes
 }
 
-// XXX we will move subtypeLoader to package vector so it can be
-// shared by the CSUP typedefs table when we change CSUP to use
-// typedefs instead of type values.
-type subtypeLoader struct {
-	mapper   *super.TypeDefsMapper
+type subtypesLoader struct {
+	defs     *super.TypeDefs
 	subtypes []uint32
 }
 
-func (s *subtypeLoader) Load() []super.Type {
-	types := make([]super.Type, 0, len(s.subtypes))
-	for _, id := range s.subtypes {
-		typ := s.mapper.LookupType(id)
-		if typ == nil {
-			panic(id)
-		}
-		types = append(types, typ)
-	}
-	return types
+func (s *subtypesLoader) Load() (*super.TypeDefs, []uint32) {
+	return s.defs, s.subtypes
 }

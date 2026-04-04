@@ -73,10 +73,8 @@ func (w *Serializer) finalizeObject() error {
 	}
 	zw.EndStream()
 	metaSize := zw.Position()
-	for _, val := range cctx.types() {
-		if err := zw.Write(val); err != nil {
-			return fmt.Errorf("could not write CSUP metadata: %w", err)
-		}
+	if err := zw.Write(buildTypeDefsValue(cctx)); err != nil {
+		return fmt.Errorf("could not write CSUP metadata: %w", err)
 	}
 	zw.EndStream()
 	typeSize := zw.Position() - metaSize
@@ -96,6 +94,14 @@ func (w *Serializer) finalizeObject() error {
 	// Set new dynamic so we can write the next object.
 	w.dynamic = NewDynamicEncoder()
 	return nil
+}
+
+func buildTypeDefsValue(cctx *Context) super.Value {
+	var bytes []byte
+	if cctx.typedefs != nil {
+		bytes = cctx.typedefs.Bytes()
+	}
+	return super.NewValue(super.TypeBytes, super.EncodeBytes(bytes))
 }
 
 // XXX ValWriter provides a temporary interface to support writing super.Values

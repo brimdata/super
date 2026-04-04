@@ -9,7 +9,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 )
@@ -20,18 +19,15 @@ type Context struct {
 	metas  []Metadata     // id to Metadata
 	values []super.Value  // id to unmarshaled Metadata
 	uctx   *sup.UnmarshalBSUPContext
-	// On the encode path, the subtypes of all fusion types are stored
-	// in a table that maps the type to a local id.  These IDs are then
-	// used on the decode path via the subtypes array to map back to
-	// the type value.  A future version of this logic will use a fully
-	// interned typedef table like BSUP serialization does.
-	subcache map[string]uint32
+	// The typedefs table is a merge of all the fusion vector subtypes.
+	// Only the typedefs needed are recorded in this table and different vectors
+	// are merged into this shared table by mapping each vector's IDs to the
+	// shared IDs.  This is used by both the read path and write path.
 	smu      sync.Mutex
-	subtypes []scode.Bytes
-	// We store a reader to read the types on demand for the decode path.
-	// If we never need the subtypes for fusion values, then they are
-	// never read.  If we do read them, we read them once into the
-	// subtypes table under lock smu and clear this reader value to
+	typedefs *super.TypeDefs
+	// The subtypesReader holds a pointer to a reader to load the typedefs
+	// bytes if they are ever needed.  If we do read them, we read them once
+	// into the subtypes table under lock smu and clear this reader value to
 	// mark the table loaded.
 	subtypesReader io.Reader
 }
@@ -46,6 +42,15 @@ func (c *Context) enter(meta Metadata) ID {
 	id := ID(len(c.metas))
 	c.metas = append(c.metas, meta)
 	return id
+}
+
+func (c *Context) TypeDefs() *super.TypeDefs {
+	c.smu.Lock()
+	defer c.smu.Unlock()
+	if c.typedefs == nil {
+		c.typedefs = super.NewTypeDefs()
+	}
+	return c.typedefs
 }
 
 func (c *Context) Lookup(id ID) Metadata {
@@ -72,39 +77,6 @@ func (c *Context) unmarshal(id ID) error {
 		return nil
 	}
 	return c.uctx.Unmarshal(c.values[id], &c.metas[id])
-}
-
-func (c *Context) lookupTypeID(sctx *super.Context, typ super.Type) uint32 {
-	if c.subcache == nil {
-		c.subcache = make(map[string]uint32)
-	}
-	// This could be more efficient by having a slice lookup on input
-	// ID to output ID, but we will do that when we convert to a fully
-	// interned typedef table.
-	tv := sctx.LookupTypeValue(typ)
-	tvBytes := tv.Bytes()
-	id, ok := c.subcache[string(tvBytes)]
-	if !ok {
-		id = uint32(len(c.subcache))
-		c.subcache[string(tvBytes)] = id
-	}
-	return id
-}
-
-// LookupTypeVal callable only from vcache after LoadSubtypes is called.
-func (c *Context) LookupTypeVal(id uint32) scode.Bytes {
-	return c.subtypes[id]
-}
-
-func (c *Context) types() []super.Value {
-	if len(c.subcache) == 0 {
-		return nil
-	}
-	types := make([]super.Value, len(c.subcache))
-	for tv, id := range c.subcache {
-		types[id] = super.NewValue(super.TypeType, scode.Bytes(tv))
-	}
-	return types
 }
 
 func (c *Context) readMeta(r io.Reader) error {
@@ -135,37 +107,42 @@ func (c *Context) readMeta(r io.Reader) error {
 
 // LoadSubtypes is called to load the subtypes table on demand,
 // only when needed.  It must be called before calling LookupTypeVal.
-func (c *Context) LoadSubtypes() {
+func (c *Context) LoadSubtypes() *super.TypeDefs {
 	c.smu.Lock()
 	defer c.smu.Unlock()
 	if c.subtypesReader != nil {
-		if err := c.readTypes(c.subtypesReader); err != nil {
+		if err := c.readSubTypes(c.subtypesReader); err != nil {
 			// Panic for now but we should handle this more gracefully
 			// when an IO error causes failure of a running query.
 			panic(err)
 		}
 		c.subtypesReader = nil
 	}
+	return c.typedefs
 }
 
-func (c *Context) readTypes(r io.Reader) error {
+func (c *Context) readSubTypes(r io.Reader) error {
 	scanner, err := bsupio.NewReader(c.local, r).NewScanner(context.TODO(), nil)
 	if err != nil {
 		return err
 	}
 	defer scanner.Pull(true)
-	var vals []scode.Bytes
+	var vals []super.Value
 	for {
 		batch, err := scanner.Pull(false)
 		if batch == nil || err != nil {
-			c.subtypes = vals
+			if len(vals) != 1 {
+				return errors.New("CSUP metadata typedefs section must be a single bytes value")
+			}
+			val := vals[0]
+			if val.Type() != super.TypeBytes {
+				return errors.New("CSUP metadata typedefs section must be a bytes type")
+			}
+			c.typedefs = super.NewTypeDefsFromBytes(val.Bytes())
 			return err
 		}
 		for _, val := range batch.Values() {
-			if val.Type() != super.TypeType {
-				return errors.New("CSUP metadata type is not a type")
-			}
-			vals = append(vals, val.Bytes())
+			vals = append(vals, val)
 		}
 	}
 }
