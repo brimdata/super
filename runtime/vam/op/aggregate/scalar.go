@@ -52,11 +52,6 @@ func (s *scalarAggregate) Pull(done bool) (vector.Any, error) {
 			return s.result(), nil
 		}
 		var vals []vector.Any
-		// XXX the checks below that look for the "fuse" agg func are
-		// an expedient hack to specify that fusion args shouldn't
-		// be de-unioned.  We will incorporate a cleaner, general approach
-		// so that an agg function can request its preference and that
-		// condition will be acted upon here.
 		if s.partialsIn {
 			for _, e := range s.aggExprs {
 				vals = append(vals, e.Eval(vec))
