@@ -200,16 +200,12 @@ func (f *Fuser) addNamed(types []super.Type, named *super.TypeNamed) []super.Typ
 	for i, t := range types {
 		if existingNamed, ok := t.(*super.TypeNamed); ok && existingNamed.Name == named.Name {
 			out := slices.Clone(types)
-			fused := f.fuseWithoutFusion(existingNamed.Type, noFusion(named.Type))
+			fused := noFusion(f.fuse(existingNamed.Type, noFusion(named.Type)))
 			out[i], _ = f.sctx.LookupTypeNamed(named.Name, fused)
 			return out
 		}
 	}
 	return append(types, named)
-}
-
-func (f *Fuser) fuseWithoutFusion(t1, t2 super.Type) super.Type {
-	return noFusion(f.fuse(t1, t2))
 }
 
 func noFusion(typ super.Type) super.Type {
