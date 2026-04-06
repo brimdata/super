@@ -117,7 +117,10 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		}
 	case *super.TypeNamed:
 		if b, ok := b.(*super.TypeNamed); ok && a.Name == b.Name {
-			named, _ := f.sctx.LookupTypeNamed(a.Name, f.fuse(a.Type, b.Type))
+			named, err := f.sctx.LookupTypeNamed(a.Name, f.fuse(a.Type, b.Type))
+			if err != nil {
+				panic(err)
+			}
 			return f.fusion(named)
 		}
 	}
@@ -170,10 +173,9 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 // fuseIntoUnionTypes fuses typ into types while maintaining the invariant that
 // types contains at most one type of each complex kind but no unions.
 func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.Type {
-	if named, ok := typ.(*super.TypeNamed); ok {
-		return f.addNamed(types, named)
-	}
 	switch typ := typ.(type) {
+	case *super.TypeNamed:
+		return f.addNamed(types, typ)
 	case *super.TypeUnion:
 		for _, t := range typ.Types {
 			types = f.fuseIntoUnionTypes(types, t)
@@ -201,7 +203,11 @@ func (f *Fuser) addNamed(types []super.Type, named *super.TypeNamed) []super.Typ
 		if existingNamed, ok := t.(*super.TypeNamed); ok && existingNamed.Name == named.Name {
 			out := slices.Clone(types)
 			fused := noFusion(f.fuse(existingNamed.Type, noFusion(named.Type)))
-			out[i], _ = f.sctx.LookupTypeNamed(named.Name, fused)
+			var err error
+			out[i], err = f.sctx.LookupTypeNamed(named.Name, fused)
+			if err != nil {
+				panic(err)
+			}
 			return out
 		}
 	}
