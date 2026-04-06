@@ -46,7 +46,7 @@ func (c *cast) Call(args []super.Value) super.Value {
 }
 
 func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
-	from = from.Deunion()
+	from = from.DeunionIntoNameds()
 	switch fromType := from.Type(); {
 	case fromType == to:
 		return from, true
@@ -189,11 +189,14 @@ func (c *cast) castNext(it *scode.Iter, from, to super.Type) (super.Value, bool)
 }
 
 func (c *cast) maybeConvertToUnion(vals []super.Value, types map[super.Type]struct{}) (super.Type, bool) {
-	typesSlice := slices.Collect(maps.Keys(types))
+	typesSlice := super.Flatten(slices.Collect(maps.Keys(types)))
 	if len(typesSlice) == 1 {
 		return typesSlice[0], true
 	}
-	union := c.sctx.LookupTypeUnion(typesSlice)
+	union, ok := c.sctx.LookupTypeUnion(typesSlice)
+	if !ok {
+		panic(typesSlice)
+	}
 	aok := true
 	for i, val := range vals {
 		var ok bool
@@ -243,7 +246,7 @@ func (c *cast) toMap(from super.Value, to *super.TypeMap) (super.Value, bool) {
 func (c *cast) toUnion(from super.Value, to *super.TypeUnion) (super.Value, bool) {
 	tag := bestUnionTag(from.Type(), to)
 	if tag < 0 {
-		from2 := from.Deunion()
+		from2 := from.DeunionIntoNameds()
 		tag = bestUnionTag(from2.Type(), to)
 		if tag < 0 {
 			return c.error(from, to)

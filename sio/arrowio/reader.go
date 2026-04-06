@@ -277,7 +277,7 @@ func (r *Reader) newTypeFromField(f arrow.Field) (super.Type, error) {
 		return nil, err
 	}
 	if f.Nullable && typ != super.TypeNull {
-		typ = r.sctx.LookupTypeUnion([]super.Type{typ, super.TypeNull})
+		typ = r.sctx.Nullable(typ)
 	}
 	return typ, nil
 }
@@ -302,7 +302,10 @@ Loop:
 			}
 		}
 	}
-	superUnion := r.sctx.LookupTypeUnion(uniqueTypes)
+	superUnion, ok := r.sctx.LookupTypeUnion(uniqueTypes)
+	if !ok {
+		panic(uniqueTypes)
+	}
 	r.unionTagMappings[superUnion] = x
 	return superUnion, nil
 }

@@ -97,7 +97,10 @@ func (b *builder) endArray() {
 			container.zb.Append(items[i].zb.Bytes().Body())
 		}
 	default:
-		union := b.sctx.LookupTypeUnion(b.types)
+		union, ok := b.sctx.LookupTypeUnion(b.types)
+		if !ok {
+			panic(b.types)
+		}
 		container.typ = b.sctx.LookupTypeArray(union)
 		for i := range items {
 			tag := union.TagOf(items[i].typ)

@@ -79,6 +79,7 @@ func (c *CollectMap) ResultAsPartial(sctx *super.Context) super.Value {
 func appendMapVal(b *scode.Builder, typ super.Type, val super.Value, uniq int) {
 	if uniq > 1 {
 		u := super.TypeUnder(typ).(*super.TypeUnion)
+		val = val.Deunion()
 		super.BuildUnion(b, u.TagOf(val.Type()), val.Bytes())
 	} else {
 		b.Append(val.Bytes())
@@ -86,11 +87,15 @@ func appendMapVal(b *scode.Builder, typ super.Type, val super.Value, uniq int) {
 }
 
 func unionOf(sctx *super.Context, types []super.Type) (super.Type, int) {
-	types = super.UniqueTypes(types)
+	types = super.Flatten(super.UniqueTypes(types))
 	if len(types) == 1 {
 		return types[0], 1
 	}
-	return sctx.LookupTypeUnion(types), len(types)
+	typ, ok := sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
+	return typ, len(types)
 }
 
 // valueUnder is like super.(*Value).Under but it preserves non-union named types.

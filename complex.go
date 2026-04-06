@@ -406,3 +406,15 @@ func BeginUnion(b *scode.Builder, tag int) {
 	b.BeginContainer()
 	b.Append(EncodeUint(uint64(tag)))
 }
+
+func Flatten(types []Type) []Type {
+	out := make([]Type, 0, len(types))
+	for _, t := range types {
+		if union, ok := t.(*TypeUnion); ok {
+			out = append(out, Flatten(union.Types)...)
+		} else {
+			out = append(out, t)
+		}
+	}
+	return UniqueTypes(out)
+}

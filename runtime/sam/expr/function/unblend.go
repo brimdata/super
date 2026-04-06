@@ -56,8 +56,8 @@ func (u *unblend) eval(in super.Value) super.Value {
 	case *super.TypeMap:
 		var keys, vals []super.Value
 		for it := in.Bytes().Iter(); !it.Done(); {
-			keys = append(keys, super.NewValue(typ.KeyType, it.Next()).Deunion())
-			vals = append(vals, super.NewValue(typ.ValType, it.Next()).Deunion())
+			keys = append(keys, super.NewValue(typ.KeyType, it.Next()).DeunionIntoNameds())
+			vals = append(vals, super.NewValue(typ.ValType, it.Next()).DeunionIntoNameds())
 		}
 		keyType := u.unifyType(keys)
 		valType := u.unifyType(vals)
@@ -77,7 +77,7 @@ func (u *unblend) eval(in super.Value) super.Value {
 		}
 		return super.NewValue(u.sctx.LookupTypeMap(keyType, valType), b.Bytes())
 	case *super.TypeUnion:
-		return u.eval(in.Deunion())
+		return u.eval(in.DeunionIntoNameds())
 	default:
 		// primitives, named types, enums
 		return in
@@ -110,7 +110,10 @@ func (u *unblend) unify(elems []super.Value) (super.Type, scode.Bytes) {
 		return types[0], b.Bytes()
 	}
 	var b scode.Builder
-	union := u.sctx.LookupTypeUnion(types)
+	union, ok := u.sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
 	for _, e := range elems {
 		super.BuildUnion(&b, union.TagOf(e.Type()), e.Bytes())
 	}
@@ -133,6 +136,10 @@ func (u *unblend) unifyType(vals []super.Value) super.Type {
 	case 1:
 		return types[0]
 	default:
-		return u.sctx.LookupTypeUnion(types)
+		union, ok := u.sctx.LookupTypeUnion(types)
+		if !ok {
+			panic(types)
+		}
+		return union
 	}
 }

@@ -134,7 +134,7 @@ func NewIn(sctx *super.Context, elem, container Evaluator) *In {
 }
 
 func (i *In) Eval(this super.Value) super.Value {
-	elem := i.elem.Eval(this).Deunion()
+	elem := i.elem.Eval(this).DeunionIntoNameds()
 	if elem.IsError() {
 		return elem
 	}
@@ -382,7 +382,7 @@ func NewIsNullExpr(e Evaluator) Evaluator {
 }
 
 func (i *isNullExpr) Eval(this super.Value) super.Value {
-	val := i.eval.Eval(this).Deunion()
+	val := i.eval.Eval(this).DeunionIntoNameds()
 	if val.IsError() {
 		return val
 	}
@@ -554,7 +554,7 @@ func NewUnaryMinus(sctx *super.Context, e Evaluator) *UnaryMinus {
 }
 
 func (u *UnaryMinus) Eval(this super.Value) super.Value {
-	val := u.expr.Eval(this).Deunion()
+	val := u.expr.Eval(this).DeunionIntoNameds()
 	if val.IsNull() || val.IsError() {
 		return val
 	}
@@ -804,7 +804,7 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 }
 
 func (c *Conditional) Eval(this super.Value) super.Value {
-	val := c.predicate.Eval(this).Deunion()
+	val := c.predicate.Eval(this).DeunionIntoNameds()
 	switch typ := val.Type(); {
 	case typ.ID() == super.IDBool:
 		if val.Bool() {

@@ -55,9 +55,6 @@ inputs:
         union_int64: 1::(int64|string|null),
         union_string: "s"::(int64|string|null),
         union_null: null::(int64|string|null),
-        union_of_null_and_union_int64: 1::(int64|string)::(null|(int64|string)),
-        union_of_null_and_union_string: "s"::(int64|string)::(null|(int64|string)),
-        union_of_null_and_union_null: null::(null|(int64|string)),
         map: |{
           1: "one"
         }|,

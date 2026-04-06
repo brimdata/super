@@ -19,12 +19,12 @@ func NewUnion() *Union {
 }
 
 func (u *Union) Consume(val super.Value) {
-	if val.Deunion().IsNull() {
+	if val.DeunionIntoNameds().IsNull() {
 		return
 	}
 	// XXX we shouldn't strip named types from union inputs but this requires
 	// a change to how we do partials.
-	val = val.Deunion()
+	val = val.DeunionIntoNameds()
 	u.Update(val.Type(), val.Bytes())
 }
 
@@ -70,7 +70,12 @@ func (u *Union) Result(sctx *super.Context) super.Value {
 	var inner super.Type
 	var b scode.Builder
 	if len(types) > 1 {
-		union := sctx.LookupTypeUnion(types)
+		union, ok := sctx.LookupTypeUnion(types)
+		if !ok {
+			// Values are always deunioned when entering into the unioned set,
+			// so there should never be anonymous unions in the types set.
+			panic(u)
+		}
 		inner = union
 		for typ, m := range u.types {
 			for v := range m {

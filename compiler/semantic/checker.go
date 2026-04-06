@@ -623,7 +623,11 @@ func (c *checker) dropPath(typ super.Type, drop path) super.Type {
 	}
 	types[pick] = c.t.sctx.MustLookupTypeRecord(fields)
 	if len(types) > 1 {
-		return c.t.sctx.LookupTypeUnion(types)
+		typ, ok := c.t.sctx.LookupTypeUnion(super.Flatten(types))
+		if !ok {
+			panic(types)
+		}
+		return typ
 	}
 	return types[0]
 }

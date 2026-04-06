@@ -21,7 +21,11 @@ func NewUnionFromDynamic(sctx *super.Context, d *Dynamic) *Union {
 	for _, vec := range d.Values {
 		types = append(types, vec.Type())
 	}
-	return &Union{d, sctx.LookupTypeUnion(types)}
+	unionType, ok := sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
+	return &Union{d, unionType}
 }
 
 func (*Union) Kind() Kind {

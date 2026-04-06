@@ -52,6 +52,7 @@ func (a *mapCall) buildVal(inner super.Type) []byte {
 	a.builder.Reset()
 	if union, ok := inner.(*super.TypeUnion); ok {
 		for _, val := range a.vals {
+			val = val.Deunion()
 			super.BuildUnion(&a.builder, union.TagOf(val.Type()), val.Bytes())
 		}
 	} else {
@@ -63,9 +64,13 @@ func (a *mapCall) buildVal(inner super.Type) []byte {
 }
 
 func (a *mapCall) innerType(types []super.Type) super.Type {
-	types = super.UniqueTypes(types)
+	types = super.Flatten(super.UniqueTypes(types))
 	if len(types) == 1 {
 		return types[0]
 	}
-	return a.sctx.LookupTypeUnion(types)
+	union, ok := a.sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
+	return union
 }

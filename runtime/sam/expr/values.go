@@ -422,7 +422,8 @@ type collectionIter struct {
 
 func (c *collectionIter) appendNext(b *scode.Builder) {
 	if union, ok := c.typ.(*super.TypeUnion); ok && c.uniq > 1 {
-		super.BuildUnion(b, union.TagOf(c.types[0]), c.bytes[0])
+		val := super.NewValue(c.types[0], c.bytes[0]).Deunion()
+		super.BuildUnion(b, union.TagOf(val.Type()), val.Bytes())
 	} else {
 		b.Append(c.bytes[0])
 	}
@@ -438,9 +439,10 @@ func unionOf(sctx *super.Context, types []super.Type) super.Type {
 	if len(types) == 0 {
 		return super.TypeNull
 	}
-	unique := super.UniqueTypes(types)
+	unique := super.Flatten(super.UniqueTypes(types))
 	if len(unique) == 1 {
 		return unique[0]
 	}
-	return sctx.LookupTypeUnion(unique)
+	out, _ := sctx.LookupTypeUnion(unique)
+	return out
 }

@@ -281,7 +281,11 @@ func (d decoder) decodeTypeUnion(sctx *super.Context, union *zUnion) (*super.Typ
 		}
 		types = append(types, typ)
 	}
-	return sctx.LookupTypeUnion(types), nil
+	out, ok := sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
+	return out, nil
 }
 
 func (d decoder) decodeTypeMap(sctx *super.Context, m *zMap) (*super.TypeMap, error) {

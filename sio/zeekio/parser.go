@@ -129,7 +129,7 @@ func (p *Parser) parsePrimitiveType(in string) (super.Type, error) {
 }
 
 func (p *Parser) makeNullableType(typ super.Type) super.Type {
-	return p.sctx.LookupTypeUnion([]super.Type{typ, super.TypeNull})
+	return p.sctx.Nullable(typ)
 }
 
 func (p *Parser) ParseDirective(line []byte) error {

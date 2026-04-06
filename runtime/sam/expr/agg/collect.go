@@ -44,7 +44,7 @@ func newArray(sctx *super.Context, vals []super.Value) super.Value {
 	for _, val := range vals {
 		types = append(types, val.Type())
 	}
-	types = super.UniqueTypes(types)
+	types = super.Flatten(super.UniqueTypes(types))
 	var b scode.Builder
 	var typ super.Type
 	if len(types) == 1 {
@@ -53,8 +53,12 @@ func newArray(sctx *super.Context, vals []super.Value) super.Value {
 		}
 		typ = types[0]
 	} else {
-		union := sctx.LookupTypeUnion(types)
+		union, ok := sctx.LookupTypeUnion(types)
+		if !ok {
+			panic(types)
+		}
 		for _, val := range vals {
+			val = val.Deunion()
 			super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
 		}
 		typ = union

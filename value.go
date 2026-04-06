@@ -434,7 +434,20 @@ func (v *Value) MissingAsNull() Value {
 	return *v
 }
 
+// Deunion returns v if it is not an anonymous union and otherwise detags v
+// to its underlying value.  It does not Deunion union values that are named types.
 func (v Value) Deunion() Value {
+	if union, ok := v.Type().(*TypeUnion); ok {
+		return NewValue(union.Untag(v.bytes()))
+	}
+	return v
+}
+
+// DeunionIntoNameds is the same as Deunion but descends through unions that
+// are named types and strips any named types.  This is recursive so when
+// named unions contain other unions, Deunion keeps descending until it gets
+// to a non-union value.
+func (v Value) DeunionIntoNameds() Value {
 	for {
 		typ := v.Type()
 		if named, ok := typ.(*TypeNamed); ok {

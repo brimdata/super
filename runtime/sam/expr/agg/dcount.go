@@ -25,7 +25,7 @@ func NewDCount() *DCount {
 }
 
 func (d *DCount) Consume(val super.Value) {
-	if val.Deunion().IsNull() {
+	if val.DeunionIntoNameds().IsNull() {
 		return
 	}
 	d.scratch = d.scratch[:0]

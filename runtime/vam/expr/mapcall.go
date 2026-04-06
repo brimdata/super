@@ -39,7 +39,11 @@ func (m *mapCall) eval(vecs ...vector.Any) vector.Any {
 		for _, vec := range d.Values {
 			typs = append(typs, vec.Type())
 		}
-		utyp := m.sctx.LookupTypeUnion(super.UniqueTypes(typs))
+		utyp, ok := m.sctx.LookupTypeUnion(super.UniqueTypes(typs))
+		if !ok {
+			//XXX need to vector deunion
+			panic(typs)
+		}
 		inner = vector.NewUnion(utyp, d.Tags, d.Values)
 	}
 	var out vector.Any

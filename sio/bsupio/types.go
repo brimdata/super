@@ -184,7 +184,11 @@ func (d *Decoder) readTypeUnion(b *buffer) error {
 		}
 		types = append(types, typ)
 	}
-	d.enter(d.sctx.LookupTypeUnion(types))
+	out, ok := d.sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
+	d.enter(out)
 	return nil
 }
 

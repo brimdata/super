@@ -26,7 +26,7 @@ output: |
   error({message:"cannot cast to int8|string",on:1})
   "one"
   ["1","one"]
-  [error({message:"cannot cast to int8|string",on:1}),"one"::(int8|string)]
+  [error({message:"cannot cast to int8|string",on:1}),"one"]::[int8|string|error({message:string,on:int64})]
   [error({message:"cannot cast to int8|int16",on:1}),error({message:"cannot cast to int8|int16",on:"one"})]
   {a:["1","one"]}
-  {a:[error({message:"cannot cast to int8|string",on:1}),"one"::(int8|string)]}
+  {a:[error({message:"cannot cast to int8|string",on:1}),"one"]::[int8|string|error({message:string,on:int64})]}

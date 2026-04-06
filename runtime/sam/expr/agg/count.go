@@ -9,7 +9,7 @@ type Count int64
 var _ Function = (*Count)(nil)
 
 func (c *Count) Consume(val super.Value) {
-	if !val.Deunion().IsNull() {
+	if !val.DeunionIntoNameds().IsNull() {
 		*c++
 	}
 }

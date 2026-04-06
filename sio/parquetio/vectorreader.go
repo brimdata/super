@@ -302,7 +302,8 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 		if !ok {
 			inner := values.Type()
 			if nullable {
-				inner = v.sctx.LookupTypeUnion([]super.Type{inner, super.TypeNull})
+				inner = v.sctx.Nullable(inner)
+
 			}
 			typ = v.sctx.LookupTypeArray(inner)
 			v.types[dt] = typ
@@ -326,7 +327,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 				arrowField := arrowStructType.Field(i)
 				typ := vec.Type()
 				if arrowField.Nullable {
-					typ = v.sctx.LookupTypeUnion([]super.Type{typ, super.TypeNull})
+					typ = v.sctx.Nullable(typ)
 				}
 				fields[i] = super.NewField(arrowField.Name, typ)
 			}
@@ -356,7 +357,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 		if !ok {
 			inner := values.Type()
 			if nullable {
-				inner = v.sctx.LookupTypeUnion([]super.Type{inner, super.TypeNull})
+				inner = v.sctx.Nullable(inner)
 			}
 			typ = v.sctx.LookupTypeArray(inner)
 			v.types[dt] = typ
@@ -381,7 +382,10 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 }
 
 func (v *vectorBuilder) buildNullableUnion(vec vector.Any, a arrow.Array) vector.Any {
-	unionType := v.sctx.LookupTypeUnion([]super.Type{vec.Type(), super.TypeNull})
+	unionType, ok := v.sctx.LookupTypeUnion([]super.Type{vec.Type(), super.TypeNull})
+	if !ok {
+		panic(vec)
+	}
 	nullTag, vecTag, _ := arrowio.NullableUnionTagsAndType(unionType)
 	tags := make([]uint32, vec.Len())
 	var vecIndex []uint32

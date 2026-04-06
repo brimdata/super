@@ -93,7 +93,7 @@ func (d *defuse) eval(in super.Value) super.Value {
 		}
 		return super.NewValue(d.sctx.LookupTypeMap(keyType, valType), b.Bytes())
 	case *super.TypeUnion:
-		return d.eval(in.Deunion())
+		return d.eval(in.DeunionIntoNameds())
 	case *super.TypeFusion:
 		_, subType := typ.Deref(d.sctx, in.Bytes())
 		if out, ok := d.downcast.Cast(in, subType); ok {
@@ -133,7 +133,10 @@ func (d *defuse) unify(elems []super.Value) (super.Type, scode.Bytes) {
 		return types[0], b.Bytes()
 	}
 	var b scode.Builder
-	union := d.sctx.LookupTypeUnion(types)
+	union, ok := d.sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
 	for _, e := range elems {
 		super.BuildUnion(&b, union.TagOf(e.Type()), e.Bytes())
 	}
@@ -156,7 +159,11 @@ func (d *defuse) unifyType(vals []super.Value) super.Type {
 	case 1:
 		return types[0]
 	default:
-		return d.sctx.LookupTypeUnion(types)
+		union, ok := d.sctx.LookupTypeUnion(types)
+		if !ok {
+			panic(types)
+		}
+		return union
 	}
 }
 

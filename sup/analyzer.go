@@ -402,14 +402,17 @@ func (a Analyzer) normalizeElems(sctx *super.Context, vals []Value) ([]Value, su
 	for i, val := range vals {
 		types[i] = val.TypeOf()
 	}
-	unique := super.UniqueTypes(types)
+	unique := super.UniqueTypes(super.Flatten(types))
 	if len(unique) == 1 {
 		return vals, unique[0], nil
 	}
 	if len(unique) == 0 {
 		return vals, super.TypeNull, nil
 	}
-	union := sctx.LookupTypeUnion(unique)
+	union, ok := sctx.LookupTypeUnion(unique)
+	if !ok {
+		return nil, nil, errAnonUnion
+	}
 	var unions []Value
 	for _, v := range vals {
 		union, err := a.convertUnion(v, union, union)
@@ -458,6 +461,17 @@ func (a Analyzer) convertSet(sctx *super.Context, set *ast.Set, cast super.Type)
 }
 
 func (a Analyzer) convertUnion(v Value, union *super.TypeUnion, cast super.Type) (Value, error) {
+	if _, ok := v.TypeOf().(*super.TypeNamed); !ok {
+		if union, ok := v.(*Union); ok {
+			// When a union is inside a union and it's not a named type,
+			// the parent union is flattened and contains
+			// this union's elemental types, so we just pull out the value from the child
+			// union and cast it to the parent union.
+			// When the value is a named union, we match the value exactly to the union types
+			// since the named type won't be flattened in the union.
+			v = union.Value
+		}
+	}
 	valType := v.TypeOf()
 	for k, typ := range union.Types {
 		if valType == typ {
@@ -698,6 +712,8 @@ func (a Analyzer) convertTypeMap(sctx *super.Context, tmap *ast.TypeMap) (*super
 	return sctx.LookupTypeMap(keyType, valType), nil
 }
 
+var errAnonUnion = errors.New("anonymous union inside union")
+
 func (a Analyzer) convertTypeUnion(sctx *super.Context, union *ast.TypeUnion) (*super.TypeUnion, error) {
 	var types []super.Type
 	for _, typ := range union.Types {
@@ -707,7 +723,11 @@ func (a Analyzer) convertTypeUnion(sctx *super.Context, union *ast.TypeUnion) (*
 		}
 		types = append(types, typ)
 	}
-	return sctx.LookupTypeUnion(types), nil
+	out, ok := sctx.LookupTypeUnion(types)
+	if !ok {
+		return nil, errAnonUnion
+	}
+	return out, nil
 }
 
 func (a Analyzer) convertTypeEnum(sctx *super.Context, enum *ast.TypeEnum) (*super.TypeEnum, error) {

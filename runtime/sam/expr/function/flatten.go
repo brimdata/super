@@ -42,7 +42,11 @@ func (n *Flatten) innerTypeOf(typ *super.TypeRecord, b scode.Bytes) super.Type {
 	if len(unique) == 1 {
 		return unique[0]
 	}
-	return n.sctx.LookupTypeUnion(unique)
+	union, ok := n.sctx.LookupTypeUnion(unique)
+	if !ok {
+		panic(unique)
+	}
+	return union
 }
 
 func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, typ *super.TypeRecord) []super.Type {

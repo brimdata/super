@@ -14,7 +14,7 @@ import (
 func TestDivergentUnions(t *testing.T) {
 	types := super.UniqueTypes([]super.Type{super.TypeInt64, super.TypeFloat64})
 	sctx := super.NewContext()
-	utype := sctx.LookupTypeUnion(types)
+	utype, _ := sctx.LookupTypeUnion(types)
 	i1 := vector.NewInt(super.TypeInt64, []int64{1, 2})
 	f1 := vector.NewFloat(super.TypeFloat64, []float64{3.0})
 	vecs1 := []vector.Any{i1, f1}

@@ -46,8 +46,8 @@ vector: true
 input: |
   {b:[1]}
   {b:[2,22::(int64|null)]}
-  {b:[3,33::(int64|null)::(string|(int64|null))]}
-  {b:[4,44::(int64|null)::(string|(int64|null))::(bool|(string|(int64|null)))]}
+  {b:[3,33::(string|int64|null)]}
+  {b:[4,44::(bool|string|int64|null)]}
 
 output: |
   {a:0,b:1}

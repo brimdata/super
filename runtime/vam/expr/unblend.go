@@ -224,7 +224,11 @@ func subsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index
 	}
 	var inner vector.Any
 	if len(subVals) > 1 {
-		inner = vector.NewUnion(sctx.LookupTypeUnion(subTypes), tags, subVals)
+		union, ok := sctx.LookupTypeUnion(subTypes)
+		if !ok {
+			panic(subTypes)
+		}
+		inner = vector.NewUnion(union, tags, subVals)
 	} else {
 		inner = subVals[0]
 	}
@@ -270,7 +274,11 @@ func typeOfRange(sctx *super.Context, union *vector.Union, alltypes []super.Type
 	for _, tag := range uniq {
 		types = append(types, alltypes[tag])
 	}
-	return sctx.LookupTypeUnion(types)
+	out, ok := sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
+	return out
 }
 
 func pushContainerViewDown(val vector.Any) vector.Any {

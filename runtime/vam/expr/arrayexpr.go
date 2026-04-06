@@ -64,7 +64,7 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 			}
 		}
 		vecTags = append(vecTags, uint32(len(vecs)))
-		if union, ok := vec.(*vector.Union); ok && elem.Spread != nil {
+		if union, ok := vec.(*vector.Union); ok {
 			vecs = append(vecs, union.Values...)
 			unionTags[i] = union.Tags
 		} else {
@@ -114,7 +114,13 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 	if len(types) == 1 {
 		return offsets, mergeSameTypeVecs(sctx, types[0], tags, vecs)
 	}
-	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs)
+	union, ok := sctx.LookupTypeUnion(types)
+	if !ok {
+		//XXX we need to deunion the vecs without nameds.
+		// this shouldn't be too hard
+		panic(ok)
+	}
+	return offsets, vector.NewUnion(union, tags, vecs)
 }
 
 func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {

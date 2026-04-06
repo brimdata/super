@@ -177,7 +177,10 @@ func (c *Context) LookupTypeMap(keyType, valType Type) *TypeMap {
 	return typ
 }
 
-func (c *Context) LookupTypeUnion(types []Type) *TypeUnion {
+func (c *Context) LookupTypeUnion(types []Type) (*TypeUnion, bool) {
+	if badUnion(types) {
+		return nil, false
+	}
 	sort.SliceStable(types, func(i, j int) bool {
 		return CompareTypes(types[i], types[j]) < 0
 	})
@@ -185,11 +188,20 @@ func (c *Context) LookupTypeUnion(types []Type) *TypeUnion {
 	defer c.mu.Unlock()
 	id := c.typedefs.LookupTypeUnion(types)
 	if typ, ok := c.byID[id]; ok {
-		return typ.(*TypeUnion)
+		return typ.(*TypeUnion), true
 	}
 	typ := NewTypeUnion(int(id), slices.Clone(types))
 	c.byID[id] = typ
-	return typ
+	return typ, true
+}
+
+func badUnion(types []Type) bool {
+	for _, t := range types {
+		if _, ok := t.(*TypeUnion); ok {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
@@ -425,8 +437,8 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			typ, tv = c.DecodeTypeValue(tv)
 			types = append(types, typ)
 		}
-		typ := c.LookupTypeUnion(types)
-		if typ == nil {
+		typ, ok := c.LookupTypeUnion(types)
+		if typ == nil || !ok {
 			return nil, nil
 		}
 		return typ, tv
@@ -541,7 +553,7 @@ func (c *Context) WrapError(msg string, val Value) Value {
 
 func (c *Context) Nullable(typ Type) *TypeUnion {
 	var types []Type
-	if union, ok := TypeUnder(typ).(*TypeUnion); ok {
+	if union, ok := typ.(*TypeUnion); ok {
 		for _, t := range union.Types {
 			if t == TypeNull {
 				return union
@@ -551,7 +563,11 @@ func (c *Context) Nullable(typ Type) *TypeUnion {
 	} else {
 		types = []Type{typ}
 	}
-	return c.LookupTypeUnion(append(types, TypeNull))
+	out, ok := c.LookupTypeUnion(append(types, TypeNull))
+	if !ok {
+		panic(typ)
+	}
+	return out
 }
 
 func NullableUnion(typ Type) (*TypeUnion, int) {
@@ -929,7 +945,11 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 			}
 			types = append(types, typ)
 		}
-		return t.sctx.LookupTypeUnion(types)
+		typ, ok := t.sctx.LookupTypeUnion(types)
+		if !ok {
+			return nil
+		}
+		return typ
 	case TypeDefEnum:
 		n, b := DecodeLength(b)
 		if b == nil || n > MaxEnumSymbols {

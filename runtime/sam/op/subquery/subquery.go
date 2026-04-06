@@ -178,9 +178,13 @@ func makeUnionArray(sctx *super.Context, vals []super.Value) super.Value {
 	for typ := range types {
 		utypes = append(utypes, typ)
 	}
-	union := sctx.LookupTypeUnion(utypes)
+	union, ok := sctx.LookupTypeUnion(super.Flatten(utypes))
+	if !ok {
+		panic(utypes)
+	}
 	var b scode.Builder
 	for _, val := range vals {
+		val = val.Deunion()
 		super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
 	}
 	return super.NewValue(sctx.LookupTypeArray(union), b.Bytes())

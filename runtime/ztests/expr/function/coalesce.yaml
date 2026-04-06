@@ -11,7 +11,7 @@ input: |
   [null, error({x:1}), "foo"]
 
 output: |
-  "foo"::(uint64|string)
+  "foo"
   "bar"
   2020::=port
   null

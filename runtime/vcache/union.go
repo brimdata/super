@@ -63,7 +63,10 @@ func (u *union) project(loader *loader, projection field.Projection) vector.Any 
 		vecs = append(vecs, vec)
 		types = append(types, vec.Type())
 	}
-	utyp := loader.sctx.LookupTypeUnion(types)
+	utyp, ok := loader.sctx.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
 	tags := u.load(loader)
 	return vector.NewUnion(utyp, tags, vecs)
 }

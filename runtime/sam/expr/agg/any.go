@@ -14,7 +14,7 @@ func NewAny() *Any {
 }
 
 func (a *Any) Consume(val super.Value) {
-	if val.Deunion().IsNull() {
+	if val.DeunionIntoNameds().IsNull() {
 		return
 	}
 	if (*super.Value)(a).Type() == nil {

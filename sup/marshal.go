@@ -486,7 +486,10 @@ func (m *MarshalBSUPContext) encodeArray(arrayVal reflect.Value) (super.Type, er
 	case 1:
 		innerType = types[0]
 	default:
-		unionType := m.Context.LookupTypeUnion(uniqueTypes)
+		unionType, ok := m.Context.LookupTypeUnion(uniqueTypes)
+		if !ok {
+			panic(uniqueTypes)
+		}
 		// Convert each container element to the union type.
 		m.Builder.TransformContainer(func(bytes scode.Bytes) scode.Bytes {
 			var b scode.Builder
@@ -684,7 +687,7 @@ func (u *UnmarshalBSUPContext) decodeAny(val super.Value, v reflect.Value) (x er
 	if !v.IsValid() {
 		return errors.New("cannot unmarshal into value provided")
 	}
-	val = val.Deunion()
+	val = val.DeunionIntoNameds()
 	m, v := indirect(v, val)
 	if m != nil {
 		return m.UnmarshalBSUP(u, val)

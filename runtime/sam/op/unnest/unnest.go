@@ -54,7 +54,7 @@ func (u *Unnest) Pull(done bool) (sbuf.Batch, error) {
 }
 
 func (u *Unnest) unnest(this super.Value) sbuf.Batch {
-	val := u.expr.Eval(this).Deunion()
+	val := u.expr.Eval(this).DeunionIntoNameds()
 	// Propagate errors but skip missing values.
 	var vals []super.Value
 	if !val.IsMissing() {
