@@ -9,17 +9,11 @@ type count struct {
 	count int64
 }
 
-func (c *count) Consume(vec vector.Any) {
-	vector.Apply(true, c.consume, vec)
-}
-
-func (a *count) consume(vecs ...vector.Any) vector.Any {
-	vec := vecs[0]
+func (a *count) Consume(vec vector.Any) {
 	if vec.Kind() == vector.KindNull {
-		return vec
+		return
 	}
 	a.count += int64(vec.Len())
-	return vec
 }
 
 func (a *count) Result(*super.Context) super.Value {

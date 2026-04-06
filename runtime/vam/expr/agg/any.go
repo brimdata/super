@@ -15,18 +15,12 @@ func NewAny() *Any {
 }
 
 func (a *Any) Consume(vec vector.Any) {
-	vector.Apply(true, a.consume, vec)
-}
-
-func (a *Any) consume(vecs ...vector.Any) vector.Any {
-	vec := vecs[0]
 	if !a.val.IsNull() || vec.Kind() == vector.KindNull {
-		return vec
+		return
 	}
 	var b scode.Builder
 	vec.Serialize(&b, 0)
 	a.val = super.NewValue(vec.Type(), b.Bytes().Body())
-	return vec
 }
 
 func (a *Any) ConsumeAsPartial(vec vector.Any) {
