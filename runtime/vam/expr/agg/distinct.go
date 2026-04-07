@@ -2,6 +2,7 @@ package agg
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
@@ -43,9 +44,13 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 		vec = view.Any
 		slot = view.Index[0]
 	}
+	if c, ok := vec.(*vector.Const); ok {
+		vec = c.Any
+		slot = 0
+	}
 	array, ok := vec.(*vector.Array)
 	if !ok {
-		panic("distinct: invalid partial")
+		panic(fmt.Sprintf("distinct: invalid partial: %T", vec))
 	}
 	start, end := vector.ContainerOffset(array, slot)
 	values := array.Values

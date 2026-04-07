@@ -1,0 +1,10 @@
+# Test COUNT(DISTINCT constant) in VAM does not panic - issue #6803
+
+script: |
+  super -s -o tab1.sup -c 'values {col0:5}'
+  super -vam -c "SELECT COUNT(DISTINCT 1) FROM 'tab1.sup' AS cor0;"
+
+outputs:
+  - name: stdout
+    data: |
+      {COUNT:1}
