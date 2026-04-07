@@ -25,6 +25,8 @@ func Pick(val Any, index []uint32) Any {
 		return NewError(val.Typ, Pick(val.Vals, index))
 	case *None:
 		return NewNoneWithError(OptType(val), NewError(val.Typ, Pick(val.Vals, index)))
+	case *Null:
+		return NewNull(uint32(len(index)))
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values)
 		return NewUnion(val.Typ, tags, values)
