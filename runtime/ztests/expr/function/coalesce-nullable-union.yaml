@@ -1,0 +1,11 @@
+spq: coalesce(a, b)
+
+vector: true
+
+input: |
+  {a:1.::(float64|null),b:2.::(float64|null)}
+  {a:null::(float64|null),b:2.::(float64|null)}
+
+output: |
+  1.::(float64|null)
+  2.::(float64|null)
