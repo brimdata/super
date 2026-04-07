@@ -30,6 +30,7 @@ func (m *Missing) Call(args ...vector.Any) vector.Any {
 	}
 	n := args[0].Len()
 	for _, vec := range args {
+		vec = vector.Opt(vec)
 		if err, ok := vec.(*vector.Error); ok {
 			b := missingOrQuiet(err)
 			if b.IsEmpty() {

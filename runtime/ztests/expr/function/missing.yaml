@@ -10,6 +10,7 @@ input: |
   {a:null}
   {a:"foo",b:error("other")}
   {b:error("other")}
+  {a:"foo",b?:_::string}
 
 output: |
   false
@@ -18,4 +19,5 @@ output: |
   null
   null
   error("other")
+  true
   true
