@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"testing"
@@ -34,7 +35,7 @@ func TestSPQ(t *testing.T) {
 
 	t.Run("boomerang", func(t *testing.T) {
 		t.Parallel()
-		data, err := loadZTestInputsAndOutputs(dirs)
+		data, err := loadZTestInputsAndOutputs(t, dirs)
 		require.NoError(t, err)
 		runAllBoomerangs(t, "arrows", data)
 		runAllBoomerangs(t, "csup", data)
@@ -67,7 +68,7 @@ func findZTests() (map[string]struct{}, error) {
 	return dirs, err
 }
 
-func loadZTestInputsAndOutputs(ztestDirs map[string]struct{}) (map[string]string, error) {
+func loadZTestInputsAndOutputs(t *testing.T, ztestDirs map[string]struct{}) (map[string]string, error) {
 	out := map[string]string{}
 	for dir := range ztestDirs {
 		bundles, err := ztest.Load(dir)
@@ -79,19 +80,19 @@ func loadZTestInputsAndOutputs(ztestDirs map[string]struct{}) (map[string]string
 				continue
 			}
 			testName := b.FileName + "/" + strconv.Itoa(b.Test.Line)
-			if i := b.Test.Input; i != nil && isValid(*i) {
+			if i := b.Test.Input; i != nil && isValid(t, testName, *i) {
 				out[testName+"/input"] = *i
 			}
-			if o := b.Test.Output; isValid(o) {
+			if o := b.Test.Output; isValid(t, testName, o) {
 				out[testName+"/output"] = o
 			}
 			for _, i := range b.Test.Inputs {
-				if i.Data != nil && isValid(*i.Data) {
+				if i.Data != nil && isValid(t, testName, *i.Data) {
 					out[testName+"/inputs/"+i.Name] = *i.Data
 				}
 			}
 			for _, o := range b.Test.Outputs {
-				if o.Data != nil && isValid(*o.Data) {
+				if o.Data != nil && isValid(t, testName, *o.Data) {
 					out[testName+"/outputs/"+o.Name] = *o.Data
 				}
 			}
@@ -102,7 +103,16 @@ func loadZTestInputsAndOutputs(ztestDirs map[string]struct{}) (map[string]string
 
 // isValid returns true if and only if s can be read fully without error by
 // anyio and contains at least one value.
-func isValid(s string) bool {
+func isValid(t *testing.T, name, s string) bool {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("boomerang panic reading test input: %s: %+v\n%s\n", name, r, debug.Stack())
+		}
+	}()
+	return isValidBare(s)
+}
+
+func isValidBare(s string) bool {
 	zrc, err := anyio.NewReader(super.NewContext(), strings.NewReader(s), anyio.ReaderOpts{})
 	if err != nil {
 		return false
