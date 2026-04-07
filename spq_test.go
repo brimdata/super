@@ -109,10 +109,6 @@ func isValid(t *testing.T, name, s string) bool {
 			t.Fatalf("boomerang panic reading test input: %s: %+v\n%s\n", name, r, debug.Stack())
 		}
 	}()
-	return isValidBare(s)
-}
-
-func isValidBare(s string) bool {
 	zrc, err := anyio.NewReader(super.NewContext(), strings.NewReader(s), anyio.ReaderOpts{})
 	if err != nil {
 		return false
