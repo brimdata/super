@@ -66,7 +66,7 @@ func TestCSUPBatchBug(t *testing.T) {
 }
 
 func valToVec(sctx *super.Context, val super.Value) vector.Any {
-	b := vector.NewDynamicBuilder()
+	b := vector.NewDynamicValueBuilder()
 	b.Write(val)
 	return b.Build(sctx)
 }

@@ -25,7 +25,7 @@ func (s *Sort) Pull(done bool) (vector.Any, error) {
 	if batch == nil || err != nil {
 		return nil, err
 	}
-	b := vector.NewDynamicBuilder()
+	b := vector.NewDynamicValueBuilder()
 	for _, val := range batch.Values() {
 		b.Write(val)
 	}

@@ -29,7 +29,7 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(p.sctx, "parse_uri: string arg required", args[0])
 	}
 	var b scode.Builder
-	db := vector.NewDynamicBuilder()
+	db := vector.NewDynamicValueBuilder()
 	for i := range vec.Len() {
 		b.Truncate()
 		vec.Serialize(&b, i)
@@ -60,7 +60,7 @@ func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 	}
 	var errs []uint32
 	errMsgs := vector.NewStringEmpty(0)
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	for i := range vec.Len() {
 		s := vector.StringValue(vec, i)
 		p.sr.Reset(s)

@@ -22,7 +22,7 @@ func (f *flatten) Call(args ...vector.Any) vector.Any {
 	if rtyp == nil {
 		return args[0]
 	}
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	var b scode.Builder
 	for i := range vec.Len() {
 		b.Truncate()
@@ -45,7 +45,7 @@ func newUnflatten(sctx *super.Context) *unflatten {
 func (u *unflatten) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	typ := vec.Type()
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	var b scode.Builder
 	for i := range vec.Len() {
 		b.Truncate()

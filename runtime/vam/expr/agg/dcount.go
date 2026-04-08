@@ -35,8 +35,8 @@ func (d *dcount) Consume(vec vector.Any) {
 	}
 }
 
-func (d *dcount) Result(*super.Context) super.Value {
-	return super.NewInt64(int64(d.sketch.Estimate()))
+func (d *dcount) Result(*super.Context) vector.Any {
+	return vector.NewInt(super.TypeInt64, []int64{int64(d.sketch.Estimate())})
 }
 
 func (d *dcount) ConsumeAsPartial(partial vector.Any) {
@@ -51,10 +51,12 @@ func (d *dcount) ConsumeAsPartial(partial vector.Any) {
 	d.sketch.Merge(&s)
 }
 
-func (d *dcount) ResultAsPartial(sctx *super.Context) super.Value {
+func (d *dcount) ResultAsPartial(sctx *super.Context) vector.Any {
 	b, err := d.sketch.MarshalBinary()
 	if err != nil {
 		panic(fmt.Errorf("dcount: marshaling partial: %w", err))
 	}
-	return super.NewBytes(b)
+	table := vector.NewBytesTableEmpty(0)
+	table.Append(b)
+	return vector.NewBytes(table)
 }

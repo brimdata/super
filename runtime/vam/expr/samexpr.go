@@ -18,7 +18,7 @@ func NewSamExpr(sctx *super.Context, sameval samexpr.Evaluator) Evaluator {
 }
 
 func (s *samExpr) Eval(this vector.Any) vector.Any {
-	vb := vector.NewDynamicBuilder()
+	vb := vector.NewDynamicValueBuilder()
 	for i := range this.Len() {
 		val := vector.ValueAt(&s.sb, this, i)
 		vb.Write(s.samEval.Eval(val))

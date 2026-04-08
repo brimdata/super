@@ -34,7 +34,7 @@ func (d *DatePart) Call(args ...vector.Any) vector.Any {
 func (d *DatePart) slow(partArg, timeArg vector.Any) vector.Any {
 	fn := samfunc.NewDatePart(d.sctx)
 	var b scode.Builder
-	vb := vector.NewDynamicBuilder()
+	vb := vector.NewDynamicValueBuilder()
 	for i := range partArg.Len() {
 		b.Reset()
 		partArg.Serialize(&b, i)

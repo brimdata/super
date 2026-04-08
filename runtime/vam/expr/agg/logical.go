@@ -22,11 +22,14 @@ func (a *and) Consume(vec vector.Any) {
 	}
 }
 
-func (a *and) Result(*super.Context) super.Value {
+func (a *and) Result(*super.Context) vector.Any {
 	if a.val == nil {
-		return super.Null
+		return vector.NewNull(1)
 	}
-	return super.NewBool(*a.val)
+	if *a.val {
+		return vector.NewTrue(1)
+	}
+	return vector.NewFalse(1)
 }
 
 func (a *and) ConsumeAsPartial(partial vector.Any) {
@@ -36,7 +39,7 @@ func (a *and) ConsumeAsPartial(partial vector.Any) {
 	a.Consume(partial)
 }
 
-func (a *and) ResultAsPartial(*super.Context) super.Value {
+func (a *and) ResultAsPartial(*super.Context) vector.Any {
 	return a.Result(nil)
 }
 
@@ -56,11 +59,14 @@ func (o *or) Consume(vec vector.Any) {
 	}
 }
 
-func (o *or) Result(*super.Context) super.Value {
+func (o *or) Result(*super.Context) vector.Any {
 	if o.val == nil {
-		return super.Null
+		return vector.NewNull(1)
 	}
-	return super.NewBool(*o.val)
+	if *o.val {
+		return vector.NewTrue(1)
+	}
+	return vector.NewFalse(1)
 }
 
 func (o *or) ConsumeAsPartial(partial vector.Any) {
@@ -70,6 +76,6 @@ func (o *or) ConsumeAsPartial(partial vector.Any) {
 	o.Consume(partial)
 }
 
-func (o *or) ResultAsPartial(*super.Context) super.Value {
+func (o *or) ResultAsPartial(*super.Context) vector.Any {
 	return o.Result(nil)
 }

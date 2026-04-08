@@ -217,7 +217,7 @@ again:
 		// XXX TBD: this is slow and creates a vector per value when writing vectors
 		// to a database.  This will change when we convert the database from
 		// mixed BSUP/CSUP to CSUP only.
-		builder := vector.NewBuilder(val.Type())
+		builder := vector.NewValueBuilder(val.Type())
 		builder.Write(val.Bytes())
 		if err := w.vectorWriter.Push(builder.Build(w.sctx)); err != nil {
 			w.Abort()

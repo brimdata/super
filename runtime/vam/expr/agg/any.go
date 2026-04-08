@@ -2,35 +2,35 @@ package agg
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
 type Any struct {
-	val super.Value
+	result vector.Any
 }
 
 func NewAny() *Any {
-	return &Any{val: super.Null}
+	return &Any{}
 }
 
 func (a *Any) Consume(vec vector.Any) {
-	if !a.val.IsNull() || vec.Kind() == vector.KindNull {
+	if a.result != nil || vec.Kind() == vector.KindNull {
 		return
 	}
-	var b scode.Builder
-	vec.Serialize(&b, 0)
-	a.val = super.NewValue(vec.Type(), b.Bytes().Body())
+	a.result = vector.Pick(vec, []uint32{0})
 }
 
 func (a *Any) ConsumeAsPartial(vec vector.Any) {
 	a.Consume(vec)
 }
 
-func (a *Any) Result(*super.Context) super.Value {
-	return a.val
+func (a *Any) Result(sctx *super.Context) vector.Any {
+	if a.result == nil {
+		return vector.NewNull(1)
+	}
+	return a.result
 }
 
-func (a *Any) ResultAsPartial(*super.Context) super.Value {
+func (a *Any) ResultAsPartial(*super.Context) vector.Any {
 	return a.Result(nil)
 }

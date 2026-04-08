@@ -53,7 +53,7 @@ func Materialize(vec vector.Any) Batch {
 }
 
 func Dematerialize(sctx *super.Context, batch Batch) vector.Any {
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	for _, val := range batch.Values() {
 		builder.Write(val)
 	}
@@ -61,13 +61,13 @@ func Dematerialize(sctx *super.Context, batch Batch) vector.Any {
 }
 
 func ValToVec(sctx *super.Context, val super.Value) vector.Any {
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	builder.Write(val)
 	return builder.Build(sctx)
 }
 
 func ValToPuller(sctx *super.Context, val super.Value) vio.Puller {
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	builder.Write(val)
 	return &vecPuller{builder.Build(sctx)}
 }
@@ -102,7 +102,7 @@ func (d *Dematerializer) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 		return nil, err
 	}
 	defer batch.Unref()
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	for _, val := range batch.Values() {
 		builder.Write(val)
 	}

@@ -16,8 +16,8 @@ func (a *count) Consume(vec vector.Any) {
 	a.count += int64(vec.Len())
 }
 
-func (a *count) Result(*super.Context) super.Value {
-	return super.NewInt64(a.count)
+func (a *count) Result(*super.Context) vector.Any {
+	return vector.NewInt(super.TypeInt64, []int64{a.count})
 }
 
 func (a *count) ConsumeAsPartial(partial vector.Any) {
@@ -27,6 +27,6 @@ func (a *count) ConsumeAsPartial(partial vector.Any) {
 	a.count += vector.IntValue(partial, 0)
 }
 
-func (a *count) ResultAsPartial(*super.Context) super.Value {
+func (a *count) ResultAsPartial(*super.Context) vector.Any {
 	return a.Result(nil)
 }

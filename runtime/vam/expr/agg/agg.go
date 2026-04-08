@@ -10,8 +10,8 @@ import (
 type Func interface {
 	Consume(vector.Any)
 	ConsumeAsPartial(vector.Any)
-	Result(*super.Context) super.Value
-	ResultAsPartial(*super.Context) super.Value
+	Result(*super.Context) vector.Any
+	ResultAsPartial(*super.Context) vector.Any
 }
 
 type Pattern func() Func

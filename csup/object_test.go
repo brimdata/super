@@ -22,7 +22,7 @@ func TestObjectProjectMetadata(t *testing.T) {
 		"{a:2,b:{c:5,d:0.8}}",
 		"{a:3,b:{c:6,d:0.9}}",
 	}
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	for _, s := range supValues {
 		builder.Write(sup.MustParseValue(sctx, s))
 	}

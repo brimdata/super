@@ -103,7 +103,7 @@ func (w *Serializer) finalizeObject() error {
 type ValWriter struct {
 	sctx       *super.Context
 	serializer *Serializer
-	builder    *vector.DynamicBuilder
+	builder    *vector.DynamicValueBuilder
 }
 
 var _ sio.Writer = (*ValWriter)(nil)
@@ -113,7 +113,7 @@ func NewValWriter(w io.WriteCloser) *ValWriter {
 	return &ValWriter{
 		sctx:       sctx,
 		serializer: NewSerializer(w),
-		builder:    vector.NewDynamicBuilder(),
+		builder:    vector.NewDynamicValueBuilder(),
 	}
 }
 

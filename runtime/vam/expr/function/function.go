@@ -194,7 +194,7 @@ func newSamFunc(sctx *super.Context, fn samexpr.Function) *samFunc {
 
 func (f *samFunc) Call(args ...vector.Any) vector.Any {
 	f.builders = slices.Grow(f.builders[:0], len(args))[:len(args)]
-	b := vector.NewDynamicBuilder()
+	b := vector.NewDynamicValueBuilder()
 	for i := range args[0].Len() {
 		f.values = f.values[:0]
 		for j, vec := range args {

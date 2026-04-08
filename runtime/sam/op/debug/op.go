@@ -65,7 +65,7 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 }
 
 func (o *Op) evalBatch(in sbuf.Batch) vector.Any {
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	for _, x := range in.Values() {
 		if o.filter == nil || o.where(x) {
 			builder.Write(o.expr.Eval(x))

@@ -59,7 +59,7 @@ func (m *MapExpr) build(vecs []vector.Any) vector.Any {
 		typs = append(typs, vec.Type())
 	}
 	var b scode.Builder
-	vb := vector.NewDynamicBuilder()
+	vb := vector.NewDynamicValueBuilder()
 	for i := range vecs[0].Len() {
 		for k, vec := range vecs {
 			b.Truncate()

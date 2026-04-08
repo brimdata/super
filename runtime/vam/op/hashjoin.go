@@ -186,7 +186,7 @@ func (j *hashJoin) probeLeft() (vector.Any, error) {
 			return nil, err
 		}
 		leftKeyVec := j.leftKey.Eval(vec)
-		b := vector.NewDynamicBuilder()
+		b := vector.NewDynamicValueBuilder()
 		for i := range vec.Len() {
 			keyVal := vector.ValueAt(&sb, leftKeyVec, i)
 			if keyVal.IsMissing() {
@@ -229,7 +229,7 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 			return nil, nil
 		}
 		rightKeyVec := j.rightKey.Eval(vec)
-		b := vector.NewDynamicBuilder()
+		b := vector.NewDynamicValueBuilder()
 		for i := range vec.Len() {
 			keyVal := vector.ValueAt(&sb, rightKeyVec, i)
 			if keyVal.IsMissing() {
@@ -256,7 +256,7 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 }
 
 func (j *hashJoin) drainLeftTable() vector.Any {
-	b := vector.NewDynamicBuilder()
+	b := vector.NewDynamicValueBuilder()
 	for key, vals := range j.table {
 		if j.hits[key] {
 			continue

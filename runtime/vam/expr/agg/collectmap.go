@@ -3,6 +3,7 @@ package agg
 import (
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
@@ -28,14 +29,16 @@ func (c *collectMap) Consume(vec vector.Any) {
 	}
 }
 
-func (c *collectMap) Result(sctx *super.Context) super.Value {
-	return c.samCollectMap.Result(sctx)
+func (c *collectMap) Result(sctx *super.Context) vector.Any {
+	val := c.samCollectMap.Result(sctx)
+	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
 }
 
 func (c *collectMap) ConsumeAsPartial(partial vector.Any) {
 	c.Consume(partial)
 }
 
-func (c *collectMap) ResultAsPartial(sctx *super.Context) super.Value {
-	return c.samCollectMap.ResultAsPartial(sctx)
+func (c *collectMap) ResultAsPartial(sctx *super.Context) vector.Any {
+	val := c.samCollectMap.ResultAsPartial(sctx)
+	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
 }

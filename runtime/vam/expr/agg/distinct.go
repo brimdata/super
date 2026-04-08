@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
@@ -59,15 +60,15 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 	d.Consume(values)
 }
 
-func (d *distinct) Result(sctx *super.Context) super.Value {
-	b := vector.NewDynamicBuilder()
+func (d *distinct) Result(sctx *super.Context) vector.Any {
+	b := vector.NewDynamicValueBuilder()
 	var count int
 	for key := range d.seen {
 		b.Write(samagg.NewValueFromDistinctKey(sctx, key))
 		count++
 		if count == 1024 {
 			d.fun.Consume(b.Build(sctx))
-			b = vector.NewDynamicBuilder()
+			b = vector.NewDynamicValueBuilder()
 			count = 0
 		}
 		delete(d.seen, key)
@@ -78,6 +79,7 @@ func (d *distinct) Result(sctx *super.Context) super.Value {
 	return d.fun.Result(sctx)
 }
 
-func (d *distinct) ResultAsPartial(sctx *super.Context) super.Value {
-	return samagg.DistinctResultAsPartial(sctx, d.seen)
+func (d *distinct) ResultAsPartial(sctx *super.Context) vector.Any {
+	val := samagg.DistinctResultAsPartial(sctx, d.seen)
+	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
 }

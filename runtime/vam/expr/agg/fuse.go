@@ -48,9 +48,9 @@ func (f *fuse) consume(typ super.Type) {
 	}
 }
 
-func (f *fuse) Result(sctx *super.Context) super.Value {
+func (f *fuse) Result(sctx *super.Context) vector.Any {
 	if len(f.types)+len(f.partials) == 0 {
-		return super.Null
+		return vector.NewNull(1)
 	}
 	fuser := samagg.NewFuser(sctx, f.complete)
 	for _, p := range f.partials {
@@ -63,7 +63,9 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 	for _, typ := range f.types {
 		fuser.Fuse(typ)
 	}
-	return sctx.LookupTypeValue(fuser.Type())
+	table := vector.NewBytesTableEmpty(0)
+	table.Append(super.EncodeTypeValue(fuser.Type()))
+	return vector.NewTypeValue(table)
 }
 
 func (f *fuse) ConsumeAsPartial(partial vector.Any) {
@@ -80,6 +82,6 @@ func (f *fuse) ConsumeAsPartial(partial vector.Any) {
 	}
 }
 
-func (f *fuse) ResultAsPartial(sctx *super.Context) super.Value {
+func (f *fuse) ResultAsPartial(sctx *super.Context) vector.Any {
 	return f.Result(sctx)
 }

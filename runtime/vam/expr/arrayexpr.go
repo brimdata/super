@@ -140,7 +140,7 @@ func mergeSameTypeVecs(sctx *super.Context, typ super.Type, tags []uint32, vecs 
 	// XXX This is going to be slow. At some point would nice to write a native
 	// merge of same type vectors.
 	counts := make([]uint32, len(vecs))
-	vb := vector.NewBuilder(typ)
+	vb := vector.NewValueBuilder(typ)
 	var b scode.Builder
 	for _, tag := range tags {
 		b.Truncate()

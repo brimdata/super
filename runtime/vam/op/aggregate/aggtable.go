@@ -121,7 +121,7 @@ func (s *superTable) materialize() vector.Any {
 }
 
 func (s *superTable) materializeKey(i int) vector.Any {
-	b := vector.NewBuilder(s.rows[0].keys[i].Type())
+	b := vector.NewValueBuilder(s.rows[0].keys[i].Type())
 	for _, row := range s.rows {
 		b.Write(row.keys[i].Bytes())
 	}

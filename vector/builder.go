@@ -2,49 +2,70 @@ package vector
 
 import (
 	"net/netip"
+	"slices"
 
-	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Builder interface {
-	Write(scode.Bytes)
-	Build(sctx *super.Context) Any
+	Write(Any)
+	Build(*super.Context) Any
 }
 
 type DynamicBuilder struct {
 	tags   []uint32
 	values []Builder
-	which  map[super.Type]int
+	which  map[super.Type]uint32
 }
 
 func NewDynamicBuilder() *DynamicBuilder {
-	return &DynamicBuilder{
-		which: make(map[super.Type]int),
+	return &DynamicBuilder{which: make(map[super.Type]uint32)}
+}
+
+func (d *DynamicBuilder) Write(vec Any) {
+	if dynamic, ok := vec.(*Dynamic); ok {
+		tagMap := make([]uint32, len(dynamic.Values))
+		for i, vec := range dynamic.Values {
+			if vec != nil {
+				tagMap[i] = d.write(vec)
+			}
+		}
+		for i := range vec.Len() {
+			d.tags = append(d.tags, tagMap[dynamic.Tags[i]])
+		}
+	} else {
+		tag := d.write(vec)
+		for range vec.Len() {
+			d.tags = append(d.tags, tag)
+		}
 	}
 }
 
-func (d *DynamicBuilder) Write(val super.Value) {
-	typ := val.Type()
-	tag, ok := d.which[typ]
+func (d *DynamicBuilder) write(vec Any) uint32 {
+	typ := vec.Type()
+	i, ok := d.which[typ]
 	if !ok {
-		tag = len(d.values)
+		i = uint32(len(d.values))
+		d.which[typ] = i
 		d.values = append(d.values, NewBuilder(typ))
-		d.which[typ] = tag
 	}
-	d.tags = append(d.tags, uint32(tag))
-	d.values[tag].Write(val.Bytes())
+	d.values[i].Write(vec)
+	return i
 }
 
 func (d *DynamicBuilder) Build(sctx *super.Context) Any {
+	out := d.build(sctx)
+	if len(out.Values) == 1 {
+		return out.Values[0]
+	}
+	return out
+}
+
+func (d *DynamicBuilder) build(sctx *super.Context) *Dynamic {
 	var vecs []Any
 	for _, b := range d.values {
 		vecs = append(vecs, b.Build(sctx))
-	}
-	if len(vecs) == 1 {
-		return vecs[0]
 	}
 	return NewDynamic(d.tags, vecs)
 }
@@ -55,373 +76,460 @@ func NewBuilder(typ super.Type) Builder {
 		*super.TypeOfUint16,
 		*super.TypeOfUint32,
 		*super.TypeOfUint64:
-		return &uintBuilder{typ: typ}
+		return &genericBuilder[uint64]{
+			typ:      typ,
+			valuesOf: func(vec Any) []uint64 { return vec.(*Uint).Values },
+			build: func(typ super.Type, vals []uint64) Any {
+				return NewUint(typ, vals)
+			},
+		}
 	case *super.TypeOfInt8,
 		*super.TypeOfInt16,
 		*super.TypeOfInt32,
 		*super.TypeOfInt64,
 		*super.TypeOfDuration,
 		*super.TypeOfTime:
-		return &intBuilder{typ: typ}
+		return &genericBuilder[int64]{
+			typ:      typ,
+			valuesOf: func(vec Any) []int64 { return vec.(*Int).Values },
+			build: func(typ super.Type, vals []int64) Any {
+				return NewInt(typ, vals)
+			},
+		}
 	case *super.TypeOfFloat16,
 		*super.TypeOfFloat32,
 		*super.TypeOfFloat64:
-		return &floatBuilder{typ: typ}
+		return &genericBuilder[float64]{
+			typ:      typ,
+			valuesOf: func(vec Any) []float64 { return vec.(*Float).Values },
+			build: func(typ super.Type, vals []float64) Any {
+				return NewFloat(typ, vals)
+			},
+		}
 	case *super.TypeOfBool:
-		return newBoolBuilder()
-	case *super.TypeOfBytes,
-		*super.TypeOfString:
-		return newBytesStringTypeBuilder(typ)
+		return &boolBuilder{}
+	case *super.TypeOfString,
+		*super.TypeOfBytes,
+		*super.TypeOfType:
+		return newStringBytesTypeBuilder(typ)
 	case *super.TypeOfIP:
-		return &ipBuilder{}
+		return &genericBuilder[netip.Addr]{
+			typ:      typ,
+			valuesOf: func(vec Any) []netip.Addr { return vec.(*IP).Values },
+			build: func(_ super.Type, vals []netip.Addr) Any {
+				return NewIP(vals)
+			},
+		}
 	case *super.TypeOfNet:
-		return &netBuilder{}
-	case *super.TypeOfType:
-		return newBytesStringTypeBuilder(typ)
+		return &genericBuilder[netip.Prefix]{
+			typ:      typ,
+			valuesOf: func(vec Any) []netip.Prefix { return vec.(*Net).Values },
+			build: func(_ super.Type, vals []netip.Prefix) Any {
+				return NewNet(vals)
+			},
+		}
 	case *super.TypeOfNull:
 		return &nullBuilder{}
 	case *super.TypeRecord:
 		return newRecordBuilder(typ)
-	case *super.TypeArray:
-		return newArraySetBuilder(typ)
-	case *super.TypeSet:
+	case *super.TypeArray, *super.TypeSet:
 		return newArraySetBuilder(typ)
 	case *super.TypeMap:
 		return newMapBuilder(typ)
 	case *super.TypeUnion:
-		return newUnionBuilder(typ)
-	case *super.TypeFusion:
-		return newFusionBuilder(typ)
+		return &unionBuilder{typ: typ, builder: NewDynamicBuilder()}
 	case *super.TypeEnum:
-		return &enumBuilder{typ, nil}
+		return newEnumBuilder(typ)
 	case *super.TypeError:
-		return &errorBuilder{typ: typ, Builder: NewBuilder(typ.Type)}
+		return &errorBuilder{vals: NewBuilder(typ.Type)}
 	case *super.TypeNamed:
-		return &namedBuilder{typ: typ, Builder: NewBuilder(typ.Type)}
+		return &namedBuilder{name: typ.Name, vals: NewBuilder(typ.Type)}
+	default:
+		panic(typ)
 	}
-	panic(typ)
 }
 
-type namedBuilder struct {
-	Builder
-	typ *super.TypeNamed
+type genericBuilder[E any] struct {
+	typ      super.Type
+	vals     []E
+	valuesOf func(Any) []E
+	build    func(super.Type, []E) Any
 }
 
-func (n *namedBuilder) Build(sctx *super.Context) Any {
-	return NewNamed(n.typ, n.Builder.Build(sctx))
-}
-
-type recordBuilder struct {
-	typ    *super.TypeRecord
-	fields []fieldBuilder
-	len    uint32
-}
-
-func newRecordBuilder(typ *super.TypeRecord) Builder {
-	var fields []fieldBuilder
-	for _, f := range typ.Fields {
-		fields = append(fields, fieldBuilder{opt: f.Opt, val: NewBuilder(f.Type)})
-	}
-	return &recordBuilder{typ: typ, fields: fields}
-}
-
-func (r *recordBuilder) Write(bytes scode.Bytes) {
-	off := r.len
-	r.len++
-	it := scode.NewRecordIter(bytes, r.typ.Opts)
-	for k := range r.fields {
-		elem, none := it.Next(r.typ.Fields[k].Opt)
-		// The none condition is captured by RLE.
-		if !none {
-			r.fields[k].write(elem, off)
+func (b *genericBuilder[E]) Write(vec Any) {
+	switch vec := vec.(type) {
+	case *View:
+		vals := b.valuesOf(vec.Any)
+		for _, slot := range vec.Index {
+			b.vals = append(b.vals, vals[slot])
 		}
+	case *Const:
+		vals := b.valuesOf(vec.Any)
+		for range vec.len {
+			b.vals = append(b.vals, vals[0])
+		}
+	case *Dict:
+		vals := b.valuesOf(vec.Any)
+		for _, slot := range vec.Index {
+			b.vals = append(b.vals, vals[slot])
+		}
+	default:
+		b.vals = append(b.vals, b.valuesOf(vec)...)
 	}
 }
 
-func (r *recordBuilder) Build(sctx *super.Context) Any {
-	var fields []Any
-	for k := range r.fields {
-		fields = append(fields, r.fields[k].build(sctx, r.len))
+func (b *genericBuilder[E]) Build(*super.Context) Any {
+	return b.build(b.typ, b.vals)
+}
+
+type boolBuilder struct {
+	bits bitvec.Bits
+}
+
+func (b *boolBuilder) Write(vec Any) {
+	bits := vec.(*Bool).Bits
+	// There's a faster way to do this with bit shift but just go slow
+	for i := range bits.Len() {
+		b.bits.Append(bits.IsSet(i))
 	}
-	return NewRecord(r.typ, fields, r.len)
 }
 
-type fieldBuilder struct {
-	opt  bool
-	val  Builder
-	runs RLE
+func (b *boolBuilder) Build(*super.Context) Any {
+	return NewBool(b.bits)
 }
 
-func (f *fieldBuilder) write(bytes scode.Bytes, off uint32) {
-	if f.opt {
-		f.runs.Touch(off)
+type stringBytesTypeBuilder struct {
+	typ   super.Type
+	table BytesTable
+}
+
+func newStringBytesTypeBuilder(typ super.Type) Builder {
+	return &stringBytesTypeBuilder{typ: typ, table: NewBytesTableEmpty(0)}
+}
+
+func (s *stringBytesTypeBuilder) Write(vec Any) {
+	switch vec := vec.(type) {
+	case *View:
+		table := bytesTableOf(vec.Any)
+		for _, slot := range vec.Index {
+			s.table.Append(table.Bytes(slot))
+		}
+	case *Const:
+		b := bytesTableOf(vec.Any).Bytes(0)
+		for range vec.len {
+			s.table.Append(b)
+		}
+	case *Dict:
+		table := bytesTableOf(vec.Any)
+		for _, slot := range vec.Index {
+			s.table.Append(table.Bytes(uint32(slot)))
+		}
+	case *String, *Bytes, *TypeValue:
+		table := bytesTableOf(vec)
+		for i := range vec.Len() {
+			s.table.Append(table.Bytes(i))
+		}
+	default:
+		panic(vec)
 	}
-	f.val.Write(bytes)
 }
 
-func (f *fieldBuilder) build(sctx *super.Context, n uint32) Any {
-	var runs []uint32
-	if f.opt {
-		runs = f.runs.End(n)
+func bytesTableOf(vec Any) BytesTable {
+	switch vec := vec.(type) {
+	case *String:
+		return vec.table
+	case *Bytes:
+		return vec.table
+	case *TypeValue:
+		return vec.table
+	default:
+		panic(vec)
 	}
-	return NewFieldFromRLE(sctx, f.val.Build(sctx), n, runs)
 }
 
-type errorBuilder struct {
-	typ *super.TypeError
-	Builder
+func (s *stringBytesTypeBuilder) Build(*super.Context) Any {
+	switch s.typ.ID() {
+	case super.IDString:
+		return NewString(s.table)
+	case super.IDBytes:
+		return NewBytes(s.table)
+	case super.IDType:
+		return NewTypeValue(s.table)
+	default:
+		panic(s.typ)
+	}
 }
 
-func (e *errorBuilder) Build(sctx *super.Context) Any {
-	return NewError(e.typ, e.Builder.Build(sctx))
+type nullBuilder struct {
+	len uint32
+}
+
+func (n *nullBuilder) Write(vec Any) {
+	n.len += vec.(*Null).len
+}
+
+func (n *nullBuilder) Build(*super.Context) Any {
+	return NewNull(n.len)
 }
 
 type arraySetBuilder struct {
 	typ     super.Type
-	values  Builder
+	inner   Builder
 	offsets []uint32
+	len     uint32
 }
 
-func newArraySetBuilder(typ super.Type) Builder {
-	return &arraySetBuilder{typ: typ, values: NewBuilder(super.InnerType(typ)), offsets: []uint32{0}}
-}
-
-func (a *arraySetBuilder) Write(bytes scode.Bytes) {
-	off := a.offsets[len(a.offsets)-1]
-	for it := bytes.Iter(); !it.Done(); {
-		a.values.Write(it.Next())
-		off++
-	}
-	a.offsets = append(a.offsets, off)
-}
-
-func (a *arraySetBuilder) Build(sctx *super.Context) Any {
-	if typ, ok := a.typ.(*super.TypeArray); ok {
-		return NewArray(typ, a.offsets, a.values.Build(sctx))
-	}
-	return NewSet(a.typ.(*super.TypeSet), a.offsets, a.values.Build(sctx))
-}
-
-type mapBuilder struct {
-	typ          *super.TypeMap
-	keys, values Builder
-	offsets      []uint32
-}
-
-func newMapBuilder(typ *super.TypeMap) Builder {
-	return &mapBuilder{
+func newArraySetBuilder(typ super.Type) *arraySetBuilder {
+	return &arraySetBuilder{
 		typ:     typ,
-		keys:    NewBuilder(typ.KeyType),
-		values:  NewBuilder(typ.ValType),
+		inner:   NewBuilder(super.InnerType(typ)),
 		offsets: []uint32{0},
 	}
 }
 
-func (m *mapBuilder) Write(bytes scode.Bytes) {
-	off := m.offsets[len(m.offsets)-1]
-	it := bytes.Iter()
-	for !it.Done() {
-		m.keys.Write(it.Next())
-		m.values.Write(it.Next())
-		off++
+func (a *arraySetBuilder) Write(vec Any) {
+	n := vec.Len()
+	var index []uint32
+	if view, ok := vec.(*View); ok {
+		vec = view.Any
+		index = view.Index
 	}
-	m.offsets = append(m.offsets, off)
-}
-
-func (m *mapBuilder) Build(sctx *super.Context) Any {
-	return NewMap(m.typ, m.offsets, m.keys.Build(sctx), m.values.Build(sctx))
-}
-
-type unionBuilder struct {
-	typ    *super.TypeUnion
-	values []Builder
-	tags   []uint32
-}
-
-func newUnionBuilder(typ *super.TypeUnion) Builder {
-	var values []Builder
-	for _, typ := range typ.Types {
-		values = append(values, NewBuilder(typ))
+	var offsets []uint32
+	switch vec := vec.(type) {
+	case *Array:
+		a.inner.Write(vec.Values)
+		offsets = vec.Offsets
+	case *Set:
+		a.inner.Write(vec.Values)
+		offsets = vec.Offsets
+	default:
+		panic(vec)
 	}
-	return &unionBuilder{typ: typ, values: values}
-}
-
-func (u *unionBuilder) Write(bytes scode.Bytes) {
-	var typ super.Type
-	typ, bytes = u.typ.Untag(bytes)
-	tag := u.typ.TagOf(typ)
-	u.values[tag].Write(bytes)
-	u.tags = append(u.tags, uint32(tag))
-}
-
-func (u *unionBuilder) Build(sctx *super.Context) Any {
-	var vecs []Any
-	for _, v := range u.values {
-		vecs = append(vecs, v.Build(sctx))
-	}
-	return NewUnion(u.typ, u.tags, vecs)
-}
-
-type fusionBuilder struct {
-	typ      *super.TypeFusion
-	values   Builder
-	subtypes []scode.Bytes
-}
-
-func newFusionBuilder(typ *super.TypeFusion) Builder {
-	return &fusionBuilder{typ: typ, values: NewBuilder(typ.Type)}
-}
-
-func (f *fusionBuilder) Write(bytes scode.Bytes) {
-	it := bytes.Iter()
-	f.values.Write(it.Next())
-	f.subtypes = append(f.subtypes, it.Next())
-}
-
-func (f *fusionBuilder) Build(sctx *super.Context) Any {
-	types := make([]super.Type, 0, len(f.subtypes))
-	for _, tv := range f.subtypes {
-		t, err := sctx.LookupByValue(tv)
-		if err != nil {
-			panic(err)
+	for i := range n {
+		idx := i
+		if index != nil {
+			idx = index[i]
 		}
-		types = append(types, t)
+		a.len += offsets[idx+1] - offsets[idx]
+		a.offsets = append(a.offsets, a.len)
 	}
-	return NewFusion(sctx, f.typ, f.values.Build(sctx), types)
+}
+
+func (a *arraySetBuilder) Build(sctx *super.Context) Any {
+	vec := a.inner.Build(sctx)
+	switch a.typ.(type) {
+	case *super.TypeArray:
+		typ := sctx.LookupTypeArray(vec.Type())
+		return NewArray(typ, a.offsets, vec)
+	case *super.TypeSet:
+		typ := sctx.LookupTypeSet(vec.Type())
+		return NewSet(typ, a.offsets, vec)
+	default:
+		panic(a.typ)
+	}
 }
 
 type enumBuilder struct {
-	typ    *super.TypeEnum
-	values []uint64
+	typ  *super.TypeEnum
+	uint Builder
 }
 
-func (e *enumBuilder) Write(bytes scode.Bytes) {
-	e.values = append(e.values, super.DecodeUint(bytes))
-}
-
-func (e *enumBuilder) Build(sctx *super.Context) Any {
-	return NewEnum(e.typ, e.values)
-}
-
-type intBuilder struct {
-	typ    super.Type
-	values []int64
-}
-
-func (i *intBuilder) Write(bytes scode.Bytes) {
-	i.values = append(i.values, super.DecodeInt(bytes))
-}
-
-func (i *intBuilder) Build(sctx *super.Context) Any {
-	return NewInt(i.typ, i.values)
-}
-
-type uintBuilder struct {
-	typ    super.Type
-	values []uint64
-}
-
-func (u *uintBuilder) Write(bytes scode.Bytes) {
-	u.values = append(u.values, super.DecodeUint(bytes))
-}
-
-func (u *uintBuilder) Build(sctx *super.Context) Any {
-	return NewUint(u.typ, u.values)
-}
-
-type floatBuilder struct {
-	typ    super.Type
-	values []float64
-}
-
-func (f *floatBuilder) Write(bytes scode.Bytes) {
-	f.values = append(f.values, super.DecodeFloat(bytes))
-}
-
-func (f *floatBuilder) Build(sctx *super.Context) Any {
-	return NewFloat(f.typ, f.values)
-}
-
-type boolBuilder struct {
-	values *roaring.Bitmap
-	n      uint32
-}
-
-func newBoolBuilder() Builder {
-	return &boolBuilder{values: roaring.New()}
-}
-
-func (b *boolBuilder) Write(bytes scode.Bytes) {
-	if super.DecodeBool(bytes) {
-		b.values.Add(b.n)
+func newEnumBuilder(typ *super.TypeEnum) Builder {
+	return &enumBuilder{
+		typ:  typ,
+		uint: NewBuilder(super.TypeUint64),
 	}
-	b.n++
 }
 
-func (b *boolBuilder) Build(sctx *super.Context) Any {
-	bits := make([]uint64, (b.n+63)/64)
-	b.values.WriteDenseTo(bits)
-	return NewBool(bitvec.New(bits, b.n))
+func (a *enumBuilder) Write(vec Any) {
+	var index []uint32
+	if view, ok := vec.(*View); ok {
+		index = view.Index
+		vec = view.Any
+	}
+	var vals Any = vec.(*Enum).Uint
+	if index != nil {
+		vals = Pick(vals, index)
+	}
+	a.uint.Write(vals)
 }
 
-type bytesStringTypeBuilder struct {
-	typ   super.Type
-	offs  []uint32
-	bytes []byte
+func (a *enumBuilder) Build(sctx *super.Context) Any {
+	return NewEnum(a.typ, a.uint.Build(sctx).(*Uint).Values)
 }
 
-func newBytesStringTypeBuilder(typ super.Type) Builder {
-	return &bytesStringTypeBuilder{typ: typ, bytes: []byte{}, offs: []uint32{0}}
+type errorBuilder struct {
+	vals Builder
 }
 
-func (b *bytesStringTypeBuilder) Write(bytes scode.Bytes) {
-	b.bytes = append(b.bytes, bytes...)
-	b.offs = append(b.offs, uint32(len(b.bytes)))
+func (e *errorBuilder) Write(vec Any) {
+	e.vals.Write(vec.(*Error).Vals)
 }
 
-func (b *bytesStringTypeBuilder) Build(sctx *super.Context) Any {
-	switch b.typ.ID() {
-	case super.IDString:
-		return NewString(NewBytesTable(b.offs, b.bytes))
-	case super.IDBytes:
-		return NewBytes(NewBytesTable(b.offs, b.bytes))
+func (e *errorBuilder) Build(sctx *super.Context) Any {
+	vals := e.vals.Build(sctx)
+	return NewError(sctx.LookupTypeError(vals.Type()), vals)
+}
+
+type namedBuilder struct {
+	name string
+	vals Builder
+}
+
+func (n *namedBuilder) Write(vec Any) {
+	n.vals.Write(vec.(*Named).Any)
+}
+
+func (n *namedBuilder) Build(sctx *super.Context) Any {
+	vals := n.vals.Build(sctx)
+	typ, err := sctx.LookupTypeNamed(n.name, vals.Type())
+	if err != nil {
+		panic(err)
+	}
+	return NewNamed(typ, vals)
+}
+
+type mapBuilder struct {
+	keys    Builder
+	vals    Builder
+	offsets []uint32
+	len     uint32
+}
+
+func newMapBuilder(typ *super.TypeMap) Builder {
+	return &mapBuilder{
+		keys:    NewBuilder(typ.KeyType),
+		vals:    NewBuilder(typ.ValType),
+		offsets: []uint32{0},
+	}
+}
+
+func (m *mapBuilder) Write(vec Any) {
+	n := vec.Len()
+	var index []uint32
+	if view, ok := vec.(*View); ok {
+		index = view.Index
+		vec = view.Any
+	}
+	vmap := vec.(*Map)
+	m.keys.Write(vmap.Keys)
+	m.vals.Write(vmap.Values)
+	for i := range n {
+		idx := i
+		if index != nil {
+			idx = index[i]
+		}
+		m.len += vmap.Offsets[idx+1] - vmap.Offsets[idx]
+		m.offsets = append(m.offsets, m.len)
+	}
+}
+
+func (m *mapBuilder) Build(sctx *super.Context) Any {
+	keys := m.keys.Build(sctx)
+	vals := m.vals.Build(sctx)
+	typ := sctx.LookupTypeMap(keys.Type(), vals.Type())
+	return NewMap(typ, m.offsets, keys, vals)
+}
+
+type recordBuilder struct {
+	typ    *super.TypeRecord
+	fields []Builder
+	len    uint32
+}
+
+func newRecordBuilder(typ *super.TypeRecord) Builder {
+	var fields []Builder
+	for _, f := range typ.Fields {
+		b := NewBuilder(f.Type)
+		if f.Opt {
+			b = &optionalBuilder{value: b}
+		}
+		fields = append(fields, b)
+	}
+	return &recordBuilder{
+		typ:    typ,
+		fields: fields,
+	}
+}
+
+func (r *recordBuilder) Write(in Any) {
+	vec := in
+	var index []uint32
+	if view, ok := vec.(*View); ok {
+		vec = view.Any
+		index = view.Index
+	}
+	rec := vec.(*Record)
+	for i, vec := range rec.Fields {
+		if index != nil {
+			// XXX Optionals will return a dynamic.
+			vec = Pick(vec, index)
+		}
+		r.fields[i].Write(vec)
+	}
+	r.len += in.Len()
+}
+
+func (r *recordBuilder) Build(sctx *super.Context) Any {
+	var fields []Any
+	for _, b := range r.fields {
+		fields = append(fields, b.Build(sctx))
+	}
+	return NewRecord(r.typ, fields, r.len)
+}
+
+type optionalBuilder struct {
+	rle   RLE
+	value Builder
+	len   uint32
+}
+
+func (o *optionalBuilder) Write(vec Any) {
+	switch vec := vec.(type) {
+	case *Optional:
+		for i, tag := range vec.Tags {
+			if tag == 0 {
+				o.rle.Touch(o.len + uint32(i))
+			}
+		}
+		o.value.Write(vec.Dynamic.Values[0])
+	case *None: // Does nothing.
 	default:
-		return NewTypeValue(NewBytesTable(b.offs, b.bytes))
+		for i := range vec.Len() {
+			o.rle.Touch(o.len + i)
+		}
+		o.value.Write(vec)
 	}
+	o.len += vec.Len()
 }
 
-type ipBuilder struct {
-	values []netip.Addr
+func (o *optionalBuilder) Build(sctx *super.Context) Any {
+	rle := o.rle.End(o.len)
+	return NewFieldFromRLE(sctx, o.value.Build(sctx), o.len, rle)
 }
 
-func (i *ipBuilder) Write(bytes scode.Bytes) {
-	i.values = append(i.values, super.DecodeIP(bytes))
+type unionBuilder struct {
+	typ *super.TypeUnion
+
+	builder *DynamicBuilder
 }
 
-func (i *ipBuilder) Build(sctx *super.Context) Any {
-	return NewIP(i.values)
+func (u *unionBuilder) Write(vec Any) {
+	// Assert all incoming types in union.
+	vec = Deunion(vec)
+	check := []Any{vec}
+	if d, ok := vec.(*Dynamic); ok {
+		check = d.Values
+	}
+	bad := slices.ContainsFunc(check, func(vec Any) bool {
+		return u.typ.TagOf(vec.Type()) == -1
+	})
+	if bad {
+		panic("incoming vector contains values not in union")
+	}
+	u.builder.Write(vec)
 }
 
-type netBuilder struct {
-	values []netip.Prefix
-}
-
-func (n *netBuilder) Write(bytes scode.Bytes) {
-	n.values = append(n.values, super.DecodeNet(bytes))
-}
-
-func (n *netBuilder) Build(sctx *super.Context) Any {
-	return NewNet(n.values)
-}
-
-type nullBuilder struct {
-	n uint32
-}
-
-func (c *nullBuilder) Write(scode.Bytes) {
-	c.n++
-}
-
-func (c *nullBuilder) Build(*super.Context) Any {
-	return NewNull(c.n)
+func (u *unionBuilder) Build(sctx *super.Context) Any {
+	return NewUnionFromDynamic(sctx, u.builder.build(sctx))
 }

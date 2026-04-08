@@ -2,7 +2,6 @@ package agg
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
@@ -22,11 +21,12 @@ func (a *avg) Consume(vec vector.Any) {
 	a.sum = sum(a.sum, vec)
 }
 
-func (a *avg) Result(*super.Context) super.Value {
+func (a *avg) Result(*super.Context) vector.Any {
 	if a.count > 0 {
-		return super.NewFloat64(a.sum / float64(a.count))
+		f := a.sum / float64(a.count)
+		return vector.NewFloat(super.TypeFloat64, []float64{f})
 	}
-	return super.Null
+	return vector.NewNull(1)
 }
 
 const (
@@ -62,13 +62,12 @@ func (a *avg) ConsumeAsPartial(partial vector.Any) {
 	a.count += vector.UintValue(countVal, idx)
 }
 
-func (a *avg) ResultAsPartial(sctx *super.Context) super.Value {
-	var b scode.Builder
-	b.Append(super.EncodeFloat64(a.sum))
-	b.Append(super.EncodeUint(a.count))
+func (a *avg) ResultAsPartial(sctx *super.Context) vector.Any {
+	sum := vector.NewFloat(super.TypeFloat64, []float64{a.sum})
+	count := vector.NewUint(super.TypeUint64, []uint64{a.count})
 	typ := sctx.MustLookupTypeRecord([]super.Field{
 		super.NewField(sumName, super.TypeFloat64),
 		super.NewField(countName, super.TypeUint64),
 	})
-	return super.NewValue(typ, b.Bytes())
+	return vector.NewRecord(typ, []vector.Any{sum, count}, 1)
 }

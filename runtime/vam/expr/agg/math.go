@@ -10,7 +10,7 @@ import (
 )
 
 type consumer interface {
-	result() super.Value
+	result() vector.Any
 	consume(vector.Any)
 	typ() super.Type
 }
@@ -28,12 +28,12 @@ func newMathReducer(f *mathFunc) *mathReducer {
 
 var _ Func = (*mathReducer)(nil)
 
-func (m *mathReducer) Result(sctx *super.Context) super.Value {
+func (m *mathReducer) Result(sctx *super.Context) vector.Any {
 	if m.mixedTypesErr {
-		return sctx.NewErrorf("mixture of string and numeric values")
+		return vector.NewStringError(sctx, "mixture of string and numeric values", 1)
 	}
 	if !m.hasval {
-		return super.Null
+		return vector.NewNull(1)
 	}
 	return m.math.result()
 }
@@ -84,7 +84,7 @@ func (m *mathReducer) consumeNumeric(vec vector.Any) {
 	if m.math == nil || m.math.typ().ID() != id {
 		state := super.Null
 		if m.math != nil {
-			state = m.math.result()
+			state = vector.ValueAt(nil, m.math.result(), 0)
 		}
 		switch id {
 		case super.IDUint8, super.IDUint16, super.IDUint32, super.IDUint64:
@@ -116,7 +116,7 @@ func (m *mathReducer) ConsumeAsPartial(vec vector.Any) {
 	m.Consume(vec)
 }
 
-func (m *mathReducer) ResultAsPartial(sctx *super.Context) super.Value {
+func (m *mathReducer) ResultAsPartial(sctx *super.Context) vector.Any {
 	return m.Result(sctx)
 }
 
@@ -144,8 +144,8 @@ func (f *reduceFloat64) consume(vec vector.Any) {
 	f.state = f.function(f.state, vec)
 }
 
-func (f *reduceFloat64) result() super.Value {
-	return super.NewFloat64(f.state)
+func (f *reduceFloat64) result() vector.Any {
+	return vector.NewFloat(super.TypeFloat64, []float64{f.state})
 }
 
 func (f *reduceFloat64) typ() super.Type { return super.TypeFloat64 }
@@ -172,8 +172,8 @@ func newReduceInt64(f *mathFunc, val super.Value, typ super.Type) *reduceInt64 {
 	}
 }
 
-func (i *reduceInt64) result() super.Value {
-	return super.NewInt(i.outtyp, i.state)
+func (i *reduceInt64) result() vector.Any {
+	return vector.NewInt(i.outtyp, []int64{i.state})
 }
 
 func (i *reduceInt64) consume(vec vector.Any) {
@@ -202,8 +202,8 @@ func newReduceUint64(f *mathFunc, val super.Value) *reduceUint64 {
 	}
 }
 
-func (u *reduceUint64) result() super.Value {
-	return super.NewUint64(u.state)
+func (u *reduceUint64) result() vector.Any {
+	return vector.NewUint(super.TypeUint64, []uint64{u.state})
 }
 
 func (u *reduceUint64) consume(vec vector.Any) {
@@ -222,11 +222,13 @@ func newReduceString(f *mathFunc) *reduceString {
 	return &reduceString{function: f.funcString}
 }
 
-func (s *reduceString) result() super.Value {
+func (s *reduceString) result() vector.Any {
 	if s.function == nil {
-		return super.Null
+		return vector.NewNull(1)
 	}
-	return super.NewString(s.state)
+	out := vector.NewStringEmpty(0)
+	out.Append(s.state)
+	return out
 }
 
 func (s *reduceString) consume(vec vector.Any) {

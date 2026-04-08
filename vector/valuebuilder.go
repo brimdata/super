@@ -1,0 +1,430 @@
+package vector
+
+import (
+	"net/netip"
+
+	"github.com/RoaringBitmap/roaring/v2"
+	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector/bitvec"
+)
+
+type ValueBuilder interface {
+	Write(scode.Bytes)
+	Build(sctx *super.Context) Any
+}
+
+type DynamicValueBuilder struct {
+	tags   []uint32
+	values []ValueBuilder
+	which  map[super.Type]int
+}
+
+func NewDynamicValueBuilder() *DynamicValueBuilder {
+	return &DynamicValueBuilder{
+		which: make(map[super.Type]int),
+	}
+}
+
+func (d *DynamicValueBuilder) Write(val super.Value) {
+	typ := val.Type()
+	tag, ok := d.which[typ]
+	if !ok {
+		tag = len(d.values)
+		d.values = append(d.values, NewValueBuilder(typ))
+		d.which[typ] = tag
+	}
+	d.tags = append(d.tags, uint32(tag))
+	d.values[tag].Write(val.Bytes())
+}
+
+func (d *DynamicValueBuilder) Build(sctx *super.Context) Any {
+	var vecs []Any
+	for _, b := range d.values {
+		vecs = append(vecs, b.Build(sctx))
+	}
+	if len(vecs) == 1 {
+		return vecs[0]
+	}
+	return NewDynamic(d.tags, vecs)
+}
+
+func NewValueBuilder(typ super.Type) ValueBuilder {
+	switch typ := typ.(type) {
+	case *super.TypeOfUint8,
+		*super.TypeOfUint16,
+		*super.TypeOfUint32,
+		*super.TypeOfUint64:
+		return &uintValueBuilder{typ: typ}
+	case *super.TypeOfInt8,
+		*super.TypeOfInt16,
+		*super.TypeOfInt32,
+		*super.TypeOfInt64,
+		*super.TypeOfDuration,
+		*super.TypeOfTime:
+		return &intValueBuilder{typ: typ}
+	case *super.TypeOfFloat16,
+		*super.TypeOfFloat32,
+		*super.TypeOfFloat64:
+		return &floatValueBuilder{typ: typ}
+	case *super.TypeOfBool:
+		return newBoolValueBuilder()
+	case *super.TypeOfBytes,
+		*super.TypeOfString:
+		return newBytesStringTypeValueBuilder(typ)
+	case *super.TypeOfIP:
+		return &ipValueBuilder{}
+	case *super.TypeOfNet:
+		return &netValueBuilder{}
+	case *super.TypeOfType:
+		return newBytesStringTypeValueBuilder(typ)
+	case *super.TypeOfNull:
+		return &nullValueBuilder{}
+	case *super.TypeRecord:
+		return newRecordValueBuilder(typ)
+	case *super.TypeArray:
+		return newArraySetValueBuilder(typ)
+	case *super.TypeSet:
+		return newArraySetValueBuilder(typ)
+	case *super.TypeMap:
+		return newMapValueBuilder(typ)
+	case *super.TypeUnion:
+		return newUnionValueBuilder(typ)
+	case *super.TypeFusion:
+		return newFusionValueBuilder(typ)
+	case *super.TypeEnum:
+		return &enumValueBuilder{typ, nil}
+	case *super.TypeError:
+		return &errorValueBuilder{typ: typ, ValueBuilder: NewValueBuilder(typ.Type)}
+	case *super.TypeNamed:
+		return &namedValueBuilder{typ: typ, ValueBuilder: NewValueBuilder(typ.Type)}
+	}
+	panic(typ)
+}
+
+type namedValueBuilder struct {
+	ValueBuilder
+	typ *super.TypeNamed
+}
+
+func (n *namedValueBuilder) Build(sctx *super.Context) Any {
+	return NewNamed(n.typ, n.ValueBuilder.Build(sctx))
+}
+
+type recordValueBuilder struct {
+	typ    *super.TypeRecord
+	fields []fieldValueBuilder
+	len    uint32
+}
+
+func newRecordValueBuilder(typ *super.TypeRecord) ValueBuilder {
+	var fields []fieldValueBuilder
+	for _, f := range typ.Fields {
+		fields = append(fields, fieldValueBuilder{opt: f.Opt, val: NewValueBuilder(f.Type)})
+	}
+	return &recordValueBuilder{typ: typ, fields: fields}
+}
+
+func (r *recordValueBuilder) Write(bytes scode.Bytes) {
+	off := r.len
+	r.len++
+	it := scode.NewRecordIter(bytes, r.typ.Opts)
+	for k := range r.fields {
+		elem, none := it.Next(r.typ.Fields[k].Opt)
+		// The none condition is captured by RLE.
+		if !none {
+			r.fields[k].write(elem, off)
+		}
+	}
+}
+
+func (r *recordValueBuilder) Build(sctx *super.Context) Any {
+	var fields []Any
+	for k := range r.fields {
+		fields = append(fields, r.fields[k].build(sctx, r.len))
+	}
+	return NewRecord(r.typ, fields, r.len)
+}
+
+type fieldValueBuilder struct {
+	opt  bool
+	val  ValueBuilder
+	runs RLE
+}
+
+func (f *fieldValueBuilder) write(bytes scode.Bytes, off uint32) {
+	if f.opt {
+		f.runs.Touch(off)
+	}
+	f.val.Write(bytes)
+}
+
+func (f *fieldValueBuilder) build(sctx *super.Context, n uint32) Any {
+	var runs []uint32
+	if f.opt {
+		runs = f.runs.End(n)
+	}
+	return NewFieldFromRLE(sctx, f.val.Build(sctx), n, runs)
+}
+
+type errorValueBuilder struct {
+	typ *super.TypeError
+	ValueBuilder
+}
+
+func (e *errorValueBuilder) Build(sctx *super.Context) Any {
+	return NewError(e.typ, e.ValueBuilder.Build(sctx))
+}
+
+type arraySetValueBuilder struct {
+	typ     super.Type
+	values  ValueBuilder
+	offsets []uint32
+}
+
+func newArraySetValueBuilder(typ super.Type) ValueBuilder {
+	return &arraySetValueBuilder{typ: typ, values: NewValueBuilder(super.InnerType(typ)), offsets: []uint32{0}}
+}
+
+func (a *arraySetValueBuilder) Write(bytes scode.Bytes) {
+	off := a.offsets[len(a.offsets)-1]
+	for it := bytes.Iter(); !it.Done(); {
+		a.values.Write(it.Next())
+		off++
+	}
+	a.offsets = append(a.offsets, off)
+}
+
+func (a *arraySetValueBuilder) Build(sctx *super.Context) Any {
+	if typ, ok := a.typ.(*super.TypeArray); ok {
+		return NewArray(typ, a.offsets, a.values.Build(sctx))
+	}
+	return NewSet(a.typ.(*super.TypeSet), a.offsets, a.values.Build(sctx))
+}
+
+type mapValueBuilder struct {
+	typ          *super.TypeMap
+	keys, values ValueBuilder
+	offsets      []uint32
+}
+
+func newMapValueBuilder(typ *super.TypeMap) ValueBuilder {
+	return &mapValueBuilder{
+		typ:     typ,
+		keys:    NewValueBuilder(typ.KeyType),
+		values:  NewValueBuilder(typ.ValType),
+		offsets: []uint32{0},
+	}
+}
+
+func (m *mapValueBuilder) Write(bytes scode.Bytes) {
+	off := m.offsets[len(m.offsets)-1]
+	it := bytes.Iter()
+	for !it.Done() {
+		m.keys.Write(it.Next())
+		m.values.Write(it.Next())
+		off++
+	}
+	m.offsets = append(m.offsets, off)
+}
+
+func (m *mapValueBuilder) Build(sctx *super.Context) Any {
+	return NewMap(m.typ, m.offsets, m.keys.Build(sctx), m.values.Build(sctx))
+}
+
+type unionValueBuilder struct {
+	typ    *super.TypeUnion
+	values []ValueBuilder
+	tags   []uint32
+}
+
+func newUnionValueBuilder(typ *super.TypeUnion) ValueBuilder {
+	var values []ValueBuilder
+	for _, typ := range typ.Types {
+		values = append(values, NewValueBuilder(typ))
+	}
+	return &unionValueBuilder{typ: typ, values: values}
+}
+
+func (u *unionValueBuilder) Write(bytes scode.Bytes) {
+	var typ super.Type
+	typ, bytes = u.typ.Untag(bytes)
+	tag := u.typ.TagOf(typ)
+	u.values[tag].Write(bytes)
+	u.tags = append(u.tags, uint32(tag))
+}
+
+func (u *unionValueBuilder) Build(sctx *super.Context) Any {
+	var vecs []Any
+	for _, v := range u.values {
+		vecs = append(vecs, v.Build(sctx))
+	}
+	return NewUnion(u.typ, u.tags, vecs)
+}
+
+type fusionValueBuilder struct {
+	typ      *super.TypeFusion
+	values   ValueBuilder
+	subtypes []scode.Bytes
+}
+
+func newFusionValueBuilder(typ *super.TypeFusion) ValueBuilder {
+	return &fusionValueBuilder{typ: typ, values: NewValueBuilder(typ.Type)}
+}
+
+func (f *fusionValueBuilder) Write(bytes scode.Bytes) {
+	it := bytes.Iter()
+	f.values.Write(it.Next())
+	f.subtypes = append(f.subtypes, it.Next())
+}
+
+func (f *fusionValueBuilder) Build(sctx *super.Context) Any {
+	types := make([]super.Type, 0, len(f.subtypes))
+	for _, tv := range f.subtypes {
+		t, err := sctx.LookupByValue(tv)
+		if err != nil {
+			panic(err)
+		}
+		types = append(types, t)
+	}
+	return NewFusion(sctx, f.typ, f.values.Build(sctx), types)
+}
+
+type enumValueBuilder struct {
+	typ    *super.TypeEnum
+	values []uint64
+}
+
+func (e *enumValueBuilder) Write(bytes scode.Bytes) {
+	e.values = append(e.values, super.DecodeUint(bytes))
+}
+
+func (e *enumValueBuilder) Build(sctx *super.Context) Any {
+	return NewEnum(e.typ, e.values)
+}
+
+type intValueBuilder struct {
+	typ    super.Type
+	values []int64
+}
+
+func (i *intValueBuilder) Write(bytes scode.Bytes) {
+	i.values = append(i.values, super.DecodeInt(bytes))
+}
+
+func (i *intValueBuilder) Build(sctx *super.Context) Any {
+	return NewInt(i.typ, i.values)
+}
+
+type uintValueBuilder struct {
+	typ    super.Type
+	values []uint64
+}
+
+func (u *uintValueBuilder) Write(bytes scode.Bytes) {
+	u.values = append(u.values, super.DecodeUint(bytes))
+}
+
+func (u *uintValueBuilder) Build(sctx *super.Context) Any {
+	return NewUint(u.typ, u.values)
+}
+
+type floatValueBuilder struct {
+	typ    super.Type
+	values []float64
+}
+
+func (f *floatValueBuilder) Write(bytes scode.Bytes) {
+	f.values = append(f.values, super.DecodeFloat(bytes))
+}
+
+func (f *floatValueBuilder) Build(sctx *super.Context) Any {
+	return NewFloat(f.typ, f.values)
+}
+
+type boolValueBuilder struct {
+	values *roaring.Bitmap
+	n      uint32
+}
+
+func newBoolValueBuilder() ValueBuilder {
+	return &boolValueBuilder{values: roaring.New()}
+}
+
+func (b *boolValueBuilder) Write(bytes scode.Bytes) {
+	if super.DecodeBool(bytes) {
+		b.values.Add(b.n)
+	}
+	b.n++
+}
+
+func (b *boolValueBuilder) Build(sctx *super.Context) Any {
+	bits := make([]uint64, (b.n+63)/64)
+	b.values.WriteDenseTo(bits)
+	return NewBool(bitvec.New(bits, b.n))
+}
+
+type bytesStringTypeValueBuilder struct {
+	typ   super.Type
+	offs  []uint32
+	bytes []byte
+}
+
+func newBytesStringTypeValueBuilder(typ super.Type) ValueBuilder {
+	return &bytesStringTypeValueBuilder{typ: typ, bytes: []byte{}, offs: []uint32{0}}
+}
+
+func (b *bytesStringTypeValueBuilder) Write(bytes scode.Bytes) {
+	b.bytes = append(b.bytes, bytes...)
+	b.offs = append(b.offs, uint32(len(b.bytes)))
+}
+
+func (b *bytesStringTypeValueBuilder) Build(sctx *super.Context) Any {
+	table := NewBytesTable(b.offs, b.bytes)
+	switch b.typ.ID() {
+	case super.IDString:
+		return NewString(table)
+	case super.IDBytes:
+		return NewBytes(table)
+	case super.IDType:
+		return NewTypeValue(table)
+	default:
+		panic(b.typ)
+	}
+}
+
+type ipValueBuilder struct {
+	values []netip.Addr
+}
+
+func (i *ipValueBuilder) Write(bytes scode.Bytes) {
+	i.values = append(i.values, super.DecodeIP(bytes))
+}
+
+func (i *ipValueBuilder) Build(sctx *super.Context) Any {
+	return NewIP(i.values)
+}
+
+type netValueBuilder struct {
+	values []netip.Prefix
+}
+
+func (n *netValueBuilder) Write(bytes scode.Bytes) {
+	n.values = append(n.values, super.DecodeNet(bytes))
+}
+
+func (n *netValueBuilder) Build(sctx *super.Context) Any {
+	return NewNet(n.values)
+}
+
+type nullValueBuilder struct {
+	n uint32
+}
+
+func (c *nullValueBuilder) Write(scode.Bytes) {
+	c.n++
+}
+
+func (c *nullValueBuilder) Build(*super.Context) Any {
+	return NewNull(c.n)
+}

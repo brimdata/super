@@ -44,7 +44,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 	case super.TypeUnder(inputArg.Type()) != super.TypeString:
 		return g.error("input argument must be a string", inputArg)
 	}
-	builder := vector.NewDynamicBuilder()
+	builder := vector.NewDynamicValueBuilder()
 	var defErrs, patErrs []string
 	var defErrsIdx, patErrsIdx, inErrsIdx []uint32
 	for i := range patternArg.Len() {

@@ -79,27 +79,27 @@ func (s *Subquery) Eval(this vector.Any) vector.Any {
 	return db.Build(s.sctx)
 }
 
-func (s *Subquery) bodyPull() super.Value {
+func (s *Subquery) bodyPull() vector.Any {
 	vec, err := s.body.Pull(false)
 	if err != nil {
-		return s.sctx.NewError(err)
+		return vector.NewStringError(s.sctx, err.Error(), 1)
 	}
 	if vec == nil {
-		return super.Null
+		return vector.NewNull(1)
 	}
 	vec2, err := s.body.Pull(false)
 	if err != nil {
-		return s.sctx.NewError(err)
+		return vector.NewStringError(s.sctx, err.Error(), 1)
 	}
 	if vec2 != nil {
 		if _, err := s.body.Pull(true); err != nil {
-			return s.sctx.NewError(err)
+			return vector.NewStringError(s.sctx, err.Error(), 1)
 		}
 	}
 	if vec2 != nil || vec.Len() > 1 {
-		return s.sctx.NewErrorf("query expression produced multiple values (consider [subquery])")
+		return vector.NewStringError(s.sctx, "query expression produced multiple values (consider [subquery])", 1)
 	}
-	return vector.ValueAt(&s.builder, vec, 0)
+	return vec
 }
 
 func (s *Subquery) Pull(done bool) (vector.Any, error) {

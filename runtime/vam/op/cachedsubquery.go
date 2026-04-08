@@ -3,7 +3,6 @@ package op
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -67,12 +66,8 @@ func (c *cachedSubquery) vectorConcat(vecs []vector.Any) vector.Any {
 		return vecs[0]
 	}
 	db := vector.NewDynamicBuilder()
-	var sb scode.Builder
 	for _, vec := range vecs {
-		for i := range vec.Len() {
-			sb.Truncate()
-			db.Write(vector.ValueAt(&sb, vec, i))
-		}
+		db.Write(vec)
 	}
 	return db.Build(c.sctx)
 }
