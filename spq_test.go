@@ -47,6 +47,7 @@ func TestSPQ(t *testing.T) {
 		runAllBoomerangs(t, "sup", data)
 		runAllBoomerangs(t, "jsup", data)
 	})
+
 	for d := range dirs {
 		t.Run(filepath.ToSlash(d), func(t *testing.T) {
 			t.Parallel()
