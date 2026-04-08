@@ -35,16 +35,7 @@ func (m *mapCall) eval(vecs ...vector.Any) vector.Any {
 	}
 	inner = m.lambda.Eval(inner)
 	if d, ok := inner.(*vector.Dynamic); ok {
-		var typs []super.Type
-		for _, vec := range d.Values {
-			typs = append(typs, vec.Type())
-		}
-		utyp, ok := m.sctx.LookupTypeUnion(super.UniqueTypes(typs))
-		if !ok {
-			//XXX need to vector deunion
-			panic(typs)
-		}
-		inner = vector.NewUnion(utyp, d.Tags, d.Values)
+		inner = vector.NewUnionFromDynamic(m.sctx, vector.FlattenUnions(d))
 	}
 	var out vector.Any
 	switch vec := vec.(type) {

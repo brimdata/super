@@ -224,11 +224,8 @@ func subsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index
 	}
 	var inner vector.Any
 	if len(subVals) > 1 {
-		union, ok := sctx.LookupTypeUnion(subTypes)
-		if !ok {
-			panic(subTypes)
-		}
-		inner = vector.NewUnion(union, tags, subVals)
+		d := vector.FlattenUnions(vector.NewDynamic(tags, subVals))
+		inner = vector.NewUnionFromDynamic(sctx, d)
 	} else {
 		inner = subVals[0]
 	}

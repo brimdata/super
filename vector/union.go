@@ -1,6 +1,8 @@
 package vector
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 )
@@ -48,4 +50,42 @@ func Deunion(vec Any) Any {
 		return u.Dynamic
 	}
 	return vec
+}
+
+// FlattenUnions takes a Dynamic and recursively replaces any Union values
+// with their inner values, rewriting tags so that each slot points directly
+// to the leaf value vector.
+func FlattenUnions(d *Dynamic) *Dynamic {
+	hasUnion := slices.ContainsFunc(d.Values, func(vec Any) bool {
+		_, ok := vec.(*Union)
+		return ok
+	})
+	if !hasUnion {
+		return d
+	}
+	bases := make([]uint32, len(d.Values))
+	unions := make([]*Dynamic, len(d.Values))
+	var newValues []Any
+	for i, val := range d.Values {
+		bases[i] = uint32(len(newValues))
+		if u, ok := val.(*Union); ok {
+			flat := FlattenUnions(u.Dynamic)
+			unions[i] = flat
+			newValues = append(newValues, flat.Values...)
+		} else {
+			newValues = append(newValues, val)
+		}
+	}
+	forward := d.ForwardTagMap()
+	newTags := make([]uint32, len(d.Tags))
+	for slot, oldTag := range d.Tags {
+		base := bases[oldTag]
+		if d := unions[oldTag]; d != nil {
+			innerSlot := forward[slot]
+			newTags[slot] = base + d.Tags[innerSlot]
+		} else {
+			newTags[slot] = base
+		}
+	}
+	return NewDynamic(newTags, newValues)
 }

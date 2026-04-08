@@ -34,8 +34,7 @@ output: |
 spq: |
   values map([1,2,3], lambda x: x=1?1:'foo'::(bool|string))
 
-# XXX this will be re-enabled before VENTURA
-vector: false
+vector: true
 
 output: |
   [1,"foo","foo"]::[int64|bool|string]

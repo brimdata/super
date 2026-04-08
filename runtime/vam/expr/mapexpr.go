@@ -69,12 +69,7 @@ func (m *MapExpr) build(vecs []vector.Any) vector.Any {
 	}
 	out := vb.Build(m.sctx)
 	if d, ok := out.(*vector.Dynamic); ok {
-		utyp, ok := m.sctx.LookupTypeUnion(super.UniqueTypes(typs))
-		if !ok {
-			//XXX need vector deunion
-			panic(typs)
-		}
-		out = &vector.Union{Typ: utyp, Dynamic: d}
+		out = vector.NewUnionFromDynamic(m.sctx, vector.FlattenUnions(d))
 	}
 	return out
 }

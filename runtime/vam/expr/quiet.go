@@ -93,12 +93,7 @@ func (d *Dequiet) dequiet(vec vector.Any) vector.Any {
 	index := b.ToArray()
 	vec = vector.ReversePick(vec, index)
 	out := vector.Combine(vec, index, quiet).(*vector.Dynamic)
-	utyp, ok := d.sctx.LookupTypeUnion([]super.Type{vec.Type(), quiet.Type()})
-	if !ok {
-		// XXX need to deunion vec when it's a union
-		panic(vec.Type())
-	}
-	return vector.NewUnion(utyp, out.Tags, out.Values)
+	return vector.NewUnionFromDynamic(d.sctx, vector.FlattenUnions(out))
 }
 
 func (d *Dequiet) quietTmp(n uint32) vector.Any {
