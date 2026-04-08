@@ -118,7 +118,7 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 	if !ok {
 		//XXX we need to deunion the vecs without nameds.
 		// this shouldn't be too hard
-		panic(ok)
+		panic(types)
 	}
 	return offsets, vector.NewUnion(union, tags, vecs)
 }
