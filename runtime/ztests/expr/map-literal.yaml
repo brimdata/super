@@ -24,3 +24,19 @@ output: |
   |{"a":2,"b":1}|
   |{"a":1,"b":2}|
   |{"a":1}|
+
+---
+
+# Test union maps.
+spq: |
+  |{k1:v1,k2:v2}|
+
+vector: true
+
+input: |
+  {k1:"a",v1:"foo",k2:1,v2:"bar"}
+  {k1:1,v1:1,k2:"b",v2:"baz"}
+
+output: |
+  |{1:"bar","a":"foo"}|
+  |{1:1,"b":"baz"}|

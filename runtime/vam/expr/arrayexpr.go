@@ -1,8 +1,9 @@
 package expr
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
@@ -47,106 +48,96 @@ func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 }
 
 func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32, vector.Any) {
-	n := in[0].Len()
-	var spreadOffs [][]uint32
-	unionTags := make([][]uint32, len(elems))
-	var viewIndexes [][]uint32
+	var hasSpreads bool
 	var vecs []vector.Any
-	var vecTags []uint32
+	var spreadOffsets [][]uint32
 	for i, elem := range elems {
+		var offsets []uint32
 		vec := in[i]
-		var offsets, index []uint32
 		if elem.Spread != nil {
-			vec, offsets, index = unwrapSpread(in[i])
+			vec, offsets = unwrapSpread(in[i])
 			if vec == nil {
 				// drop unspreadable elements.
 				continue
 			}
+			hasSpreads = true
 		}
-		vecTags = append(vecTags, uint32(len(vecs)))
-		if union, ok := vec.(*vector.Union); ok {
-			vecs = append(vecs, union.Values...)
-			unionTags[i] = union.Tags
-		} else {
-			vecs = append(vecs, vec)
-		}
-		spreadOffs = append(spreadOffs, offsets)
-		viewIndexes = append(viewIndexes, index)
+		vecs = append(vecs, vec)
+		spreadOffsets = append(spreadOffsets, offsets)
 	}
-	offsets := []uint32{0}
-	var tags []uint32
-	for i := range n {
-		var size uint32
-		for k, spreadOff := range spreadOffs {
-			tag := vecTags[k]
-			utags := unionTags[k]
-			if len(spreadOff) == 0 {
-				if utags != nil {
-					tag += utags[i]
-				}
-				tags = append(tags, tag)
-				size++
-			} else {
-				if index := viewIndexes[k]; index != nil {
-					i = index[i]
-				}
-				off := spreadOff[i]
-				for end := spreadOff[i+1]; off < end; off++ {
-					if utags != nil {
-						tags = append(tags, tag+utags[off])
-					} else {
-						tags = append(tags, tag)
-					}
-					size++
-				}
-			}
-		}
-		offsets = append(offsets, offsets[i]+size)
+	if len(vecs) == 0 {
+		n := in[0].Len()
+		offsets := make([]uint32, n+1)
+		return offsets, vector.NewNull(n)
 	}
 	if len(vecs) == 1 {
+		offsets := spreadOffsets[0]
+		if offsets == nil {
+			offsets = buildStaticOffsets(1, vecs[0].Len())
+		}
 		return offsets, vecs[0]
 	}
-	var all []super.Type
-	for _, vec := range vecs {
-		all = append(all, vec.Type())
+	var tags, offsets []uint32
+	if hasSpreads {
+		offsets, tags = buildListOffsetsAndTagsForSpreads(vecs, spreadOffsets, in[0].Len())
+	} else {
+		offsets, tags = buildListOffsetsAndTags(vecs)
 	}
-	types := super.UniqueTypes(all)
-	if len(types) == 1 {
-		return offsets, mergeSameTypeVecs(sctx, types[0], tags, vecs)
+	d := vector.FlattenUnions(vector.NewDynamic(tags, vecs))
+	inner := vector.MergeSameTypesInDynamic(sctx, d)
+	if d, ok := inner.(*vector.Dynamic); ok {
+		inner = vector.NewUnionFromDynamic(sctx, d)
 	}
-	union, ok := sctx.LookupTypeUnion(types)
-	if !ok {
-		//XXX we need to deunion the vecs without nameds.
-		// this shouldn't be too hard
-		panic(types)
-	}
-	return offsets, vector.NewUnion(union, tags, vecs)
+	return offsets, inner
 }
 
-func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
-	switch vec := vec.(type) {
+func buildListOffsetsAndTags(vecs []vector.Any) ([]uint32, []uint32) {
+	var repeat []uint32
+	for i := range uint32(len(vecs)) {
+		repeat = append(repeat, i)
+	}
+	tags := slices.Repeat(repeat, int(vecs[0].Len()))
+	return buildStaticOffsets(uint32(len(vecs)), vecs[0].Len()), tags
+}
+
+func buildListOffsetsAndTagsForSpreads(vecs []vector.Any, spreadOffsets [][]uint32, length uint32) ([]uint32, []uint32) {
+	var tags []uint32
+	offsets := []uint32{0}
+	var off uint32
+	for i := range length {
+		for k := range vecs {
+			offlen := uint32(1)
+			if offsets := spreadOffsets[k]; offsets != nil {
+				offlen = offsets[i+1] - offsets[i]
+			}
+			for range offlen {
+				tags = append(tags, uint32(k))
+			}
+			off += offlen
+		}
+		offsets = append(offsets, off)
+	}
+	return offsets, tags
+}
+
+func buildStaticOffsets(incr, len uint32) []uint32 {
+	offsets := make([]uint32, len+1)
+	for i := range len + 1 {
+		offsets[i] = incr * i
+	}
+	return offsets
+}
+
+func unwrapSpread(vec vector.Any) (vector.Any, []uint32) {
+	if k := vec.Kind(); k != vector.KindArray && k != vector.KindSet {
+		return nil, nil
+	}
+	switch vec := pushContainerViewDown(vec).(type) {
 	case *vector.Array:
-		return vec.Values, vec.Offsets, nil
+		return vec.Values, vec.Offsets
 	case *vector.Set:
-		return vec.Values, vec.Offsets, nil
-	case *vector.View:
-		vals, offsets, _ := unwrapSpread(vec.Any)
-		return vals, offsets, vec.Index
+		return vec.Values, vec.Offsets
+	default:
+		panic(vec)
 	}
-	return nil, nil, nil
-}
-
-func mergeSameTypeVecs(sctx *super.Context, typ super.Type, tags []uint32, vecs []vector.Any) vector.Any {
-	// XXX This is going to be slow. At some point would nice to write a native
-	// merge of same type vectors.
-	counts := make([]uint32, len(vecs))
-	vb := vector.NewValueBuilder(typ)
-	var b scode.Builder
-	for _, tag := range tags {
-		b.Truncate()
-		vecs[tag].Serialize(&b, counts[tag])
-		vb.Write(b.Bytes().Body())
-		counts[tag]++
-	}
-	return vb.Build(sctx)
 }

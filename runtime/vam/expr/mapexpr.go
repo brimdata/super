@@ -1,8 +1,9 @@
 package expr
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
@@ -41,35 +42,27 @@ func (m *MapExpr) Eval(this vector.Any) vector.Any {
 }
 
 func (m *MapExpr) eval(vecs ...vector.Any) vector.Any {
-	key := m.build(vecs[:len(m.entries)])
-	val := m.build(vecs[len(m.entries):])
-	off := uint32(0)
-	offsets := []uint32{off}
-	for range vecs[0].Len() {
-		off += uint32(len(m.entries))
-		offsets = append(offsets, off)
-	}
+	n := len(m.entries)
+	key := m.build(m.sctx, vecs[:n])
+	val := m.build(m.sctx, vecs[n:])
+	offsets := buildStaticOffsets(uint32(n), vecs[0].Len())
 	mtyp := m.sctx.LookupTypeMap(key.Type(), val.Type())
 	return vector.NewMap(mtyp, offsets, key, val)
 }
 
-func (m *MapExpr) build(vecs []vector.Any) vector.Any {
-	var typs []super.Type
-	for _, vec := range vecs {
-		typs = append(typs, vec.Type())
+func (m *MapExpr) build(sctx *super.Context, vecs []vector.Any) vector.Any {
+	if len(vecs) == 1 {
+		return vecs[0]
 	}
-	var b scode.Builder
-	vb := vector.NewDynamicValueBuilder()
-	for i := range vecs[0].Len() {
-		for k, vec := range vecs {
-			b.Truncate()
-			vec.Serialize(&b, i)
-			vb.Write(super.NewValue(typs[k], b.Bytes().Body()))
-		}
+	repeat := make([]uint32, len(vecs))
+	for i := range uint32(len(vecs)) {
+		repeat[i] = i
 	}
-	out := vb.Build(m.sctx)
+	tags := slices.Repeat(repeat, int(vecs[0].Len()))
+	d := vector.FlattenUnions(vector.NewDynamic(tags, vecs))
+	out := vector.MergeSameTypesInDynamic(sctx, d)
 	if d, ok := out.(*vector.Dynamic); ok {
-		out = vector.NewUnionFromDynamic(m.sctx, vector.FlattenUnions(d))
+		out = vector.NewUnionFromDynamic(m.sctx, d)
 	}
 	return out
 }

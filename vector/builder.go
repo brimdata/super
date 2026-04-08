@@ -187,10 +187,18 @@ type boolBuilder struct {
 }
 
 func (b *boolBuilder) Write(vec Any) {
-	bits := vec.(*Bool).Bits
-	// There's a faster way to do this with bit shift but just go slow
-	for i := range bits.Len() {
-		b.bits.Append(bits.IsSet(i))
+	switch vec := vec.(type) {
+	case *Const:
+		v := vec.Any.(*Bool).IsSet(0)
+		for range vec.len {
+			b.bits.Append(v)
+		}
+	case *Bool:
+		// There's a faster way to do this with bit shift but just go slow for
+		// now.
+		for i := range vec.Len() {
+			b.bits.Append(vec.IsSet(i))
+		}
 	}
 }
 
