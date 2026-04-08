@@ -1,0 +1,4 @@
+spq: type n1 = int64 type n2=n1 values cast(1,<n2>)
+
+output: |
+  1::(n2=n1=int64)

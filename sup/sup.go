@@ -54,6 +54,11 @@ func SelfDescribing(typ super.Type) bool {
 	case *super.TypeRecord, *super.TypeArray, *super.TypeSet, *super.TypeMap, *super.TypeError:
 		return true
 	case *super.TypeNamed:
+		// A named type that refers to another named type is not self describing
+		// because the underlying name must be preserved.
+		if _, ok := typ.Type.(*super.TypeNamed); ok {
+			return false
+		}
 		return SelfDescribing(typ.Type)
 	}
 	return false
