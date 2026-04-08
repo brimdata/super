@@ -15,12 +15,13 @@ import (
 const MaxDictSize = 256
 
 type ScodeEncoder struct {
-	typ   super.Type
-	bytes scode.Bytes
-	cmp   expr.CompareFn
-	min   *super.Value
-	max   *super.Value
-	count uint32
+	typ    super.Type
+	bytes  scode.Bytes
+	cmp    expr.CompareFn
+	min    super.Value
+	max    super.Value
+	minmax bool
+	count  uint32
 
 	// fields used after Encode is called
 	bytesLen uint64
@@ -32,6 +33,8 @@ func NewScodeEncoder(typ super.Type) *ScodeEncoder {
 	return &ScodeEncoder{
 		typ: typ,
 		cmp: expr.NewValueCompareFn(order.Asc, order.NullsFirst),
+		min: super.Null,
+		max: super.Null,
 	}
 }
 
@@ -59,12 +62,13 @@ func (p *ScodeEncoder) WriteBytes(bytes scode.Bytes) {
 func (p *ScodeEncoder) update(body scode.Bytes) {
 	p.count++
 	val := super.NewValue(p.typ, body)
-	if p.min == nil || p.cmp(val, *p.min) < 0 {
-		p.min = val.Copy().Ptr()
+	if !p.minmax || p.cmp(val, p.min) < 0 {
+		p.min = val.Copy()
 	}
-	if p.max == nil || p.cmp(val, *p.max) > 0 {
-		p.max = val.Copy().Ptr()
+	if !p.minmax || p.cmp(val, p.max) > 0 {
+		p.max = val.Copy()
 	}
+	p.minmax = true
 }
 
 func (p *ScodeEncoder) Encode(group *errgroup.Group) {
@@ -93,6 +97,7 @@ func (p *ScodeEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 		Typ:      p.typ,
 		Location: loc,
 		Count:    p.count,
+		MinMax:   p.minmax,
 		Min:      p.min,
 		Max:      p.max,
 	})

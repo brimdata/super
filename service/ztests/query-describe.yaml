@@ -63,7 +63,7 @@ outputs:
         "channels": [
           {
             "name": "main",
-            "aggregation_keys": null,
+            "aggregation_keys": [],
             "sort": [
               {
                 "order": "desc",
@@ -95,7 +95,7 @@ outputs:
                 "key2"
               ]
             ],
-            "sort": null
+            "sort": []
           }
         ]
       }
@@ -112,7 +112,7 @@ outputs:
           {
             "name": "main",
             "aggregation_keys": [],
-            "sort": null
+            "sort": []
           }
         ]
       }
@@ -138,11 +138,11 @@ outputs:
                 "key1"
               ]
             ],
-            "sort": null
+            "sort": []
           },
           {
             "name": "secondary",
-            "aggregation_keys": null,
+            "aggregation_keys": [],
             "sort": [
               {
                 "order": "desc",
@@ -194,7 +194,7 @@ outputs:
         "channels": [
           {
             "name": "main",
-            "aggregation_keys": null,
+            "aggregation_keys": [],
             "sort": [
               {
                 "order": "desc",
@@ -206,8 +206,8 @@ outputs:
           },
           {
             "name": "secondary",
-            "aggregation_keys": null,
-            "sort": null
+            "aggregation_keys": [],
+            "sort": []
           }
         ]
       }
@@ -223,8 +223,8 @@ outputs:
         "channels": [
           {
             "name": "main",
-            "aggregation_keys": null,
-            "sort": null
+            "aggregation_keys": [],
+            "sort": []
           }
         ]
       }

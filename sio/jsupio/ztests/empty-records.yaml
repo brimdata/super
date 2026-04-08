@@ -6,4 +6,4 @@ input: |
 output-flags: -f jsup
 
 output: |
-  {"type":{"kind":"record","id":31,"fields":[{"name":"ja3s","type":{"kind":"primitive","name":"null"},"opt":false}]},"value":[null]}
+  {"type":{"kind":"record","id":32,"fields":[{"name":"ja3s","type":{"kind":"primitive","name":"null"},"opt":false}]},"value":[null]}

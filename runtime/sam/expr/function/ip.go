@@ -6,7 +6,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
 )
 
 type NetworkOf struct {
@@ -65,14 +64,14 @@ func (n *NetworkOf) Call(args []super.Value) super.Value {
 }
 
 func addressAndMask(sctx *super.Context, address, mask super.Value) super.Value {
-	val, err := sup.NewBSUPMarshalerWithContext(sctx).Marshal(struct {
-		Address super.Value `super:"address"`
-		Mask    super.Value `super:"mask"`
-	}{address, mask})
-	if err != nil {
-		panic(err)
-	}
-	return val
+	typ := sctx.MustLookupTypeRecord([]super.Field{
+		super.NewField("address", address.Type()),
+		super.NewField("mask", mask.Type()),
+	})
+	var b scode.Builder
+	b.Append(address.Bytes())
+	b.Append(mask.Bytes())
+	return super.NewValue(typ, b.Bytes())
 }
 
 type CIDRMatch struct {

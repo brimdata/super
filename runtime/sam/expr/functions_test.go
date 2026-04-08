@@ -143,7 +143,7 @@ func TestCast(t *testing.T) {
 	// Constant name argument
 	testSuccessful(t, `cast(1, "my_int64")`, "", "1::=my_int64")
 	testSuccessful(t, `cast(1, "uint64")`, "",
-		`error({message:"cannot cast to named type: bad type name \"uint64\": primitive type name",on:1})`)
+		`error("named type collides with primitive type: uint64")`)
 
 	// Variable type argument
 	testSuccessful(t, "cast(1, type)", "{type:<uint64>}", "1::uint64")
@@ -153,7 +153,7 @@ func TestCast(t *testing.T) {
 	// Variable name argument
 	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "1::=my_int64")
 	testSuccessful(t, "cast(1, name)", `{name:"uint64"}`,
-		`error({message:"cannot cast to named type: bad type name \"uint64\": primitive type name",on:1})`)
+		`error("named type collides with primitive type: uint64")`)
 	testCompilationError(t, "cast()", function.ErrTooFewArgs)
 	testCompilationError(t, "cast(1, 2, 3)", function.ErrTooManyArgs)
 }

@@ -108,7 +108,12 @@ func (f *Fusion) Subtypes() []super.Type {
 		subtypes := make([]super.Type, 0, f.Values.Len())
 		mapper := super.NewTypeDefsMapper(f.Sctx, defs)
 		for _, id := range ids {
-			subtypes = append(subtypes, mapper.LookupType(id))
+			typ := mapper.LookupType(id)
+			if typ == nil {
+				// Panic here, not downstream, if there's a type problem.
+				panic(f)
+			}
+			subtypes = append(subtypes, typ)
 		}
 		f.subtypes = subtypes
 	}

@@ -31,7 +31,7 @@ func (c *cast) Call(args []super.Value) super.Value {
 	case super.IDString:
 		typ, err := c.sctx.LookupTypeNamed(toUnder.AsString(), super.TypeUnder(from.Type()))
 		if err != nil {
-			return c.sctx.WrapError("cannot cast to named type: "+err.Error(), from)
+			return c.sctx.NewError(err)
 		}
 		return super.NewValue(typ, from.Bytes())
 	case super.IDType:

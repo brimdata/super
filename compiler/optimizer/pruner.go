@@ -26,8 +26,8 @@ func maybeNewRangePruner(pred dag.Expr, sortKeys order.SortKeys) dag.Expr {
 // from a scan when we know the pool key range of the object could not satisfy
 // the filter predicate of any of the values in the object.
 func newRangePruner(pred dag.Expr, sortKey order.SortKey) dag.Expr {
-	min := dag.NewThis(field.Path{"min"})
-	max := dag.NewThis(field.Path{"max"})
+	min := dag.NewCall("defuse", []dag.Expr{dag.NewThis(field.Path{"min"})})
+	max := dag.NewCall("defuse", []dag.Expr{dag.NewThis(field.Path{"max"})})
 	if e := buildRangePruner(pred, sortKey.Key, min, max); e != nil {
 		return e
 	}
@@ -39,7 +39,7 @@ func newRangePruner(pred dag.Expr, sortKey order.SortKey) dag.Expr {
 // the expression pred would evaluate to false for all values of fld in the
 // from/to value range.  If a pruning decision cannot be reliably determined then
 // the return value is nil.
-func buildRangePruner(pred dag.Expr, fld field.Path, min, max *dag.ThisExpr) *dag.BinaryExpr {
+func buildRangePruner(pred dag.Expr, fld field.Path, min, max dag.Expr) *dag.BinaryExpr {
 	e, ok := pred.(*dag.BinaryExpr)
 	if !ok {
 		// If this isn't a binary predicate composed of comparison operators, we
@@ -86,7 +86,7 @@ func buildRangePruner(pred dag.Expr, fld field.Path, min, max *dag.ThisExpr) *da
 	}
 }
 
-func rangePrunerPred(op string, literal *dag.PrimitiveExpr, min, max *dag.ThisExpr) *dag.BinaryExpr {
+func rangePrunerPred(op string, literal *dag.PrimitiveExpr, min, max dag.Expr) *dag.BinaryExpr {
 	switch op {
 	case "<":
 		// key < CONST

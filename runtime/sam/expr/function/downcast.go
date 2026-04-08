@@ -39,6 +39,9 @@ func (d *downcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 }
 
 func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (super.Value, *super.Value) {
+	if typ == super.TypeAll {
+		return super.NewValue(to, bytes), nil
+	}
 	if _, ok := to.(*super.TypeUnion); !ok {
 		if fusionType, ok := typ.(*super.TypeFusion); ok {
 			superBytes, subtype := fusionType.Deref(d.sctx, bytes)

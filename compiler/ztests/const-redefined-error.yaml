@@ -4,6 +4,6 @@ spq: |
   put b:=this::('myport')
 
 error: |
-  symbol "myport" redefined at line 2, column 6:
+  type "myport" already exists at line 2, column 6:
   type myport=int32 
        ~~~~~~

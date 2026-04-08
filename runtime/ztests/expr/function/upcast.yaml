@@ -6,26 +6,26 @@ vector: true
 input: |
   [[1,"a"],<[int8|string]>]
   [[1::int8,"a"],<[int8|string]>]
-  [1::=n1,<n2=int64>]
-  [{a:{b:1::=n1}::=n2}::=n3,<n4={a:n5={b:n6=int64}}>]
-  [[[1::=n1]::=n2]::=n3,<n4=[n5=[n6=int64]]>]
-  [|[|[1::=n1]|::=n2]|::=n3,<n4=|[n5=|[n6=int64]|]|>]
-  [|{1::=n1:2::=n2}|::=n3,<n4=|{n5=int64:n6=int64}|>]
-  [1::(n4=(n5=int64)),<n4=(n5=int64)|(n6=string)>]
-  ["a"::n1=enum(a,b),<n2=enum(a,b)>]
-  [1::=n1,<fusion((n1=int64)|string)>]
+  [1::=n31,<n32=int64>]
+  [{a:{b:1::=n41}::=n42}::=n43,<n44={a:n45={b:n46=int64}}>]
+  [[[1::=n51]::=n52]::=n53,<n54=[n55=[n56=int64]]>]
+  [|[|[1::=n61]|::=n62]|::=n63,<n64=|[n65=|[n66=int64]|]|>]
+  [|{1::=n71:2::=n72}|::=n73,<n74=|{n75=int64:n76=int64}|>]
+  [1::(n81=(n82=int64)),<(n81=(n82=int64))|(n83=string)>]
+  ["a"::n91=enum(a,b),<n92=enum(a,b)>]
+  [1::=n101,<fusion((n101=int64)|string)>]
 
 output: |
   error({message:"upcast: value not a subtype of [int8|string]",on:[1,"a"]})
   [1::int8,"a"]
-  1::=n2
-  {a:{b:1::=n6}::=n5}::=n4
-  [[1::=n6]::=n5]::=n4
-  |[|[1::=n6]|::=n5]|::=n4
-  |{1::=n5:2::=n6}|::=n4
-  1::=n5::(n4=n5|(n6=string))
-  "a"::(n2=enum(a,b))
-  fusion(1::=n1::(n1|string),<n1=int64>)
+  1::=n32
+  {a:{b:1::=n46}::=n45}::=n44
+  [[1::=n56]::=n55]::=n54
+  |[|[1::=n66]|::=n65]|::=n64
+  |{1::=n75:2::=n76}|::=n74
+  1::(n81=n82=int64)::(n81|(n83=string))
+  "a"::(n92=enum(a,b))
+  fusion(1::=n101::(n101|string),<n101=int64>)
 
 ---
 
