@@ -20,29 +20,32 @@ prompt: base-prompt \
             $(BOOK)/command/db.md \
             $(BOOK)/command/compile.md \
             $(BOOK)/command/dev.md
-	cp base-prompt prompt
-	echo -e "\nThe \"super -h\" output:\n==============================" >> prompt
-	super -h | $(SED) 's/\x1b\[[0-9;]*m//g' >> prompt
-	for file in super.md options.md input.md output.md formats.md; do \
+	@echo "Assembling prompt..."
+	@cp base-prompt prompt
+	@echo -e "\nThe \"super -h\" output:\n==============================" >> prompt
+	@super -h | $(SED) 's/\x1b\[[0-9;]*m//g' >> prompt
+	@for file in super.md options.md input.md output.md formats.md; do \
 	  echo -e "\nContents of \"$$file\" from detailed mdbook documentation:" >> prompt; \
 	  echo "================================================================" >> prompt; \
 	  cat $(BOOK)/command/$$file >> prompt; \
 	done
-	echo -e "\nSource material from detailed mdbook documentation for EXAMPLES in manpage:" >> prompt
-	echo "================================================================" >> prompt
-	cat $(BOOK)/getting-started/tldr.md >> prompt
-	for file in db.md compile.md dev.md; do \
+	@echo -e "\nSource material from detailed mdbook documentation for EXAMPLES in manpage:" >> prompt
+	@echo "================================================================" >> prompt
+	@cat $(BOOK)/getting-started/tldr.md >> prompt
+	@for file in db.md compile.md dev.md; do \
 	  echo -e "\nFirst 50 lines of \"$$file\" from detailed mdbook documentation:" >> prompt; \
 	  echo "================================================================" >> prompt; \
 	  head -50 $(BOOK)/command/$$file >> prompt; \
 	done
-	$(SED) -i "s/DATE_PLACEHOLDER/$$(date '+%B %Y')/" prompt
+	@$(SED) -i "s/DATE_PLACEHOLDER/$$(date '+%B %Y')/" prompt
+	@echo "Done. prompt is ready."
 
 # Step 2: call Claude API to generate super.1.md
 super.1.md: prompt
 	@test -n "$$ANTHROPIC_API_KEY" || \
 	  { echo "ANTHROPIC_API_KEY is not set. Generate prompt and submit it manually."; exit 1; }
-	jq -n --rawfile content prompt '{ \
+	@echo "Calling Claude API..."
+	@jq -n --rawfile content prompt '{ \
 	  model: "claude-sonnet-4-6", \
 	  max_tokens: 4096, \
 	  messages: [{ role: "user", content: $$content }] \
@@ -52,10 +55,14 @@ super.1.md: prompt
 	  --header "content-type: application/json" \
 	  --data @- \
 	  | jq -r '.content[0].text' > super.1.md
+	@echo "Done. super.1.md is ready."
 
 # Step 3: run pandoc
 man: super.1.md
-	pandoc super.1.md -s -t man -o ../man1/super.1
+	@echo "Generating super.1..."
+	@pandoc super.1.md -s -t man -o ../man1/super.1
+	@echo "Done. ../man1/super.1 is ready."
 
 clean:
-	rm -f prompt super.1.md ../man1/super.1
+	@rm -f prompt super.1.md ../man1/super.1
+	@echo "Cleaned."
