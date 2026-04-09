@@ -6,8 +6,15 @@ SED := $(shell command -v gsed 2>/dev/null || echo sed)
 
 .PHONY: all man clean
 
-# Default: do everything
-all: man
+# Default: assemble prompt and call API if key is set
+all: src/prompt
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
+	  echo "ANTHROPIC_API_KEY is not set."; \
+	  echo "Submit src/prompt to Claude manually, save the result as src/super.1.md,"; \
+	  echo "then run: make man"; \
+	else \
+	  $(MAKE) src/super.1.md && $(MAKE) man; \
+	fi
 
 # Step 1: assemble the prompt
 src/prompt: src/base-prompt \
@@ -40,33 +47,25 @@ src/prompt: src/base-prompt \
 	@$(SED) -i "s/DATE_PLACEHOLDER/$$(date '+%B %Y')/" src/prompt
 	@echo "Done. src/prompt is ready."
 
-# Step 2: call Claude API to generate super.1.md
+# Step 2: call Claude API to generate src/super.1.md
 src/super.1.md: src/prompt
-	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
-	  echo "ANTHROPIC_API_KEY is not set."; \
-	  echo "Submit src/prompt to Claude manually, save the result as src/super.1.md,"; \
-	  echo "then run: make man"; \
-	else \
-	  echo "Calling Claude API..."; \
-	  jq -n --rawfile content src/prompt '{ \
-	    model: "claude-sonnet-4-6", \
-	    max_tokens: 4096, \
-	    messages: [{ role: "user", content: $$content }] \
-	  }' | curl -s https://api.anthropic.com/v1/messages \
-	    --header "x-api-key: $$ANTHROPIC_API_KEY" \
-	    --header "anthropic-version: 2023-06-01" \
-	    --header "content-type: application/json" \
-	    --data @- \
-	    | jq -r '.content[0].text' > src/super.1.md; \
-	  echo "Done. src/super.1.md is ready."; \
-	fi
+	@echo "Calling Claude API..."
+	@jq -n --rawfile content src/prompt '{ \
+	  model: "claude-sonnet-4-6", \
+	  max_tokens: 4096, \
+	  messages: [{ role: "user", content: $$content }] \
+	}' | curl -s https://api.anthropic.com/v1/messages \
+	  --header "x-api-key: $$ANTHROPIC_API_KEY" \
+	  --header "anthropic-version: 2023-06-01" \
+	  --header "content-type: application/json" \
+	  --data @- \
+	  | jq -r '.content[0].text' > src/super.1.md
+	@echo "Done. src/super.1.md is ready."
 
 # Step 3: run pandoc
 man: man1/super.1
 
 man1/super.1: src/super.1.md
-	@test -f src/super.1.md || \
-	  { echo "src/super.1.md not found. Run make or provide it manually."; exit 1; }
 	@echo "Generating super.1..."
 	@pandoc src/super.1.md -s -t man -o man1/super.1
 	@echo "Done. man1/super.1 is ready."
