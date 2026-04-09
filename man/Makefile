@@ -42,8 +42,12 @@ prompt: base-prompt \
 
 # Step 2: call Claude API to generate super.1.md
 super.1.md: prompt
-	@test -n "$$ANTHROPIC_API_KEY" || \
-	  { echo "ANTHROPIC_API_KEY is not set. Generate prompt and submit it manually."; exit 1; }
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
+	  echo "ANTHROPIC_API_KEY is not set."; \
+	  echo "Submit prompt to Claude manually, save the result as super.1.md,"; \
+	  echo "then run: make man"; \
+	  exit 0; \
+	fi
 	@echo "Calling Claude API..."
 	@jq -n --rawfile content prompt '{ \
 	  model: "claude-sonnet-4-6", \
