@@ -70,3 +70,19 @@ input: |
 output: |
   1::(int64|bool|string)
   2::(int64|(foo=int64|string))
+
+---
+
+# Test downcast on fusion values.
+spq: downcast(this[0], this[1])
+
+input: |
+  [fusion({x?:1,y?:_::string},<{x:int64}>),<{x:int64}>]
+  [fusion({x?:1,y?:_::string},<{x:int64}>),<{y?:string}>]
+  // error cases
+  [fusion({x?:_::int64,y?:"foo"},<{y:string}>),<{y:int64|string}>]
+
+output: |
+  {x:1}
+  error({message:"downcast: invalid subtype {y?:string}",on:fusion({x?:1,y?:_::string},<{x:int64}>)})
+  error({message:"downcast: invalid subtype {y:int64|string}",on:fusion({x?:_::int64,y?:"foo"},<{y:string}>)})

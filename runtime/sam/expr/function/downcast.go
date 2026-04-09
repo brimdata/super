@@ -42,6 +42,9 @@ func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (s
 	if _, ok := to.(*super.TypeUnion); !ok {
 		if fusionType, ok := typ.(*super.TypeFusion); ok {
 			superBytes, subtype := fusionType.Deref(d.sctx, bytes)
+			if subtype != to {
+				return super.Value{}, d.errSubtype(fusionType, bytes, to)
+			}
 			return d.downcast(fusionType.Type, superBytes, subtype)
 		}
 	}
