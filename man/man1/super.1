@@ -11,12 +11,20 @@
 \f[B]super\f[R] [\f[I]options\f[R]] \f[I]command\f[R] [\f[I]args\f[R]
 \&...]
 .SH DESCRIPTION
-\f[CR]super\f[R] runs SuperSQL queries over files, standard input, HTTP
-endpoints, S3 paths, and SuperDB databases.
+\f[CR]super\f[R] executes SuperSQL queries against files, HTTP/HTTPS/S3
+URLs, and standard input, independent of a database storage layer.
 When invoked without a sub\-command, the query engine runs detached from
-any database storage layer.
-Sub\-commands provide database management, query compiler inspection,
-and developer utilities.
+any database.
+Input paths may be filesystem paths, URLs, or \f[B]\-\f[R] for standard
+input.
+If no query is given, inputs are scanned and re\-serialized in the
+format specified by \f[B]\-f\f[R].
+If no input is specified, the query receives a single \f[B]null\f[R]
+value.
+.PP
+Input format is detected automatically from file extensions or content.
+The \f[B]line\f[R] format cannot be auto\-detected and must be specified
+with \f[B]\-i line\f[R].
 .SH OPTIONS
 .SS Global Options
 .TP
@@ -209,6 +217,11 @@ Output is serialized according to \f[B]\-f\f[R].
 When stdout is a terminal and \f[B]\-f\f[R] is not specified, output
 defaults to \f[CR]sup\f[R] (human\-readable); otherwise it defaults to
 \f[CR]bsup\f[R] (binary).
+.PP
+When writing to schema\-rigid formats (Arrow, Parquet), all values must
+conform to a single schema.
+Use \f[CR]fuse\f[R] or \f[CR]blend\f[R] in the query to unify types, or
+use \f[B]\-split\f[R] to write one file per distinct type.
 .SH ERRORS
 Query runtime errors do not halt execution.
 Instead, they appear as first\-class error values interleaved with
@@ -218,15 +231,13 @@ them.
 Fatal system errors (e.g., file not found, disk full) terminate
 execution immediately.
 .SH EXAMPLES
-Query a CSV, JSON, or Parquet file:
+Query a CSV, JSON, or Parquet file using SuperSQL:
 .IP
 .EX
-super \-c \(dqSELECT * FROM file.csv\(dq
-super \-c \(dqSELECT * FROM file.json\(dq
-super \-c \(dqSELECT * FROM file.parquet\(dq
+super \-c \(dqSELECT * FROM file.[csv|csv.gz|json|json.gz|parquet]\(dq
 .EE
 .PP
-Run a query sourced from a file:
+Run a SuperSQL query sourced from an input file:
 .IP
 .EX
 super \-I path/to/query.sql
@@ -235,45 +246,94 @@ super \-I path/to/query.sql
 Pretty\-print a sample value as super\-structured data:
 .IP
 .EX
-super \-S \-c \(dqlimit 1\(dq file.json
+super \-S \-c \(dqlimit 1\(dq file.[csv|csv.gz|json|json.gz|parquet]
 .EE
 .PP
-Compute a histogram of data shapes in a JSON file:
+Compute a histogram of the \(lqdata shapes\(rq in a JSON file:
 .IP
 .EX
 super \-c \(dqcount() by typeof(this)\(dq file.json
 .EE
 .PP
-Display a sample value of each distinct data shape:
+Display a sample value of each \(lqshape\(rq of JSON data:
 .IP
 .EX
 super \-c \(dqany(this) by typeof(this) | values any\(dq file.json
 .EE
 .PP
-Fuse JSON data into a unified schema and write as Parquet:
+Search Parquet files easily and efficiently:
+.IP
+.EX
+super *.parquet > all.bsup
+super \-c \(dq? search keywords | other pipe processing\(dq all.bsup
+.EE
+.PP
+Read a CSV from stdin, process with a query, and write to stdout:
+.IP
+.EX
+cat input.csv | super \-f csv \-c <query> \-
+.EE
+.PP
+Fuse JSON data into a unified schema and output as Parquet:
 .IP
 .EX
 super \-f parquet \-o out.parquet \-c fuse file.json
 .EE
 .PP
-Combine multiple Parquet files and search with a keyword:
+Run as a calculator:
 .IP
 .EX
-super *.parquet > all.bsup
-super \-c \(dq? search_term | count() by field\(dq all.bsup
+super \-c \(dq1.+(1/2.)+(1/3.)+(1/4.)\(dq
 .EE
 .PP
-Read CSV from stdin, process, and write CSV to stdout:
+Search all values in a database pool called logs for keyword
+\(lqalert\(rq and level >= 2:
 .IP
 .EX
-cat input.csv | super \-f csv \-c \(dqSELECT * WHERE value > 10\(dq \-
+super db \-c \(dqfrom logs | ? alert level >= 2\(dq
 .EE
 .PP
-Embed a pipe query search within a SQL FROM clause:
+Traverse nested data with recursive functions and re\-entrant
+subqueries:
+.IP
+.EX
+super \-c \(aq
+fn walk(node, visit):
+  case kind(node)
+  when \(dqarray\(dq then
+    [unnest node | walk(this, visit)]
+  when \(dqrecord\(dq then
+    unflatten([unnest flatten(node) | {key,value:walk(value, visit)}])
+  when \(dqunion\(dq then
+    walk(under(node), visit)
+  else visit(node)
+  end
+fn addOne(node): case typeof(node) when <int64> then node+1 else node end
+values 1, [1,2,3], [{x:[1,\(dqfoo\(dq]},{y:2}]
+| values walk(this, &addOne)
+\(aq
+.EE
+.PP
+Handle and wrap errors in a SuperSQL pipeline:
+.IP
+.EX
+\&... | super \-c \(dq
+switch is_error(this) (
+    case true ( values error({message:\(rs\(dqerror into stage N\(rs\(dq, on:this}) )
+    default (
+        <non\-error processing here>
+        ...
+    )
+)
+\(dq
+| ...
+.EE
+.PP
+Embed a pipe query search in SQL FROM clause:
 .IP
 .EX
 super \-c \(dq
-SELECT union(type) AS kinds, network_of(srcip) AS net
+SELECT union(type) as kinds, network_of(srcip) as net
 FROM ( from logs.json | ? example.com AND urgent )
 WHERE message_length > 100
 GROUP BY net

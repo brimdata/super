@@ -14,12 +14,18 @@
 
 # DESCRIPTION
 
-`super` runs SuperSQL queries over files, standard input, HTTP endpoints,
-S3 paths, and SuperDB databases.
+`super` executes SuperSQL queries against files, HTTP/HTTPS/S3 URLs, and
+standard input, independent of a database storage layer.
 When invoked without a sub-command, the query engine runs detached from any
-database storage layer.
-Sub-commands provide database management, query compiler inspection, and
-developer utilities.
+database.
+Input paths may be filesystem paths, URLs, or **-** for standard input.
+If no query is given, inputs are scanned and re-serialized in the format
+specified by **-f**.
+If no input is specified, the query receives a single **null** value.
+
+Input format is detected automatically from file extensions or content.
+The **line** format cannot be auto-detected and must be specified with
+**-i line**.
 
 # OPTIONS
 
@@ -172,6 +178,10 @@ Output is serialized according to **-f**.
 When stdout is a terminal and **-f** is not specified, output defaults
 to `sup` (human-readable); otherwise it defaults to `bsup` (binary).
 
+When writing to schema-rigid formats (Arrow, Parquet), all values must
+conform to a single schema. Use `fuse` or `blend` in the query to unify
+types, or use **-split** to write one file per distinct type.
+
 # ERRORS
 
 Query runtime errors do not halt execution. Instead, they appear as
@@ -182,15 +192,13 @@ execution immediately.
 
 # EXAMPLES
 
-Query a CSV, JSON, or Parquet file:
+Query a CSV, JSON, or Parquet file using SuperSQL:
 
 ```
-super -c "SELECT * FROM file.csv"
-super -c "SELECT * FROM file.json"
-super -c "SELECT * FROM file.parquet"
+super -c "SELECT * FROM file.[csv|csv.gz|json|json.gz|parquet]"
 ```
 
-Run a query sourced from a file:
+Run a SuperSQL query sourced from an input file:
 
 ```
 super -I path/to/query.sql
@@ -199,45 +207,92 @@ super -I path/to/query.sql
 Pretty-print a sample value as super-structured data:
 
 ```
-super -S -c "limit 1" file.json
+super -S -c "limit 1" file.[csv|csv.gz|json|json.gz|parquet]
 ```
 
-Compute a histogram of data shapes in a JSON file:
+Compute a histogram of the "data shapes" in a JSON file:
 
 ```
 super -c "count() by typeof(this)" file.json
 ```
 
-Display a sample value of each distinct data shape:
+Display a sample value of each "shape" of JSON data:
 
 ```
 super -c "any(this) by typeof(this) | values any" file.json
 ```
 
-Fuse JSON data into a unified schema and write as Parquet:
+Search Parquet files easily and efficiently:
+
+```
+super *.parquet > all.bsup
+super -c "? search keywords | other pipe processing" all.bsup
+```
+
+Read a CSV from stdin, process with a query, and write to stdout:
+
+```
+cat input.csv | super -f csv -c <query> -
+```
+
+Fuse JSON data into a unified schema and output as Parquet:
 
 ```
 super -f parquet -o out.parquet -c fuse file.json
 ```
 
-Combine multiple Parquet files and search with a keyword:
+Run as a calculator:
 
 ```
-super *.parquet > all.bsup
-super -c "? search_term | count() by field" all.bsup
+super -c "1.+(1/2.)+(1/3.)+(1/4.)"
 ```
 
-Read CSV from stdin, process, and write CSV to stdout:
+Search all values in a database pool called logs for keyword "alert" and level >= 2:
 
 ```
-cat input.csv | super -f csv -c "SELECT * WHERE value > 10" -
+super db -c "from logs | ? alert level >= 2"
 ```
 
-Embed a pipe query search within a SQL FROM clause:
+Traverse nested data with recursive functions and re-entrant subqueries:
+
+```
+super -c '
+fn walk(node, visit):
+  case kind(node)
+  when "array" then
+    [unnest node | walk(this, visit)]
+  when "record" then
+    unflatten([unnest flatten(node) | {key,value:walk(value, visit)}])
+  when "union" then
+    walk(under(node), visit)
+  else visit(node)
+  end
+fn addOne(node): case typeof(node) when <int64> then node+1 else node end
+values 1, [1,2,3], [{x:[1,"foo"]},{y:2}]
+| values walk(this, &addOne)
+'
+```
+
+Handle and wrap errors in a SuperSQL pipeline:
+
+```
+... | super -c "
+switch is_error(this) (
+    case true ( values error({message:\"error into stage N\", on:this}) )
+    default (
+        <non-error processing here>
+        ...
+    )
+)
+"
+| ...
+```
+
+Embed a pipe query search in SQL FROM clause:
 
 ```
 super -c "
-SELECT union(type) AS kinds, network_of(srcip) AS net
+SELECT union(type) as kinds, network_of(srcip) as net
 FROM ( from logs.json | ? example.com AND urgent )
 WHERE message_length > 100
 GROUP BY net

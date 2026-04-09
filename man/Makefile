@@ -72,4 +72,5 @@ man1/super.1: src/super.1.md
 
 clean:
 	@rm -f src/prompt src/super.1.md man1/super.1
+	@git checkout src/super.1.md man1/super.1
 	@echo "Cleaned."
