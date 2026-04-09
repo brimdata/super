@@ -205,10 +205,8 @@ func deunion(typ super.Type, bytes scode.Bytes) (super.Type, scode.Bytes) {
 func upcastUnionTag(types []super.Type, out super.Type) int {
 	if named, ok := out.(*super.TypeNamed); ok {
 		return slices.IndexFunc(types, func(t super.Type) bool {
-			if t, ok := t.(*super.TypeNamed); ok && named.Name == t.Name {
-				return true
-			}
-			return false
+			typ, ok := t.(*super.TypeNamed)
+			return ok && named.Name == typ.Name
 		})
 	}
 	k := out.Kind()

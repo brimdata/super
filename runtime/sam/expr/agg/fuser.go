@@ -123,7 +123,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		if b, ok := b.(*super.TypeNamed); ok && a.Name == b.Name {
 			if a.Type != b.Type {
 				// The fusion algorithm does not handle named types that change.
-				// We will soon maked such types immutable, but for now we just
+				// We will soon make such types immutable, but for now we just
 				// return type error({}) to avoid any tests that might do this.
 				recType := f.sctx.MustLookupTypeRecord([]super.Field{
 					super.NewField(a.Name, a.Type),
