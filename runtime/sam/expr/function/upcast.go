@@ -172,7 +172,7 @@ func (u *Upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to
 	// Take the value out of the union (if it is union), then look for it
 	// in the target union.
 	typ, bytes = deunion(typ, bytes)
-	tag := upcastUnionTag(to.Types, typ)
+	tag := UpcastUnionTag(to.Types, typ)
 	if tag < 0 {
 		return false
 	}
@@ -202,7 +202,7 @@ func deunion(typ super.Type, bytes scode.Bytes) (super.Type, scode.Bytes) {
 	return typ, bytes
 }
 
-func upcastUnionTag(types []super.Type, out super.Type) int {
+func UpcastUnionTag(types []super.Type, out super.Type) int {
 	if named, ok := out.(*super.TypeNamed); ok {
 		return slices.IndexFunc(types, func(t super.Type) bool {
 			typ, ok := t.(*super.TypeNamed)
