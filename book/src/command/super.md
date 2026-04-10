@@ -52,44 +52,12 @@ If no query is provided, the input paths are scanned
 and output is produced in accordance with `-f` to specify a serialization format
 and `-o` to specify an optional output (file or directory).
 
-## Errors
+## Magic Mode
 
-Fatal errors like "file not found" or "file system full" are reported
-as soon as they happen and cause the `super` process to exit.
-
-On the other hand,
-runtime errors resulting from the query itself
-do not halt execution.  Instead, these error conditions produce
-[first-class errors](../super-sql/types/error.md)
-in the data output stream interleaved with any valid results.
-Such errors are easily queried with the
-[is_error](../super-sql/functions/errors/is_error.md) function.
-
-This approach provides a robust technique for debugging complex queries,
-where errors can be wrapped in one another providing stack-trace-like debugging
-output alongside the output data.  This approach has emerged as a more powerful
-alternative to the traditional technique of looking through logs for errors
-or trying to debug a halted query with a vague error message.
-
-For example, this query
-```mdtest-command
-echo '1 2 0 5' | super -s -c '10/this' -
-```
-produces
-```mdtest-output
-10
-5
-error("divide by zero")
-2
-```
-and
-```mdtest-command
-echo '1 2 0 5' | super -c '10/this' - | super -s -c 'is_error(this)' -
-```
-produces just
-```mdtest-output
-error("divide by zero")
-```
+`super` also offers a unique, AI-enabled "magic mode" where it is able to
+anticipate the query that would be most useful to execute next and will
+output it alongside the results from your prior query. This feature can be
+invoked using the `-m` flag.
 
 ## Debugging
 

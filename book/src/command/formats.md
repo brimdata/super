@@ -14,6 +14,7 @@ The supported [input](input.md) and [output](output.md) formats include the foll
 | `parquet` |  yes | `.parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `sup`     |  yes | `.sup` | [SUP](../formats/sup.md) |
 | `tsv`     |  yes | `.tsv` | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
+| `xml`     |  yes | `.xml` | [Extensible Markup Language](https://en.wikipedia.org/wiki/XML) |
 | `zeek`    |  yes | `.zeek` | [Zeek Logs](https://docs.zeek.org/en/current/logs/index.html) |
 
 >[!NOTE]

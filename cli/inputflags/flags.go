@@ -35,7 +35,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet, validate bool) {
 
 	})
 	fs.BoolVar(&f.Dynamic, "dynamic", false, "disable static type checking of inputs")
-	fs.StringVar(&opts.Format, "i", "auto", "format of input data [auto,arrows,bsup,csup,csv,json,jsup,line,parquet,sup,tsv,zeek]")
+	fs.StringVar(&opts.Format, "i", "auto", "format of input data [auto,arrows,bsup,csup,csv,json,jsup,line,parquet,sup,tsv,xml,zeek]")
 	fs.IntVar(&f.SampleSize, "samplesize", 1000, "values to read per input file to determine type (<1 for all)")
 }
 
