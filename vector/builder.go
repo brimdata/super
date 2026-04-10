@@ -130,6 +130,8 @@ func NewBuilder(typ super.Type) Builder {
 		}
 	case *super.TypeOfNull:
 		return &nullBuilder{}
+	case *super.TypeOfNone:
+		return &noneBuilder{}
 	case *super.TypeRecord:
 		return newRecordBuilder(typ)
 	case *super.TypeArray, *super.TypeSet:
@@ -144,6 +146,7 @@ func NewBuilder(typ super.Type) Builder {
 		return &errorBuilder{vals: NewBuilder(typ.Type)}
 	case *super.TypeNamed:
 		return &namedBuilder{name: typ.Name, vals: NewBuilder(typ.Type)}
+
 	default:
 		panic(typ)
 	}
@@ -258,6 +261,18 @@ func (s *stringBytesTypeBuilder) Build(*super.Context) Any {
 	default:
 		panic(s.typ)
 	}
+}
+
+type noneBuilder struct {
+	len uint32
+}
+
+func (n *noneBuilder) Write(vec Any) {
+	n.len += vec.(*NoneTmp).len
+}
+
+func (n *noneBuilder) Build(*super.Context) Any {
+	return NewNoneTmp(n.len)
 }
 
 type nullBuilder struct {
