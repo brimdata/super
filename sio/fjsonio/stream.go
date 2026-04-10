@@ -58,7 +58,7 @@ func (s *stream) run() {
 	for {
 		batch, err := readBatch(r)
 		select {
-		case s.ch <- result{&batch, err}:
+		case s.ch <- result{batch, err}:
 		case <-s.ctx.Done():
 			return
 		}
@@ -80,9 +80,19 @@ func (s *stream) close() error {
 	return nil
 }
 
-func readBatch(r *valReader) (vector.BytesTable, error) {
-	// XXX Should we pool these?
-	t := vector.NewBytesTableEmpty(VecBatchSize)
+var bytesTablePool sync.Pool
+
+func newBytesTable() *vector.BytesTable {
+	b, ok := bytesTablePool.Get().(*vector.BytesTable)
+	if !ok {
+		b = new(vector.NewBytesTableEmpty(VecBatchSize))
+	}
+	b.Reset()
+	return b
+}
+
+func readBatch(r *valReader) (*vector.BytesTable, error) {
+	t := newBytesTable()
 	for range VecBatchSize {
 		b, err := r.Next()
 		if err != nil {

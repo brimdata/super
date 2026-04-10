@@ -112,3 +112,9 @@ func (b *BytesTable) Len() uint32 {
 	}
 	return uint32(len(b.offsets) - 1)
 }
+
+func (b *BytesTable) Reset() {
+	b.offsets = b.offsets[:1]
+	b.offsets[0] = 0
+	b.bytes = b.bytes[:0]
+}
