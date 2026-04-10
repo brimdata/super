@@ -60,7 +60,7 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 
 func (v *VectorReader) close() error {
 	if v.hasClosed.CompareAndSwap(false, true) {
-		return nil
+		return v.stream.close()
 	}
-	return v.stream.close()
+	return nil
 }
