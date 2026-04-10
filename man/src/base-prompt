@@ -14,7 +14,7 @@ Constraints:
 - Assume the user already knows what SuperDB is at a high level
 - For sub-commands "db", "compile", and "dev", provide only a one-line description with a link to https://superdb.org/command/<sub-command>.html — do not enumerate sub-commands
 - Output only the pandoc markdown document with no preamble, explanation, or commentary before or after it
-- Base EXAMPLES on all entries in the "TL;DR" source material and preserve their relative order
+- Base EXAMPLES on all entries in the "TL;DR" source material and reproduce the command lines exactly, character for character, while preserving their relative order
 - Do not put any tables (e.g., the input/output format tables) verbatim in the output
 - Include "db" in the list of output formats, but don't include any detailed text about it
 - Use fenced code blocks for all EXAMPLES
@@ -23,11 +23,15 @@ Constraints:
   - SuperDB documentation: https://superdb.org
   - `super` command reference: https://superdb.org/command/super.html
   - SuperSQL language reference: https://superdb.org/super-sql/intro.html
+- Hyperlinks should be shown as bare URLs without angle brackets
+- DESCRIPTION should consist of plain paragraphs only — no subsections or subheadings
+- Definition list descriptions should start with a capital letter and end with a period
 - OPTIONS subsections should be titled "Global Options", "Query Options", "Input Options", "Output Options"
+- Flag names in OPTIONS definition list terms should use bold, not backticks
 - OPTIONS should be ordered with those invoked most frequently in the mdbook docs shown first in each subsection
 - There should never be repeated entries within any OPTIONS subsection (e.g, "-f" only appears once)
 - Operator, aggregate function, and function names should appear bold in the text
-- References to the command name "super" should appear bold
+- References to the command name "super" in prose text should appear bold
 - In definition lists, use exactly three spaces after the colon (`:   `)
 
 Your task is to distill the essential reference information from the provided command help summary and Markdown files.
