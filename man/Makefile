@@ -48,6 +48,9 @@ src/prompt: src/base-prompt \
 	@echo -e "\nOperator, aggregate function, and function names that should appear bold in man page text:" >> src/prompt
 	@echo "================================================================" >> src/prompt
 	@python3 src/extract-names.py >> src/prompt
+	@echo -e "\nApproved version of the man page to be used as a baseline for potential revisions:" >> src/prompt
+	@echo "================================================================" >> src/prompt
+	@cat src/super.1.md >> src/prompt
 	@$(SED) -i "s/DATE_PLACEHOLDER/$$(date '+%B %Y')/" src/prompt
 	@echo "Done. src/prompt is ready."
 
@@ -57,7 +60,7 @@ src/super.1.md: src/prompt
 	@jq -n --rawfile content src/prompt '{ \
 	  model: "claude-sonnet-4-6", \
 	  max_tokens: 4096, \
-		temperature: 0, \
+	  temperature: 0, \
 	  messages: [{ role: "user", content: $$content }] \
 	}' | curl -s https://api.anthropic.com/v1/messages \
 	  --header "x-api-key: $$ANTHROPIC_API_KEY" \
