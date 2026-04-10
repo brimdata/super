@@ -87,7 +87,7 @@ func (b *builder) endArray() {
 	container.zb.BeginContainer()
 	switch len(b.types) {
 	case 0:
-		container.typ = b.sctx.LookupTypeArray(super.TypeNull)
+		container.typ = b.sctx.LookupTypeArray(super.TypeNone)
 		for range items {
 			container.zb.Append(nil)
 		}
