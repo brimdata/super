@@ -6,6 +6,7 @@ import (
 	"io"
 	"runtime"
 	"sync"
+	"sync/atomic"
 
 	"github.com/brimdata/super/vector"
 )
@@ -28,11 +29,11 @@ func newStream(ctx context.Context, r io.Reader, n int) *stream {
 }
 
 type result struct {
-	bytes *vector.BytesTable
+	batch *batch
 	err   error
 }
 
-func (s *stream) next() (*vector.BytesTable, error) {
+func (s *stream) next() (*batch, error) {
 	s.once.Do(func() {
 		s.ch = make(chan result, runtime.GOMAXPROCS(0))
 		go s.run()
@@ -45,7 +46,7 @@ func (s *stream) next() (*vector.BytesTable, error) {
 		if !ok || r.err != nil {
 			return nil, r.err
 		}
-		return r.bytes, nil
+		return r.batch, nil
 	case <-s.ctx.Done():
 		return nil, s.ctx.Err()
 	case <-s.done:
@@ -58,7 +59,7 @@ func (s *stream) run() {
 	for {
 		batch, err := readBatch(r)
 		select {
-		case s.ch <- result{&batch, err}:
+		case s.ch <- result{batch, err}:
 		case <-s.ctx.Done():
 			return
 		}
@@ -80,9 +81,31 @@ func (s *stream) close() error {
 	return nil
 }
 
-func readBatch(r *valReader) (vector.BytesTable, error) {
-	// XXX Should we pool these?
-	t := vector.NewBytesTableEmpty(VecBatchSize)
+type batch struct {
+	vector.BytesTable
+	refs atomic.Int64
+}
+
+var batchPool sync.Pool
+
+func newBatch() *batch {
+	b, ok := batchPool.Get().(*batch)
+	if !ok {
+		b = &batch{
+			BytesTable: vector.NewBytesTableEmpty(VecBatchSize),
+		}
+	}
+	b.Reset()
+	b.refs.Store(1)
+	return b
+}
+
+func (b *batch) Done() {
+	batchPool.Put(b)
+}
+
+func readBatch(r *valReader) (*batch, error) {
+	t := newBatch()
 	for range VecBatchSize {
 		b, err := r.Next()
 		if err != nil {

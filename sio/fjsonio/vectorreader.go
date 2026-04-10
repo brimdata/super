@@ -51,10 +51,12 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	builder := jsonvec.NewBuilder()
 	for i := range table.Len() {
 		if err := ast.Preorder(byteconv.UnsafeString(table.Bytes(i)), builder, nil); err != nil {
+			batchPool.Put(table)
 			v.close()
 			return nil, err
 		}
 	}
+	batchPool.Put(table)
 	return jsonvec.Materialize(v.sctx, builder), nil
 }
 
