@@ -37,3 +37,17 @@ input: &input |
   []
 
 output: *input
+
+---
+
+# Test array in fused record with empty and non-empty values
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":1,"b":[]}
+  {"a":2,"b":[{"x":1}],"c":3}
+
+output: *input

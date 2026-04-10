@@ -105,21 +105,9 @@ func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixe
 }
 
 func (m *materializer) array(a *Array, fuse bool) (vector.Any, []uint32) {
-	inner, ids := m.value(a.Inner, fuse)
+	inner, _ := m.value(a.Inner, fuse)
 	typ := m.sctx.LookupTypeArray(inner.Type())
-	subtypes := m.makeArraySubtypes(ids)
-	return vector.NewArray(typ, a.Offsets, inner), subtypes
-}
-
-func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
-	if ids == nil {
-		return nil
-	}
-	subtypes := make([]uint32, 0, len(ids))
-	for _, id := range ids {
-		subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
-	}
-	return subtypes
+	return vector.NewArray(typ, a.Offsets, inner), nil
 }
 
 func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
