@@ -2,7 +2,7 @@
 .\"
 .TH "super" "1" "April 2026" ""
 .SH NAME
-super \- process data with SuperSQL queries
+super \(em process data with SuperSQL queries
 .SH SYNOPSIS
 \f[B]super\f[R] [\f[I]options\f[R]] \f[I]command\f[R]
 .PP
@@ -13,54 +13,50 @@ super \- process data with SuperSQL queries
 formats.
 It operates either as a standalone query engine (detached from any
 database) or as the entry point to a hierarchy of sub\-commands for
-managing SuperDB databases, inspecting query plans, and accessing
+managing SuperDB databases, inspecting query compilation, and accessing
 developer tooling.
 .PP
-When invoked without a sub\-command, \f[B]super\f[R] reads input from
-one or more \f[I]file\f[R] arguments, from standard input (when
-\f[I]file\f[R] is \f[B]\-\f[R]), or from sources referenced within the
-query itself (e.g., via a \f[B]from\f[R] operator or SQL \f[B]FROM\f[R]
-clause).
-If no query is provided, inputs are scanned and serialized to the output
-format unchanged, making \f[B]super\f[R] useful as a format converter.
+When invoked without a sub\-command, \f[B]super\f[R] runs the SuperDB
+query engine against the specified input files or standard input.
+Input may also be specified within the query itself using a
+\f[B]from\f[R] operator or a SQL \f[CR]FROM\f[R] clause.
+If no query is given, inputs are scanned and serialized to the output
+format unchanged, providing a convenient format\-conversion tool.
 .PP
-Input paths may be local file paths, HTTP/HTTPS/S3 URLs, or \f[B]\-\f[R]
-for standard input.
+If no input is specified, the query receives a single \f[CR]null\f[R]
+value, analogous to SQL\(cqs default input of a single empty row,
+enabling use as a calculator or for standalone expressions.
+.PP
+Input paths may be local file paths, \f[CR]\-\f[R] for standard input,
+or HTTP, HTTPS, or S3 URLs.
 When multiple input files are specified they are processed in order as
-if concatenated by a single \f[B]from\f[R] clause.
-.PP
-If no input is specified, the query receives a single \f[B]null\f[R]
-value, analogous to SQL\(cqs default input of a single empty row.
-This allows \f[B]super\f[R] to be used as a calculator or to generate
-standalone results.
+if concatenated in a single \f[B]from\f[R] clause.
 .SS Format Detection
 \f[B]super\f[R] automatically infers input formats from file extensions
-(e.g., \f[CR].json\f[R], \f[CR].parquet\f[R], \f[CR].sup\f[R]).
-For standard input or files without a recognized extension,
-\f[B]super\f[R] reads and parses a sample of the data to detect the
-format.
-Use \f[B]\-i\f[R] to override format inference; when \f[B]\-i\f[R] is
-specified, all input files must share the same format.
+(\f[CR].json\f[R], \f[CR].parquet\f[R], \f[CR].sup\f[R], etc.)
+or by reading and parsing a sample of the data.
+Use \f[CR]\-i\f[R] to override format detection; when \f[CR]\-i\f[R] is
+specified all input files must share the same format.
 The \f[CR]line\f[R] format cannot be auto\-detected and always requires
-\f[B]\-i line\f[R] or an explicit \f[CR](format line)\f[R] option in a
+\f[CR]\-i line\f[R] or an explicit \f[CR](format line)\f[R] option in a
 \f[B]from\f[R] operator.
 .PP
 Parquet and CSUP require seekable input and cannot be read from standard
 input.
 .SS Output
 Output is written to standard output by default, or to the file or
-directory specified by \f[B]\-o\f[R].
+directory specified by \f[CR]\-o\f[R].
 When writing to a terminal, the default output format is SUP; otherwise
 it is BSUP.
-These defaults may be overridden with \f[B]\-f\f[R], \f[B]\-s\f[R], or
-\f[B]\-S\f[R].
+These defaults may be overridden with \f[CR]\-f\f[R], \f[CR]\-s\f[R], or
+\f[CR]\-S\f[R].
 .PP
-For schema\-rigid output formats (Arrow, Parquet), all values in the
-output must conform to a single schema.
-Use the \f[B]fuse\f[R] or \f[B]blend\f[R] operator to unify
-heterogeneous types, or use \f[B]\-split\f[R] to write one file per
+For schema\-rigid output formats (Arrow, Parquet), all values must
+conform to a single schema.
+Use the \f[B]fuse\f[R] or \f[B]blend\f[R] operators to unify
+heterogeneous types, or use \f[CR]\-split\f[R] to write one file per
 distinct type.
-.SS Error Handling
+.SS Errors
 Fatal errors (e.g., file not found, filesystem full) cause
 \f[B]super\f[R] to exit immediately.
 Runtime errors produced by the query itself do not halt execution;
@@ -69,208 +65,231 @@ output.
 These can be detected and filtered using the \f[B]is_error\f[R]
 function.
 .SS Debugging
-Use \f[B]\-C\f[R] to compile and display a query in canonical form
-without executing it.
-This is useful for understanding how shorthand syntax is expanded, for
-example how an implied \f[B]where\f[R] or \f[B]put\f[R] operator is
-parsed.
-The \f[B]debug\f[R] operator can be inserted anywhere in a pipeline to
-trace intermediate values to standard error.
+Run \f[B]super\f[R] with \f[CR]\-C\f[R] to compile and display a query
+in canonical form without executing it.
+This is useful for understanding how abbreviated SuperSQL syntax expands
+into full pipe\-query form.
+The \f[B]debug\f[R] operator may be inserted anywhere in a query
+pipeline to trace intermediate values to standard error.
 .SH OPTIONS
 .SS Global Options
 .TP
-\f[B]\-h\f[R], \f[B]\-help\f[R]
-Display help.
+\f[CR]\-h\f[R]
+display help
 .TP
-\f[B]\-version\f[R]
-Print version and exit.
+\f[CR]\-help\f[R]
+display help
 .TP
-\f[B]\-hidden\f[R]
-Show hidden options.
+\f[CR]\-version\f[R]
+print version and exit
+.TP
+\f[CR]\-hidden\f[R]
+show hidden options (default \f[CR]false\f[R])
 .SS Query Options
 .TP
-\f[B]\-c\f[R] \f[I]query\f[R]
-SuperSQL query text to execute.
-May be specified multiple times; query fragments are concatenated
-left\-to\-right with intervening newlines.
+\f[CR]\-c\f[R] \f[I]query\f[R]
+SuperSQL query text to execute; may be specified multiple times;
+multiple values are concatenated with intervening newlines
 .TP
-\f[B]\-I\f[R] \f[I]file\f[R]
-Source file containing query text.
-May be specified multiple times; concatenated in order with any
-\f[B]\-c\f[R] fragments.
+\f[CR]\-I\f[R] \f[I]file\f[R]
+source file containing query text; may be specified multiple times;
+concatenated in left\-to\-right order with \f[CR]\-c\f[R] text
 .TP
-\f[B]\-e\f[R]
-Stop upon input errors (default \f[CR]true\f[R]).
+\f[CR]\-e\f[R]
+stop upon input errors (default \f[CR]true\f[R])
 .TP
-\f[B]\-aggmem\f[R] \f[I]size\f[R]
-Maximum memory used per aggregate function value in MiB, MB, etc.
-(default \f[CR]auto(1GiB)\f[R]).
+\f[CR]\-aggmem\f[R] \f[I]size\f[R]
+maximum memory used per aggregate function value in MiB, MB, etc.
+(default \f[CR]auto(1GiB)\f[R])
 .TP
-\f[B]\-sortmem\f[R] \f[I]size\f[R]
-Maximum memory used by \f[B]sort\f[R] in MiB, MB, etc.
-(default \f[CR]auto(1GiB)\f[R]).
+\f[CR]\-fusemem\f[R] \f[I]size\f[R]
+maximum memory used by \f[B]fuse\f[R] in MiB, MB, etc.
+(default \f[CR]auto(1GiB)\f[R])
 .TP
-\f[B]\-fusemem\f[R] \f[I]size\f[R]
-Maximum memory used by \f[B]fuse\f[R] in MiB, MB, etc.
-(default \f[CR]auto(1GiB)\f[R]).
+\f[CR]\-sortmem\f[R] \f[I]size\f[R]
+maximum memory used by \f[B]sort\f[R] in MiB, MB, etc.
+(default \f[CR]auto(1GiB)\f[R])
 .TP
-\f[B]\-stats\f[R]
-Display search stats on stderr (default \f[CR]false\f[R]).
+\f[CR]\-stats\f[R]
+display search stats on stderr (default \f[CR]false\f[R])
 .TP
-\f[B]\-C\f[R]
-Display parsed AST in textual form without executing the query (default
-\f[CR]false\f[R]).
+\f[CR]\-C\f[R]
+display parsed AST in textual form without executing (default
+\f[CR]false\f[R])
 .TP
-\f[B]\-sam\f[R]
-Execute query in sequential runtime (default \f[CR]false\f[R]).
+\f[CR]\-dynamic\f[R]
+disable static type checking of inputs (default \f[CR]false\f[R])
 .TP
-\f[B]\-vam\f[R]
-Execute query in vector runtime (default \f[CR]false\f[R]).
+\f[CR]\-sam\f[R]
+execute query in sequential runtime (default \f[CR]false\f[R])
 .TP
-\f[B]\-dynamic\f[R]
-Disable static type checking of inputs (default \f[CR]false\f[R]).
+\f[CR]\-vam\f[R]
+execute query in vector runtime (default \f[CR]false\f[R])
 .TP
-\f[B]\-samplesize\f[R] \f[I]n\f[R]
-Values to read per input file to determine type; values less than 1 read
-all (default \f[CR]1000\f[R]).
+\f[CR]\-samplesize\f[R] \f[I]n\f[R]
+values to read per input file to determine type; \f[CR]<1\f[R] reads all
+(default \f[CR]1000\f[R])
 .SS Input Options
 .TP
-\f[B]\-i\f[R] \f[I]format\f[R]
-Format of input data.
-One of: \f[CR]auto\f[R], \f[CR]arrows\f[R], \f[CR]bsup\f[R],
-\f[CR]csup\f[R], \f[CR]csv\f[R], \f[CR]json\f[R], \f[CR]jsup\f[R],
-\f[CR]line\f[R], \f[CR]parquet\f[R], \f[CR]sup\f[R], \f[CR]tsv\f[R],
-\f[CR]zeek\f[R] (default \f[CR]auto\f[R]).
+\f[CR]\-i\f[R] \f[I]format\f[R]
+format of input data; one of \f[CR]auto\f[R], \f[CR]arrows\f[R],
+\f[CR]bsup\f[R], \f[CR]csup\f[R], \f[CR]csv\f[R], \f[CR]json\f[R],
+\f[CR]jsup\f[R], \f[CR]line\f[R], \f[CR]parquet\f[R], \f[CR]sup\f[R],
+\f[CR]tsv\f[R], \f[CR]zeek\f[R] (default \f[CR]auto\f[R])
 .TP
-\f[B]\-e\f[R]
-Stop upon input errors (default \f[CR]true\f[R]).
+\f[CR]\-e\f[R]
+stop upon input errors (default \f[CR]true\f[R])
 .TP
-\f[B]\-csv.delim\f[R] \f[I]char\f[R]
-CSV field delimiter (default \f[CR],\f[R]).
+\f[CR]\-csv.delim\f[R] \f[I]char\f[R]
+CSV field delimiter (default \f[CR],\f[R])
 .TP
-\f[B]\-bsup.readmax\f[R] \f[I]size\f[R]
-Maximum Super Binary read buffer size in MiB, MB, etc.
-(default \f[CR]auto(1GiB)\f[R]).
+\f[CR]\-bsup.readmax\f[R] \f[I]size\f[R]
+maximum Super Binary read buffer size in MiB, MB, etc.
+(default \f[CR]auto(1GiB)\f[R])
 .TP
-\f[B]\-bsup.readsize\f[R] \f[I]size\f[R]
-Target Super Binary read buffer size in MiB, MB, etc.
-(default \f[CR]auto(512KiB)\f[R]).
+\f[CR]\-bsup.readsize\f[R] \f[I]size\f[R]
+target Super Binary read buffer size in MiB, MB, etc.
+(default \f[CR]auto(512KiB)\f[R])
 .TP
-\f[B]\-bsup.threads\f[R] \f[I]n\f[R]
-Number of Super Binary read threads; 0 means GOMAXPROCS (default
-\f[CR]0\f[R]).
+\f[CR]\-bsup.threads\f[R] \f[I]n\f[R]
+number of Super Binary read threads; \f[CR]0\f[R] uses GOMAXPROCS
+(default \f[CR]0\f[R])
 .TP
-\f[B]\-bsup.validate\f[R]
-Validate format when reading Super Binary (default \f[CR]false\f[R]).
+\f[CR]\-bsup.validate\f[R]
+validate format when reading Super Binary (default \f[CR]false\f[R])
 .SS Output Options
 .TP
-\f[B]\-f\f[R] \f[I]format\f[R]
-Format for output data.
-One of: \f[CR]arrows\f[R], \f[CR]bsup\f[R], \f[CR]csup\f[R],
-\f[CR]csv\f[R], \f[CR]db\f[R], \f[CR]json\f[R], \f[CR]jsup\f[R],
-\f[CR]line\f[R], \f[CR]parquet\f[R], \f[CR]sup\f[R], \f[CR]table\f[R],
-\f[CR]tsv\f[R], \f[CR]zeek\f[R] (default \f[CR]bsup\f[R]).
+\f[CR]\-f\f[R] \f[I]format\f[R]
+format for output data; one of \f[CR]arrows\f[R], \f[CR]bsup\f[R],
+\f[CR]csup\f[R], \f[CR]csv\f[R], \f[CR]db\f[R], \f[CR]json\f[R],
+\f[CR]jsup\f[R], \f[CR]line\f[R], \f[CR]parquet\f[R], \f[CR]sup\f[R],
+\f[CR]table\f[R], \f[CR]tsv\f[R], \f[CR]zeek\f[R] (default
+\f[CR]bsup\f[R])
 .TP
-\f[B]\-o\f[R] \f[I]file\f[R]
-Write data to output file.
+\f[CR]\-o\f[R] \f[I]file\f[R]
+write data to output file
 .TP
-\f[B]\-s\f[R]
-Shortcut for \f[CR]\-f sup \-pretty=0\f[R]; line\-oriented SUP output.
+\f[CR]\-s\f[R]
+shortcut for \f[CR]\-f sup \-pretty=0\f[R], i.e., line\-oriented SUP
+(default \f[CR]false\f[R])
 .TP
-\f[B]\-S\f[R]
-Shortcut for \f[CR]\-f sup \-pretty 2\f[R]; formatted SUP output.
+\f[CR]\-S\f[R]
+shortcut for \f[CR]\-f sup \-pretty 2\f[R], i.e., multi\-line SUP
+(default \f[CR]false\f[R])
 .TP
-\f[B]\-j\f[R]
-Shortcut for \f[CR]\-f json \-pretty=0\f[R]; line\-oriented JSON output.
+\f[CR]\-j\f[R]
+shortcut for \f[CR]\-f json \-pretty=0\f[R], i.e., line\-oriented JSON
+(default \f[CR]false\f[R])
 .TP
-\f[B]\-J\f[R]
-Shortcut for \f[CR]\-f json \-pretty 2\f[R]; formatted JSON output.
+\f[CR]\-J\f[R]
+shortcut for \f[CR]\-f json \-pretty 2\f[R], i.e., formatted JSON
+(default \f[CR]false\f[R])
 .TP
-\f[B]\-pretty\f[R] \f[I]n\f[R]
-Tab size for pretty\-printing JSON and SUP output; 0 for
-newline\-delimited output (default \f[CR]2\f[R]).
+\f[CR]\-pretty\f[R] \f[I]n\f[R]
+tab size for pretty\-printing JSON and Super JSON output; \f[CR]0\f[R]
+for newline\-delimited output (default \f[CR]2\f[R])
 .TP
-\f[B]\-color\f[R] \f[I]bool\f[R]
-Enable or disable color formatting for \f[B]\-S\f[R] and \f[CR]db\f[R]
-text output (default \f[CR]true\f[R]).
+\f[CR]\-color\f[R]
+enable/disable color formatting for \f[CR]\-S\f[R] and \f[CR]db\f[R]
+text output (default \f[CR]true\f[R])
 .TP
-\f[B]\-f\f[R] \f[I]format\f[R]
-Format for output data (see above).
+\f[CR]\-B\f[R]
+allow Super Binary to be sent to a terminal output (default
+\f[CR]false\f[R])
 .TP
-\f[B]\-noheader\f[R]
-Omit header row for CSV and TSV output (default \f[CR]false\f[R]).
+\f[CR]\-bsup.compress\f[R]
+compress Super Binary frames (default \f[CR]true\f[R])
 .TP
-\f[B]\-split\f[R] \f[I]dir\f[R]
-Split output into one file per data type in the specified directory.
+\f[CR]\-bsup.framethresh\f[R] \f[I]bytes\f[R]
+minimum Super Binary frame size in uncompressed bytes (default
+\f[CR]524288\f[R])
 .TP
-\f[B]\-splitsize\f[R] \f[I]size\f[R]
-If greater than 0 and \f[B]\-split\f[R] is set, split into files of at
-least this size rather than by data type (default \f[CR]0B\f[R]).
+\f[CR]\-noheader\f[R]
+omit header for CSV and TSV output (default \f[CR]false\f[R])
 .TP
-\f[B]\-persist\f[R] \f[I]regexp\f[R]
-Regular expression to persist type definitions across the stream.
+\f[CR]\-persist\f[R] \f[I]regexp\f[R]
+regular expression to persist type definitions across the stream
 .TP
-\f[B]\-B\f[R]
-Allow Super Binary to be sent to a terminal output (default
-\f[CR]false\f[R]).
+\f[CR]\-split\f[R] \f[I]dir\f[R]
+split output into one file per data type in the specified directory
 .TP
-\f[B]\-bsup.compress\f[R]
-Compress Super Binary frames (default \f[CR]true\f[R]).
+\f[CR]\-splitsize\f[R] \f[I]size\f[R]
+if \f[CR]>0\f[R] and \f[CR]\-split\f[R] is set, split into files at
+least this large rather than by data type (default \f[CR]0B\f[R])
 .TP
-\f[B]\-bsup.framethresh\f[R] \f[I]bytes\f[R]
-Minimum Super Binary frame size in uncompressed bytes (default
-\f[CR]524288\f[R]).
-.TP
-\f[B]\-unbuffered\f[R]
-Disable output buffering (default \f[CR]false\f[R]).
+\f[CR]\-unbuffered\f[R]
+disable output buffering (default \f[CR]false\f[R])
 .SH SUB\-COMMANDS
 .TP
-\f[B]compile\f[R]
-Compile a SuperSQL query for inspection and debugging.
-See https://superdb.org/command/compile.html
+\f[CR]compile\f[R]
+compile a SuperSQL query for inspection and debugging \(em see \c
+.UR https://superdb.org/command/compile.html
+.UE \c
 .TP
-\f[B]db\f[R]
-Run database commands.
-See https://superdb.org/command/db.html
+\f[CR]db\f[R]
+run database commands \(em see \c
+.UR https://superdb.org/command/db.html
+.UE \c
 .TP
-\f[B]dev\f[R]
-Run specified development tool.
-See https://superdb.org/command/dev.html
+\f[CR]dev\f[R]
+run specified development tool \(em see \c
+.UR https://superdb.org/command/dev.html
+.UE \c
 .SH OUTPUT
-Output is always produced in super\-structured form internally and
-serialized to the format specified by \f[B]\-f\f[R] (or its shortcuts).
-Super\-structured formats (BSUP, CSUP, SUP, JSUP) preserve the full type
-richness of the data model and are pipeline\-friendly: output from one
-\f[B]super\f[R] invocation can be piped directly into another without
-schema registration.
+Output originates in super\-structured form and is serialized to the
+format specified by \f[CR]\-f\f[R].
+The supported output formats are:
+.TP
+\f[CR]arrows\f[R]
+Arrow IPC Stream Format
+.TP
+\f[CR]bsup\f[R]
+Super Binary (BSUP); default when writing to a non\-terminal
+.TP
+\f[CR]csup\f[R]
+Columnar Super Binary (CSUP)
+.TP
+\f[CR]csv\f[R]
+Comma\-Separated Values (RFC 4180)
+.TP
+\f[CR]db\f[R]
+SuperDB lake metadata pretty\-print format; default for
+\f[CR]super db\f[R] metadata commands
+.TP
+\f[CR]json\f[R]
+JSON (RFC 8259)
+.TP
+\f[CR]jsup\f[R]
+Super over JSON (JSUP)
+.TP
+\f[CR]line\f[R]
+one text value per line; string values printed as\-is, non\-strings
+formatted as SUP
+.TP
+\f[CR]parquet\f[R]
+Apache Parquet
+.TP
+\f[CR]sup\f[R]
+SUP text format; default when writing to a terminal
+.TP
+\f[CR]table\f[R]
+aligned text table
+.TP
+\f[CR]tsv\f[R]
+Tab\-Separated Values
+.TP
+\f[CR]zeek\f[R]
+Zeek log format
 .PP
-Arrow and Parquet are schema\-rigid: all output values must share a
-single schema.
-Use \f[B]fuse\f[R] or \f[B]blend\f[R] to unify types before writing, or
-use \f[B]\-split\f[R] to produce one file per type.
-The \f[B]blend\f[R] operator merges record types using type fusion,
-inserting nulls where fields are absent.
-.PP
-The \f[CR]line\f[R] output format writes one value per line.
-String values are printed as\-is with escape sequences rendered as their
-native characters.
-Non\-string values are formatted as SUP.
-.PP
-The \f[CR]db\f[R] format pretty\-prints lake metadata and is the default
-for \f[CR]super db\f[R] sub\-command output.
-.PP
-Runtime errors appear as first\-class error values in the output stream,
-interleaved with valid results.
-Use \f[B]is_error\f[R] to filter or route them.
+Best performance is typically achieved with binary columnar formats:
+\f[CR]csup\f[R], \f[CR]parquet\f[R], or \f[CR]arrows\f[R].
 .SH ERRORS
-Fatal I/O errors (missing files, full filesystem) terminate
-\f[B]super\f[R] immediately with a non\-zero exit status.
-.PP
-Query runtime errors (e.g., divide by zero, type mismatches) do not halt
-execution.
-They are emitted as typed error values in the output stream.
-Use \f[B]is_error\f[R] to detect them and \f[B]quiet\f[R] to suppress
-them.
+Fatal I/O errors cause \f[B]super\f[R] to exit immediately with a
+non\-zero status.
+Query runtime errors are emitted as first\-class error values in the
+output stream and do not halt execution.
+Use \f[B]is_error\f[R] to detect them and \f[B]has_error\f[R] to test
+whether any error is present in a value.
 .SH EXAMPLES
 Query a CSV, JSON, or Parquet file using SuperSQL:
 .IP
@@ -381,7 +400,7 @@ GROUP BY net
 \(dq
 .EE
 .PP
-Write the same query as a pure pipe query using SuperSQL shortcuts:
+Equivalently, as a pure pipe query using SuperSQL shortcuts:
 .IP
 .EX
 super \-c \(dq
@@ -392,8 +411,14 @@ from logs.json
 \(dq
 .EE
 .SH SEE ALSO
-SuperDB home: https://superdb.org
+SuperDB documentation: \c
+.UR https://superdb.org
+.UE \c
 .PP
-Command reference: https://superdb.org/commands/super.html
+\f[B]super\f[R] command reference: \c
+.UR https://superdb.org/command/super.html
+.UE \c
 .PP
-SuperSQL reference: https://superdb.org/super\-sql/intro.html
+SuperSQL language reference: \c
+.UR https://superdb.org/super-sql/intro.html
+.UE \c

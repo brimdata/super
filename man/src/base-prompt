@@ -19,10 +19,15 @@ Constraints:
 - Include "db" in the list of output formats, but don't include any detailed text about it
 - Use fenced code blocks for all EXAMPLES
 - Use plain fenced code blocks with no language specifier
-- SEE ALSO should include three links: superdb.org, the command reference, and the SuperSQL reference
+- SEE ALSO should include exactly these three links:
+  - SuperDB documentation: https://superdb.org
+  - `super` command reference: https://superdb.org/command/super.html
+  - SuperSQL language reference: https://superdb.org/super-sql/intro.html
 - OPTIONS subsections should be titled "Global Options", "Query Options", "Input Options", "Output Options"
 - OPTIONS should be ordered with those invoked most frequently in the mdbook docs shown first in each subsection
+- There should never be repeated entries within any OPTIONS subsection (e.g, "-f" only appears once)
 - Operator, aggregate function, and function names should appear bold in the text
+- References to the command name "super" should appear bold
 - In definition lists, use exactly three spaces after the colon (`:   `)
 
 Your task is to distill the essential reference information from the provided command help summary and Markdown files.
