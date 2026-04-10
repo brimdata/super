@@ -57,6 +57,7 @@ src/super.1.md: src/prompt
 	@jq -n --rawfile content src/prompt '{ \
 	  model: "claude-sonnet-4-6", \
 	  max_tokens: 4096, \
+		temperature: 0, \
 	  messages: [{ role: "user", content: $$content }] \
 	}' | curl -s https://api.anthropic.com/v1/messages \
 	  --header "x-api-key: $$ANTHROPIC_API_KEY" \
