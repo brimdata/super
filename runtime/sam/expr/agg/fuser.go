@@ -48,6 +48,8 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		return f.fusion(f.fuse(a, typ.Type))
 	}
 	switch a := a.(type) {
+	case *super.TypeOfNone:
+		return b
 	case *super.TypeRecord:
 		if b, ok := b.(*super.TypeRecord); ok {
 			fields := slices.Clone(a.Fields)

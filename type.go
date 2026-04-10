@@ -91,7 +91,7 @@ var (
 	TypeNet    = &TypeOfNet{}
 	TypeType   = &TypeOfType{}
 	TypeNull   = &TypeOfNull{}
-	//XXX add TypeNone
+	TypeNone   = &TypeOfNone{}
 )
 
 // Primary Type IDs
@@ -216,6 +216,8 @@ func LookupPrimitive(name string) Type {
 		return TypeType
 	case "null":
 		return TypeNull
+	case "none":
+		return TypeNone
 	}
 	return nil
 }
@@ -262,6 +264,8 @@ func PrimitiveName(typ Type) string {
 		return "type"
 	case *TypeOfNull:
 		return "null"
+	case *TypeOfNone:
+		return "none"
 	default:
 		return fmt.Sprintf("unknown primitive type: %T", typ)
 	}
@@ -315,6 +319,8 @@ func LookupPrimitiveByID(id int) (Type, error) {
 		return TypeType, nil
 	case IDNull:
 		return TypeNull, nil
+	case IDNone:
+		return TypeNone, nil
 	}
 	return nil, fmt.Errorf("primitive type ID %d not implemented", id)
 }
