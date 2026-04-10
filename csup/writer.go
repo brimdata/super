@@ -101,7 +101,7 @@ func buildTypeDefsValue(cctx *Context) super.Value {
 	if cctx.typedefs != nil {
 		bytes = cctx.typedefs.Bytes()
 	}
-	return super.NewValue(super.TypeBytes, super.EncodeBytes(bytes))
+	return super.NewBytes(super.EncodeBytes(bytes))
 }
 
 // XXX ValWriter provides a temporary interface to support writing super.Values
