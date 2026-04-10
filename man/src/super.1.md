@@ -4,191 +4,183 @@
 
 # NAME
 
-**super** — process data with SuperSQL queries
+super — process data with SuperSQL queries
 
 # SYNOPSIS
 
-**super** [*options*] [**-c** *query*] [**-I** *query-file* ...] [*file* ...]
+**super** [*options*] *command*
 
-**super** [*options*] *command* [*args* ...]
+**super** [*options*] [**-c** *query*] [*file* ...]
 
 # DESCRIPTION
 
-`super` executes SuperSQL queries against files, HTTP/HTTPS/S3 URLs, and
-standard input, independent of a database storage layer.
-When invoked without a sub-command, the query engine runs detached from any
-database.
-Input paths may be filesystem paths, URLs, or **-** for standard input.
-If no query is given, inputs are scanned and re-serialized in the format
-specified by **-f**.
-If no input is specified, the query receives a single **null** value.
+**super** executes SuperSQL queries against data from files, URLs, or standard input, and writes results to standard output or a file. It operates either as a standalone query engine (detached from any database) or as the entry point to a hierarchy of sub-commands for database management, query compilation, and developer tooling.
 
-Input format is detected automatically from file extensions or content.
-The **line** format cannot be auto-detected and must be specified with
-**-i line**.
+When invoked without a sub-command, **super** runs the query engine against the specified inputs. Inputs may be specified as command-line path arguments or referenced within the query itself using a **from** operator or SQL FROM clause. When the path argument is **-**, input is read from standard input. HTTP, HTTPS, and S3 URLs are also accepted as paths.
+
+If no query is provided, inputs are scanned and emitted in the output format specified by **-f**. If no input is provided, the query receives a single **null** value, enabling calculator-style use.
+
+Input formats are detected automatically by file extension or by sampling the data. The **line** format cannot be auto-detected and must be requested explicitly with **-i line**. Parquet and CSUP require seekable input and cannot be read from standard input.
+
+When writing to a terminal, the default output format is SUP. Otherwise, it is BSUP. These defaults are overridden by **-f**, **-s**, or **-S**.
+
+Multiple **-c** and **-I** options may be combined; their text is concatenated in left-to-right order with intervening newlines.
+
+## Errors
+
+Fatal errors (e.g., file not found, filesystem full) cause **super** to exit immediately. Runtime errors produced by the query itself do not halt execution; instead they appear as first-class error values interleaved with valid output in the result stream. Use the **is_error** function to identify and filter these values.
+
+## Debugging
+
+Run **super -C -c** *query* to display the parsed, canonical form of a query without executing it. This is useful for understanding how shorthand syntax is expanded — for example, bare expressions become implied **where** or **put** operators. The **debug** operator can be inserted anywhere in a pipeline to trace intermediate values to standard error.
 
 # OPTIONS
 
 ## Global Options
 
 **-h**, **-help**
-:   Display help and exit. (default: false)
-
-**-hidden**
-:   Show hidden options. (default: false)
+:   Display help.
 
 **-version**
-:   Print version and exit. (default: false)
+:   Print version and exit.
+
+**-hidden**
+:   Show hidden options.
 
 ## Query Options
 
 **-c** *query*
-:   SuperSQL query text. May be specified multiple times; queries are
-    concatenated in order.
+:   SuperSQL query text to execute. May be used multiple times; text is concatenated in order.
 
 **-I** *file*
-:   Read query text from *file*. May be repeated.
-
-**-C**
-:   Compile and display the query as canonical SuperSQL text without
-    executing it. Output goes to stdout; **-f** and **-o** have no
-    effect. (default: false)
-
-**-dynamic**
-:   Disable static type checking of inputs. (default: false)
-
-**-sam**
-:   Execute query using the sequential runtime. (default: false)
-
-**-vam**
-:   Execute query using the vector runtime. (default: false)
-
-**-stats**
-:   Emit search statistics to stderr after execution. (default: false)
+:   Source file containing query text. May be used multiple times.
 
 **-e**
-:   Stop execution on input errors. (default: true)
+:   Stop upon input errors (default `true`).
+
+**-stats**
+:   Display search stats on stderr (default `false`).
 
 **-aggmem** *size*
-:   Maximum memory per aggregate function value. (default: auto(1GiB))
-
-**-fusemem** *size*
-:   Maximum memory for fuse operations. (default: auto(1GiB))
+:   Maximum memory used per aggregate function value in MiB, MB, etc (default `auto(1GiB)`).
 
 **-sortmem** *size*
-:   Maximum memory for sort operations. (default: auto(1GiB))
+:   Maximum memory used by **sort** in MiB, MB, etc (default `auto(1GiB)`).
+
+**-fusemem** *size*
+:   Maximum memory used by **fuse** in MiB, MB, etc (default `auto(1GiB)`).
+
+**-C**
+:   Display parsed AST in textual (canonical) form without executing (default `false`).
+
+**-dynamic**
+:   Disable static type checking of inputs (default `false`).
+
+**-sam**
+:   Execute query in sequential runtime (default `false`).
+
+**-vam**
+:   Execute query in vector runtime (default `false`).
 
 ## Input Options
 
 **-i** *format*
-:   Input format. One of: `auto`, `arrows`, `bsup`, `csup`, `csv`,
-    `json`, `jsup`, `line`, `parquet`, `sup`, `tsv`, `zeek`.
-    (default: auto)
+:   Format of input data. One of: `auto`, `arrows`, `bsup`, `csup`, `csv`, `json`, `jsup`, `line`, `parquet`, `sup`, `tsv`, `zeek` (default `auto`).
 
 **-csv.delim** *char*
-:   CSV field delimiter. (default: `,`)
-
-**-samplesize** *n*
-:   Number of values read per input file for type inference.
-    Values less than 1 read all. (default: 1000)
+:   CSV field delimiter (default `,`).
 
 **-bsup.readmax** *size*
-:   Maximum BSUP read buffer size. (default: auto(1GiB))
+:   Maximum Super Binary read buffer size in MiB, MB, etc (default `auto(1GiB)`).
 
 **-bsup.readsize** *size*
-:   Target BSUP read buffer size. (default: auto(512KiB))
+:   Target Super Binary read buffer size in MiB, MB, etc (default `auto(512KiB)`).
 
 **-bsup.threads** *n*
-:   Number of BSUP read threads. 0 uses GOMAXPROCS. (default: 0)
+:   Number of Super Binary read threads; 0 means GOMAXPROCS (default `0`).
 
 **-bsup.validate**
-:   Validate BSUP format when reading. (default: false)
+:   Validate format when reading Super Binary (default `false`).
+
+**-samplesize** *n*
+:   Values to read per input file to determine type; values less than 1 read all (default `1000`).
 
 ## Output Options
 
 **-f** *format*
-:   Output format. One of: `arrows`, `bsup`, `csup`, `csv`, `db`,
-    `json`, `jsup`, `line`, `parquet`, `sup`, `table`, `tsv`, `zeek`.
-    (default: bsup)
+:   Format for output data. One of: `arrows`, `bsup`, `csup`, `csv`, `db`, `json`, `jsup`, `line`, `parquet`, `sup`, `table`, `tsv`, `zeek` (default `bsup`).
 
-**-o** *path*
-:   Write output to *path* (file or directory).
+**-o** *file*
+:   Write data to output file.
 
 **-s**
-:   Line-oriented SUP output, independent of **-f**. (default: false)
+:   Shortcut for `-f sup -pretty 0` (line-oriented SUP).
 
 **-S**
-:   Formatted SUP output, independent of **-f**. (default: false)
+:   Shortcut for `-f sup -pretty 2` (formatted SUP).
 
 **-j**
-:   Line-oriented JSON output, independent of **-f**. (default: false)
+:   Shortcut for `-f json -pretty 0` (line-oriented JSON).
 
 **-J**
-:   Formatted JSON output, independent of **-f**. (default: false)
+:   Shortcut for `-f json -pretty 2` (formatted JSON).
 
 **-pretty** *n*
-:   Indentation width for JSON and SUP output. 0 produces
-    newline-delimited output. (default: 2)
+:   Tab size for pretty-printing JSON and SUP output; 0 for newline-delimited output (default `2`).
 
-**-B**
-:   Allow binary (BSUP) output to be sent to a terminal. (default: false)
-
-**-color** *bool*
-:   Enable or disable colorized output. (default: true)
+**-color**
+:   Enable/disable color formatting for **-S** and db text output (default `true`).
 
 **-noheader**
-:   Omit header row for CSV and TSV output. (default: false)
-
-**-persist** *regex*
-:   Persist type definitions matching *regex* across the output stream.
+:   Omit header for CSV and TSV output (default `false`).
 
 **-split** *dir*
-:   Split output into one file per data type in *dir*.
+:   Split output into one file per data type in the specified directory.
 
 **-splitsize** *size*
-:   When **-split** is set and *size* > 0, split into files of at least
-    *size* rather than by data type. (default: 0B)
+:   If greater than 0 and **-split** is set, split into files of at least this size rather than by data type (default `0B`).
 
-**-unbuffered**
-:   Disable output buffering. (default: false)
+**-persist** *regexp*
+:   Regular expression to persist type definitions across the stream.
+
+**-B**
+:   Allow Super Binary to be sent to a terminal output (default `false`).
 
 **-bsup.compress**
-:   Compress BSUP frames. (default: true)
+:   Compress Super Binary frames (default `true`).
 
 **-bsup.framethresh** *bytes*
-:   Minimum uncompressed BSUP frame size before compression.
-    (default: 524288)
+:   Minimum Super Binary frame size in uncompressed bytes (default `524288`).
+
+**-unbuffered**
+:   Disable output buffering (default `false`).
 
 # SUB-COMMANDS
 
 **compile**
-:   Compile a SuperSQL query and emit its AST or runtime DAG for
-    inspection. See <https://superdb.org/command/compile.html>.
+:   Compile a SuperSQL query for inspection and debugging. See https://superdb.org/command/compile.html
 
 **db**
-:   Manage and query SuperDB databases (early in development).
-    See <https://superdb.org/command/db.html>.
+:   Run database commands. See https://superdb.org/command/db.html
 
 **dev**
-:   Developer utilities. See <https://superdb.org/command/dev.html>.
+:   Run specified development tool. See https://superdb.org/command/dev.html
 
 # OUTPUT
 
-Output is serialized according to **-f**.
-When stdout is a terminal and **-f** is not specified, output defaults
-to `sup` (human-readable); otherwise it defaults to `bsup` (binary).
+Output originates in super-structured form and is serialized to the requested format. Supported output formats are: `arrows`, `bsup`, `csup`, `csv`, `db`, `json`, `jsup`, `line`, `parquet`, `sup`, `table`, `tsv`, `zeek`.
 
-When writing to schema-rigid formats (Arrow, Parquet), all values must
-conform to a single schema. Use `fuse` or `blend` in the query to unify
-types, or use **-split** to write one file per distinct type.
+When stdout is a terminal, the default format is SUP; otherwise BSUP. Override with **-f**, **-s**, or **-S**.
+
+Schema-rigid formats (Arrow, Parquet) require all output values to conform to a single schema. To write heterogeneous super-structured data to such formats, either apply the **fuse** or **blend** operator to unify types, or use **-split** to write one file per type. Attempting to write multiple record types to a single Parquet file without fusion produces an error.
+
+The `line` output format emits one value per line. String values are printed as-is with escape sequences rendered as their native characters. Non-string values are formatted as SUP.
+
+The `db` format pretty-prints lake metadata and is the default for many `super db` sub-commands.
 
 # ERRORS
 
-Query runtime errors do not halt execution. Instead, they appear as
-first-class error values interleaved with normal output in the data
-stream. Use the `is_error()` function in a subsequent query to filter
-them. Fatal system errors (e.g., file not found, disk full) terminate
-execution immediately.
+Fatal I/O errors terminate the process immediately with a non-zero exit status. Query runtime errors produce first-class error values in the output stream rather than halting execution. These can be detected with the **is_error** function and inspected or re-wrapped for stack-trace-like diagnostics.
 
 # EXAMPLES
 
@@ -222,7 +214,7 @@ Display a sample value of each "shape" of JSON data:
 super -c "any(this) by typeof(this) | values any" file.json
 ```
 
-Search Parquet files easily and efficiently:
+Search Parquet files easily and efficiently without schema handcuffs:
 
 ```
 super *.parquet > all.bsup
@@ -288,7 +280,7 @@ switch is_error(this) (
 | ...
 ```
 
-Embed a pipe query search in SQL FROM clause:
+Embed a pipe query search in a SQL FROM clause:
 
 ```
 super -c "
@@ -299,10 +291,21 @@ GROUP BY net
 "
 ```
 
+Or write this as a pure pipe query:
+
+```
+super -c "
+from logs.json
+| ? example.com AND urgent
+| message_length > 100
+| kinds:=union(type), net:=network_of(srcip) by net
+"
+```
+
 # SEE ALSO
 
-SuperDB documentation: <https://superdb.org>
+SuperDB home: https://superdb.org
 
-`super` command reference: <https://superdb.org/command/super.html>
+Command reference: https://superdb.org/commands/
 
-SuperSQL language reference: <https://superdb.org/super-sql/intro.html>
+SuperSQL reference: https://superdb.org/super-sql/

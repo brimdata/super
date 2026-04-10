@@ -18,6 +18,7 @@ all: src/prompt
 
 # Step 1: assemble the prompt
 src/prompt: src/base-prompt \
+            src/extract-names.py \
             $(BOOK)/command/super.md \
             $(BOOK)/command/options.md \
             $(BOOK)/command/input.md \
@@ -44,6 +45,9 @@ src/prompt: src/base-prompt \
 	  echo "================================================================" >> src/prompt; \
 	  head -50 $(BOOK)/command/$$file >> src/prompt; \
 	done
+	@echo -e "\nOperator, aggregate function, and function names that should appear bold in man page text:" >> src/prompt
+	@echo "================================================================" >> src/prompt
+	@python3 src/extract-names.py >> src/prompt
 	@$(SED) -i "s/DATE_PLACEHOLDER/$$(date '+%B %Y')/" src/prompt
 	@echo "Done. src/prompt is ready."
 
@@ -72,5 +76,5 @@ man1/super.1: src/super.1.md
 
 clean:
 	@rm -f src/prompt src/super.1.md man1/super.1
-	@git checkout src/super.1.md man1/super.1
+	@git checkout src/super.1.md man1/super.1 2>/dev/null || true
 	@echo "Cleaned."
