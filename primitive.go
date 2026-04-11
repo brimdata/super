@@ -351,6 +351,16 @@ func (t *TypeOfNet) Kind() Kind {
 	return PrimitiveKind
 }
 
+type TypeOfNone struct{}
+
+func (t *TypeOfNone) ID() int {
+	return IDNone
+}
+
+func (t *TypeOfNone) Kind() Kind {
+	return PrimitiveKind
+}
+
 type TypeOfNull struct{}
 
 func (t *TypeOfNull) ID() int {

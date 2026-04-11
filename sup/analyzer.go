@@ -380,7 +380,7 @@ func (a Analyzer) convertArray(sctx *super.Context, array *ast.Array, cast super
 		// We had a cast so we know any type mistmatches we have been
 		// caught below...
 		if cast == nil {
-			cast = sctx.LookupTypeArray(super.TypeNull)
+			cast = sctx.LookupTypeArray(super.TypeNone)
 		}
 		return &Array{
 			Type:     cast,
@@ -407,7 +407,7 @@ func (a Analyzer) normalizeElems(sctx *super.Context, vals []Value) ([]Value, su
 		return vals, unique[0], nil
 	}
 	if len(unique) == 0 {
-		return vals, super.TypeNull, nil
+		return vals, super.TypeNone, nil
 	}
 	union, ok := sctx.LookupTypeUnion(unique)
 	if !ok {
@@ -443,7 +443,7 @@ func (a Analyzer) convertSet(sctx *super.Context, set *ast.Set, cast super.Type)
 	}
 	if cast != nil || len(vals) == 0 {
 		if cast == nil {
-			cast = sctx.LookupTypeSet(super.TypeNull)
+			cast = sctx.LookupTypeSet(super.TypeNone)
 		}
 		return &Array{
 			Type:     cast,
@@ -531,8 +531,8 @@ func (a Analyzer) convertMap(sctx *super.Context, m *ast.Map, cast super.Type) (
 		// entry we just analyed.
 		if len(keys) == 0 {
 			// empty set with no decorator
-			keyType = super.TypeNull
-			valType = super.TypeNull
+			keyType = super.TypeNone
+			valType = super.TypeNone
 		} else {
 			var err error
 			keys, keyType, err = a.normalizeElems(sctx, keys)

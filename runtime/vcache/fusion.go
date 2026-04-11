@@ -80,20 +80,10 @@ type subtypesLoader struct {
 	subtypes *subtypes
 }
 
-var _ vector.TypeLoader = (*subtypesLoader)(nil)
+var _ vector.TypesLoader = (*subtypesLoader)(nil)
 
-func (s *subtypesLoader) Load() []super.Type {
+func (s *subtypesLoader) Load() (*super.TypeDefs, []uint32) {
 	ids := s.subtypes.loadIDs(s.loader.r)
-	s.cctx.LoadSubtypes()
-	subtypes := make([]super.Type, 0, len(ids))
-	sctx := s.loader.sctx
-	for _, id := range ids {
-		typeVal := s.cctx.LookupTypeVal(id)
-		typ, err := sctx.LookupByValue(typeVal)
-		if err != nil {
-			panic(err)
-		}
-		subtypes = append(subtypes, typ)
-	}
-	return subtypes
+	defs := s.cctx.LoadSubtypes()
+	return defs, ids
 }

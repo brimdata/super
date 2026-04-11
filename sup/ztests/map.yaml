@@ -47,7 +47,7 @@ output: |
   |{null:null}|
   |{"a":"foo","b":1}|::|{string:(named=int64|string)}|
   |{"a":"foo","b":"bar"}|::|{int64|string:string}|
-  {a:|{}|::|{null:null}|}
+  {a:|{}|::|{none:none}|}
   {a:|{-1:-1,2:2}|}
   {a:|{1ns:1ns,2us:2us,3ms:3ms,4s:4s,5m:5m,6h:6h,7d:7d,56d:56d,9y:9y}|}
   {a:|{2006-01-02T15:04:05.123456789Z:2006-01-02T15:04:05.123456789Z}|}
