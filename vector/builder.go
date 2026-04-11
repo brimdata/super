@@ -551,5 +551,5 @@ func (u *unionBuilder) Write(vec Any) {
 }
 
 func (u *unionBuilder) Build(sctx *super.Context) Any {
-	return NewUnionFromDynamic(sctx, u.builder.build(sctx))
+	return &Union{Dynamic: u.builder.build(sctx), Typ: u.typ}
 }
