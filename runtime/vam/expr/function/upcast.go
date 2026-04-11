@@ -21,7 +21,7 @@ func (u *upcast) Call(args ...vector.Any) vector.Any {
 		if err != nil {
 			panic(err)
 		}
-		return u.build(from, typ)
+		return u.upcast(from, typ)
 	}
 	b := vector.NewDynamicBuilder()
 	for i := range from.Len() {
@@ -30,7 +30,7 @@ func (u *upcast) Call(args ...vector.Any) vector.Any {
 			panic(err)
 		}
 		in := vector.Pick(from, []uint32{i})
-		out := u.build(in, typ)
+		out := u.upcast(in, typ)
 		if out == nil {
 			out = vector.NewWrappedError(u.sctx, "upcast: value not a subtype of "+sup.FormatType(typ), in)
 		}
@@ -39,22 +39,22 @@ func (u *upcast) Call(args ...vector.Any) vector.Any {
 	return b.Build(u.sctx)
 }
 
-func (u *upcast) build(vec vector.Any, to super.Type) vector.Any {
+func (u *upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		vec2 := u.build(vec.Any, to)
+		vec2 := u.upcast(vec.Any, to)
 		if vec2 == nil {
 			return nil
 		}
 		return vector.NewConst(vec2, vec.Len())
 	case *vector.Dict:
-		vec2 := u.build(vec.Any, to)
+		vec2 := u.upcast(vec.Any, to)
 		if vec2 == nil {
 			return nil
 		}
 		return vector.NewDict(vec2, vec.Index, vec.Counts)
 	case *vector.View:
-		vec2 := u.build(vec.Any, to)
+		vec2 := u.upcast(vec.Any, to)
 		if vec2 == nil {
 			return nil
 		}
@@ -100,7 +100,7 @@ func (u *upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 			fieldVecs[i] = vector.NewNone(u.sctx, f.Type, vec.Len())
 			continue
 		}
-		fieldVecs[i] = u.build(recVec.Fields[n], f.Type)
+		fieldVecs[i] = u.upcast(recVec.Fields[n], f.Type)
 		if fieldVecs[i] == nil {
 			return nil
 		}
@@ -113,7 +113,7 @@ func (u *upcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
 	if !ok {
 		return nil
 	}
-	values := u.build(arrVec.Values, to.Type)
+	values := u.upcast(arrVec.Values, to.Type)
 	if values == nil {
 		return nil
 	}
@@ -125,7 +125,7 @@ func (u *upcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
 	if !ok {
 		return nil
 	}
-	values := u.build(setVec.Values, to.Type)
+	values := u.upcast(setVec.Values, to.Type)
 	if values == nil {
 		return nil
 	}
@@ -137,11 +137,11 @@ func (u *upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
 	if !ok {
 		return nil
 	}
-	keys := u.build(mapVec.Keys, to.KeyType)
+	keys := u.upcast(mapVec.Keys, to.KeyType)
 	if keys == nil {
 		return nil
 	}
-	values := u.build(mapVec.Values, to.ValType)
+	values := u.upcast(mapVec.Values, to.ValType)
 	if values == nil {
 		return nil
 	}
@@ -172,7 +172,7 @@ func (u *upcast) toUnionValue(vec vector.Any, to *super.TypeUnion) vector.Any {
 	if tag < 0 {
 		return nil
 	}
-	return u.build(vec, to.Types[tag])
+	return u.upcast(vec, to.Types[tag])
 }
 
 func (u *upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
@@ -180,7 +180,7 @@ func (u *upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 	if !ok {
 		return nil
 	}
-	values := u.build(errVec.Vals, to.Type)
+	values := u.upcast(errVec.Vals, to.Type)
 	if values == nil {
 		return nil
 	}
@@ -192,7 +192,7 @@ func (u *upcast) toNamed(vec vector.Any, to *super.TypeNamed) vector.Any {
 	if !ok {
 		return nil
 	}
-	vec = u.build(namedVec.Any, to.Type)
+	vec = u.upcast(namedVec.Any, to.Type)
 	if vec == nil {
 		return nil
 	}
@@ -200,7 +200,7 @@ func (u *upcast) toNamed(vec vector.Any, to *super.TypeNamed) vector.Any {
 }
 
 func (u *upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {
-	values := u.build(vec, to.Type)
+	values := u.upcast(vec, to.Type)
 	if values == nil {
 		return nil
 	}
