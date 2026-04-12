@@ -77,7 +77,7 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 	}
 	var keyCompare, valueCompare expr.CompareFn
 	nkeys := len(keyExprs)
-	o := order.Which(inputDir < 0)
+	o := inputDir.Which()
 	if nkeys > 0 && inputDir != 0 {
 		keySortExpr := expr.NewSortExpr(keyRefs[0], o, o.NullsMax(true))
 		keyCompare = expr.NewComparator(keySortExpr).WithMissingAsNull().Compare

@@ -30,6 +30,13 @@ func ParseDirection(s string) (Direction, error) {
 	}
 }
 
+func (d Direction) Which() Which {
+	if d == Down {
+		return Desc
+	}
+	return Asc
+}
+
 func (d Direction) HasOrder(which Which) bool {
 	switch d {
 	case Up:
