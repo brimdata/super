@@ -156,7 +156,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = newUnflatten(sctx)
 	case "upcast":
 		argmin, argmax = 2, 2
-		f = &upcast{sctx}
+		f = newUpcast(sctx)
 	case "upper":
 		f = &ToUpper{sctx}
 	default:

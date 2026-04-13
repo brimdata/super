@@ -8,7 +8,12 @@ import (
 )
 
 type upcast struct {
-	sctx *super.Context
+	sctx           *super.Context
+	typeValueToTag map[string]uint32
+}
+
+func newUpcast(sctx *super.Context) *upcast {
+	return &upcast{sctx, map[string]uint32{}}
 }
 
 func (u *upcast) Call(args ...vector.Any) vector.Any {
@@ -17,26 +22,56 @@ func (u *upcast) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(u.sctx, "upcast: type argument not a type", to)
 	}
 	if to, ok := to.(*vector.Const); ok {
-		typ, err := u.sctx.LookupByValue(vector.TypeValueValue(to, 0))
-		if err != nil {
-			panic(err)
-		}
-		return u.upcast(from, typ)
+		return u.upcastOrError(from, vector.TypeValueValue(to, 0))
 	}
-	b := vector.NewDynamicBuilder()
-	for i := range from.Len() {
-		typ, err := u.sctx.LookupByValue(vector.TypeValueValue(to, i))
-		if err != nil {
-			panic(err)
+	var indexes [][]uint32
+	var tags []uint32
+	for i := range to.Len() {
+		tv := string(vector.TypeValueValue(to, i))
+		tag, ok := u.typeValueToTag[tv]
+		if !ok {
+			tag = uint32(len(u.typeValueToTag))
+			u.typeValueToTag[tv] = tag
 		}
-		in := vector.Pick(from, []uint32{i})
-		out := u.upcast(in, typ)
-		if out == nil {
-			out = vector.NewWrappedError(u.sctx, "upcast: value not a subtype of "+sup.FormatType(typ), in)
+		if len(u.typeValueToTag) == 1 {
+			// There's only one type so we don't need indexes or tags.
+			continue
 		}
-		b.Write(out)
+		if len(indexes) == 0 {
+			index := make([]uint32, i)
+			for i := range i {
+				index[i] = i
+			}
+			indexes = [][]uint32{index}
+			tags = make([]uint32, i)
+		}
+		if !ok {
+			indexes = append(indexes, nil)
+		}
+		indexes[tag] = append(indexes[tag], i)
+		tags = append(tags, tag)
 	}
-	return b.Build(u.sctx)
+	defer clear(u.typeValueToTag)
+	if len(u.typeValueToTag) == 1 {
+		return u.upcastOrError(from, vector.TypeValueValue(to, 0))
+	}
+	vecs := make([]vector.Any, len(u.typeValueToTag))
+	for tv, tag := range u.typeValueToTag {
+		vecs[tag] = u.upcastOrError(vector.Pick(from, indexes[tag]), []byte(tv))
+	}
+	return vector.NewDynamic(tags, vecs)
+}
+
+func (u *upcast) upcastOrError(vec vector.Any, typeValue []byte) vector.Any {
+	typ, err := u.sctx.LookupByValue(typeValue)
+	if err != nil {
+		panic(err)
+	}
+	out := u.upcast(vec, typ)
+	if out == nil {
+		out = vector.NewWrappedError(u.sctx, "upcast: value not a subtype of "+sup.FormatType(typ), vec)
+	}
+	return out
 }
 
 func (u *upcast) upcast(vec vector.Any, to super.Type) vector.Any {
