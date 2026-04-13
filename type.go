@@ -91,7 +91,8 @@ var (
 	TypeNet    = &TypeOfNet{}
 	TypeType   = &TypeOfType{}
 	TypeNull   = &TypeOfNull{}
-	//XXX add TypeNone
+	TypeNone   = &TypeOfNone{}
+	TypeAll    = &TypeOfAll{}
 )
 
 // Primary Type IDs
@@ -128,22 +129,23 @@ const (
 	IDType        = 28
 	IDNull        = 29
 	IDNone        = 30
-	IDTypeComplex = 31
+	IDAll         = 31
+	IDTypeComplex = 32
 )
 
 // Encodings for complex type values.
 
 const (
-	TypeValueRecord  = 31
-	TypeValueArray   = 32
-	TypeValueSet     = 33
-	TypeValueMap     = 34
-	TypeValueUnion   = 35
-	TypeValueEnum    = 36
-	TypeValueError   = 37
-	TypeValueNameDef = 38
-	TypeValueNameRef = 39
-	TypeValueFusion  = 40
+	TypeValueRecord  = 32
+	TypeValueArray   = 33
+	TypeValueSet     = 34
+	TypeValueMap     = 35
+	TypeValueUnion   = 36
+	TypeValueEnum    = 37
+	TypeValueError   = 38
+	TypeValueNameDef = 39
+	TypeValueNameRef = 40
+	TypeValueFusion  = 41
 	TypeValueMax     = TypeValueFusion
 )
 
@@ -216,6 +218,10 @@ func LookupPrimitive(name string) Type {
 		return TypeType
 	case "null":
 		return TypeNull
+	case "none":
+		return TypeNone
+	case "all":
+		return TypeAll
 	}
 	return nil
 }
@@ -262,6 +268,10 @@ func PrimitiveName(typ Type) string {
 		return "type"
 	case *TypeOfNull:
 		return "null"
+	case *TypeOfNone:
+		return "none"
+	case *TypeOfAll:
+		return "all"
 	default:
 		return fmt.Sprintf("unknown primitive type: %T", typ)
 	}
@@ -315,6 +325,10 @@ func LookupPrimitiveByID(id int) (Type, error) {
 		return TypeType, nil
 	case IDNull:
 		return TypeNull, nil
+	case IDNone:
+		return TypeNone, nil
+	case IDAll:
+		return TypeAll, nil
 	}
 	return nil, fmt.Errorf("primitive type ID %d not implemented", id)
 }

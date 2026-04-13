@@ -16,7 +16,6 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 )
@@ -68,64 +67,72 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	meta := newReader(r)
-	err = vio.Copy(writer, sbuf.NewDematerializer(meta.sctx, sbuf.NewPuller(meta)))
+	sctx := super.NewContext()
+	reader := bufio.NewReader(r)
+	vals, err := readMeta(sctx, reader)
+	if err == nil {
+		err = vio.Copy(writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(vals)))
+	}
 	if err2 := writer.Close(); err == nil {
 		err = err2
 	}
 	return err
 }
 
-type reader struct {
-	sctx      *super.Context
-	reader    *bufio.Reader
-	meta      *bsupio.Reader
-	marshaler *sup.MarshalBSUPContext
-	typeSize  int
-	dataSize  int
-}
-
-var _ sio.Reader = (*reader)(nil)
-
-func newReader(r io.Reader) *reader {
-	sctx := super.NewContext()
-	return &reader{
-		sctx:      sctx,
-		reader:    bufio.NewReader(r),
-		marshaler: sup.NewBSUPMarshalerWithContext(sctx),
+func readMeta(sctx *super.Context, r *bufio.Reader) (*sbuf.Array, error) {
+	marshaler := sup.NewBSUPMarshalerWithContext(sctx)
+	hdr, err := readHeader(r)
+	if err != nil && err != io.EOF {
+		return nil, err
 	}
-}
-
-func (r *reader) Read() (*super.Value, error) {
+	metaReader := bsupio.NewReader(sctx, io.LimitReader(r, int64(hdr.MetaSize)))
+	val, err := marshaler.Marshal(hdr)
+	if err != nil {
+		return nil, err
+	}
+	var vals []super.Value
+	vals = append(vals, val)
 	for {
-		if r.meta == nil {
-			hdr, err := r.readHeader()
-			if err != nil {
-				if err == io.EOF {
-					err = nil
-				}
-				return nil, err
+		val, err := metaReader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
 			}
-			r.meta = bsupio.NewReader(r.sctx, io.LimitReader(r.reader, int64(hdr.MetaSize)))
-			r.dataSize = int(hdr.DataSize) + int(hdr.TypeSize) //XXX should read types
-			val, err := r.marshaler.Marshal(hdr)
-			return val.Ptr(), err
-		}
-		val, err := r.meta.Read()
-		if val != nil || err != nil {
-			return val, err
-		}
-		if err := r.meta.Close(); err != nil {
 			return nil, err
 		}
-		r.meta = nil
-		r.skip(r.dataSize)
+		if val == nil {
+			break
+		}
+		vals = append(vals, val.Copy())
 	}
+	if err := metaReader.Close(); err != nil {
+		return nil, err
+	}
+	typedefsReader := bsupio.NewReader(sctx, io.LimitReader(r, int64(hdr.TypeSize)))
+	valp, err := typedefsReader.Read()
+	if err != nil {
+		return nil, err
+	}
+	if valp.Type() != super.TypeBytes {
+		return nil, errors.New("CSUP type section is not a bytes value")
+	}
+	vals, err = marshalTypeDefs(marshaler, vals, valp.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	valp, err = typedefsReader.Read()
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+	if valp != nil {
+		return nil, errors.New("CSUP type section has more than one value")
+	}
+	return sbuf.NewArray(vals), skip(r, int(hdr.DataSize))
 }
 
-func (r *reader) readHeader() (csup.Header, error) {
+func readHeader(r io.Reader) (csup.Header, error) {
 	var bytes [csup.HeaderSize]byte
-	cc, err := r.reader.Read(bytes[:])
+	cc, err := r.Read(bytes[:])
 	if err != nil {
 		return csup.Header{}, err
 	}
@@ -139,10 +146,216 @@ func (r *reader) readHeader() (csup.Header, error) {
 	return h, nil
 }
 
-func (r *reader) skip(n int) error {
-	got, err := r.reader.Discard(n)
+func skip(r *bufio.Reader, n int) error {
+	got, err := r.Discard(n)
 	if n != got {
 		return fmt.Errorf("truncated CSUP data: data section %d but read only %d", n, got)
 	}
 	return err
+}
+
+func marshalTypeDefs(marshaler *sup.MarshalBSUPContext, vals []super.Value, bytes []byte) ([]super.Value, error) {
+	id := uint32(super.IDTypeComplex)
+	for len(bytes) > 0 {
+		var desc any
+		bytes, desc = decodeTypeDef(id, bytes)
+		if desc != nil {
+			val, err := marshaler.Marshal(desc)
+			if err != nil {
+				return nil, err
+			}
+			vals = append(vals, val)
+		}
+		id++
+	}
+	return vals, nil
+}
+
+func decodeTypeDef(slot uint32, bytes []byte) ([]byte, any) {
+	var out any
+	typedef := bytes[0]
+	bytes = bytes[1:]
+	var n int
+	var name string
+	var id uint32
+	switch typedef {
+	case super.TypeDefNamed:
+		name, bytes = super.DecodeName(bytes)
+		if bytes == nil {
+			return nil, errInfo(slot, "TypeDefNamed", "at name field")
+		}
+		id, bytes = super.DecodeID(bytes)
+		if bytes == nil {
+			return nil, errInfo(slot, "TypeDefNamed", "at ID field")
+		}
+		out = &struct {
+			Kind string
+			Slot uint32
+			Name string
+			ID   uint32
+		}{
+			Kind: "TypeDefNamed",
+			Slot: slot,
+			Name: name,
+			ID:   id,
+		}
+	case super.TypeDefRecord:
+		type Field struct {
+			Name string
+			ID   uint32
+			Opt  bool
+		}
+		n, bytes = super.DecodeLength(bytes)
+		if bytes == nil {
+			return nil, errInfo(slot, "TypeDefRecord", "at length field")
+		}
+		var fields []Field
+		for range n {
+			name, bytes = super.DecodeName(bytes)
+			if bytes == nil {
+				return nil, errInfo(slot, "TypeDefRecord", "at field name field")
+			}
+			id, bytes = super.DecodeID(bytes)
+			if bytes == nil {
+				return nil, errInfo(slot, "TypeDefRecord", "at field ID field")
+			}
+			var opt bool
+			if bytes[0] != 0 {
+				opt = true
+			}
+			bytes = bytes[1:]
+			fields = append(fields, Field{name, id, opt})
+		}
+		out = &struct {
+			Kind   string
+			Slot   uint32
+			Fields []Field
+		}{
+			Kind:   "TypeDefRecord",
+			Slot:   slot,
+			Fields: fields,
+		}
+	case super.TypeDefArray:
+		bytes, out = wrapped(bytes, "TypeDefArray", slot)
+	case super.TypeDefSet:
+		bytes, out = wrapped(bytes, "TypeDefSet", slot)
+	case super.TypeDefError:
+		bytes, out = wrapped(bytes, "TypeDefError", slot)
+	case super.TypeDefFusion:
+		bytes, out = wrapped(bytes, "TypeDefFusion", slot)
+	case super.TypeDefMap:
+		var keyID, valID uint32
+		keyID, bytes = super.DecodeID(bytes)
+		if bytes == nil {
+			return nil, errInfo(slot, "TypeDefMap", "at key ID")
+		}
+		valID, bytes = super.DecodeID(bytes)
+		if bytes == nil {
+			return nil, errInfo(slot, "TypeDefMap", "at value ID")
+		}
+		out = &struct {
+			Kind  string
+			Slot  uint32
+			KeyID uint32
+			ValID uint32
+		}{
+			Kind:  "TypeDefMap",
+			Slot:  slot,
+			KeyID: keyID,
+			ValID: valID,
+		}
+	case super.TypeDefUnion:
+		n, bytes = super.DecodeLength(bytes)
+		if bytes == nil {
+			return nil, errInfo(slot, "TypeDefUnion", "at length field")
+		}
+		if n > super.MaxUnionTypes {
+			return nil, errInfo(slot, "TypeDefUnion", "at length field (size exceed)")
+		}
+		var ids []uint32
+		for range n {
+			id, bytes = super.DecodeID(bytes)
+			if bytes == nil {
+				return nil, errInfo(slot, "TypeDefUnion", "in type ID list")
+			}
+			ids = append(ids, id)
+		}
+		out = &struct {
+			Kind string
+			Slot uint32
+			IDs  []uint32
+		}{
+			Kind: "TypeDefUnion",
+			Slot: slot,
+			IDs:  ids,
+		}
+	case super.TypeDefEnum:
+		n, bytes = super.DecodeLength(bytes)
+		if bytes == nil {
+			return nil, errInfo(slot, "TypeDefEnum", "at length field")
+		}
+		if n > super.MaxEnumSymbols {
+			return nil, errInfo(slot, "TypeDefEnum", "at length field (size exceed)")
+		}
+		var names []string
+		for range n {
+			name, bytes = super.DecodeName(bytes)
+			if bytes == nil {
+				return nil, errInfo(slot, "TypeDefEnum", "at enum symbol")
+			}
+			names = append(names, name)
+		}
+		out = &struct {
+			Kind  string
+			Slot  uint32
+			Names []string
+		}{
+			Kind:  "TypeDefEnum",
+			Slot:  slot,
+			Names: names,
+		}
+	default:
+		out = &struct {
+			Kind string
+			Slot uint32
+			Code int
+		}{
+			Kind: "Bad TypeDef code",
+			Slot: slot,
+			Code: int(typedef),
+		}
+		bytes = nil
+	}
+	return bytes, out
+}
+
+func wrapped(bytes []byte, kind string, slot uint32) ([]byte, any) {
+	var id uint32
+	id, bytes = super.DecodeID(bytes)
+	if bytes == nil {
+		return nil, errInfo(slot, kind, "at ID field")
+	}
+	return bytes, &struct {
+		Kind string
+		Slot uint32
+		ID   uint32
+	}{
+		Kind: kind,
+		Slot: slot,
+		ID:   id,
+	}
+}
+
+func errInfo(slot uint32, typedef, message string) any {
+	return &struct {
+		Kind    string
+		Slot    uint32
+		TypeDef string
+		Where   string
+	}{
+		Kind:    "Decode Error",
+		Slot:    slot,
+		TypeDef: typedef,
+		Where:   message,
+	}
 }

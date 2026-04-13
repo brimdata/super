@@ -182,8 +182,9 @@ func (b *Bytes) Len(*Context) uint32 {
 type Primitive struct {
 	Typ      super.Type `super:"Type"`
 	Location Segment
-	Min      *super.Value
-	Max      *super.Value
+	MinMax   bool
+	Min      super.Value
+	Max      super.Value
 	Count    uint32
 }
 
@@ -263,14 +264,7 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		b.EndContainer()
 		return sctx.MustLookupTypeRecord(fields)
 	case *Primitive:
-		min, max := super.Null, super.Null
-		if m.Min != nil {
-			min = *m.Min
-		}
-		if m.Max != nil {
-			max = *m.Max
-		}
-		return metadataLeaf(sctx, b, min, max)
+		return metadataLeaf(sctx, b, m.Min, m.Max)
 	case *Int:
 		return metadataLeaf(sctx, b, super.NewInt(m.Typ, m.Min), super.NewInt(m.Typ, m.Max))
 	case *Uint:

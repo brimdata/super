@@ -58,7 +58,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "downcast":
 		argmin = 2
 		argmax = 2
-		f = &downcast{sctx}
+		f = &downcast{sctx: sctx, name: "downcast"}
 	case "error":
 		f = &Error{sctx: sctx}
 	case "fields":

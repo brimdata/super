@@ -32,13 +32,16 @@ func (f *FusionEncoder) Write(vec vector.Any) {
 	}
 	fusion := vec.(*vector.Fusion)
 	f.values.Write(fusion.Values)
-	//XXX calling SubTypes is a slow path... we should have another
-	// method on vector.TypeLoader that can just return the type IDs
-	// as a slice and lookup the interned CSUP type table and copy
-	// what is needed.
-	for _, typ := range fusion.Subtypes() {
-		f.subtypes = append(f.subtypes, f.cctx.lookupTypeID(fusion.Sctx, typ))
+	// We map the IDs local to the fusion vector onto to the fusion subtype IDs
+	// of the shared CSUP typedefs table.  The TypeDefsMerger takes care of this by
+	// mapping the ids relative to defs to the typedefs table in f.cctx.typedefs.
+	defs, ids := fusion.SubtypeIDs()
+	merger := super.NewTypeDefsMerger(f.cctx.TypeDefs(), defs)
+	mapped := make([]uint32, 0, len(ids))
+	for _, localID := range ids {
+		mapped = append(mapped, merger.LookupID(localID))
 	}
+	f.subtypes = append(f.subtypes, mapped...)
 }
 
 func (f *FusionEncoder) Emit(w io.Writer) error {

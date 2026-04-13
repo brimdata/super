@@ -141,6 +141,6 @@ output: |
   fusion([1::=a1]::=a2::((p1=int64)|(r2={a:r1=int64})|a2|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(u2=(u1=int64)|(u3=string))|(en1=enum(a,b))|(er2=error(er1=int64))),<a2=[a1=int64]>)
   fusion(|[1::=s1]|::=s2::((p1=int64)|(r2={a:r1=int64})|(a2=[a1=int64])|s2|(m3=|{m1=int64:m2=int64}|)|(u2=(u1=int64)|(u3=string))|(en1=enum(a,b))|(er2=error(er1=int64))),<s2=|[s1=int64]|>)
   fusion(|{1::=m1:2::=m2}|::=m3::((p1=int64)|(r2={a:r1=int64})|(a2=[a1=int64])|(s2=|[s1=int64]|)|m3|(u2=(u1=int64)|(u3=string))|(en1=enum(a,b))|(er2=error(er1=int64))),<m3=|{m1=int64:m2=int64}|>)
-  fusion(1::=p1::(p1|(r2={a:r1=int64})|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(u2=(u1=int64)|(u3=string))|(en1=enum(a,b))|(er2=error(er1=int64))),<u2=(u1=int64)|(u3=string)>)
+  fusion(1::=u1::(u2=u1|(u3=string))::((p1=int64)|(r2={a:r1=int64})|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|u2|(en1=enum(a,b))|(er2=error(er1=int64))),<u2=(u1=int64)|(u3=string)>)
   fusion("a"::(en1=enum(a,b))::((p1=int64)|(r2={a:r1=int64})|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(u2=(u1=int64)|(u3=string))|en1|(er2=error(er1=int64))),<en1=enum(a,b)>)
   fusion(error(1::=er1)::=er2::((p1=int64)|(r2={a:r1=int64})|(a2=[a1=int64])|(s2=|[s1=int64]|)|(m3=|{m1=int64:m2=int64}|)|(u2=(u1=int64)|(u3=string))|(en1=enum(a,b))|er2),<er2=error(er1=int64)>)

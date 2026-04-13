@@ -436,7 +436,7 @@ func (t *translator) sortExpr(sch relScope, s ast.SortExpr, reverse bool, inType
 		}
 	}
 	if reverse {
-		o = !o
+		o = o.Reverse()
 	}
 	n := order.NullsLast
 	if s.Nulls != nil {
@@ -1361,7 +1361,9 @@ func (t *translator) typeDecl(d *ast.TypeDecl) {
 	}
 	val, ok := t.mustEval(e)
 	if !ok {
-		panic(e)
+		// When this fails (e.., type redeclared), the error is already logged
+		// so we just return here.
+		return
 	}
 	e.Value = sup.FormatValue(val)
 	if err := t.scope.BindSymbol(d.Name.Name, e); err != nil {

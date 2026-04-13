@@ -1,37 +1,19 @@
 package order
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 )
 
-type Which bool
+type Which string
 
 const (
-	Asc  Which = false
-	Desc Which = true
+	Asc  Which = "asc"
+	Desc Which = "desc"
 )
 
-func Parse(s string) (Which, error) {
-	switch strings.ToLower(s) {
-	case "asc":
-		return Asc, nil
-	case "desc":
-		return Desc, nil
-	default:
-		return false, fmt.Errorf("unknown order: %s", s)
-	}
-}
-
 func (w Which) String() string {
-	if w == Desc {
-		return "desc"
-	}
-	return "asc"
+	return string(w)
 }
 
 func (w Which) Direction() Direction {
@@ -41,43 +23,28 @@ func (w Which) Direction() Direction {
 	return Up
 }
 
+func Parse(s string) (Which, error) {
+	switch strings.ToLower(s) {
+	case "asc":
+		return Asc, nil
+	case "desc":
+		return Desc, nil
+	default:
+		return "", fmt.Errorf("unknown order: %s", s)
+	}
+}
+
+func (w Which) Reverse() Which {
+	if w == Asc {
+		return Desc
+	}
+	return Asc
+}
+
 // NullsMax returns the Nulls value corresponding to w and nullsMax.
 func (w Which) NullsMax(nullsMax bool) Nulls {
 	if w == Asc && nullsMax || w == Desc && !nullsMax {
 		return NullsLast
 	}
 	return NullsFirst
-}
-
-func (w Which) MarshalJSON() ([]byte, error) {
-	return json.Marshal(w.String())
-}
-
-func (w *Which) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-	switch s {
-	case "asc":
-		*w = Asc
-	case "desc":
-		*w = Desc
-	default:
-		return fmt.Errorf("unknown order: %s", s)
-	}
-	return nil
-}
-
-func (w Which) MarshalBSUP(m *sup.MarshalBSUPContext) (super.Type, error) {
-	return m.MarshalValue(w.String())
-}
-
-func (w *Which) UnmarshalBSUP(u *sup.UnmarshalBSUPContext, val super.Value) error {
-	which, err := Parse(string(val.Bytes()))
-	if err != nil {
-		return err
-	}
-	*w = which
-	return nil
 }

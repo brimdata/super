@@ -58,6 +58,10 @@ func (c *Context) Reset() {
 	c.named = nil
 }
 
+func (c *Context) TypeDefs() *TypeDefs {
+	return c.typedefs
+}
+
 func (c *Context) LookupType(id int) (Type, error) {
 	if id < 0 {
 		return nil, fmt.Errorf("type id (%d) cannot be negative", id)
@@ -235,18 +239,23 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 		return nil, fmt.Errorf("bad type name %q: invalid UTF-8", name)
 	}
 	if LookupPrimitive(name) != nil {
-		return nil, fmt.Errorf("bad type name %q: primitive type name", name)
+		return nil, fmt.Errorf("named type collides with primitive type: %s", name)
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.named == nil {
 		c.named = make(map[string]*TypeNamed)
 	}
+	if typ, ok := c.named[name]; ok {
+		if typ.Type != inner {
+			return nil, fmt.Errorf("type %q already exists", name)
+		}
+		return typ, nil
+	}
 	id := c.typedefs.LookupTypeNamed(name, inner)
-	if typ, ok := c.byID[id]; ok {
-		named := typ.(*TypeNamed)
-		c.named[name] = named
-		return named, nil
+	if _, ok := c.byID[id]; ok {
+		// If it wasn't in the named table, it can't be in byID table.
+		panic(name)
 	}
 	typ := NewTypeNamed(int(id), name, inner)
 	c.byID[id] = typ
@@ -498,6 +507,11 @@ func DecodeName(tv scode.Bytes) (string, scode.Bytes) {
 	return string(tv[:namelen]), tv[namelen:]
 }
 
+func MustDecodeName(tv scode.Bytes) (string, scode.Bytes) {
+	namelen, tv := MustDecodeLength(tv)
+	return string(tv[:namelen]), tv[namelen:]
+}
+
 func DecodeLength(tv scode.Bytes) (int, scode.Bytes) {
 	namelen, n := binary.Uvarint(tv)
 	if n <= 0 {
@@ -506,10 +520,26 @@ func DecodeLength(tv scode.Bytes) (int, scode.Bytes) {
 	return int(namelen), tv[n:]
 }
 
+func MustDecodeLength(tv scode.Bytes) (int, scode.Bytes) {
+	namelen, n := binary.Uvarint(tv)
+	if n <= 0 {
+		panic(tv)
+	}
+	return int(namelen), tv[n:]
+}
+
 func DecodeID(b []byte) (uint32, []byte) {
 	v, n := binary.Uvarint(b)
 	if n <= 0 {
 		return 0, nil
+	}
+	return uint32(v), b[n:]
+}
+
+func MustDecodeID(b []byte) (uint32, []byte) {
+	v, n := binary.Uvarint(b)
+	if n <= 0 {
+		panic(b)
 	}
 	return uint32(v), b[n:]
 }
@@ -651,17 +681,17 @@ func (t *TypeDefs) Reset() {
 	t.lut = make(map[string]uint32)
 }
 
-func (t *TypeDefs) Len() int {
-	return len(t.bytes)
-}
-
 func (t *TypeDefs) Bytes() []byte {
 	return t.bytes
 }
 
-func (t *TypeDefs) Value(id uint32) []byte {
+func (t *TypeDefs) Serialization(id uint32) []byte {
 	slot := id - IDTypeComplex
 	return t.bytes[t.offsets[slot]:t.offsets[slot+1]]
+}
+
+func (t *TypeDefs) NTypes() int {
+	return len(t.offsets) - 1
 }
 
 func (t *TypeDefs) Append(bytes []byte) uint32 {
@@ -851,7 +881,7 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 		t, _ := LookupPrimitiveByID(int(id))
 		return t
 	}
-	b := t.Value(id)
+	b := t.Serialization(id)
 	typedef := b[0]
 	b = b[1:]
 	switch typedef {
@@ -988,4 +1018,219 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 	default:
 		panic(id)
 	}
+}
+
+// A TypeDefsMerger recodes typedefs from an external table to a shared table
+// on demand as external ID are looked up and converted to shared IDs.  This is
+// used, for example, by the CSUP writer to collapse multiple typedefs tables
+// into one table to be written to the CSUP metadata and copying only the typedefs
+// that are used by subtypes in the serialized fusion vectors.  LookupID panics if any
+// malformed data is encountered.
+type TypeDefsMerger struct {
+	*TypeDefs
+	ext   *TypeDefs
+	idmap map[uint32]uint32
+}
+
+func NewTypeDefsMerger(defs, ext *TypeDefs) *TypeDefsMerger {
+	return &TypeDefsMerger{
+		TypeDefs: defs,
+		ext:      ext,
+		idmap:    make(map[uint32]uint32),
+	}
+}
+
+func (t *TypeDefsMerger) LookupID(extID uint32) uint32 {
+	if extID < IDTypeComplex {
+		return extID
+	}
+	if id, ok := t.idmap[extID]; ok {
+		return id
+	}
+	bytes := t.ext.Serialization(extID)
+	typedef := bytes[0]
+	bytes = bytes[1:]
+	var id uint32
+	var n, at int
+	var name string
+	switch typedef {
+	case TypeDefNamed:
+		name, bytes = MustDecodeName(bytes)
+		id, bytes = MustDecodeID(bytes)
+		id = t.LookupID(id)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefNamed)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
+		t.bytes = append(t.bytes, name...)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	case TypeDefRecord:
+		// extra alloc and copy due to recursion.  XXX put this in a pool.
+		var out []byte
+		n, bytes = MustDecodeLength(bytes)
+		if n > MaxRecordFields {
+			panic(n)
+		}
+		out = append(out, TypeDefRecord)
+		out = binary.AppendUvarint(out, uint64(n))
+		for range n {
+			var name string
+			name, bytes = MustDecodeName(bytes)
+			id, bytes = MustDecodeID(bytes)
+			opt := bytes[0]
+			bytes = bytes[1:]
+			out = binary.AppendUvarint(out, uint64(len(name)))
+			out = append(out, name...)
+			out = binary.AppendUvarint(out, uint64(t.LookupID(id)))
+			out = append(out, opt)
+		}
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, out...)
+	case TypeDefArray:
+		id, bytes = MustDecodeID(bytes)
+		id = t.LookupID(id)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefArray)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	case TypeDefSet:
+		id, bytes = MustDecodeID(bytes)
+		id = t.LookupID(id)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefSet)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	case TypeDefMap:
+		id, bytes = MustDecodeID(bytes)
+		keyID := t.LookupID(id)
+		id, bytes = MustDecodeID(bytes)
+		valID := t.LookupID(id)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefMap)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(keyID))
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(valID))
+	case TypeDefUnion:
+		// extra alloc and copy due to recursion.  XXX put this in a pool.
+		var out []byte
+		n, bytes = MustDecodeLength(bytes)
+		if n > MaxUnionTypes {
+			panic(n)
+		}
+		out = append(out, TypeDefUnion)
+		out = binary.AppendUvarint(out, uint64(n))
+		for range n {
+			id, bytes = MustDecodeID(bytes)
+			out = binary.AppendUvarint(out, uint64(t.LookupID(id)))
+		}
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, out...)
+	case TypeDefEnum:
+		n, bytes = MustDecodeLength(bytes)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefEnum)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(n))
+		for range n {
+			name, bytes = MustDecodeName(bytes)
+			t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
+			t.bytes = append(t.bytes, name...)
+		}
+	case TypeDefError:
+		id, bytes = MustDecodeID(bytes)
+		id = t.LookupID(id)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefError)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	case TypeDefFusion:
+		id, bytes = MustDecodeID(bytes)
+		id = t.LookupID(id)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefFusion)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	default:
+		panic(id)
+	}
+	id = t.Lookup(at)
+	t.idmap[extID] = id
+	return id
+}
+
+// NewTypeDefsFromBytes takes a serialized representation of a typedefs table
+// and computes the lookup table and offsets of each typedef in the table, returning
+// a new TypeDefs table.  It checks that all referenced IDs in the table maintain
+// the invariant that they are defined before use in the scan order of the table.
+// It panics if malformed data is encountered.
+func NewTypeDefsFromBytes(bytes []byte) *TypeDefs {
+	defs := NewTypeDefs()
+	defs.bytes = bytes
+	localID := uint32(IDTypeComplex)
+	var off uint32
+	for len(bytes) > 0 {
+		before := bytes
+		typedef := bytes[0]
+		bytes = bytes[1:]
+		var id uint32
+		var n int
+		switch typedef {
+		case TypeDefNamed:
+			_, bytes = MustDecodeName(bytes)
+			id, bytes = MustDecodeID(bytes)
+			if id >= localID {
+				panic(id)
+			}
+		case TypeDefRecord:
+			n, bytes = MustDecodeLength(bytes)
+			if n > MaxRecordFields {
+				panic(n)
+			}
+			for range n {
+				_, bytes = MustDecodeName(bytes)
+				id, bytes = MustDecodeID(bytes)
+				if id >= localID {
+					panic(id)
+				}
+				// field opt
+				bytes = bytes[1:]
+			}
+		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion:
+			id, bytes = MustDecodeID(bytes)
+			if id >= localID {
+				panic(id)
+			}
+		case TypeDefMap:
+			// key ID
+			id, bytes = MustDecodeID(bytes)
+			if id >= localID {
+				panic(id)
+			}
+			// val ID
+			id, bytes = MustDecodeID(bytes)
+			if id >= localID {
+				panic(id)
+			}
+		case TypeDefUnion:
+			n, bytes = MustDecodeLength(bytes)
+			if n > MaxUnionTypes {
+				panic(n)
+			}
+			for range n {
+				id, bytes = MustDecodeID(bytes)
+				if id >= localID {
+					panic(id)
+				}
+			}
+		case TypeDefEnum:
+			n, bytes = MustDecodeLength(bytes)
+			if n > MaxEnumSymbols {
+				panic(n)
+			}
+			for range n {
+				_, bytes = MustDecodeName(bytes)
+			}
+		default:
+			panic(typedef)
+		}
+		size := len(before) - len(bytes)
+		off += uint32(size)
+		defs.lut[string(before[:size])] = localID
+		defs.offsets = append(defs.offsets, off)
+		localID++
+	}
+	return defs
 }

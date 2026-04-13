@@ -130,6 +130,8 @@ func NewBuilder(typ super.Type) Builder {
 		}
 	case *super.TypeOfNull:
 		return &nullBuilder{}
+	case *super.TypeOfNone:
+		return &noneBuilder{}
 	case *super.TypeRecord:
 		return newRecordBuilder(typ)
 	case *super.TypeArray, *super.TypeSet:
@@ -144,6 +146,7 @@ func NewBuilder(typ super.Type) Builder {
 		return &errorBuilder{vals: NewBuilder(typ.Type)}
 	case *super.TypeNamed:
 		return &namedBuilder{name: typ.Name, vals: NewBuilder(typ.Type)}
+
 	default:
 		panic(typ)
 	}
@@ -187,10 +190,18 @@ type boolBuilder struct {
 }
 
 func (b *boolBuilder) Write(vec Any) {
-	bits := vec.(*Bool).Bits
-	// There's a faster way to do this with bit shift but just go slow
-	for i := range bits.Len() {
-		b.bits.Append(bits.IsSet(i))
+	switch vec := vec.(type) {
+	case *Const:
+		v := vec.Any.(*Bool).IsSet(0)
+		for range vec.len {
+			b.bits.Append(v)
+		}
+	case *Bool:
+		// There's a faster way to do this with bit shift but just go slow for
+		// now.
+		for i := range vec.Len() {
+			b.bits.Append(vec.IsSet(i))
+		}
 	}
 }
 
@@ -258,6 +269,18 @@ func (s *stringBytesTypeBuilder) Build(*super.Context) Any {
 	default:
 		panic(s.typ)
 	}
+}
+
+type noneBuilder struct {
+	len uint32
+}
+
+func (n *noneBuilder) Write(vec Any) {
+	n.len += vec.(*NoneTmp).len
+}
+
+func (n *noneBuilder) Build(*super.Context) Any {
+	return NewNoneTmp(n.len)
 }
 
 type nullBuilder struct {

@@ -16,11 +16,11 @@ input: |
 output: |
   {x:1}::=named
   {x:2}::=named
-  "foo"::=named
-  "bar"::=named
-  "baz"::=named
-  1::(named=int64|null)
-  null::=named
+  error("type \"named\" already exists")
+  error("type \"named\" already exists")
+  error("type \"named\" already exists")
+  error("type \"named\" already exists")
+  error("type \"named\" already exists")
   error("missing")
   error("foo")
 
@@ -28,7 +28,7 @@ output: |
 
 # Test casting to a named type keeps the named type.
 spq: |
-  type foo=string
+  type foo=int64
   values {str:cast(this, "foo"), named:cast(this, foo)}
 
 vector: true
@@ -38,5 +38,5 @@ input: |
   2
 
 output: |
-  {str:1::=foo,named:"1"::=foo}
-  {str:2::=foo,named:"2"::=foo}
+  {str:1::=foo,named:1::foo}
+  {str:2::=foo,named:2::foo}

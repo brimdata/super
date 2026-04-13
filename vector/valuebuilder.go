@@ -70,7 +70,8 @@ func NewValueBuilder(typ super.Type) ValueBuilder {
 	case *super.TypeOfBool:
 		return newBoolValueBuilder()
 	case *super.TypeOfBytes,
-		*super.TypeOfString:
+		*super.TypeOfString,
+		*super.TypeOfAll:
 		return newBytesStringTypeValueBuilder(typ)
 	case *super.TypeOfIP:
 		return &ipValueBuilder{}
@@ -78,6 +79,8 @@ func NewValueBuilder(typ super.Type) ValueBuilder {
 		return &netValueBuilder{}
 	case *super.TypeOfType:
 		return newBytesStringTypeValueBuilder(typ)
+	case *super.TypeOfNone:
+		return &noneValueBuilder{}
 	case *super.TypeOfNull:
 		return &nullValueBuilder{}
 	case *super.TypeRecord:
@@ -384,7 +387,7 @@ func (b *bytesStringTypeValueBuilder) Build(sctx *super.Context) Any {
 	switch b.typ.ID() {
 	case super.IDString:
 		return NewString(table)
-	case super.IDBytes:
+	case super.IDBytes, super.IDAll:
 		return NewBytes(table)
 	case super.IDType:
 		return NewTypeValue(table)
@@ -427,4 +430,16 @@ func (c *nullValueBuilder) Write(scode.Bytes) {
 
 func (c *nullValueBuilder) Build(*super.Context) Any {
 	return NewNull(c.n)
+}
+
+type noneValueBuilder struct {
+	len uint32
+}
+
+func (n *noneValueBuilder) Write(scode.Bytes) {
+	n.len++
+}
+
+func (n *noneValueBuilder) Build(*super.Context) Any {
+	return NewNoneTmp(n.len)
 }

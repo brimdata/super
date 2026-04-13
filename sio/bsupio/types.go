@@ -25,16 +25,17 @@ func (e *Encoder) Reset() {
 }
 
 func (e *Encoder) Flush() {
-	e.off = e.defs.Len()
+	e.off = len(e.defs.Bytes())
 }
 
 func (e *Encoder) Len() int {
-	return e.defs.Len() - e.off
+	return len(e.defs.Bytes()) - e.off
 }
 
 func (e *Encoder) nextBuffer() []byte {
-	b := e.defs.Bytes()[e.off:]
-	e.off = e.defs.Len()
+	bytes := e.defs.Bytes()
+	b := bytes[e.off:]
+	e.off = len(bytes)
 	return b
 }
 

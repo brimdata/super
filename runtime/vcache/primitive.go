@@ -128,9 +128,15 @@ func (p *primitive) newVector(loader *loader) vector.Any {
 	case *super.TypeOfType:
 		return vector.NewTypeValue(p.load(loader).(vector.BytesTable))
 	case *super.TypeEnum:
-		return vector.NewEnum(typ, p.load(loader).([]uint64))
+		// Despite being coded as a primitive, enums have complex types that
+		// must live in the query context so we can't use the type in the
+		// CSUP metadata as that context is local to the CSUP object.
+		t := loader.sctx.LookupTypeEnum(typ.Symbols)
+		return vector.NewEnum(t, p.load(loader).([]uint64))
 	case *super.TypeOfNull:
 		return vector.NewNull(p.length())
+	case *super.TypeOfNone:
+		return vector.NewNoneTmp(p.length())
 	}
 	panic(fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", p.meta.Typ))
 }

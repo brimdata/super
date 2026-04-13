@@ -20,7 +20,6 @@ input: &input |
 output: *input
 
 ---
-skip: this will be turned on in the next PR that reworks downcast
 
 spq: fuse | defuse(this)
 
@@ -41,7 +40,22 @@ input: &input |
   |[|[1::=s1]|::=s2]|::=s3
   |{1::=m1:2::=m2}|::=m3
   "a"::(en1=enum(a,b))
-  1::=n1::(n2=n1|(n3=string))
+  1::=u1::(u2=u1|(u3=string))
+  error(1::=er1)::=er2
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  1::=p1
+  {a:{b:1::=r1}::=r2}::=r3
+  [[1::=a1]::=a2]::=a3
+  |[|[1::=s1]|::=s2]|::=s3
+  |{1::=m1:2::=m2}|::=m3
+  "a"::(en1=enum(a,b))
   error(1::=er1)::=er2
 
 output: *input
@@ -51,9 +65,19 @@ output: *input
 spq: defuse(this)
 
 input: |
-  {a:fusion(1::(int64|string),<int64>)}
-  {a?:_::int64,b:1,c:fusion(2,<int64>)}
+  fusion({a?:1,b?:_::int64,c?:_::int64},<{a:int64}>)
+  fusion({a?:_::int64,b?:1,c?:2},<{b:int64,c:int64}>)
 
 output: |
   {a:1}
   {b:1,c:2}
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  [1::(int64|bool|string),"foo"::(int64|bool|string)]
+
+output: |
+  [1,"foo"]::[int64|bool|string]

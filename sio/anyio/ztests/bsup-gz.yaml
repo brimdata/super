@@ -1,14 +1,14 @@
 spq: pass
 
 input: !!binary |
-  H4sICN49sGkAA3QuYnN1cAAlTkFLAkEY/VZdNw0r8WDrpewQdMhYQelqJloUQStJQQzr7N
-  iMrDvDzOzS2VPQT6h/0i+oa3+gU+eoY1CN9F3eex/ve++bn63CY+Yz6+QEl9qCXJ5LdoNo
-  DQrw8yA2IC+JEgv9T8zGcqFiIxFo6kJGqxJkExYaysJNcFIiFeOxC3nMBCXSBRsnMiUuLC
-  tiUKI4mBnlmLRkRsIqFKNAaRRERGoXSjG51UhIrjnmkTkiSgfjiCm6sK5hY0KYBixGE1Oq
-  6lDFESOxRjX4sh2VjKcEm5g8UypZlK/sgl2DSqkMuTp82OU0iFgYaPMhMsE6US7Ma0tbd1
-  ZOqagA3xdv96/XO5XupHfARZOOJ8eXYtpvDcKyXSw6V9nnF7v9PlrPPlnO8MRPvea2AdTr
-  Hg566NzvoNHRcIA6PR95zX3U754if9BpttpWBVPOMFENLROlSQPzWcayClRrsec1PMP/5/
-  cPQ8QUp5ABAAA=
+  H4sICL5e3GkAA3QuYnN1cAAlTkFLAkEY/VZdNw0r8WDrKQuCDhkrKF3NRIsiaCUpiGGdHZ
+  uRdWeYmV26ewn6CfVP+gV17Q906hx1DKqRvst77+N9733zs1V4zHxmnZzgUluQy3PJbhCt
+  QQF+HsQG5CVRYqH/idlYLlRsJAJNXchoVYJswkJDWVgHJyVSMR67kMdMUCJdsHEiU+LCsi
+  IGJYqDmVGOSUtmJKxCMQqURkFEpHahFJNbjYTkmmMemSOidDCOmKIL6xo2JoRpwGI0MaVq
+  E6o4YiTWqAZftqOS8ZRgE5NnSiWL8pVdsGtQKZUhV4cPu5wGEQsDbT5EJlgnyoV5bWnrzs
+  opFRXg++Lt/vV6p9Kd9A64aNLx5PhSTPutQVi2i0XnKvv8YrffR+vZJ8sZnvip19w2gHrd
+  w0EPnfsdNDoaDlCn5yOvuY/63VPkDzrNVtuqYMoZJqqhZaI0aWA+y1hWgWot9ryGZ/j//P
+  4Bldrq2pABAAA=
 
 output: |
   {_path:"ssl",ts:2017-03-24T19:59:23.053424Z,uid:"CfEBop2hbfJYpjG5Hd",id:{orig_h:10.10.7.90,orig_p:51913::(port=uint16),resp_h:54.230.87.24,resp_p:443::port},version:"TLSv12",cipher:"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",curve:"",server_name:"choices.truste.com",resumed:true,last_alert:"",next_protocol:"http/1.1",established:true,cert_chain_fuids:[]::[string],client_cert_chain_fuids:[]::[string],subject:"",issuer:"",client_subject:"",client_issuer:"",validation_status:""}

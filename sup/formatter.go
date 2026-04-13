@@ -871,6 +871,14 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
 		b.WriteByte('>')
 	case *super.TypeOfNull:
 		b.WriteString("null")
+	case *super.TypeOfNone:
+		b.WriteString("none")
+	case *super.TypeOfAll:
+		// Write out all values as byte encoded as they only place
+		// they may appear is inside of a fusion(all), which includes
+		// the type to go with the bytes as the fusion subtype.
+		b.WriteString("0x")
+		b.WriteString(hex.EncodeToString(bytes))
 	default:
 		panic(fmt.Sprintf("%#v\n", typ))
 	}

@@ -78,7 +78,7 @@ inputs:
         net: 0.0.0.0/0::=mynet,
         err: error("")::=myerror,
         nul: null::mynull=null
-      }::=primitives
+      }::=primitives2
       {
         array: [
           {

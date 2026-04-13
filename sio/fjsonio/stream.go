@@ -11,20 +11,19 @@ import (
 )
 
 type stream struct {
-	r      io.Reader
-	ch     chan result
-	once   sync.Once
-	ctx    context.Context
-	cancel context.CancelFunc
+	r    io.Reader
+	ch   chan result
+	done chan struct{}
+	once sync.Once
+	ctx  context.Context
 }
 
 func newStream(ctx context.Context, r io.Reader, n int) *stream {
-	ctx, cancel := context.WithCancel(ctx)
 	return &stream{
-		r:      r,
-		ch:     make(chan result, n),
-		ctx:    ctx,
-		cancel: cancel,
+		r:    r,
+		ch:   make(chan result, n),
+		ctx:  ctx,
+		done: make(chan struct{}),
 	}
 }
 
@@ -49,6 +48,8 @@ func (s *stream) next() (*vector.BytesTable, error) {
 		return r.bytes, nil
 	case <-s.ctx.Done():
 		return nil, s.ctx.Err()
+	case <-s.done:
+		return nil, nil
 	}
 }
 
@@ -57,7 +58,7 @@ func (s *stream) run() {
 	for {
 		batch, err := readBatch(r)
 		select {
-		case s.ch <- result{&batch, err}:
+		case s.ch <- result{batch, err}:
 		case <-s.ctx.Done():
 			return
 		}
@@ -69,7 +70,7 @@ func (s *stream) run() {
 }
 
 func (s *stream) close() error {
-	s.cancel()
+	close(s.done)
 	// drain channel
 	for range s.ch {
 	}
@@ -79,9 +80,19 @@ func (s *stream) close() error {
 	return nil
 }
 
-func readBatch(r *valReader) (vector.BytesTable, error) {
-	// XXX Should we pool these?
-	t := vector.NewBytesTableEmpty(VecBatchSize)
+var bytesTablePool sync.Pool
+
+func newBytesTable() *vector.BytesTable {
+	b, ok := bytesTablePool.Get().(*vector.BytesTable)
+	if !ok {
+		b = new(vector.NewBytesTableEmpty(VecBatchSize))
+	}
+	b.Reset()
+	return b
+}
+
+func readBatch(r *valReader) (*vector.BytesTable, error) {
+	t := newBytesTable()
 	for range VecBatchSize {
 		b, err := r.Next()
 		if err != nil {

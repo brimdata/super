@@ -93,21 +93,3 @@ values <foo>
 # expected output
 error("missing")
 ```
-
----
-
-_Conflicting named types appear as distinct type values_
-
-```mdtest-spq {data-layout="stacked"}
-# spq
-count() by typeof(this) | sort this
-# input
-1::=foo
-2::=bar
-"hello"::=foo
-3::=foo
-# expected output
-{typeof:<bar=int64>,count:1}
-{typeof:<foo=int64>,count:2}
-{typeof:<foo=string>,count:1}
-```

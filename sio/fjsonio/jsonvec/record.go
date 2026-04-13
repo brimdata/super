@@ -2,6 +2,7 @@ package jsonvec
 
 import (
 	"encoding/binary"
+	"strings"
 
 	"github.com/brimdata/super/vector"
 )
@@ -46,7 +47,9 @@ func (r *Record) Field(name string) Value {
 	idx, ok := r.LUT[name]
 	if !ok {
 		idx = len(r.Fields)
-		r.LUT[name] = idx
+		// name is from an unsafe string conversion so it needs to be cloned
+		// here.
+		r.LUT[strings.Clone(name)] = idx
 		r.Fields = append(r.Fields, &Element{Value: Unknown{}})
 		r.RLEs = append(r.RLEs, vector.RLE{})
 	}

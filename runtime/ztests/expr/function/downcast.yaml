@@ -1,0 +1,88 @@
+# Test downcast on records.
+spq: downcast(this[0], this[1])
+
+input: |
+  [{x:1},<{}>]
+  [{x?:1},<{x:int64}>]
+  [{x:1::(int64|string)},<{x:int64}>]
+  [{x:1,y:"foo"},<{y:string}>]
+  [{x:1::(int64|bool|string)},<{x:int64|string}>]
+  // error cases
+  [{x?:_::int64},<{x:int64}>]
+  [{x:1},<{x?:int64}>]
+
+output: |
+  {}
+  {x:1}
+  {x:1}
+  {y:"foo"}
+  {x:1::(int64|string)}
+  error({message:"downcast: invalid subtype {x:int64}",on:{x?:_::int64}})
+  error({message:"downcast: invalid subtype {x?:int64}",on:{x:1}})
+
+---
+
+# Test downcast on unions.
+spq: downcast(this[0], this[1])
+
+input: |
+  [1::(int64|bool|string),<(int64|string)>]
+  [1,<(int64|string)>]
+  [1::(int64|string),<(int64|bool|string)>]
+  // error cases
+  [{x:1::(int64|string)}::({x:int64|string}|{y:int64|string}),<{x:int64}|{y:string}>]
+  [{x:1::(int64|string)}::({x:int64|string}|{y:int64|string}|{z:int64|string}),<{x:int64}|{y:string}>]
+
+output: |
+  1::(int64|string)
+  1::(int64|string)
+  1::(int64|bool|string)
+  error({message:"downcast: invalid subtype {x:int64}|{y:string}",on:{x:1::(int64|string)}})
+  error({message:"downcast: invalid subtype {x:int64}|{y:string}",on:{x:1::(int64|string)}})
+
+---
+
+# Test downcast on arrays.
+spq: downcast(this[0], this[1])
+
+input: |
+  [[1::(int64|bool|string),"foo"::(int64|bool|string)],<[int64|bool|string]>]
+  [[{x:1::(int64|string)},{y:"foo"::(int64|string)}],<[{x:int64}|{y:string}]>]
+
+output: |
+  [1,"foo"]::[int64|bool|string]
+  error({message:"downcast: invalid subtype {x:int64}|{y:string}",on:{x:1::(int64|string)}})
+---
+
+# This should seemingly fail because int64|bool|string is not subtype of 
+# int64|string, but this condition is difficult to detect in general and
+# allowing such values doesn't hurt fuse/defuse as fuse would never create
+# such a value.  To see, why this is difficult consider the second case,
+# which is created by fuse.  Because fuse flattens unions but the data model
+# allows for unnested values, this can arise, e.g., fusing the values 
+# 1 with 2::(int64|(foo=(int64|string))).
+spq: downcast(this[0], this[1])
+
+input: |
+  [1::(int64|string),<(int64|bool|string)>]
+  [2::(int64|string),<(int64|(foo=(int64|string)))>]
+
+output: |
+  1::(int64|bool|string)
+  2::(int64|(foo=int64|string))
+
+---
+
+# Test downcast on fusion values.
+spq: downcast(this[0], this[1])
+
+input: |
+  [fusion({x?:1,y?:_::string},<{x:int64}>),<{x:int64}>]
+  [fusion({x?:1,y?:_::string},<{x:int64}>),<{y?:string}>]
+  // error cases
+  [fusion({x?:_::int64,y?:"foo"},<{y:string}>),<{y:int64|string}>]
+
+output: |
+  {x:1}
+  error({message:"downcast: invalid subtype {y?:string}",on:fusion({x?:1,y?:_::string},<{x:int64}>)})
+  error({message:"downcast: invalid subtype {y:int64|string}",on:fusion({x?:_::int64,y?:"foo"},<{y:string}>)})

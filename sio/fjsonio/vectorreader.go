@@ -51,16 +51,18 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	builder := jsonvec.NewBuilder()
 	for i := range table.Len() {
 		if err := ast.Preorder(byteconv.UnsafeString(table.Bytes(i)), builder, nil); err != nil {
+			bytesTablePool.Put(table)
 			v.close()
 			return nil, err
 		}
 	}
+	bytesTablePool.Put(table)
 	return jsonvec.Materialize(v.sctx, builder), nil
 }
 
 func (v *VectorReader) close() error {
 	if v.hasClosed.CompareAndSwap(false, true) {
-		return nil
+		return v.stream.close()
 	}
-	return v.stream.close()
+	return nil
 }

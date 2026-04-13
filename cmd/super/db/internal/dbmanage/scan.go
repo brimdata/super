@@ -65,6 +65,7 @@ const iteratorQuery = `
 from %q@%q:objects
 | left join (from %q@%q:vectors) using (id)
 | values {...left, vector: has(right)}
+| min:=defuse(min),max:=defuse(max)
 | sort min
 `
 

@@ -14,7 +14,7 @@ type fusion struct {
 func newFusion(sctx *super.Context) *fusion {
 	return &fusion{
 		sctx:     sctx,
-		downcast: NewDowncast(sctx),
+		downcast: NewDowncast(sctx, "fusion"),
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
@@ -70,6 +71,9 @@ func (r *Reader) Read() (*super.Value, error) {
 			r.init(csvRec)
 			continue
 		}
+		if ok := validate(csvRec); !ok {
+			return nil, errors.New("input is not UTF-8 input")
+		}
 		rec, err := r.translate(csvRec)
 		if err != nil {
 			return nil, err
@@ -112,4 +116,13 @@ func convertString(s string) any {
 		return v
 	}
 	return s
+}
+
+func validate(strings []string) bool {
+	for _, s := range strings {
+		if !utf8.ValidString(s) {
+			return false
+		}
+	}
+	return true
 }

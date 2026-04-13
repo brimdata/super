@@ -280,7 +280,7 @@ func (a *ArrayExpr) Eval(this super.Value) super.Value {
 		a.collection.appendSpread(inner, val.Bytes())
 	}
 	if len(a.collection.types) == 0 {
-		return super.NewValue(a.sctx.LookupTypeArray(super.TypeNull), []byte{})
+		return super.NewValue(a.sctx.LookupTypeArray(super.TypeNone), []byte{})
 	}
 	it := a.collection.iter(a.sctx)
 	for !it.done() {
@@ -320,7 +320,7 @@ func (a *SetExpr) Eval(this super.Value) super.Value {
 		a.collection.appendSpread(inner, val.Bytes())
 	}
 	if len(a.collection.types) == 0 {
-		return super.NewValue(a.sctx.LookupTypeSet(super.TypeNull), []byte{})
+		return super.NewValue(a.sctx.LookupTypeSet(super.TypeNone), []byte{})
 	}
 	it := a.collection.iter(a.sctx)
 	for !it.done() {
@@ -357,7 +357,7 @@ func (m *MapExpr) Eval(this super.Value) super.Value {
 		m.vals.append(e.Val.Eval(this))
 	}
 	if len(m.keys.types) == 0 {
-		typ := m.sctx.LookupTypeMap(super.TypeNull, super.TypeNull)
+		typ := m.sctx.LookupTypeMap(super.TypeNone, super.TypeNone)
 		return super.NewValue(typ, []byte{})
 	}
 	m.builder.Reset()

@@ -11,7 +11,7 @@ spq: fuse | defuse(this)
 
 input: &input |
   "foo"::(int64|string)
-  "foo"::=named
-  "foo"::(named=int64|string)
+  "foo"::=named1
+  "foo"::(named2=int64|string)
 
 output: *input
