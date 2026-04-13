@@ -436,7 +436,7 @@ func (t *translator) sortExpr(sch relScope, s ast.SortExpr, reverse bool, inType
 		}
 	}
 	if reverse {
-		o = !o
+		o = o.Reverse()
 	}
 	n := order.NullsLast
 	if s.Nulls != nil {

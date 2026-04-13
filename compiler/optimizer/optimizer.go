@@ -816,7 +816,7 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 			case *dag.TailOp:
 				limit = op.Count
 				for i, e := range exprs {
-					exprs[i].Order = !e.Order
+					exprs[i].Order = e.Order.Reverse()
 				}
 				reverse = !reverse
 			default:
