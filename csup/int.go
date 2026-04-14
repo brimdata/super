@@ -90,7 +90,6 @@ func (i *IntEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
 }
 
 func (i *IntEncoder) ConstValue() super.Value {
-
 	return super.NewInt(i.typ, i.vals[0])
 }
 

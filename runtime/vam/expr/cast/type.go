@@ -24,7 +24,11 @@ func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 				errs = append(errs, i)
 				continue
 			}
-			typ, _ := sctx.DecodeTypeValue(val.Bytes())
+			typ, tv := sctx.DecodeTypeValue(val.Bytes())
+			if tv == nil {
+				errs = append(errs, i)
+				continue
+			}
 			out.Append(typ)
 		}
 		return out, errs, "", true

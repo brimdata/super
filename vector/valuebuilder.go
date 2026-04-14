@@ -382,7 +382,11 @@ func (t *typeValueValueBuilder) Write(bytes scode.Bytes) {
 func (t *typeValueValueBuilder) Build(sctx *super.Context) Any {
 	types := make([]super.Type, t.table.Len())
 	for i := range t.table.Len() {
-		types[i], _ = sctx.DecodeTypeValue(t.table.Bytes(i))
+		var tv scode.Bytes
+		types[i], tv = sctx.DecodeTypeValue(t.table.Bytes(i))
+		if tv == nil {
+			panic("bad type value")
+		}
 	}
 	return NewTypeValue(sctx, types)
 }

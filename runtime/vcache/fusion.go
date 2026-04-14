@@ -36,7 +36,6 @@ func (f *fusion) unmarshal(cctx *csup.Context, projection field.Projection) {
 		f.values = newShadow(cctx, f.meta.Values)
 	}
 	if f.subtypes == nil {
-		f.subtypes = newShadow(cctx, f.meta.Subtypes).(*typevalue)
 		f.subtypes = newTypeValue(cctx, cctx.Lookup(f.meta.Subtypes).(*csup.TypeValue))
 	}
 	f.values.unmarshal(cctx, projection)

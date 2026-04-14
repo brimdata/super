@@ -90,7 +90,10 @@ func NewConstFromValue(sctx *super.Context, val super.Value, length uint32) *Con
 	case id == super.IDNet:
 		return NewConstNet(super.DecodeNet(val.Bytes()), length)
 	case id == super.IDType:
-		typ, _ := sctx.DecodeTypeValue(val.Bytes())
+		typ, tv := sctx.DecodeTypeValue(val.Bytes())
+		if tv == nil {
+			panic("bad type value")
+		}
 		return NewConstType(sctx, typ, length)
 	}
 	panic(fmt.Sprintf("%#v\n", super.TypeUnder(val.Type())))
