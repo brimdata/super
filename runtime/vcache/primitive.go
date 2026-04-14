@@ -80,7 +80,7 @@ func (p *primitive) loadAnyWithLock(loader *loader) any {
 			}
 		}
 		return bits
-	case *super.TypeOfBytes, *super.TypeOfString, *super.TypeOfType:
+	case *super.TypeOfBytes, *super.TypeOfString:
 		var bytes []byte
 		// First offset is always zero.
 		offs := make([]uint32, 1, length+1)
@@ -125,8 +125,6 @@ func (p *primitive) newVector(loader *loader) vector.Any {
 		return vector.NewIP(p.load(loader).([]netip.Addr))
 	case *super.TypeOfNet:
 		return vector.NewNet(p.load(loader).([]netip.Prefix))
-	case *super.TypeOfType:
-		return vector.NewTypeValue(p.load(loader).(vector.BytesTable))
 	case *super.TypeEnum:
 		// Despite being coded as a primitive, enums have complex types that
 		// must live in the query context so we can't use the type in the

@@ -63,9 +63,7 @@ func (f *fuse) Result(sctx *super.Context) vector.Any {
 	for _, typ := range f.types {
 		fuser.Fuse(typ)
 	}
-	table := vector.NewBytesTableEmpty(0)
-	table.Append(super.EncodeTypeValue(fuser.Type()))
-	return vector.NewTypeValue(table)
+	return vector.NewTypeValue(sctx, []super.Type{fuser.Type()})
 }
 
 func (f *fuse) ConsumeAsPartial(partial vector.Any) {
@@ -77,8 +75,8 @@ func (f *fuse) ConsumeAsPartial(partial vector.Any) {
 		panic("fuse: partial not a type value")
 	}
 	for i := range partial.Len() {
-		b := vector.TypeValueValue(partial, i)
-		f.partials = append(f.partials, super.NewValue(super.TypeType, b))
+		typ := vector.TypeValueValue(partial, i)
+		f.partials = append(f.partials, super.NewValue(super.TypeType, super.EncodeTypeValue(typ)))
 	}
 }
 

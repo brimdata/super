@@ -41,9 +41,8 @@ func (f *Fields) Call(args ...vector.Any) vector.Any {
 		s := vector.NewStringEmpty(val.Len())
 		inOffs, outOffs := []uint32{0}, []uint32{0}
 		for i := uint32(0); i < val.Len(); i++ {
-			b := vector.TypeValueValue(val, i)
-			rtyp := f.recordType(b)
-			if rtyp == nil {
+			rtyp, ok := vector.TypeValueValue(val, i).(*super.TypeRecord)
+			if !ok {
 				errs = append(errs, i)
 				continue
 			}

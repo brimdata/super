@@ -55,16 +55,16 @@ func NewEncoder(cctx *Context, typ super.Type) Encoder {
 	case *super.TypeFusion:
 		return NewFusionEncoder(cctx, typ)
 	case *super.TypeEnum:
-		return NewPrimitiveEncoder(typ)
+		return NewPrimitiveEncoder(cctx, typ)
 	default:
 		if !super.IsPrimitiveType(typ) {
 			panic(fmt.Sprintf("unsupported type in CSUP file: %T", typ))
 		}
-		return NewDictEncoder(typ, NewPrimitiveEncoder(typ))
+		return NewDictEncoder(typ, NewPrimitiveEncoder(cctx, typ))
 	}
 }
 
-func NewPrimitiveEncoder(typ super.Type) PrimitiveEncoder {
+func NewPrimitiveEncoder(cctx *Context, typ super.Type) PrimitiveEncoder {
 	switch id := typ.ID(); {
 	case super.IsSigned(id):
 		return NewIntEncoder(typ)
@@ -72,8 +72,10 @@ func NewPrimitiveEncoder(typ super.Type) PrimitiveEncoder {
 		return NewUintEncoder(typ)
 	case super.IsFloat(id):
 		return NewFloatEncoder(typ)
-	case id == super.IDBytes || id == super.IDString || id == super.IDType:
+	case id == super.IDBytes || id == super.IDString:
 		return NewBytesEncoder(typ)
+	case id == super.IDType:
+		return NewTypeValueEncoder(cctx)
 	default:
 		return NewScodeEncoder(typ)
 	}

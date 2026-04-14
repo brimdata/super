@@ -38,8 +38,6 @@ func (b *BytesEncoder) Write(vec vector.Any) {
 		b.writeTable(vec.Table())
 	case *vector.String:
 		b.writeTable(vec.Table())
-	case *vector.TypeValue:
-		b.writeTable(vec.Table())
 	default:
 		panic(vec)
 	}

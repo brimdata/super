@@ -103,11 +103,8 @@ func (e *Error) Len(cctx *Context) uint32 {
 }
 
 type Fusion struct {
-	Values ID
-	// Subtypes are stored as type IDs in the local context of
-	// the CSUP object in which the type appears.  vcache translates
-	// these local types to the query sctx.
-	Subtypes Segment
+	Values   ID
+	Subtypes ID
 }
 
 func (f *Fusion) Len(cctx *Context) uint32 {
@@ -177,6 +174,15 @@ func (b *Bytes) Type(*Context, *super.Context) super.Type {
 
 func (b *Bytes) Len(*Context) uint32 {
 	return b.Count
+}
+
+type TypeValue struct {
+	Location Segment
+	Length   uint32
+}
+
+func (t *TypeValue) Len(*Context) uint32 {
+	return t.Length
 }
 
 type Primitive struct {
@@ -309,6 +315,7 @@ var Template = []any{
 	Float{},
 	Bytes{},
 	Primitive{},
+	TypeValue{},
 	Named{},
 	Error{},
 	Const{},

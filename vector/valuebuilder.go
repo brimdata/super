@@ -72,13 +72,13 @@ func NewValueBuilder(typ super.Type) ValueBuilder {
 	case *super.TypeOfBytes,
 		*super.TypeOfString,
 		*super.TypeOfAll:
-		return newBytesStringTypeValueBuilder(typ)
+		return newBytesStringValueBuilder(typ)
 	case *super.TypeOfIP:
 		return &ipValueBuilder{}
 	case *super.TypeOfNet:
 		return &netValueBuilder{}
 	case *super.TypeOfType:
-		return newBytesStringTypeValueBuilder(typ)
+		return newTypeValueValueBuilder()
 	case *super.TypeOfNone:
 		return &noneValueBuilder{}
 	case *super.TypeOfNull:
@@ -367,30 +367,48 @@ func (b *boolValueBuilder) Build(sctx *super.Context) Any {
 	return NewBool(bitvec.New(bits, b.n))
 }
 
-type bytesStringTypeValueBuilder struct {
+type typeValueValueBuilder struct {
+	table BytesTable
+}
+
+func newTypeValueValueBuilder() *typeValueValueBuilder {
+	return &typeValueValueBuilder{table: NewBytesTableEmpty(0)}
+}
+
+func (t *typeValueValueBuilder) Write(bytes scode.Bytes) {
+	t.table.Append(bytes)
+}
+
+func (t *typeValueValueBuilder) Build(sctx *super.Context) Any {
+	types := make([]super.Type, t.table.Len())
+	for i := range t.table.Len() {
+		types[i], _ = sctx.DecodeTypeValue(t.table.Bytes(i))
+	}
+	return NewTypeValue(sctx, types)
+}
+
+type bytesStringValueBuilder struct {
 	typ   super.Type
 	offs  []uint32
 	bytes []byte
 }
 
-func newBytesStringTypeValueBuilder(typ super.Type) ValueBuilder {
-	return &bytesStringTypeValueBuilder{typ: typ, bytes: []byte{}, offs: []uint32{0}}
+func newBytesStringValueBuilder(typ super.Type) ValueBuilder {
+	return &bytesStringValueBuilder{typ: typ, bytes: []byte{}, offs: []uint32{0}}
 }
 
-func (b *bytesStringTypeValueBuilder) Write(bytes scode.Bytes) {
+func (b *bytesStringValueBuilder) Write(bytes scode.Bytes) {
 	b.bytes = append(b.bytes, bytes...)
 	b.offs = append(b.offs, uint32(len(b.bytes)))
 }
 
-func (b *bytesStringTypeValueBuilder) Build(sctx *super.Context) Any {
+func (b *bytesStringValueBuilder) Build(sctx *super.Context) Any {
 	table := NewBytesTable(b.offs, b.bytes)
 	switch b.typ.ID() {
 	case super.IDString:
 		return NewString(table)
 	case super.IDBytes, super.IDAll:
 		return NewBytes(table)
-	case super.IDType:
-		return NewTypeValue(table)
 	default:
 		panic(b.typ)
 	}

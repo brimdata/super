@@ -50,12 +50,8 @@ func (l *Len) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(l.sctx, "len()", val)
 	case *super.TypeOfType:
 		for i := uint32(0); i < val.Len(); i++ {
-			b := vector.TypeValueValue(val, i)
-			t, err := l.sctx.LookupByValue(b)
-			if err != nil {
-				panic(err)
-			}
-			out.Append(int64(function.TypeLength(t)))
+			typ := vector.TypeValueValue(val, i)
+			out.Append(int64(function.TypeLength(typ)))
 		}
 	default:
 		return vector.NewWrappedError(l.sctx, "len: bad type", val)

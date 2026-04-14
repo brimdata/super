@@ -36,5 +36,5 @@ func (c *const_) project(loader *loader, projection field.Projection) vector.Any
 	if err != nil {
 		panic(err)
 	}
-	return vector.NewConstFromValue(super.NewValue(typ, val.Bytes()), c.length())
+	return vector.NewConstFromValue(loader.sctx, super.NewValue(typ, val.Bytes()), c.length())
 }
