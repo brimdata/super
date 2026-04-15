@@ -97,17 +97,15 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(i.sctx, "is: type value argument expected", typeVal)
 	}
 	if _, ok := typeVal.(*vector.Const); ok {
-		b := vector.TypeValueValue(typeVal, 0)
-		typ, err := i.sctx.LookupByValue(b)
-		v := err == nil && typ == vec.Type()
+		typ := vector.TypeValueValue(typeVal, 0)
+		v := typ == vec.Type()
 		return vector.NewConstBool(v, vec.Len())
 	}
 	inTyp := vec.Type()
 	out := vector.NewFalse(vec.Len())
 	for k := range vec.Len() {
-		b := vector.TypeValueValue(typeVal, k)
-		typ, err := i.sctx.LookupByValue(b)
-		if err == nil && typ == inTyp {
+		typ := vector.TypeValueValue(typeVal, k)
+		if typ == inTyp {
 			out.Set(k)
 		}
 	}
@@ -137,11 +135,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 	out := vector.NewStringEmpty(vec.Len())
 	var errs []uint32
 	for i := range vec.Len() {
-		b := vector.TypeValueValue(vec, i)
-		var err error
-		if typ, err = n.sctx.LookupByValue(b); err != nil {
-			panic(err)
-		}
+		typ := vector.TypeValueValue(vec, i)
 		if named, ok := typ.(*super.TypeNamed); ok {
 			out.Append(named.Name)
 		} else {
@@ -159,8 +153,7 @@ type TypeOf struct {
 }
 
 func (t *TypeOf) Call(args ...vector.Any) vector.Any {
-	val := t.sctx.LookupTypeValue(args[0].Type())
-	return vector.NewConstType(val.Bytes(), args[0].Len())
+	return vector.NewConstType(t.sctx, args[0].Type(), args[0].Len())
 }
 
 type TypeName struct {
@@ -173,13 +166,13 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(t.sctx, "typename: argument must be a string", args[0])
 	}
 	var errs []uint32
-	out := vector.NewTypeValueEmpty(0)
+	out := vector.NewTypeValueEmpty(t.sctx)
 	for i := range vec.Len() {
 		s := vector.StringValue(vec, i)
 		if typ := t.sctx.LookupByName(s); typ == nil {
 			errs = append(errs, i)
 		} else {
-			out.Append(t.sctx.LookupTypeValue(typ).Bytes())
+			out.Append(typ)
 		}
 	}
 	if len(errs) > 0 {
@@ -213,11 +206,7 @@ func (k *Kind) Call(args ...vector.Any) vector.Any {
 	}
 	out := vector.NewStringEmpty(vec.Len())
 	for i, n := uint32(0), vec.Len(); i < n; i++ {
-		bytes := vector.TypeValueValue(vec, i)
-		typ, err := k.sctx.LookupByValue(bytes)
-		if err != nil {
-			panic(err)
-		}
+		typ := vector.TypeValueValue(vec, i)
 		out.Append(typ.Kind().String())
 	}
 	return out

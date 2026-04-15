@@ -46,7 +46,7 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		if err != nil {
 			return nil, err
 		}
-		return vamexpr.NewLiteral(val), nil
+		return vamexpr.NewLiteral(b.sctx(), val), nil
 	case *dag.RecordExpr:
 		return b.compileVamRecordExpr(e)
 	case *dag.RegexpMatchExpr:

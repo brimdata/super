@@ -79,7 +79,7 @@ func NewBuilder(typ super.Type) Builder {
 		return &genericBuilder[uint64]{
 			typ:      typ,
 			valuesOf: func(vec Any) []uint64 { return vec.(*Uint).Values },
-			build: func(typ super.Type, vals []uint64) Any {
+			build: func(_ *super.Context, typ super.Type, vals []uint64) Any {
 				return NewUint(typ, vals)
 			},
 		}
@@ -92,7 +92,7 @@ func NewBuilder(typ super.Type) Builder {
 		return &genericBuilder[int64]{
 			typ:      typ,
 			valuesOf: func(vec Any) []int64 { return vec.(*Int).Values },
-			build: func(typ super.Type, vals []int64) Any {
+			build: func(_ *super.Context, typ super.Type, vals []int64) Any {
 				return NewInt(typ, vals)
 			},
 		}
@@ -102,21 +102,20 @@ func NewBuilder(typ super.Type) Builder {
 		return &genericBuilder[float64]{
 			typ:      typ,
 			valuesOf: func(vec Any) []float64 { return vec.(*Float).Values },
-			build: func(typ super.Type, vals []float64) Any {
+			build: func(_ *super.Context, typ super.Type, vals []float64) Any {
 				return NewFloat(typ, vals)
 			},
 		}
 	case *super.TypeOfBool:
 		return &boolBuilder{}
 	case *super.TypeOfString,
-		*super.TypeOfBytes,
-		*super.TypeOfType:
-		return newStringBytesTypeBuilder(typ)
+		*super.TypeOfBytes:
+		return newStringBytesBuilder(typ)
 	case *super.TypeOfIP:
 		return &genericBuilder[netip.Addr]{
 			typ:      typ,
 			valuesOf: func(vec Any) []netip.Addr { return vec.(*IP).Values },
-			build: func(_ super.Type, vals []netip.Addr) Any {
+			build: func(_ *super.Context, _ super.Type, vals []netip.Addr) Any {
 				return NewIP(vals)
 			},
 		}
@@ -124,8 +123,15 @@ func NewBuilder(typ super.Type) Builder {
 		return &genericBuilder[netip.Prefix]{
 			typ:      typ,
 			valuesOf: func(vec Any) []netip.Prefix { return vec.(*Net).Values },
-			build: func(_ super.Type, vals []netip.Prefix) Any {
+			build: func(_ *super.Context, _ super.Type, vals []netip.Prefix) Any {
 				return NewNet(vals)
+			},
+		}
+	case *super.TypeOfType:
+		return &genericBuilder[super.Type]{
+			valuesOf: func(vec Any) []super.Type { return vec.(*TypeValue).types },
+			build: func(sctx *super.Context, _ super.Type, vals []super.Type) Any {
+				return NewTypeValue(sctx, vals)
 			},
 		}
 	case *super.TypeOfNull:
@@ -156,7 +162,7 @@ type genericBuilder[E any] struct {
 	typ      super.Type
 	vals     []E
 	valuesOf func(Any) []E
-	build    func(super.Type, []E) Any
+	build    func(*super.Context, super.Type, []E) Any
 }
 
 func (b *genericBuilder[E]) Write(vec Any) {
@@ -181,8 +187,8 @@ func (b *genericBuilder[E]) Write(vec Any) {
 	}
 }
 
-func (b *genericBuilder[E]) Build(*super.Context) Any {
-	return b.build(b.typ, b.vals)
+func (b *genericBuilder[E]) Build(sctx *super.Context) Any {
+	return b.build(sctx, b.typ, b.vals)
 }
 
 type boolBuilder struct {
@@ -209,16 +215,16 @@ func (b *boolBuilder) Build(*super.Context) Any {
 	return NewBool(b.bits)
 }
 
-type stringBytesTypeBuilder struct {
+type stringBytesBuilder struct {
 	typ   super.Type
 	table BytesTable
 }
 
-func newStringBytesTypeBuilder(typ super.Type) Builder {
-	return &stringBytesTypeBuilder{typ: typ, table: NewBytesTableEmpty(0)}
+func newStringBytesBuilder(typ super.Type) Builder {
+	return &stringBytesBuilder{typ: typ, table: NewBytesTableEmpty(0)}
 }
 
-func (s *stringBytesTypeBuilder) Write(vec Any) {
+func (s *stringBytesBuilder) Write(vec Any) {
 	switch vec := vec.(type) {
 	case *View:
 		table := bytesTableOf(vec.Any)
@@ -235,7 +241,7 @@ func (s *stringBytesTypeBuilder) Write(vec Any) {
 		for _, slot := range vec.Index {
 			s.table.Append(table.Bytes(uint32(slot)))
 		}
-	case *String, *Bytes, *TypeValue:
+	case *String, *Bytes:
 		table := bytesTableOf(vec)
 		for i := range vec.Len() {
 			s.table.Append(table.Bytes(i))
@@ -251,21 +257,17 @@ func bytesTableOf(vec Any) BytesTable {
 		return vec.table
 	case *Bytes:
 		return vec.table
-	case *TypeValue:
-		return vec.table
 	default:
 		panic(vec)
 	}
 }
 
-func (s *stringBytesTypeBuilder) Build(*super.Context) Any {
+func (s *stringBytesBuilder) Build(*super.Context) Any {
 	switch s.typ.ID() {
 	case super.IDString:
 		return NewString(s.table)
 	case super.IDBytes:
 		return NewBytes(s.table)
-	case super.IDType:
-		return NewTypeValue(s.table)
 	default:
 		panic(s.typ)
 	}

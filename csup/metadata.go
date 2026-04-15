@@ -103,11 +103,8 @@ func (e *Error) Len(cctx *Context) uint32 {
 }
 
 type Fusion struct {
-	Values ID
-	// Subtypes are stored as type IDs in the local context of
-	// the CSUP object in which the type appears.  vcache translates
-	// these local types to the query sctx.
-	Subtypes Segment
+	Values   ID
+	Subtypes ID
 }
 
 func (f *Fusion) Len(cctx *Context) uint32 {
@@ -179,11 +176,21 @@ func (b *Bytes) Len(*Context) uint32 {
 	return b.Count
 }
 
+type TypeValue struct {
+	Location Segment
+	Length   uint32
+}
+
+func (t *TypeValue) Len(*Context) uint32 {
+	return t.Length
+}
+
 type Primitive struct {
 	Typ      super.Type `super:"Type"`
 	Location Segment
-	Min      *super.Value
-	Max      *super.Value
+	MinMax   bool
+	Min      super.Value
+	Max      super.Value
 	Count    uint32
 }
 
@@ -263,14 +270,7 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		b.EndContainer()
 		return sctx.MustLookupTypeRecord(fields)
 	case *Primitive:
-		min, max := super.Null, super.Null
-		if m.Min != nil {
-			min = *m.Min
-		}
-		if m.Max != nil {
-			max = *m.Max
-		}
-		return metadataLeaf(sctx, b, min, max)
+		return metadataLeaf(sctx, b, m.Min, m.Max)
 	case *Int:
 		return metadataLeaf(sctx, b, super.NewInt(m.Typ, m.Min), super.NewInt(m.Typ, m.Max))
 	case *Uint:
@@ -315,6 +315,7 @@ var Template = []any{
 	Float{},
 	Bytes{},
 	Primitive{},
+	TypeValue{},
 	Named{},
 	Error{},
 	Const{},

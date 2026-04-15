@@ -26,7 +26,7 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	case *vector.Const:
 		val := vector.ValueAt(nil, vec, 0)
 		val = u.samunder.Call([]super.Value{val})
-		out = vector.NewConstFromValue(val, vec.Len())
+		out = vector.NewConstFromValue(u.sctx, val, vec.Len())
 	case *vector.Named:
 		out = vec.Any
 	case *vector.Error:
@@ -34,14 +34,9 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	case *vector.Union:
 		return vec.Dynamic
 	case *vector.TypeValue:
-		typs := vector.NewTypeValueEmpty(0)
+		typs := vector.NewTypeValueEmpty(u.sctx)
 		for i := range vec.Len() {
-			t, err := u.sctx.LookupByValue(vec.Value(i))
-			if err != nil {
-				panic(err)
-			}
-			v := u.sctx.LookupTypeValue(super.TypeUnder(t))
-			typs.Append(v.Bytes())
+			typs.Append(super.TypeUnder(vec.Value(i)))
 		}
 		out = typs
 	default:

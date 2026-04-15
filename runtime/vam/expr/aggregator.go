@@ -22,7 +22,7 @@ func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) 
 	if expr == nil {
 		// Count is the only that has no argument so we just return
 		// true so it counts each value encountered.
-		expr = NewLiteral(super.True)
+		expr = NewLiteral(nil, super.True)
 	}
 	return &Aggregator{
 		Pattern:  pattern,

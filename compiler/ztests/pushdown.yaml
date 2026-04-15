@@ -140,12 +140,12 @@ outputs:
       | seqscan filter (x=="hello" or !(y==2 or y==3))
       | output main
       ===
-      lister pruner (compare(0, max, true)>0 or compare(2, min, true)<0)
+      lister pruner (compare(0, defuse(max), true)>0 or compare(2, defuse(min), true)<0)
       | slicer
-      | seqscan pruner (compare(0, max, true)>0 or compare(2, min, true)<0) filter (ts>=0 and ts<=2)
+      | seqscan pruner (compare(0, defuse(max), true)>0 or compare(2, defuse(min), true)<0) filter (ts>=0 and ts<=2)
       | output main
       ===
-      lister pruner (compare(0, max, true)>0 or compare(2, min, true)<0)
+      lister pruner (compare(0, defuse(max), true)>0 or compare(2, defuse(min), true)<0)
       | slicer
-      | seqscan pruner (compare(0, max, true)>0 or compare(2, min, true)<0) filter (ts>=0 and ts<=2 and x=="hello")
+      | seqscan pruner (compare(0, defuse(max), true)>0 or compare(2, defuse(min), true)<0) filter (ts>=0 and ts<=2 and x=="hello")
       | output main

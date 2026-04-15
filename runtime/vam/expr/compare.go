@@ -3,7 +3,6 @@ package expr
 //go:generate go run gencomparefuncs.go
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/brimdata/super"
@@ -134,7 +133,7 @@ func (c *Compare) compareTypeVals(lhs, rhs vector.Any) vector.Any {
 	for i := range lhs.Len() {
 		l := vector.TypeValueValue(lhs, i)
 		r := vector.TypeValueValue(rhs, i)
-		v := bytes.Equal(l, r)
+		v := l == r
 		if c.opCode == vector.CompNE {
 			v = !v
 		}

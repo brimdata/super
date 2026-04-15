@@ -291,7 +291,7 @@ super -f jsup input.sup | jq .
 {
   "type": {
     "kind": "record",
-    "id": 32,
+    "id": 33,
     "fields": [
       {
         "name": "s",
@@ -305,7 +305,7 @@ super -f jsup input.sup | jq .
         "name": "r",
         "type": {
           "kind": "record",
-          "id": 31,
+          "id": 32,
           "fields": [
             {
               "name": "a",
@@ -340,7 +340,7 @@ super -f jsup input.sup | jq .
 {
   "type": {
     "kind": "ref",
-    "id": 32
+    "id": 33
   },
   "value": [
     "world",
@@ -353,7 +353,7 @@ super -f jsup input.sup | jq .
 {
   "type": {
     "kind": "record",
-    "id": 35,
+    "id": 36,
     "fields": [
       {
         "name": "s",
@@ -367,13 +367,13 @@ super -f jsup input.sup | jq .
         "name": "r",
         "type": {
           "kind": "record",
-          "id": 34,
+          "id": 35,
           "fields": [
             {
               "name": "a",
               "type": {
                 "kind": "array",
-                "id": 33,
+                "id": 34,
                 "type": {
                   "kind": "primitive",
                   "name": "int64"
@@ -401,7 +401,7 @@ super -f jsup input.sup | jq .
 {
   "type": {
     "kind": "record",
-    "id": 39,
+    "id": 40,
     "fields": [
       {
         "name": "s",
@@ -415,19 +415,19 @@ super -f jsup input.sup | jq .
         "name": "r",
         "type": {
           "kind": "record",
-          "id": 38,
+          "id": 39,
           "fields": [
             {
               "name": "x",
               "type": {
                 "kind": "record",
-                "id": 37,
+                "id": 38,
                 "fields": [
                   {
                     "name": "u",
                     "type": {
                       "kind": "union",
-                      "id": 36,
+                      "id": 37,
                       "types": [
                         {
                           "kind": "primitive",
@@ -466,7 +466,7 @@ super -f jsup input.sup | jq .
 {
   "type": {
     "kind": "ref",
-    "id": 39
+    "id": 40
   },
   "value": [
     "gracie",

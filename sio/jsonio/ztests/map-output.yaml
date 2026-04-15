@@ -31,7 +31,7 @@ input: |
   |{0:1,0::uint64:2,0::=t:3,"0":4}|
   |{"e0"::enum(e0):1}|
   |{error(0):1}|
-  |{"named"::=t:1}|
+  |{"named"::=t2:1}|
 
 output-flags: -f json
 

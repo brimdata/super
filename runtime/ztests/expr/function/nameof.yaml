@@ -4,24 +4,24 @@ vector: true
 
 input: |
   {x:1}
-  {x:1}::=foo
-  null::=foo
-  <foo={x:int64}>
-  <{x:int64}>::=bar
+  {x:1}::=foo1
+  null::=foo2
+  <foo3={x:int64}>
+  <{x:int64}>::=bar1
   {y:1}
   {x:"foo",y:1,z:2}
-  {x:"foo",y:1,z:2}::=bar
+  {x:"foo",y:1,z:2}::=bar2
   <{x:string,y:int64,z:int64}>
   null
 
 output: |
   error("missing")
-  "foo"
-  "foo"
-  "foo"
-  "bar"
+  "foo1"
+  "foo2"
+  "foo3"
+  "bar1"
   error("missing")
   error("missing")
-  "bar"
+  "bar2"
   error("missing")
   error("missing")

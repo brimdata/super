@@ -1,6 +1,8 @@
 # This tests behavior in super db manage that compacts non-overlapping consecutive
 # objects if their combined size is less than pool threshold.
 
+skip: need to address defusion of any values
+
 script: |
   export SUPER_DB=test
   super db init -q

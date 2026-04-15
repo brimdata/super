@@ -66,12 +66,12 @@ func NewConstNet(v netip.Prefix, length uint32) *Const {
 	vec := NewNet([]netip.Prefix{v})
 	return &Const{vec, length}
 }
-func NewConstType(v []byte, length uint32) *Const {
-	vec := NewTypeValue(newBytesTableWithValue(v))
+func NewConstType(sctx *super.Context, typ super.Type, length uint32) *Const {
+	vec := NewTypeValue(sctx, []super.Type{typ})
 	return &Const{vec, length}
 }
 
-func NewConstFromValue(val super.Value, length uint32) *Const {
+func NewConstFromValue(sctx *super.Context, val super.Value, length uint32) *Const {
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id):
 		return NewConstUint(val.Type(), val.Uint(), length)
@@ -90,7 +90,11 @@ func NewConstFromValue(val super.Value, length uint32) *Const {
 	case id == super.IDNet:
 		return NewConstNet(super.DecodeNet(val.Bytes()), length)
 	case id == super.IDType:
-		return NewConstType(val.Bytes(), length)
+		typ, tv := sctx.DecodeTypeValue(val.Bytes())
+		if tv == nil {
+			panic("bad type value")
+		}
+		return NewConstType(sctx, typ, length)
 	}
 	panic(fmt.Sprintf("%#v\n", super.TypeUnder(val.Type())))
 }

@@ -17,13 +17,7 @@ forward references to other named types.  In particular, named types cannot be r
 > A future version of SuperSQL may include recursive types.  This is a research topic
 > for the SuperDB project.
 
-Input data may create [named types](../../formats/model.md#3-named-type) that conflict with type declarations.  In this case,
-a reference to a declared type in the query text uses the type definition of the nearest
-containing scope that binds the type name independent of types in the input.
-
-When a named type is referenced as a string argument to [cast](../functions/types/cast.md), then any type definition
-with that name is ignored and the named type is bound to the type of the first argument of `cast`.
-This does not affect the binding of the type used in other expressions in the query text.
+Input data may create [named types](../../formats/model.md#3-named-type) that conflict with type declarations, which causes an error.
 
 Types can also be bound to identifiers without creating a named type using a
 [constant](constants.md) declaration binding the name to a [type value](../types/type.md).
@@ -82,14 +76,14 @@ _A type name argument to `cast` in the form of a string is independent of type d
 
 ```mdtest-spq
 # spq
-type foo=string
+type foo=int64
 values {str:cast(this, 'foo'), named:cast(this, foo)}
 # input
 1
 2
 # expected output
-{str:1::=foo,named:"1"::=foo}
-{str:2::=foo,named:"2"::=foo}
+{str:1::=foo,named:1::foo}
+{str:2::=foo,named:2::foo}
 ```
 
 ---

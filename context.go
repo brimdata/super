@@ -239,18 +239,23 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 		return nil, fmt.Errorf("bad type name %q: invalid UTF-8", name)
 	}
 	if LookupPrimitive(name) != nil {
-		return nil, fmt.Errorf("bad type name %q: primitive type name", name)
+		return nil, fmt.Errorf("named type collides with primitive type: %s", name)
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.named == nil {
 		c.named = make(map[string]*TypeNamed)
 	}
+	if typ, ok := c.named[name]; ok {
+		if typ.Type != inner {
+			return nil, fmt.Errorf("type %q already exists", name)
+		}
+		return typ, nil
+	}
 	id := c.typedefs.LookupTypeNamed(name, inner)
-	if typ, ok := c.byID[id]; ok {
-		named := typ.(*TypeNamed)
-		c.named[name] = named
-		return named, nil
+	if _, ok := c.byID[id]; ok {
+		// If it wasn't in the named table, it can't be in byID table.
+		panic(name)
 	}
 	typ := NewTypeNamed(int(id), name, inner)
 	c.byID[id] = typ

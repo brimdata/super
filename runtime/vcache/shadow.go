@@ -75,6 +75,8 @@ func newShadow(cctx *csup.Context, id csup.ID) shadow {
 		return newBytes(cctx, meta)
 	case *csup.Primitive:
 		return newPrimitive(cctx, meta)
+	case *csup.TypeValue:
+		return newTypeValue(cctx, meta)
 	case *csup.Const:
 		return newConst(cctx, meta)
 	default:

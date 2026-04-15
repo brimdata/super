@@ -298,12 +298,11 @@ func (m *MarshalBSUPContext) encodeAny(v reflect.Value) (super.Type, error) {
 		m.Builder.Append(val.Bytes())
 		return val.Type(), nil
 	case super.Value:
-		typ, err := m.TranslateType(v.Type())
-		if err != nil {
-			return nil, err
-		}
-		m.Builder.Append(v.Bytes())
-		return typ, nil
+		// Encode as {Fusion:<any>,Bytes:bytes,Subtype:typ}
+		anyType := m.Context.LookupTypeFusion(super.TypeAll)
+		typeVal := m.Context.LookupTypeValue(v.Type())
+		super.BuildFusion(&m.Builder, v.Bytes(), typeVal.Bytes())
+		return anyType, nil
 	}
 	switch v.Kind() {
 	case reflect.Array:
@@ -319,8 +318,22 @@ func (m *MarshalBSUPContext) encodeAny(v reflect.Value) (super.Type, error) {
 		return m.encodeMap(v)
 	case reflect.Slice:
 		if v.IsNil() {
-			m.Builder.Append(nil)
-			return super.TypeNull, nil
+			// XXX convert this to empty slice as scaffolding to pass tests.
+			// in forthcoming PR, we will compute a recursive type for anything
+			// that needs to be a named type and will have type info passed
+			// down instead of bubbled up (though for concrete types we will
+			// still bubble up)
+			if v.Type().Elem().Kind() == reflect.Uint8 {
+				m.Builder.Append(nil)
+				return super.TypeBytes, nil
+			}
+			m.Builder.BeginContainer()
+			m.Builder.EndContainer()
+			typ, err := m.lookupType(v.Type().Elem())
+			if err != nil {
+				return nil, err
+			}
+			return m.Context.LookupTypeArray(typ), nil
 		}
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			return m.encodeSliceBytes(v)
@@ -564,8 +577,15 @@ func (m *MarshalBSUPContext) lookupType(t reflect.Type) (super.Type, error) {
 	case reflect.Float64:
 		typ = super.TypeFloat64
 	case reflect.Interface:
-		// Encode interfaces when we don't know the underlying concrete type as null type.
-		typ = super.TypeNull
+		// Encode super.Type as type any (aka fusion(all)) so that the types
+		// for entities with embedded super.Values will not vary and otherwise
+		// caused redefinition errors.  Otherwise, since we don't know the
+		// underlying concrete type of interfaces, we encode them as the null type.
+		if t.PkgPath() == "super" && t.Name() == "Type" {
+			typ = m.Context.LookupTypeFusion(super.TypeAll)
+		} else {
+			typ = super.TypeNull
+		}
 	default:
 		return nil, fmt.Errorf("unsupported type: %v", t.Kind())
 	}
@@ -707,7 +727,17 @@ func (u *UnmarshalBSUPContext) decodeAny(val super.Value, v reflect.Value) (x er
 		return nil
 	case super.Value:
 		// For super.Values we simply set the reflect value to the
-		// super.Value that has been decoded.
+		// a super.Value we create from the underlying Typeval/Bytes structure.
+		fusionType, ok := val.Type().(*super.TypeFusion)
+		if !ok || fusionType.Type != super.TypeAll {
+			return errors.New("super value is not type fusion(all)")
+		}
+		//XXX
+		if u.sctx == nil {
+			u.sctx = super.NewContext()
+		}
+		bytes, typ := fusionType.Deref(u.sctx, val.Bytes())
+		val := super.NewValue(typ, bytes)
 		v.Set(reflect.ValueOf(val.Copy()))
 		return nil
 	}

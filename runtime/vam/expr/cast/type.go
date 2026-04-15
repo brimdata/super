@@ -12,20 +12,24 @@ func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 		return vec, nil, "", true
 	case *vector.String:
 		n := lengthOf(vec, index)
-		out := vector.NewTypeValueEmpty(0)
+		out := vector.NewTypeValueEmpty(sctx)
 		var errs []uint32
 		for i := range n {
 			idx := i
 			if index != nil {
 				idx = index[i]
 			}
-			s := vec.Value(idx)
-			val, err := sup.ParseValue(sctx, s)
+			val, err := sup.ParseValue(sctx, vec.Value(idx))
 			if err != nil || val.Type().ID() != super.IDType {
 				errs = append(errs, i)
 				continue
 			}
-			out.Append(val.Bytes())
+			typ, tv := sctx.DecodeTypeValue(val.Bytes())
+			if tv == nil {
+				errs = append(errs, i)
+				continue
+			}
+			out.Append(typ)
 		}
 		return out, errs, "", true
 	default:

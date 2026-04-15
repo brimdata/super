@@ -1,9 +1,11 @@
 package agg
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 )
 
 // Fuser constructs a fused supertype for all the types passed to Fuse.
@@ -46,6 +48,9 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 	}
 	if typ, ok := b.(*super.TypeFusion); ok {
 		return f.fusion(f.fuse(a, typ.Type))
+	}
+	if isAll(a) || isAll(b) {
+		return super.TypeAll
 	}
 	switch a := a.(type) {
 	case *super.TypeOfNone:
@@ -123,21 +128,14 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		}
 	case *super.TypeNamed:
 		if b, ok := b.(*super.TypeNamed); ok && a.Name == b.Name {
-			if a.Type != b.Type {
-				// The fusion algorithm does not handle named types that change.
-				// We will soon make such types immutable, but for now we just
-				// return type error({}) to avoid any tests that might do this.
-				recType := f.sctx.MustLookupTypeRecord([]super.Field{
-					super.NewField(a.Name, a.Type),
-				})
-				return f.sctx.LookupTypeError(recType)
-			}
-			named, err := f.sctx.LookupTypeNamed(a.Name, f.fuse(a.Type, b.Type))
-			if err != nil {
-				panic(err)
-			}
-			return f.fusion(named)
+			// if we got here without match a=b above, then there are
+			// two different types with the same name, which the type
+			// context shouldn't allow.
+			f.redefPanic(a)
 		}
+		// We don't fuse the body of named types as they are unique and
+		// a barrier to type fusion.  Instead we fall through here and ,
+		// fuse the named type with the other type.
 	}
 	if _, ok := b.(*super.TypeUnion); ok {
 		return f.fuse(b, a)
@@ -147,6 +145,16 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		panic("a or b can't be anonymous unions at this point")
 	}
 	return f.fusion(union)
+}
+
+func isAll(t super.Type) bool {
+	_, ok := t.(*super.TypeOfAll)
+	return ok
+}
+
+func (f *Fuser) redefPanic(named *super.TypeNamed) {
+	previous := f.sctx.LookupByName(named.Name)
+	panic(fmt.Sprintf("type %s redefined: %s to %s", named.Name, sup.String(previous), sup.String(named.Type)))
 }
 
 func (f *Fuser) fuseMono(typ super.Type) super.Type {
@@ -182,8 +190,6 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 		return typ
 	case *super.TypeError:
 		out = f.sctx.LookupTypeError(f.fuseMono(typ.Type))
-	case *super.TypeNamed:
-		out, _ = f.sctx.LookupTypeNamed(typ.Name, f.fuseMono(typ.Type))
 	default:
 		out = typ
 	}
@@ -222,16 +228,12 @@ func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.T
 }
 
 func (f *Fuser) addNamed(types []super.Type, named *super.TypeNamed) []super.Type {
-	for i, t := range types {
+	for _, t := range types {
 		if existingNamed, ok := t.(*super.TypeNamed); ok && existingNamed.Name == named.Name {
-			out := slices.Clone(types)
-			fused := noFusion(f.fuse(existingNamed.Type, noFusion(named.Type)))
-			var err error
-			out[i], err = f.sctx.LookupTypeNamed(named.Name, fused)
-			if err != nil {
-				panic(err)
+			if existingNamed.Type != named.Type {
+				f.redefPanic(named)
 			}
-			return out
+			return types
 		}
 	}
 	return append(types, named)

@@ -5,7 +5,7 @@ script: |
   super db load -q -use logs babble.sup
   super db ls -f bsup | super -S -c "drop id,ts" -
   echo ===
-  super db -S -c "from logs@main:objects | drop id"
+  super db -S -c "from logs@main:objects | drop id | min:=defuse(min),max:=defuse(max)"
 
 inputs:
   - name: babble.sup
@@ -35,5 +35,5 @@ outputs:
         min: 2020-04-21T22:40:30.06852324Z,
         max: 2020-04-22T01:23:40.0622373Z,
         count: 1000::uint64,
-        size: 33514
+        size: 33523
       }

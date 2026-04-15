@@ -36,8 +36,6 @@ func (b *bytes) project(loader *loader, projection field.Projection) vector.Any 
 		return vector.NewString(table)
 	case super.IDBytes:
 		return vector.NewBytes(table)
-	case super.IDType:
-		return vector.NewTypeValue(table)
 	default:
 		panic(b.meta.Typ)
 	}
