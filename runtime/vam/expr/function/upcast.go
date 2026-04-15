@@ -8,12 +8,12 @@ import (
 )
 
 type upcast struct {
-	sctx           *super.Context
-	typeValueToTag map[string]uint32
+	sctx      *super.Context
+	typeToTag map[super.Type]uint32
 }
 
 func newUpcast(sctx *super.Context) *upcast {
-	return &upcast{sctx, map[string]uint32{}}
+	return &upcast{sctx, map[super.Type]uint32{}}
 }
 
 func (u *upcast) Call(args ...vector.Any) vector.Any {
@@ -27,13 +27,13 @@ func (u *upcast) Call(args ...vector.Any) vector.Any {
 	var indexes [][]uint32
 	var tags []uint32
 	for i := range to.Len() {
-		tv := string(vector.TypeValueValue(to, i))
-		tag, ok := u.typeValueToTag[tv]
+		typ := vector.TypeValueValue(to, i)
+		tag, ok := u.typeToTag[typ]
 		if !ok {
-			tag = uint32(len(u.typeValueToTag))
-			u.typeValueToTag[tv] = tag
+			tag = uint32(len(u.typeToTag))
+			u.typeToTag[typ] = tag
 		}
-		if len(u.typeValueToTag) == 1 {
+		if len(u.typeToTag) == 1 {
 			// There's only one type so we don't need indexes or tags.
 			continue
 		}
@@ -51,22 +51,18 @@ func (u *upcast) Call(args ...vector.Any) vector.Any {
 		indexes[tag] = append(indexes[tag], i)
 		tags = append(tags, tag)
 	}
-	defer clear(u.typeValueToTag)
-	if len(u.typeValueToTag) == 1 {
+	defer clear(u.typeToTag)
+	if len(u.typeToTag) == 1 {
 		return u.upcastOrError(from, vector.TypeValueValue(to, 0))
 	}
-	vecs := make([]vector.Any, len(u.typeValueToTag))
-	for tv, tag := range u.typeValueToTag {
-		vecs[tag] = u.upcastOrError(vector.Pick(from, indexes[tag]), []byte(tv))
+	vecs := make([]vector.Any, len(u.typeToTag))
+	for typ, tag := range u.typeToTag {
+		vecs[tag] = u.upcastOrError(vector.Pick(from, indexes[tag]), typ)
 	}
 	return vector.NewDynamic(tags, vecs)
 }
 
-func (u *upcast) upcastOrError(vec vector.Any, typeValue []byte) vector.Any {
-	typ, err := u.sctx.LookupByValue(typeValue)
-	if err != nil {
-		panic(err)
-	}
+func (u *upcast) upcastOrError(vec vector.Any, typ super.Type) vector.Any {
 	out := u.upcast(vec, typ)
 	if out == nil {
 		out = vector.NewWrappedError(u.sctx, "upcast: value not a subtype of "+sup.FormatType(typ), vec)
