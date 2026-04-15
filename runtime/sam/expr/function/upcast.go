@@ -186,8 +186,12 @@ func (u *Upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to
 
 func (u *Upcast) toFusion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeFusion) bool {
 	b.BeginContainer()
-	if ok := u.upcast(b, typ, bytes, to.Type); !ok {
-		return false
+	if to.Type == super.TypeAll {
+		b.Append(bytes)
+	} else {
+		if ok := u.upcast(b, typ, bytes, to.Type); !ok {
+			return false
+		}
 	}
 	subType := u.sctx.LookupTypeValue(typ)
 	b.Append(subType.Bytes())

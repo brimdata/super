@@ -1,0 +1,28 @@
+spq: upcast(this,<fusion(all)>)
+
+# note: the syntax for fusion values will change from bytes to values soon
+# and this test will be updated
+
+input: |
+  1
+  "foo"
+  {x:1}
+  <string>
+
+output: |
+  fusion(0x02::all,<int64>)
+  fusion(0x666f6f::all,<string>)
+  fusion(0x0202::all,<{x:int64}>)
+  fusion(0x19::all,<type>)
+
+---
+
+spq: defuse(upcast(this,<fusion(all)>))
+
+input: &input |
+  1
+  "foo"
+  {x:1}
+  <string>
+
+output: *input
