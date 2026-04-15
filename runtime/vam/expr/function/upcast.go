@@ -1,6 +1,8 @@
 package function
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sup"
@@ -144,7 +146,7 @@ func (u *upcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
 	if !ok {
 		return nil
 	}
-	values := u.upcast(arrVec.Values, to.Type)
+	values := u.deunionAndUpcast(arrVec.Values, to.Type)
 	if values == nil {
 		return nil
 	}
@@ -156,11 +158,29 @@ func (u *upcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
 	if !ok {
 		return nil
 	}
-	values := u.upcast(setVec.Values, to.Type)
+	values := u.deunionAndUpcast(setVec.Values, to.Type)
 	if values == nil {
 		return nil
 	}
 	return vector.NewSet(to, setVec.Offsets, values)
+}
+
+func (u *upcast) deunionAndUpcast(vec vector.Any, to super.Type) vector.Any {
+	d, ok := vector.Deunion(vec).(*vector.Dynamic)
+	if !ok {
+		return u.upcast(vec, to)
+	}
+	vecs := slices.Clone(d.Values)
+	for i, vec := range vecs {
+		if vec == nil || vec.Len() == 0 {
+			continue
+		}
+		vecs[i] = u.upcast(vecs[i], to)
+		if vecs[i] == nil {
+			return nil
+		}
+	}
+	return vector.MergeSameTypesInDynamic(u.sctx, vector.NewDynamic(d.Tags, vecs))
 }
 
 func (u *upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {

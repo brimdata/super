@@ -6,6 +6,7 @@ vector: true
 input: |
   [[1,"a"],<[int8|string]>]
   [[1::int8,"a"],<[int8|string]>]
+  [[1]::[int64|string],<[int64|string|null]>]
   [1::=n31,<n32=int64>]
   [{a:{b:1::=n41}::=n42}::=n43,<n44={a:n45={b:n46=int64}}>]
   [[[1::=n51]::=n52]::=n53,<n54=[n55=[n56=int64]]>]
@@ -18,6 +19,7 @@ input: |
 output: |
   error({message:"upcast: value not a subtype of [int8|string]",on:[1,"a"]})
   [1::int8,"a"]
+  [1]::[int64|string|null]
   1::=n32
   {a:{b:1::=n46}::=n45}::=n44
   [[1::=n56]::=n55]::=n54
