@@ -2,11 +2,13 @@ spq: |
   pass
 
 input: |
-  "HEADS"::(flip=(enum(HEADS,TAILS)))
+  type flip=enum(HEADS,TAILS)
+  "HEADS"::flip
   "TAILS"::flip
   "HEADS"::flip
 
 output: |
-  "HEADS"::(flip=enum(HEADS,TAILS))
-  "TAILS"::(flip=enum(HEADS,TAILS))
-  "HEADS"::(flip=enum(HEADS,TAILS))
+  type flip=enum(HEADS,TAILS)
+  "HEADS"::flip
+  "TAILS"::flip
+  "HEADS"::flip

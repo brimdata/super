@@ -116,6 +116,7 @@ func exprWalk(e sem.Expr, visit exprVisitor) sem.Expr {
 		e.To = exprWalk(e.To, visit)
 	case *sem.SubqueryExpr: // XXX This might need to be traversed?
 	case *sem.ThisExpr:
+	case *sem.TypeExpr:
 	case *sem.UnaryExpr:
 		e.Operand = exprWalk(e.Operand, visit)
 	default:

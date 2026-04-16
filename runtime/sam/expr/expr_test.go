@@ -115,7 +115,7 @@ func TestCompareNumbers(t *testing.T) {
 		// number-ish types: port, time, duration
 		if !strings.HasPrefix(typ, "float") {
 			record := fmt.Sprintf(
-				"{x:%s::%s,p:80::port=uint16,t:2020-03-09T22:54:12Z,d:16m40s}", one, typ)
+				"type port=uint16 {x:%s::%s,p:80::port,t:2020-03-09T22:54:12Z,d:16m40s}", one, typ)
 
 			// port
 			testSuccessful(t, "x == p", record, "false")
@@ -230,11 +230,12 @@ func TestCompareNumbers(t *testing.T) {
 
 func TestCompareNonNumbers(t *testing.T) {
 	record := `
+type port=uint16
 {
     b: true,
     s: "hello",
     i: 10.1.1.1,
-    p: 443::port=uint16,
+    p: 443::port,
     net: 10.1.0.0/16,
     t: 2020-03-09T22:54:12Z,
     d: 16m40s
@@ -330,7 +331,7 @@ func TestPattern(t *testing.T) {
 }
 
 func TestIn(t *testing.T) {
-	const record = "{a:[1::int32,2::int32,3::int32],s:|[4::int32,5::int32,6::int32]|}"
+	const record = "{a:[1::int32,2::int32,3::int32],s:set[4::int32,5::int32,6::int32]}"
 
 	testSuccessful(t, "1 in a", record, "true")
 	testSuccessful(t, "0 in a", record, "false")

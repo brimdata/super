@@ -5,10 +5,10 @@ vector: true
 input: |
   null
   [null]
-  |[null]|
+  set[null]
   ["1","2"]
   [1,2]
-  |[1,2]|
+  set[1,2]
 
 output: |
   null::(null|[string])

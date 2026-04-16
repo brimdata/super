@@ -8,35 +8,21 @@ The named type [syntax](../../formats/sup.md#258-named-type)
 follows that of [SUP format](../../formats/sup.md), i.e.,
 a named type has the form
 ```
-(<name>=<type>)
+type <name>=<type>
 ```
 where `<name>` is an identifier or string and `<type>` is any type.
 
 Named types may be defined in four ways:
 * with a [type](../declarations/types.md) declaration,
-* with a [cast](../expressions/cast.md),
-* with a definition inside of another type, or
-* by the input data itself.
+* with a [cast](../expressions/cast.md), or
+* imported from types defined in the input data.
 
-For example, this expression
-```
-80::(port=uint16)
-```
-casts the integer 80 to a named type called `port` whose type is `uint16`.
-
-Alternatively, named types can be declared with a type statement, e.g.,
+For example, named types can be declared with a type statement, e.g.,
 ```
 type port = int16
 values 80::port
 ```
-produces the value `80::(port=uint16)` as above.
-
-Type name definitions can be embedded in another type, e.g.,
-```
-type socket = {addr:ip,port:(port=uint16)}
-```
-defines a named type `socket` that is a record with field `addr` of type `ip`
-and field `port` of type `port`, where type `port` is a named type for type `uint16` .
+produces the value `80::port` as above.
 
 Named types may also be defined by the input data itself, as super-structured data is
 comprehensively self describing.
@@ -45,10 +31,7 @@ type in a query.
 In this case, a SuperSQL expression may refer to the type by the name that simply
 appears to the runtime as a side effect of operating upon the data.
 
-When the same name is bound to different types, a reference to that name is
-undefined except for the definitions within a single nested value,
-in which case, the most recent binding in depth-first order is used to resolve
-a reference to a type name.
+When the same name is bound to different types, an error results.
 
 ## Examples
 
@@ -58,38 +41,36 @@ _Filter on a type name defined in the input data_
 
 ```mdtest-spq
 # spq
+type foo=int64
 where typeof(this)==<foo>
 # input
-1::=foo
-2::=bar
-3::=foo
+type foo=int64
+1::foo
+type bar=int64
+2::bar
+3::foo
 # expected output
-1::=foo
-3::=foo
+type foo=int64
+1::foo
+3::foo
 ```
 
 ---
 
 _Emit a type name defined in the input data_
 
-```mdtest-spq
+> [!NOTE]
+> This query doesn't work properly yet as a recent change to SuperSQL requires
+> compile-time types and the input is not yet being scanned in the playground
+> examples to compute those types.
+
+```mdtest-spq-skip
 # spq
 values <foo>
 # input
-1::=foo
+type foo=int64
+1::foo
 # expected output
-<foo=int64>
-```
-
----
-
-_Emit a missing value for an unknown type name_
-
-```mdtest-spq
-# spq
-values <foo>
-# input
-1
-# expected output
-error("missing")
+type foo=int64
+<foo>
 ```

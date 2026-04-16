@@ -190,10 +190,7 @@ func (r *Reader) decodePrimitive(builder *scode.Builder, typ super.Type, v any) 
 		builder.Append(nil)
 		return nil
 	case string:
-		return sup.BuildPrimitive(builder, sup.Primitive{
-			Type: typ,
-			Text: v,
-		})
+		return sup.BuildPrimitive(builder, sup.NewPrimitive(typ, v))
 	}
 	return fmt.Errorf("JSUP primitive value %q is not a JSON null or string", v)
 }

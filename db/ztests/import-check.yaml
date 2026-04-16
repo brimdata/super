@@ -7,10 +7,11 @@ script: |
 inputs:
   - name: missingfield.sup
     data: |
-      {a:"a",b:"b"}::=foo
+      type foo={a:string,b:string}
+      {a:"a",b:"b"}::foo
       {a:"a"}::foo
 
 outputs:
   - name: stderr
     regexp: |
-      .*record decorator fields \(2\) mismatched with value fields \(1\)
+      record decorator incompatible with record value: .*

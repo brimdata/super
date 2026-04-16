@@ -7,7 +7,7 @@ input: |
   {from:null::(string|null),to:<null>}
   {from:null::(string|null),to:<string>}
   {from:1::(int64|string),to:<string>}
-  {from:1::int64_named=int64::(union_named=int64_named|string),to:<string>}
+  type int64_named=int64 type union_named=int64_named|string {from:1::int64_named::union_named,to:<string>}
   {from:1::int8::(int8|string),to:<int64|string>}
   {from:1::(int64|string),to:<int8|string>}
   {from:"one"::(int64|string),to:<string>}

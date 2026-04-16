@@ -1,50 +1,72 @@
 spq: pass
 
 input: &input |
-  0::(myuint8=uint8)
-  0::(myuint16=uint16)
-  0::(myuint32=uint32)
-  0::(myuint64=uint64)
-  0::(myint8=int8)
-  0::(myint16=int16)
-  0::(myint32=int32)
-  0::=myint64
-  0s::=myduration
-  1970-01-01T00:00:00Z::=mytime
-  0.::(myfloat16=float16)
-  0.::(myfloat32=float32)
-  0.::=myfloat64
-  false::=mybool
-  0x00::=mybytes
-  ""::=mystring
-  0.0.0.0::=myip
-  0.0.0.0/0::=mynet
-  error("")::=myerror
-  null::=mynull
+  type myuint8 = uint8
+  0::myuint8
+  type myuint16 = uint16
+  0::myuint16
+  type myuint32 = uint32
+  0::myuint32
+  type myuint64 = uint64
+  0::myuint64
+  type myint8 = int8
+  0::myint8
+  type myint16 = int16
+  0::myint16
+  type myint32 = int32
+  0::myint32
+  type myint64 = int64
+  0::myint64
+  type myduration = duration
+  0s::myduration
+  type mytime = time
+  1970-01-01T00:00:00Z::mytime
+  type myfloat16 = float16
+  0.::myfloat16
+  type myfloat32 = float32
+  0.::myfloat32
+  type myfloat64 = float64
+  0.::myfloat64
+  type mybool = bool
+  false::mybool
+  type mybytes = bytes
+  0x00::mybytes
+  type mystring = string
+  ""::mystring
+  type myip = ip
+  0.0.0.0::myip
+  type mynet = net
+  0.0.0.0/0::mynet
+  type myerror = error(string)
+  error("")::myerror
+  type mynull = null
+  null::mynull
+  type mytype = type
   {
-    u8: 0::(myuint8=uint8),
-    u16: 0::(myuint16=uint16),
-    u32: 0::(myuint32=uint32),
-    u64: 0::(myuint64=uint64),
-    i8: 0::(myint8=int8),
-    i16: 0::(myint16=int16),
-    i32: 0::(myint32=int32),
-    i64: 0::=myint64,
-    dur: 0s::=myduration,
-    tim: 1970-01-01T00:00:00Z::=mytime,
-    f16: 0.::(myfloat16=float16),
-    f32: 0.::(myfloat32=float32),
-    f64: 0.::=myfloat64,
-    boo: false::=mybool,
-    byt: 0x00::=mybytes,
-    str: ""::=mystring,
-    ip: 0.0.0.0::=myip,
-    net: 0.0.0.0/0::=mynet,
-    typ: <{}>::=mytype,
-    err: error("")::=myerror,
-    nul: null::=mynull
+    u8: 0::myuint8,
+    u16: 0::myuint16,
+    u32: 0::myuint32,
+    u64: 0::myuint64,
+    i8: 0::myint8,
+    i16: 0::myint16,
+    i32: 0::myint32,
+    i64: 0::myint64,
+    dur: 0s::myduration,
+    tim: 1970-01-01T00:00:00Z::mytime,
+    f16: 0.::myfloat16,
+    f32: 0.::myfloat32,
+    f64: 0.::myfloat64,
+    boo: false::mybool,
+    byt: 0x00::mybytes,
+    str: ""::mystring,
+    ip: 0.0.0.0::myip,
+    net: 0.0.0.0/0::mynet,
+    typ: <{
+    }>::mytype,
+    err: error("")::myerror,
+    nul: null::mynull
   }
 
-output-flags: -pretty=2
-
 output: *input
+
+output-flags: -pretty=2

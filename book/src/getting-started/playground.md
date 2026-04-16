@@ -76,12 +76,12 @@ SELECT in as out
 {in:1}
 {in:1.5}
 {in:[1,"foo"]}
-{in:|["apple","banana"]|}
+{in:set["apple","banana"]}
 # expected output
 {out:1}
 {out:1.5}
 {out:[1,"foo"]}
-{out:|["apple","banana"]|}
+{out:set["apple","banana"]}
 ```
 
 ---
@@ -95,12 +95,12 @@ SELECT typeof(in) as typ
 {in:1}
 {in:1.5}
 {in:[1,"foo"]}
-{in:|["apple","banana"]|}
+{in:set["apple","banana"]}
 # expected output
 {typ:<int64>}
 {typ:<float64>}
 {typ:<[int64|string]>}
-{typ:<|[string]|>}
+{typ:<set[string]>}
 ```
 
 ---

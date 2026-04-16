@@ -24,7 +24,7 @@ func Marshal(v any) (string, error) {
 
 type MarshalContext struct {
 	*MarshalBSUPContext
-	formatter *Formatter
+	formatter *StreamFormatter
 }
 
 func NewMarshaler() *MarshalContext {
@@ -34,7 +34,7 @@ func NewMarshaler() *MarshalContext {
 func NewMarshalerIndent(indent int) *MarshalContext {
 	return &MarshalContext{
 		MarshalBSUPContext: NewBSUPMarshaler(),
-		formatter:          NewFormatter(indent, false, nil),
+		formatter:          NewStreamFormatter(indent, false),
 	}
 }
 
@@ -49,7 +49,7 @@ func (m *MarshalContext) Marshal(v any) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return m.formatter.Format(val), nil
+	return m.formatter.FormatValue(val), nil
 }
 
 func (m *MarshalContext) MarshalCustom(names []string, fields []any) (string, error) {
@@ -63,15 +63,16 @@ func (m *MarshalContext) MarshalCustom(names []string, fields []any) (string, er
 type UnmarshalContext struct {
 	*UnmarshalBSUPContext
 	sctx     *super.Context
-	analyzer Analyzer
+	analyzer *Analyzer
 	builder  *scode.Builder
 }
 
 func NewUnmarshaler() *UnmarshalContext {
+	sctx := super.NewContext()
 	return &UnmarshalContext{
 		UnmarshalBSUPContext: NewBSUPUnmarshaler(),
-		sctx:                 super.NewContext(),
-		analyzer:             NewAnalyzer(),
+		sctx:                 sctx,
+		analyzer:             NewAnalyzer(sctx),
 		builder:              scode.NewBuilder(),
 	}
 }
@@ -86,7 +87,7 @@ func (u *UnmarshalContext) Unmarshal(sup string, v any) error {
 	if err != nil {
 		return err
 	}
-	val, err := u.analyzer.ConvertValue(u.sctx, ast)
+	val, err := u.analyzer.ConvertValue(ast)
 	if err != nil {
 		return err
 	}

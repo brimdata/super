@@ -12,6 +12,7 @@ import (
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sup"
 )
 
 // Analyze performs a semantic analysis of the AST, translating it from AST
@@ -42,7 +43,7 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&sem.NullScan{})
 		}
 	}
-	main := newDagen(t.reporter).assemble(seq, t.resolver.funcs)
+	main := newDagen(t.reporter).assemble(seq, t.getTypes(), t.resolver.funcs)
 	if env.Runtime == exec.RuntimeAuto && t.hasVectorizedInput {
 		env.Runtime = exec.RuntimeVAM
 	}
@@ -65,9 +66,12 @@ type translator struct {
 	env                *exec.Environment
 	scope              *Scope
 	sctx               *super.Context
+	types              *sup.Analyzer
+	defs               *super.Context
 }
 
 func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *translator {
+	defs := super.NewContext()
 	t := &translator{
 		reporter: r,
 		ctx:      ctx,
@@ -75,6 +79,13 @@ func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *tran
 		env:      env,
 		scope:    NewScope(nil),
 		sctx:     super.NewContext(),
+		// We make a SUP analyzer to translate ast.Type entities in SuperSQL type decls
+		// to the named type in the defs context.  This context will hold only the
+		// types referred to by TypeRefs in the resulting sem tree.  This provides the
+		// means to create dag.TypeRef references these types and serialize the defs tyepdefs
+		// table into the DAG header.
+		types: sup.NewAnalyzer(defs),
+		defs:  defs,
 	}
 	t.checker = newChecker(t)
 	t.resolver = newResolver(t)
@@ -109,6 +120,24 @@ func (t *translator) enterScope() {
 
 func (t *translator) exitScope() {
 	t.scope = t.scope.parent
+}
+
+func (t *translator) getTypes() []byte {
+	return t.defs.TypeDefs().Bytes()
+}
+
+// lookupTypeByID return the type from the typedefs table with ID
+// in the translator sctx.
+func (t *translator) lookupTypeByID(id int) super.Type {
+	typ, err := t.defs.LookupType(id)
+	if err != nil {
+		panic(err)
+	}
+	typ, err = t.sctx.TranslateType(typ)
+	if err != nil {
+		panic(err)
+	}
+	return typ
 }
 
 type opDecl struct {

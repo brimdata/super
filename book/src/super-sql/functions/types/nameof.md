@@ -23,7 +23,8 @@ _A named type yields its name and unnamed types values a missing error_
 # spq
 values nameof(this)
 # input
-80::(port=int16)
+type port=int16
+80::port
 80
 # expected output
 "port"
@@ -38,7 +39,8 @@ _The missing value can be ignored with quiet_
 # spq
 values quiet(nameof(this))
 # input
-80::(port=int16)
+type port=int16
+80::port
 80
 # expected output
 "port"

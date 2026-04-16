@@ -146,7 +146,7 @@ type (
 	SearchTermExpr struct {
 		Kind  string `json:"kind" unpack:""`
 		Text  string `json:"text"`
-		Value Any    `json:"value"`
+		Value Value  `json:"value"`
 		Loc   `json:"loc"`
 	}
 	SetExpr struct {
@@ -238,7 +238,7 @@ type (
 	NoneElem struct {
 		Kind string `json:"kind" unpack:""`
 		Name *Text  `json:"name"`
-		Type Expr   `json:"type"`
+		Type Type   `json:"type"`
 		Loc  `json:"loc"`
 	}
 	SpreadElem struct {

@@ -10,6 +10,10 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
+// evaluator provides a means to compile and run expressions in the runtime
+// to determinte compile-time constants, which are return as super.Values
+// in the passed in sctx.  Any types created during this process are not
+// entered into the current query's typedefs table.
 type evaluator struct {
 	translator *translator
 	in         map[string]*funcDef
@@ -56,7 +60,7 @@ func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, 
 			return super.Value{}, false
 		}
 	}
-	main := newDagen(e.translator.reporter).assembleExpr(expr, e.translator.resolver.funcs)
+	main := newDagen(e.translator.reporter).assembleExpr(expr, e.translator.getTypes(), e.translator.resolver.funcs)
 	val, err := rungen.EvalAtCompileTime(sctx, main)
 	if err != nil {
 		e.errs.error(expr, err)
@@ -242,7 +246,7 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 			}
 		}
 		return isConst
-	case *sem.PrimitiveExpr:
+	case *sem.PrimitiveExpr, *sem.TypeExpr:
 		return true
 	case *sem.RecordExpr:
 		return e.recordElems(expr.Elems)

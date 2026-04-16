@@ -5,7 +5,8 @@ vector: true
 input: |
   0x01
   "foo"
-  "bar"::=named
+  type named=string
+  "bar"::named
   ""
   null
   null::({}|null)

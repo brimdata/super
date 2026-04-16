@@ -9,11 +9,14 @@ input: |
   error("foo")
   {}
   [1,2,3]
-  [1,2,3]::(array=[int8])
-  80::(port=uint16)
+  type array=[int8]
+  [1,2,3]::array
+  type port=uint16
+  80::port
   "foo"::(int64|string)
   1::(int64|string)
-  <rec={s:string}>
+  type rec={s:string}
+  <rec>
 
 output: |
   null

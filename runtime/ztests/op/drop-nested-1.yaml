@@ -3,11 +3,15 @@ spq: drop rec.bar
 vector: true
 
 input: |
+  type rec_named1={foo:string,bar:string}
+  type named1={rec:rec_named1}
+  type rec_named2={foo:string,bar:string}
+  type named2={rec:rec_named2}
   {rec:{foo:"foo1",bar:"bar1"}}
-  {rec:{foo:"foo2",bar:"bar2"}::=rec_named1}::=named1
-  {rec:{foo:"foo3",baz:"baz1"}::=rec_named2}::=named2
+  {rec:{foo:"foo2",bar:"bar2"}::rec_named1}::named1
+  {rec:{foo:"foo3",baz:"baz1"}::rec_named2}::named2
 
 output: |
   {rec:{foo:"foo1"}}
   {rec:{foo:"foo2"}}
-  {rec:{foo:"foo3",baz:"baz1"}::=rec_named2}::=named2
+  {rec:{foo:"foo3"}}

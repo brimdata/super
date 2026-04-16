@@ -89,7 +89,7 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		}
 		elems = append(elems, &sem.FieldElem{
 			Name:  op.Alias,
-			Value: sem.NewLiteral(op, super.NewUint64(0)),
+			Value: sem.NewLiteral(op, super.NewUint64(0), c.t.defs),
 		})
 		return c.recordElems(typ, elems)
 	case *sem.CutOp:
@@ -402,6 +402,8 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		return typ
 	case *sem.ThisExpr:
 		return c.this(e.Node, e, typ)
+	case *sem.TypeExpr:
+		return super.TypeType
 	case *sem.UnaryExpr:
 		typ = c.expr(typ, e.Operand)
 		switch e.Op {
@@ -499,7 +501,7 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 			column := super.NewFieldWithOpt(elem.Name, c.expr(typ, elem.Value), elem.Opt)
 			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{column}))
 		case *sem.NoneElem:
-			column := super.NewFieldWithOpt(elem.Name, c.expr(typ, elem.Type), true)
+			column := super.NewFieldWithOpt(elem.Name, c.t.lookupTypeByID(elem.Type), true)
 			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{column}))
 		default:
 			panic(elem)

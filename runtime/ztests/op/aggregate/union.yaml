@@ -9,7 +9,7 @@ input: |
   {x:3,s:"e"}
 
 output: |
-  |[{x:1,s:"a"},{x:2,s:"b"},{x:3,s:"e"}]|
+  set[{x:1,s:"a"},{x:2,s:"b"},{x:3,s:"e"}]
 
 ---
 
@@ -22,7 +22,7 @@ input: |
   null
 
 output: |
-  |[[]::[string]]|
+  set[[]::[string]]
   
 ---
 
@@ -35,4 +35,4 @@ input: |
   1::(int64|string)
 
 output: |
-  |[1]|
+  set[1]

@@ -7,8 +7,8 @@ inputs:
     data: &input |
       {}
       []
-      |{}|
-      |[]|
+      map{}
+      set[]
 
 outputs:
   - name: stdout

@@ -74,8 +74,9 @@ cast(this, "foo")
 {a:1,b:2}
 {a:3,b:4}
 # expected output
-{a:1,b:2}::=foo
-{a:3,b:4}::=foo
+type foo={a:int64,b:int64}
+{a:1,b:2}::foo
+{a:3,b:4}::foo
 ```
 
 ---
@@ -90,9 +91,11 @@ values cast(this, has(x) ? "point" : "radius")
 {r:3}
 {x:4,y:5}
 # expected output
-{x:1,y:2}::=point
-{r:3}::=radius
-{x:4,y:5}::=point
+type point={x:int64,y:int64}
+{x:1,y:2}::point
+type radius={r:int64}
+{r:3}::radius
+{x:4,y:5}::point
 ```
 
 ---

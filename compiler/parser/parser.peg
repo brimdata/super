@@ -190,7 +190,7 @@ SearchExpr
       return &ast.SearchTermExpr{
         Kind: "SearchTermExpr",
         Text: string(c.text),
-        Value: v.(ast.Any),
+        Value: v.(ast.Value),
         Loc: loc(c),
       }, nil
     }
@@ -1279,11 +1279,11 @@ FieldElem
     }
 
 NoneElem
-  = name:Name __ "?" __ ":" __ "_" __ "::" __ typ:TypeAsValue {
+  = name:Name __ "?" __ ":" __ "_" __ "::" __ typ:ComponentType {
       return &ast.NoneElem{
         Kind: "NoneElem",
         Name: name.(*ast.Text),
-        Type: typ.(ast.Expr),
+        Type: typ.(ast.Type),
         Loc: loc(c),
       }, nil
     }
@@ -1303,7 +1303,7 @@ Array
     }
 
 Set
-  = "|[" __ elems:ArrayElems __ "]|" {
+  = "set[" __ elems:ArrayElems __ "]" {
       return &ast.SetExpr{
           Kind: "SetExpr",
           Elems: sliceOf[ast.ArrayElem](elems),
@@ -1320,7 +1320,7 @@ ArrayElems
 ArrayElem = SpreadElem / ExprElem
 
 Map
-  = "|{" __ exprs:Entries __ "}|" {
+  = "map{" __ exprs:Entries __ "}" {
       return &ast.MapExpr{
           Kind: "MapExpr",
           Entries: sliceOf[ast.MapEntry](exprs),
@@ -1425,8 +1425,7 @@ TypeLiteral
     }
 
 TypeAsValue
-  = "=" name:Name { return newPrimitive(c, "string", name.(*ast.Text).Text), nil }
-  / t:EasyType {
+  = t:ComponentType {
       return &ast.TypeValue{
         Kind:"TypeValue",
         Value: t.(ast.Type),
@@ -1440,16 +1439,8 @@ Type
 
 ComponentType
   = EasyType
-  / name:Name opt:(__ '=' __ Type)? {
-      if opt != nil {
-        return &ast.TypeDef{
-            Kind: "TypeDef",
-            Name: name.(*ast.Text).Text,
-            Type: opt.([]any)[3].(ast.Type),
-            Loc: loc(c),
-        }, nil
-      }
-      return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Text).Text, Loc: loc(c)}, nil
+  / name:Name {
+      return &ast.TypeRef{Kind: "TypeRef", Name: name.(*ast.Text).Text, Loc: loc(c)}, nil
     }
 
 EasyType
@@ -1490,14 +1481,14 @@ EasyType
           Loc: loc(c),
       }, nil
     }
-  / "|[" __ typ:Type __ "]|" {
+  / "set[" __ typ:Type __ "]" {
       return &ast.TypeSet{
           Kind: "TypeSet",
           Type: typ.(ast.Type),
           Loc: loc(c),
       }, nil
     }
-  / "|{" __ keyType:Type __ ":" __ valType:Type __ "}|" {
+  / "map{" __ keyType:Type __ ":" __ valType:Type __ "}" {
       return &ast.TypeMap{
         Kind: "TypeMap",
         KeyType: keyType.(ast.Type),

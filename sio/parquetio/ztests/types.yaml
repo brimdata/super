@@ -29,8 +29,8 @@ inputs:
         err: error("err"),
         rec: {a:1},
         lst: [1,null],
-        set: |[1,null]|,
-        map: |{1:"one",2:null}|,
+        set: set[1,null],
+        map: map{1:"one",2:null},
       }
 
 outputs:
@@ -54,7 +54,7 @@ outputs:
         str: "1234",
         ip: "1.2.3.4",
         net: "5.6.7.0/24",
-        typ: "int8",
+        typ: "<int8>",
         nul: null,
         err: "error(\"err\")",
         rec: {
@@ -68,8 +68,8 @@ outputs:
           1,
           null
         ],
-        map: |{
+        map: map{
           1: "one",
           2: null
-        }|
+        }
       }

@@ -35,7 +35,8 @@ values this::port
 # input
 80
 # expected output
-80::(port=uint16)
+type port=uint16
+80::port
 ```
 
 ---
@@ -49,7 +50,8 @@ values cast(this, <port>)
 # input
 80
 # expected output
-80::(port=uint16)
+type port=uint16
+80::port
 ```
 
 ---
@@ -64,9 +66,10 @@ values cast(x, foo), cast(x, this.foo)
 {x:1,foo:<float64>}
 {x:2,foo:<bool>}
 # expected output
-"1"::=foo
+type foo=string
+"1"::foo
 1.
-"2"::=foo
+"2"::foo
 true
 ```
 
@@ -82,8 +85,9 @@ values {str:cast(this, 'foo'), named:cast(this, foo)}
 1
 2
 # expected output
-{str:1::=foo,named:1::foo}
-{str:2::=foo,named:2::foo}
+type foo=int64
+{str:1::foo,named:1::foo}
+{str:2::foo,named:2::foo}
 ```
 
 ---
@@ -93,7 +97,7 @@ _Bind a name to a type without creating a named type_
 ```mdtest-spq
 # spq
 const foo=<string>
-values this::foo
+values cast(this, foo)
 # input
 1
 2

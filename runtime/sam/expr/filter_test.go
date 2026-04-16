@@ -94,7 +94,7 @@ func TestFilters(t *testing.T) {
 	t.Parallel()
 
 	// Test set membership with "in"
-	runCases(t, `{stringset:|["abc","xyz"]|}`, []testcase{
+	runCases(t, `{stringset:set["abc","xyz"]}`, []testcase{
 		{"'abc' in stringset", true},
 		{"'xyz' in stringset", true},
 		{"'ab'in stringset", false},
@@ -102,7 +102,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test escaped strings inside a set
-	runCases(t, `{stringset:|["a;b","xyz"]|}`, []testcase{
+	runCases(t, `{stringset:set["a;b","xyz"]}`, []testcase{
 		{"\"a;b\" in stringset", true},
 		{"'a' in stringset", false},
 		{"'b' in stringset", false},
@@ -118,7 +118,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test membership in set of integers
-	runCases(t, "{intset:|[1::int32,2::int32,3::int32]|}", []testcase{
+	runCases(t, "{intset:set[1::int32,2::int32,3::int32]}", []testcase{
 		{"2 in intset", true},
 		{"4 in intset", false},
 		{"'abc' in intset", false},
@@ -132,7 +132,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test membership in set of ip addresses
-	runCases(t, "{addrset:|[1.1.1.1,2.2.2.2]|}", []testcase{
+	runCases(t, "{addrset:set[1.1.1.1,2.2.2.2]}", []testcase{
 		{"1.1.1.1 in addrset", true},
 		{"3.3.3.3 in addrset", false},
 	})
@@ -235,7 +235,7 @@ func TestFilters(t *testing.T) {
 	}{
 		{"array", `{a:[{i:123,s1:"456",s2:"hello"}]}`},
 		{"record", `{r:{r2:{i:123,s1:"456",s2:"hello"}}}`},
-		{"set", `{s:|[{i:123,s1:"456",s2:"hello"}]|}`},
+		{"set", `{s:set[{i:123,s1:"456",s2:"hello"}]}`},
 		{"union", `{u:{i:123,s1:"456",s2:"hello, world"}::(int64|{i:int64,s1:string,s2:string})}`},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -344,7 +344,7 @@ func TestFilters(t *testing.T) {
 
 	// Test comparisons with field of type port (can compare with
 	// a port literal or an integer literal)
-	runCases(t, "{p:443::port=uint16}", []testcase{
+	runCases(t, "type port=uint16 {p:443::port}", []testcase{
 		{"p == 443", true},
 		{"p == 80", false},
 	})
@@ -371,7 +371,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test comparisons with a named type
-	runCases(t, "{i:100::myint=int32}", []testcase{
+	runCases(t, "type myint=int32 {i:100::myint}", []testcase{
 		{"i == 100", true},
 		{"i > 0", true},
 		{"i < 50", false},

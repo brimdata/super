@@ -1,8 +1,10 @@
 spq: |
-  values 1::=foo
+  type foo=int64
+  values 1::foo
 
 input: |
   null
 
 output: |
-  1::=foo
+  type foo=int64
+  1::foo

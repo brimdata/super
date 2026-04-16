@@ -220,11 +220,11 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.arrayElems(e.Elems)
 		c.write("]")
 	case *ast.SetExpr:
-		c.write("|[")
+		c.write("set[")
 		c.arrayElems(e.Elems)
-		c.write("]|")
+		c.write("]")
 	case *ast.MapExpr:
-		c.write("|{")
+		c.write("map{")
 		for k, e := range e.Entries {
 			if k != 0 {
 				c.write(",")
@@ -233,7 +233,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.write(":")
 			c.expr(e.Value, "")
 		}
-		c.write("}|")
+		c.write("}")
 	case *ast.SubqueryExpr:
 		open, close := "(", ")"
 		if e.Array {

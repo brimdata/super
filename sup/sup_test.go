@@ -36,8 +36,7 @@ func analyze(sctx *super.Context, path string) (sup.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	analyzer := sup.NewAnalyzer()
-	return analyzer.ConvertValue(sctx, val)
+	return sup.NewAnalyzer(sctx).ConvertValue(val)
 }
 
 func TestSUPAnalyzer(t *testing.T) {

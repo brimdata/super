@@ -50,12 +50,12 @@ _Simple slices_
 values a[1:3]
 # input
 {a:[1,2,3,4]}
-{a:|[1,2,3,4]|}
+{a:set[1,2,3,4]}
 {a:"1234"}
 {a:0x01020304}
 # expected output
 [2,3]
-|[2,3]|
+set[2,3]
 "23"
 0x0203
 ```
@@ -70,12 +70,12 @@ pragma index_base = 1
 values a[1:3]
 # input
 {a:[1,2,3,4]}
-{a:|[1,2,3,4]|}
+{a:set[1,2,3,4]}
 {a:"1234"}
 {a:0x01020304}
 # expected output
 [1,2]
-|[1,2]|
+set[1,2]
 "12"
 0x0102
 ```
@@ -89,12 +89,12 @@ _Prefix and suffix slices_
 values {prefix:a[:2],suffix:a[-2:-1]}
 # input
 {a:[1,2,3,4]}
-{a:|[1,2,3,4]|}
+{a:set[1,2,3,4]}
 {a:"1234"}
 {a:0x01020304}
 # expected output
 {prefix:[1,2],suffix:[3]}
-{prefix:|[1,2]|,suffix:|[3]|}
+{prefix:set[1,2],suffix:set[3]}
 {prefix:"12",suffix:"3"}
 {prefix:0x0102,suffix:0x03}
 ```

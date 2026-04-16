@@ -11,7 +11,8 @@ input: |
   0::uint8
   1.5
   0.
-  "T"::=named
+  type named=string
+  "T"::named
   "true"
   "F"
   "false"
@@ -22,8 +23,8 @@ input: |
   error("bad")
   {x:1}
   [1,2]
-  |[1,2]|
-  |{"x":1}|
+  set[1,2]
+  map{"x":1}
   "e2"::enum(e1,e2)
 
 output: |
@@ -46,6 +47,6 @@ output: |
   error("bad")
   error({message:"cannot cast to bool",on:{x:1}})
   error({message:"cannot cast to bool",on:[1,2]})
-  error({message:"cannot cast to bool",on:|[1,2]|})
-  error({message:"cannot cast to bool",on:|{"x":1}|})
+  error({message:"cannot cast to bool",on:set[1,2]})
+  error({message:"cannot cast to bool",on:map{"x":1}})
   error({message:"cannot cast to bool",on:"e2"::enum(e1,e2)})

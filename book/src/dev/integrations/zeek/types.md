@@ -91,6 +91,8 @@ super -S zeek_types.log | tee zeek_types.sup
 ### Output:
 
 ```mdtest-output
+type port = uint16
+type zenum = string
 {
   my_bool: true::(bool|null),
   my_count: 123::uint64::(uint64|null),
@@ -100,16 +102,16 @@ super -S zeek_types.log | tee zeek_types.sup
   my_interval: 2m3.456s::(duration|null),
   my_printable_string: "smile😁smile"::(string|null),
   my_bytes_string: "\t\u0007\u0004"::(string|null),
-  my_port: 80::(port=uint16)::(port|null),
+  my_port: 80::port::(port|null),
   my_addr: 127.0.0.1::(ip|null),
   my_subnet: 10.0.0.0/8::(net|null),
-  my_enum: "tcp"::=zenum::(zenum|null),
-  my_set: |[
+  my_enum: "tcp"::zenum::(zenum|null),
+  my_set: set[
     "a",
     "in",
     "set",
     "things"
-  ]|::|[string|null]|::(null||[string|null]|),
+  ]::set[string|null]::(null|set[string|null]),
   my_vector: [
     "order",
     "is",

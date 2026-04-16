@@ -44,8 +44,8 @@ values kind(this)
 # input
 {}
 []
-|[]|
-|{}|
+set[]
+map{}
 1::(int64|string)
 # expected output
 "record"

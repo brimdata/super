@@ -10,19 +10,21 @@ input: |
   <{x:string}|{x:int64}>
   <{a:net}|{x:int64}>
   <{x:string}|{x:int64,y:int64}>
-  <|{bool:string}|>
-  <|{float64:uint8}|>
-  <|{float64:string}|>
+  <map{bool:string}>
+  <map{float64:uint8}>
+  <map{float64:string}>
   <[net]>
   <[uint8]>
-  <|[ip]|>
-  <|[time]|>
+  <set[ip]>
+  <set[time]>
   <{x:int64,y:int64}>
   <{x:string}>
   <{x:uint16}>
-  <named2=type>
+  type named2=type
+  <named2>
   <type>
-  <named1=type>
+  type named1=type
+  <named1>
   <float64>
   <uint16>
   <uint64>
@@ -63,19 +65,21 @@ output: |
   <ip>
   <net>
   <type>
-  <named1=type>
-  <named2=type>
+  type named1=type
+  <named1>
+  type named2=type
+  <named2>
   <null>
   <{x:uint16}>
   <{x:string}>
   <{x:int64,y:int64}>
   <[uint8]>
   <[net]>
-  <|[time]|>
-  <|[ip]|>
-  <|{float64:uint8}|>
-  <|{float64:string}|>
-  <|{bool:string}|>
+  <set[time]>
+  <set[ip]>
+  <map{float64:uint8}>
+  <map{float64:string}>
+  <map{bool:string}>
   <{a:net}|{x:int64}>
   <{x:int64}|{x:string}>
   <{x:string}|{x:int64,y:int64}>

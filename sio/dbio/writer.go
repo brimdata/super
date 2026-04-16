@@ -28,7 +28,7 @@ type WriterOpts struct {
 
 type Writer struct {
 	writer   io.WriteCloser
-	sup      *sup.Formatter
+	sup      *sup.StreamFormatter
 	commits  table
 	branches map[ksuid.KSUID][]string
 	width    int
@@ -40,7 +40,7 @@ type Writer struct {
 func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 	writer := &Writer{
 		writer:   w,
-		sup:      sup.NewFormatter(0, false, nil),
+		sup:      sup.NewStreamFormatter(0, false),
 		commits:  make(table),
 		branches: make(map[ksuid.KSUID][]string),
 		width:    80, //XXX

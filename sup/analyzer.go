@@ -11,396 +11,316 @@ import (
 )
 
 type Value interface {
-	TypeOf() super.Type
-	SetType(super.Type)
+	Type() super.Type
 }
 
 // Note that all of the types include a generic super.Type as their type since
 // anything can have a super.TypeNamed along with its normal type.
 type (
 	Primitive struct {
-		Type super.Type
-		Text string
+		typ  super.Type
+		text string
 	}
 	Record struct {
-		Type   super.Type
-		Fields []Value
+		typ    super.Type
+		fields []Value
 	}
 	Array struct {
-		Type     super.Type
-		Elements []Value
+		typ   super.Type
+		elems []Value
 	}
 	Set struct {
-		Type     super.Type
-		Elements []Value
+		typ   super.Type
+		elems []Value
 	}
 	Union struct {
-		Type  super.Type
-		Tag   int
-		Value Value
+		typ   super.Type
+		tag   int
+		value Value
 	}
 	Enum struct {
-		Type super.Type
-		Name string
+		typ  super.Type
+		name string
 	}
 	Map struct {
-		Type    super.Type
-		Entries []Entry
+		typ     super.Type
+		entries []Entry
 	}
 	Entry struct {
-		Key   Value
-		Value Value
+		key   Value
+		value Value
 	}
 	Null struct {
-		Type super.Type
+		// Nulls aren't typed but they can be named so this field holds
+		// the named type when decorated as such.
+		typ super.Type
 	}
 	TypeValue struct {
-		Type  super.Type
-		Value super.Type
+		typ   super.Type
+		value super.Type
 	}
 	Error struct {
-		Type  super.Type
-		Value Value
+		typ   super.Type
+		value Value
 	}
 	Fusion struct {
-		Type    super.Type
-		Value   Value
-		SubType scode.Bytes
+		typ     super.Type
+		value   Value
+		subtype scode.Bytes
 	}
 	None struct {
-		Type super.Type
+		typ super.Type
 	}
 )
 
-func (p *Primitive) TypeOf() super.Type { return p.Type }
-func (r *Record) TypeOf() super.Type    { return r.Type }
-func (a *Array) TypeOf() super.Type     { return a.Type }
-func (s *Set) TypeOf() super.Type       { return s.Type }
-func (u *Union) TypeOf() super.Type     { return u.Type }
-func (e *Enum) TypeOf() super.Type      { return e.Type }
-func (m *Map) TypeOf() super.Type       { return m.Type }
-func (n *Null) TypeOf() super.Type      { return n.Type }
-func (t *TypeValue) TypeOf() super.Type { return t.Type }
-func (e *Error) TypeOf() super.Type     { return e.Type }
-func (f *Fusion) TypeOf() super.Type    { return f.Type }
-func (n *None) TypeOf() super.Type      { return n.Type }
-
-func (p *Primitive) SetType(t super.Type) { p.Type = t }
-func (r *Record) SetType(t super.Type)    { r.Type = t }
-func (a *Array) SetType(t super.Type)     { a.Type = t }
-func (s *Set) SetType(t super.Type)       { s.Type = t }
-func (u *Union) SetType(t super.Type)     { u.Type = t }
-func (e *Enum) SetType(t super.Type)      { e.Type = t }
-func (m *Map) SetType(t super.Type)       { m.Type = t }
-func (n *Null) SetType(t super.Type)      { n.Type = t }
-func (t *TypeValue) SetType(T super.Type) { t.Type = T }
-func (e *Error) SetType(t super.Type)     { e.Type = t }
-func (f *Fusion) SetType(t super.Type)    { f.Type = t }
-func (n *None) SetType(t super.Type)      { n.Type = t }
-
-// An Analyzer transforms an ast.Value (which has decentralized type decorators)
-// to a typed Value, where every component of a nested Value is explicitly typed.
-// This is done via a semantic analysis where type state flows both down a the
-// nested value hierarchy (via type decorators) and back up via fully typed value
-// whose types are then usable as typedefs.  The Analyzer tracks the SUP typedef
-// semantics by updating its table of name-to-type bindings in accordance with the
-// left-to-right, depth-first semantics of SUP typedefs.
-type Analyzer map[string]super.Type
-
-func NewAnalyzer() Analyzer {
-	return Analyzer(make(map[string]super.Type))
+func NewPrimitive(typ super.Type, text string) Primitive {
+	return Primitive{typ, text}
 }
 
-func (a Analyzer) ConvertValue(sctx *super.Context, val ast.Value) (Value, error) {
-	return a.convertValue(sctx, val, nil)
+func (p *Primitive) Type() super.Type { return p.typ }
+func (r *Record) Type() super.Type    { return r.typ }
+func (a *Array) Type() super.Type     { return a.typ }
+func (s *Set) Type() super.Type       { return s.typ }
+func (u *Union) Type() super.Type     { return u.typ }
+func (e *Enum) Type() super.Type      { return e.typ }
+func (m *Map) Type() super.Type       { return m.typ }
+func (n *Null) Type() super.Type      { return n.typ }
+func (t *TypeValue) Type() super.Type { return t.typ }
+func (e *Error) Type() super.Type     { return e.typ }
+func (f *Fusion) Type() super.Type    { return f.typ }
+func (n *None) Type() super.Type      { return n.typ }
+
+type Analyzer struct {
+	sctx *super.Context
 }
 
-func (a Analyzer) convertValue(sctx *super.Context, val ast.Value, parent super.Type) (Value, error) {
+func NewAnalyzer(sctx *super.Context) *Analyzer {
+	return &Analyzer{
+		sctx: sctx,
+	}
+}
+
+func (a *Analyzer) ConvertValue(val ast.Value) (Value, error) {
+	return a.convertValue(val)
+}
+
+// BindType provides a means to create a named type with the given name.
+// This is used by the semantic analyzer to create persistent typedefs for
+// each named type defined in the query (which contrasts from named types
+// that are defined by the data).  All such bindings are stored in the typedefs
+// table local to this Analyzer relative to the type IDs that are returned here.
+// This typedefs table plus the IDs can then be used to serialize all the
+// types defined by the query as a DAG.  At query runtime, the DAG typedefs
+// are translated to query context types and the runtime references by typeID
+// are resolved to actual super.Types relative to query context.
+func (a *Analyzer) BindType(name string, t ast.Type) (int, error) {
+	typ, err := a.convertType(t)
+	if err != nil {
+		return 0, err
+	}
+	typ, err = a.sctx.LookupTypeNamed(name, typ)
+	if err != nil {
+		return 0, err
+	}
+	return super.TypeID(typ), nil
+}
+
+func (a *Analyzer) LookupType(t ast.Type) (int, error) {
+	typ, err := a.convertType(t)
+	if err != nil {
+		return 0, err
+	}
+	return super.TypeID(typ), nil
+}
+
+func (a *Analyzer) convertValueAndDecorate(val ast.Value, decorator super.Type) (Value, error) {
+	v, err := a.convertValue(val)
+	if err != nil {
+		return nil, err
+	}
+	return a.decorate(v, decorator)
+}
+
+func (a *Analyzer) convertValue(val ast.Value) (Value, error) {
 	switch val := val.(type) {
-	case *ast.ImpliedValue:
-		return a.convertAny(sctx, val.Of, parent)
-	case *ast.DefValue:
-		if val.Of == nil {
-			return nil, fmt.Errorf("decorator for typedef %q cannot appear after another decorator", val.TypeName)
-		}
-		v, err := a.convertAny(sctx, val.Of, parent)
-		if err != nil {
+	case *ast.DeclsValue:
+		if err := a.bindTypeDecls(val.Decls); err != nil {
 			return nil, err
 		}
-		named, err := a.enterTypeDef(sctx, val.TypeName, v.TypeOf())
+		v, err := a.convertValue(val.Value)
 		if err != nil {
 			return nil, err
-		}
-		if named != nil {
-			v.SetType(named)
 		}
 		return v, nil
-	case *ast.CastValue:
-		switch valOf := val.Of.(type) {
-		case *ast.DefValue:
-			// Enter the type def so val.Type can see it.
-			if _, err := a.convertValue(sctx, valOf, nil); err != nil {
-				return nil, err
-			}
-		case *ast.CastValue:
-			// Enter any nested type defs so val.Type can see them.
-			if _, err := a.convertType(sctx, valOf.Type); err != nil {
-				return nil, err
-			}
-		}
-		cast, err := a.convertType(sctx, val.Type)
-		if err != nil {
-			return nil, err
-		}
-		if err := a.typeCheck(cast, parent); err != nil {
-			return nil, err
-		}
-		var v Value
-		if union, ok := super.TypeUnder(cast).(*super.TypeUnion); ok {
-			v, err = a.convertValue(sctx, val.Of, nil)
+	case *ast.Decorated:
+		if val.Type != nil {
+			decorator, err := a.convertType(val.Type)
 			if err != nil {
 				return nil, err
 			}
-			v, err = a.convertUnion(v, union, cast)
-		} else {
-			v, err = a.convertValue(sctx, val.Of, cast)
+			return a.convertValueAndDecorate(val.Value, decorator)
 		}
-		if err != nil {
-			return nil, err
-		}
-		if union, ok := super.TypeUnder(parent).(*super.TypeUnion); ok {
-			v, err = a.convertUnion(v, union, parent)
-		}
-		return v, err
+		return a.convertValue(val.Value)
 	case *ast.None:
-		typ, err := a.convertType(sctx, val.Type)
+		typ, err := a.convertType(val.Type)
 		if err != nil {
 			return nil, err
 		}
-		return &None{Type: typ}, nil
-	}
-	return nil, fmt.Errorf("unknown value ast type: %T", val)
-}
-
-func (a Analyzer) typeCheck(cast, parent super.Type) error {
-	if parent == nil || cast == parent {
-		return nil
-	}
-	if _, ok := super.TypeUnder(parent).(*super.TypeUnion); ok {
-		// We let unions through this type check with no further checking
-		// as any union incompability will be caught in convertAnyValue().
-		return nil
-	}
-	return fmt.Errorf("decorator conflict enclosing context %q and decorator cast %q", FormatType(parent), FormatType(cast))
-}
-
-func (a Analyzer) enterTypeDef(sctx *super.Context, name string, typ super.Type) (*super.TypeNamed, error) {
-	var named *super.TypeNamed
-	if !isNumeric(name) {
-		var err error
-		if named, err = sctx.LookupTypeNamed(name, typ); err != nil {
-			return nil, err
-		}
-		typ = named
-	}
-	a[name] = typ
-	return named, nil
-}
-
-func isNumeric(s string) bool {
-	for _, r := range s {
-		if !isDigit(r) {
-			return false
-		}
-	}
-	return true
-}
-
-func isDigit(r rune) bool {
-	return r >= '0' && r <= '9'
-}
-
-func (a Analyzer) convertAny(sctx *super.Context, val ast.Any, cast super.Type) (Value, error) {
-	// If we're casting something to a union, then the thing inside needs to
-	// describe itself and we can convert the inner value to a union value when
-	// we know its type (so we can code the tag).
-	if union, ok := super.TypeUnder(cast).(*super.TypeUnion); ok {
-		v, err := a.convertAny(sctx, val, nil)
-		if err != nil {
-			return nil, err
-		}
-		return a.convertUnion(v, union, cast)
-	}
-	switch val := val.(type) {
+		return &None{typ: typ}, nil
 	case *ast.Primitive:
-		return a.convertPrimitive(val, cast)
-	case *ast.Record:
-		return a.convertRecord(sctx, val, cast)
-	case *ast.Array:
-		return a.convertArray(sctx, val, cast)
-	case *ast.Set:
-		return a.convertSet(sctx, val, cast)
-	case *ast.Enum:
-		return a.convertEnum(val, cast)
-	case *ast.Map:
-		return a.convertMap(sctx, val, cast)
+		return a.convertPrimitive(val)
 	case *ast.TypeValue:
-		return a.convertTypeValue(sctx, val, cast)
+		return a.convertTypeValue(val)
+	case *ast.Record:
+		return a.convertRecord(val)
+	case *ast.Array:
+		return a.convertArray(val)
+	case *ast.Set:
+		return a.convertSet(val)
+	case *ast.Map:
+		return a.convertMap(val)
 	case *ast.Error:
-		return a.convertError(sctx, val, cast)
+		return a.convertError(val)
 	case *ast.Fusion:
-		return a.convertFusion(sctx, val, cast)
+		return a.convertFusion(val)
+	default:
+		panic(val)
 	}
-	return nil, fmt.Errorf("internal error: unknown ast type in Analyzer.convertAny: %T", val)
 }
 
-func (a Analyzer) convertPrimitive(val *ast.Primitive, cast super.Type) (Value, error) {
-	typ := super.LookupPrimitive(val.Type)
-	if typ == nil {
-		return nil, fmt.Errorf("no such primitive type: %q", val.Type)
-	}
-	isNull := typ == super.TypeNull
-	if cast != nil {
-		// SUP encodes enum values as a string followed by an enum cast.
-		// Check for this condition before applying the generic cast logic.
-		if v := stringToEnum(val, cast); v != nil {
-			return v, nil
-		}
-		var err error
-		typ, err = castType(typ, cast)
+func (a *Analyzer) bindTypeDecls(decls []ast.TypeDecl) error {
+	for _, decl := range decls {
+		typ, err := a.convertType(decl.Type)
 		if err != nil {
-			return nil, err
+			return err
 		}
-	}
-	if isNull {
-		return &Null{Type: typ}, nil
-	}
-	return &Primitive{Type: typ, Text: val.Text}, nil
-}
-
-func stringToEnum(val *ast.Primitive, cast super.Type) Value {
-	if _, ok := super.TypeUnder(cast).(*super.TypeEnum); ok {
-		if val.Type == "string" {
-			return &Enum{
-				Type: cast,
-				Name: val.Text,
-			}
+		if _, err := a.sctx.LookupTypeNamed(decl.Name.Name, typ); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func castType(typ, cast super.Type) (super.Type, error) {
-	typID, castID := typ.ID(), cast.ID()
-	if typID == castID ||
-		super.IsInteger(typID) && (super.IsInteger(castID) || super.IsFloat(castID)) ||
-		super.IsFloat(typID) && super.IsFloat(castID) {
-		return cast, nil
+func (a *Analyzer) convertPrimitive(val *ast.Primitive) (Value, error) {
+	typ := super.LookupPrimitive(val.Type)
+	if typ == nil {
+		return nil, fmt.Errorf("no such primitive type: %q", val.Type)
 	}
-	return nil, fmt.Errorf("type mismatch: %q cannot be used as %q", FormatType(typ), FormatType(cast))
+	// Null's are here to possibly be decorated with a named type.
+	if typ == super.TypeNull {
+		return &Null{typ: super.TypeNull}, nil
+	}
+	return &Primitive{typ: typ, text: val.Text}, nil
 }
 
-func (a Analyzer) convertRecord(sctx *super.Context, val *ast.Record, cast super.Type) (Value, error) {
-	var fields []Value
-	var err error
-	if cast != nil {
-		recType, ok := super.TypeUnder(cast).(*super.TypeRecord)
-		if !ok {
-			return nil, fmt.Errorf("record decorator not of type record: %T", cast)
-		}
-		if len(recType.Fields) != len(val.Fields) {
-			return nil, fmt.Errorf("record decorator fields (%d) mismatched with value fields (%d)", len(recType.Fields), len(val.Fields))
-		}
-		fields, err = a.convertFields(sctx, val.Fields, recType.Fields)
-	} else {
-		fields, err = a.convertFields(sctx, val.Fields, nil)
-		if err != nil {
-			return nil, err
-		}
-		cast, err = lookupRecordType(sctx, val.Fields, fields)
-	}
+func (a *Analyzer) convertTypeValue(tv *ast.TypeValue) (Value, error) {
+	typ, err := a.convertType(tv.Value)
 	if err != nil {
 		return nil, err
 	}
-	return &Record{
-		Type:   cast,
-		Fields: fields,
+	return &TypeValue{
+		typ:   super.TypeType,
+		value: typ,
 	}, nil
 }
 
-func (a Analyzer) convertFields(sctx *super.Context, in []ast.Field, fields []super.Field) ([]Value, error) {
-	vals := make([]Value, 0, len(in))
-	for k, f := range in {
-		var cast super.Type
-		if fields != nil {
-			cast = fields[k].Type
-		}
-		v, err := a.convertValue(sctx, f.Value, cast)
+func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
+	vals := make([]Value, 0, len(val.Fields))
+	fields := make([]super.Field, 0, len(val.Fields))
+	for _, f := range val.Fields {
+		val, err := a.convertValue(f.Value)
 		if err != nil {
 			return nil, err
 		}
-		vals = append(vals, v)
+		fields = append(fields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
+		vals = append(vals, val)
 	}
-	return vals, nil
+	return &Record{
+		typ:    a.sctx.MustLookupTypeRecord(fields),
+		fields: vals,
+	}, nil
 }
 
-func lookupRecordType(sctx *super.Context, in []ast.Field, vals []Value) (*super.TypeRecord, error) {
-	fields := make([]super.Field, 0, len(in))
-	for k, f := range in {
-		fields = append(fields, super.NewFieldWithOpt(f.Name, vals[k].TypeOf(), f.Opt))
-	}
-	return sctx.LookupTypeRecord(fields)
-}
-
-// Figure out what the cast should be for the elements and for the union conversion if any.
-func arrayElemCast(cast super.Type) (super.Type, error) {
-	if cast == nil {
-		return nil, nil
-	}
-	if arrayType, ok := super.TypeUnder(cast).(*super.TypeArray); ok {
-		return arrayType.Type, nil
-	}
-	return nil, errors.New("array decorator not of type array")
-}
-
-func (a Analyzer) convertArray(sctx *super.Context, array *ast.Array, cast super.Type) (Value, error) {
-	vals := make([]Value, 0, len(array.Elements))
-	typ, err := arrayElemCast(cast)
-	if err != nil {
-		return nil, err
-	}
+func (a *Analyzer) convertArray(array *ast.Array) (Value, error) {
+	elems := make([]Value, 0, len(array.Elements))
 	for _, elem := range array.Elements {
-		v, err := a.convertValue(sctx, elem, typ)
+		v, err := a.convertValue(elem)
 		if err != nil {
 			return nil, err
 		}
-		vals = append(vals, v)
+		elems = append(elems, v)
 	}
-	if cast != nil || len(vals) == 0 {
-		// We had a cast so we know any type mistmatches we have been
-		// caught below...
-		if cast == nil {
-			cast = sctx.LookupTypeArray(super.TypeNone)
-		}
-		return &Array{
-			Type:     cast,
-			Elements: vals,
-		}, nil
-	}
-	elems, inner, err := a.normalizeElems(sctx, vals)
+	elems, elemType, err := a.normalizeElems(elems)
 	if err != nil {
 		return nil, err
 	}
 	return &Array{
-		Type:     sctx.LookupTypeArray(inner),
-		Elements: elems,
+		typ:   a.sctx.LookupTypeArray(elemType),
+		elems: elems,
 	}, nil
 }
 
-func (a Analyzer) normalizeElems(sctx *super.Context, vals []Value) ([]Value, super.Type, error) {
+func (a *Analyzer) convertSet(set *ast.Set) (Value, error) {
+	elems := make([]Value, 0, len(set.Elements))
+	for _, elem := range set.Elements {
+		v, err := a.convertValue(elem)
+		if err != nil {
+			return nil, err
+		}
+		elems = append(elems, v)
+	}
+	elems, elemType, err := a.normalizeElems(elems)
+	if err != nil {
+		return nil, err
+	}
+	return &Set{
+		typ:   a.sctx.LookupTypeSet(elemType),
+		elems: elems,
+	}, nil
+}
+
+func (a *Analyzer) convertMap(m *ast.Map) (Value, error) {
+	var keyType, valType super.Type
+	keys := make([]Value, 0, len(m.Entries))
+	vals := make([]Value, 0, len(m.Entries))
+	for _, e := range m.Entries {
+		key, err := a.convertValue(e.Key)
+		if err != nil {
+			return nil, err
+		}
+		val, err := a.convertValue(e.Value)
+		if err != nil {
+			return nil, err
+		}
+		keys = append(keys, key)
+		vals = append(vals, val)
+	}
+	var err error
+	keys, keyType, err = a.normalizeElems(keys)
+	if err != nil {
+		return nil, err
+	}
+	vals, valType, err = a.normalizeElems(vals)
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]Entry, 0, len(keys))
+	for i := range keys {
+		entries = append(entries, Entry{keys[i], vals[i]})
+	}
+	return &Map{
+		typ:     a.sctx.LookupTypeMap(keyType, valType),
+		entries: entries,
+	}, nil
+}
+
+func (a *Analyzer) normalizeElems(vals []Value) ([]Value, super.Type, error) {
+	if len(vals) == 0 {
+		return nil, super.TypeNone, nil
+	}
 	types := make([]super.Type, len(vals))
 	for i, val := range vals {
-		types[i] = val.TypeOf()
+		types[i] = val.Type()
 	}
 	unique := super.UniqueTypes(super.Flatten(types))
 	if len(unique) == 1 {
@@ -409,215 +329,286 @@ func (a Analyzer) normalizeElems(sctx *super.Context, vals []Value) ([]Value, su
 	if len(unique) == 0 {
 		return vals, super.TypeNone, nil
 	}
-	union, ok := sctx.LookupTypeUnion(unique)
+	union, ok := a.sctx.LookupTypeUnion(unique)
 	if !ok {
 		return nil, nil, errAnonUnion
 	}
 	var unions []Value
 	for _, v := range vals {
-		union, err := a.convertUnion(v, union, union)
+		val, err := a.decorate(v, union)
 		if err != nil {
 			return nil, nil, err
 		}
-		unions = append(unions, union)
+		unions = append(unions, val)
 	}
 	return unions, union, nil
 }
 
-func (a Analyzer) convertSet(sctx *super.Context, set *ast.Set, cast super.Type) (Value, error) {
-	var elemType super.Type
-	if cast != nil {
-		setType, ok := super.TypeUnder(cast).(*super.TypeSet)
-		if !ok {
-			return nil, fmt.Errorf("set decorator not of type set: %T", cast)
-		}
-		elemType = setType.Type
-	}
-	vals := make([]Value, 0, len(set.Elements))
-	for _, elem := range set.Elements {
-		v, err := a.convertValue(sctx, elem, elemType)
-		if err != nil {
-			return nil, err
-		}
-		vals = append(vals, v)
-	}
-	if cast != nil || len(vals) == 0 {
-		if cast == nil {
-			cast = sctx.LookupTypeSet(super.TypeNone)
-		}
-		return &Array{
-			Type:     cast,
-			Elements: vals,
-		}, nil
-	}
-	elems, inner, err := a.normalizeElems(sctx, vals)
+func (a Analyzer) convertError(val *ast.Error) (Value, error) {
+	v, err := a.convertValue(val.Value)
 	if err != nil {
 		return nil, err
-	}
-	return &Set{
-		Type:     sctx.LookupTypeSet(inner),
-		Elements: elems,
-	}, nil
-}
-
-func (a Analyzer) convertUnion(v Value, union *super.TypeUnion, cast super.Type) (Value, error) {
-	if _, ok := v.TypeOf().(*super.TypeNamed); !ok {
-		if union, ok := v.(*Union); ok {
-			// When a union is inside a union and it's not a named type,
-			// the parent union is flattened and contains
-			// this union's elemental types, so we just pull out the value from the child
-			// union and cast it to the parent union.
-			// When the value is a named union, we match the value exactly to the union types
-			// since the named type won't be flattened in the union.
-			v = union.Value
-		}
-	}
-	valType := v.TypeOf()
-	for k, typ := range union.Types {
-		if valType == typ {
-			return &Union{
-				Type:  cast,
-				Tag:   k,
-				Value: v,
-			}, nil
-		}
-	}
-	return nil, fmt.Errorf("type %q is not in union type %q", FormatType(valType), FormatType(union))
-}
-
-func (a Analyzer) convertEnum(val *ast.Enum, cast super.Type) (Value, error) {
-	if cast == nil {
-		return nil, fmt.Errorf("identifier %q must be enum and requires decorator", val.Name)
-	}
-	enum, ok := super.TypeUnder(cast).(*super.TypeEnum)
-	if !ok {
-		return nil, fmt.Errorf("identifier %q is enum and incompatible with type %q", val.Name, FormatType(cast))
-	}
-	if slices.Contains(enum.Symbols, val.Name) {
-		return &Enum{
-			Name: val.Name,
-			Type: cast,
-		}, nil
-	}
-	return nil, fmt.Errorf("symbol %q not a member of type %q", val.Name, FormatType(enum))
-}
-
-func (a Analyzer) convertMap(sctx *super.Context, m *ast.Map, cast super.Type) (Value, error) {
-	var keyType, valType super.Type
-	if cast != nil {
-		typ, ok := super.TypeUnder(cast).(*super.TypeMap)
-		if !ok {
-			return nil, errors.New("map decorator not of type map")
-		}
-		keyType = typ.KeyType
-		valType = typ.ValType
-	}
-	keys := make([]Value, 0, len(m.Entries))
-	vals := make([]Value, 0, len(m.Entries))
-	for _, e := range m.Entries {
-		key, err := a.convertValue(sctx, e.Key, keyType)
-		if err != nil {
-			return nil, err
-		}
-		val, err := a.convertValue(sctx, e.Value, valType)
-		if err != nil {
-			return nil, err
-		}
-		keys = append(keys, key)
-		vals = append(vals, val)
-	}
-	if cast == nil {
-		// If there was no decorator, pull the types out of the first
-		// entry we just analyed.
-		if len(keys) == 0 {
-			// empty set with no decorator
-			keyType = super.TypeNone
-			valType = super.TypeNone
-		} else {
-			var err error
-			keys, keyType, err = a.normalizeElems(sctx, keys)
-			if err != nil {
-				return nil, err
-			}
-			vals, valType, err = a.normalizeElems(sctx, vals)
-			if err != nil {
-				return nil, err
-			}
-		}
-		cast = sctx.LookupTypeMap(keyType, valType)
-	}
-	entries := make([]Entry, 0, len(keys))
-	for i := range keys {
-		entries = append(entries, Entry{keys[i], vals[i]})
-	}
-	return &Map{
-		Type:    cast,
-		Entries: entries,
-	}, nil
-}
-
-func (a Analyzer) convertTypeValue(sctx *super.Context, tv *ast.TypeValue, cast super.Type) (Value, error) {
-	if cast != nil {
-		if _, ok := super.TypeUnder(cast).(*super.TypeOfType); !ok {
-			return nil, fmt.Errorf("cannot apply decorator (%q) to a type value", FormatType(cast))
-		}
-	}
-	typ, err := a.convertType(sctx, tv.Value)
-	if err != nil {
-		return nil, err
-	}
-	if cast == nil {
-		cast = super.TypeType
-	}
-	return &TypeValue{
-		Type:  cast,
-		Value: typ,
-	}, nil
-}
-
-func (a Analyzer) convertError(sctx *super.Context, val *ast.Error, cast super.Type) (Value, error) {
-	var inner super.Type
-	if cast != nil {
-		typ, ok := super.TypeUnder(cast).(*super.TypeError)
-		if !ok {
-			return nil, errors.New("error decorator not of type error")
-		}
-		inner = typ.Type
-	}
-	under, err := a.convertValue(sctx, val.Value, inner)
-	if err != nil {
-		return nil, err
-	}
-	if cast == nil {
-		cast = sctx.LookupTypeError(under.TypeOf())
 	}
 	return &Error{
-		Value: under,
-		Type:  cast,
+		typ:   a.sctx.LookupTypeError(v.Type()),
+		value: v,
 	}, nil
 }
 
-func (a Analyzer) convertFusion(sctx *super.Context, val *ast.Fusion, cast super.Type) (Value, error) {
-	var inner super.Type
-	if cast != nil {
-		return nil, errors.New("fusion value cannot be decorated")
-	}
-	superVal, err := a.convertValue(sctx, val.Value, inner)
+func (a Analyzer) convertFusion(val *ast.Fusion) (Value, error) {
+	superVal, err := a.convertValue(val.Value)
 	if err != nil {
 		return nil, err
 	}
-	subType, err := a.convertTypeValue(sctx, val.Type, nil)
+	subType, err := a.convertTypeValue(val.Type)
 	if err != nil {
 		return nil, err
 	}
 	return &Fusion{
-		Value:   superVal,
-		Type:    sctx.LookupTypeFusion(superVal.TypeOf()),
-		SubType: sctx.LookupTypeValue(subType.(*TypeValue).Value).Bytes(),
+		value:   superVal,
+		typ:     a.sctx.LookupTypeFusion(superVal.Type()),
+		subtype: a.sctx.LookupTypeValue(subType.(*TypeValue).value).Bytes(),
 	}, nil
 }
 
-func (a Analyzer) convertType(sctx *super.Context, typ ast.Type) (super.Type, error) {
+func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
+	if _, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
+		return a.createUnion(val, typ)
+	}
+	switch val := val.(type) {
+	case *None:
+		// None value carries the type for an optional field and
+		// the parent decoration overrides.
+		return &None{typ: typ}, nil
+	case *Null:
+		if super.TypeUnder(typ) != super.TypeNull {
+			return nil, fmt.Errorf("illegal null value decorator: %q", FormatType(typ))
+		}
+		return &Null{typ: typ}, nil
+	case *Primitive:
+		return a.decoratePrimitive(val, typ)
+	case *Record:
+		return a.decorateRecord(val, typ)
+	case *Array:
+		return a.decorateArray(val, typ)
+	case *Set:
+		return a.decorateSet(val, typ)
+	case *Map:
+		return a.decorateMap(val, typ)
+	case *TypeValue:
+		return a.decorateTypeValue(val, typ)
+	case *Error:
+		return a.decorateError(val, typ)
+	case *Fusion:
+		return nil, fmt.Errorf("fusion values cannt be decorated: %q", FormatType(typ))
+	case *Union:
+		return a.decorateUnion(val, typ)
+	default:
+		panic(val)
+	}
+}
+
+func (a *Analyzer) createUnion(val Value, decorator super.Type) (Value, error) {
+	unionType := super.TypeUnder(decorator).(*super.TypeUnion)
+	typ := val.Type()
+	if typ == decorator {
+		return val, nil
+	}
+	if union, ok := val.(*Union); ok {
+		if _, ok := val.Type().(*super.TypeNamed); !ok {
+			// If we're putting an anonymous union inside of another union then we
+			// need to unflatten the union relationship by deunioning the value,
+			// which can then be inserted into the flat parent.  If this is a named
+			// union, we do not do so as named unions in unions need not be flattened.
+			val = union.value
+			typ = val.Type()
+		}
+	}
+	for k, t := range unionType.Types {
+		if typ == t {
+			return &Union{
+				typ:   decorator,
+				tag:   k,
+				value: val,
+			}, nil
+		}
+	}
+	return nil, fmt.Errorf("%q is not in union type %q", FormatType(typ), FormatType(unionType))
+}
+
+func (a *Analyzer) decoratePrimitive(val *Primitive, decorator super.Type) (Value, error) {
+	if enumType, ok := super.TypeUnder(decorator).(*super.TypeEnum); ok {
+		return a.decorateEnum(val, enumType, decorator)
+	}
+	if err := primitiveOk(val.typ, decorator); err != nil {
+		return nil, err
+	}
+	return &Primitive{typ: decorator, text: val.text}, nil
+}
+
+func primitiveOk(typ, decorator super.Type) error {
+	typID, castID := typ.ID(), decorator.ID()
+	if typID == castID ||
+		super.IsInteger(typID) && (super.IsInteger(castID) || super.IsFloat(castID)) ||
+		super.IsFloat(typID) && super.IsFloat(castID) {
+		return nil
+	}
+	return fmt.Errorf("type mismatch: %q cannot be used as %q", FormatType(typ), FormatType(decorator))
+}
+
+func (a *Analyzer) decorateEnum(val *Primitive, enumType *super.TypeEnum, decorator super.Type) (Value, error) {
+	if val.typ != super.TypeString {
+		return nil, fmt.Errorf("enum value must be string: %q", val.text)
+	}
+	if slices.Contains(enumType.Symbols, val.text) {
+		return &Enum{
+			typ:  decorator,
+			name: val.text,
+		}, nil
+	}
+	return nil, fmt.Errorf("symbol %q not a member of %s", val.text, FormatType(enumType))
+}
+
+func (a *Analyzer) decorateRecord(val *Record, decorator super.Type) (Value, error) {
+	typ, ok := super.TypeUnder(decorator).(*super.TypeRecord)
+	if !ok {
+		return nil, fmt.Errorf("record decorator not a record: %q", FormatType(decorator))
+	}
+	if len(val.fields) != len(typ.Fields) {
+		return nil, fmt.Errorf("record decorator incompatible with record value: %q", FormatType(typ))
+	}
+	fields := make([]Value, 0, len(val.fields))
+	for k, f := range val.fields {
+		val, err := a.decorate(f, typ.Fields[k].Type)
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, val)
+	}
+	return &Record{
+		typ:    decorator,
+		fields: fields,
+	}, nil
+}
+
+func (a Analyzer) decorateArray(array *Array, decorator super.Type) (Value, error) {
+	typ, ok := super.TypeUnder(decorator).(*super.TypeArray)
+	if !ok {
+		return nil, fmt.Errorf("set decorator not an array: %q", FormatType(decorator))
+	}
+	elems := make([]Value, 0, len(array.elems))
+	for _, elem := range array.elems {
+		v, err := a.decorate(elem, typ.Type)
+		if err != nil {
+			return nil, err
+		}
+		elems = append(elems, v)
+	}
+	return &Array{
+		typ:   decorator,
+		elems: elems,
+	}, nil
+}
+
+func (a Analyzer) decorateSet(set *Set, decorator super.Type) (Value, error) {
+	typ, ok := super.TypeUnder(decorator).(*super.TypeSet)
+	if !ok {
+		return nil, fmt.Errorf("set decorator not a set: %q", FormatType(decorator))
+	}
+	elems := make([]Value, 0, len(set.elems))
+	for _, elem := range set.elems {
+		v, err := a.decorate(elem, typ.Type)
+		if err != nil {
+			return nil, err
+		}
+		elems = append(elems, v)
+	}
+	return &Set{
+		typ:   decorator,
+		elems: elems,
+	}, nil
+}
+
+func (a Analyzer) decorateUnion(union *Union, decorator super.Type) (Value, error) {
+	unionType, ok := super.TypeUnder(decorator).(*super.TypeUnion)
+	if !ok {
+		return nil, fmt.Errorf("union decorator not a union: %q", FormatType(decorator))
+	}
+	val := Value(union)
+	if _, ok := union.Type().(*super.TypeNamed); !ok {
+		// When a union is inside a union and it's not a named type,
+		// the parent union is flattened and contains
+		// this union's elemental types, so we just pull out the value from the child
+		// union and cast it to the parent union.
+		// When the value is a named union, we match the value exactly to the union types
+		// since the named type won't be flattened in the union.
+		val = union.value
+	}
+	valType := val.Type()
+	if valType == unionType {
+		return val, nil
+	}
+	for k, typ := range unionType.Types {
+		if valType == typ {
+			return &Union{
+				typ:   decorator,
+				tag:   k,
+				value: val,
+			}, nil
+		}
+	}
+	return nil, fmt.Errorf("%q is not in union type %q", FormatType(valType), FormatType(unionType))
+}
+
+func (a Analyzer) decorateMap(m *Map, decorator super.Type) (Value, error) {
+	typ, ok := super.TypeUnder(decorator).(*super.TypeMap)
+	if !ok {
+		return nil, fmt.Errorf("map decorator not a map: %q", FormatType(decorator))
+	}
+	entries := make([]Entry, 0, len(m.entries))
+	for _, e := range m.entries {
+		key, err := a.decorate(e.key, typ.KeyType)
+		if err != nil {
+			return nil, err
+		}
+		val, err := a.decorate(e.value, typ.ValType)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, Entry{key, val})
+	}
+	return &Map{
+		typ:     decorator,
+		entries: entries,
+	}, nil
+}
+
+func (a Analyzer) decorateTypeValue(tv *TypeValue, decorator super.Type) (Value, error) {
+	if _, ok := super.TypeUnder(decorator).(*super.TypeOfType); !ok {
+		return nil, fmt.Errorf("cannot apply decorator (%q) to a type value", FormatType(decorator))
+	}
+	return &TypeValue{
+		typ:   decorator,
+		value: tv.value,
+	}, nil
+}
+
+func (a Analyzer) decorateError(val *Error, decorator super.Type) (Value, error) {
+	typ, ok := super.TypeUnder(decorator).(*super.TypeError)
+	if !ok {
+		return nil, fmt.Errorf("error decorator not an error type: %q", FormatType(decorator))
+	}
+	v, err := a.decorate(val.value, typ.Type)
+	if err != nil {
+		return nil, err
+	}
+	return &Error{
+		typ:   decorator,
+		value: v,
+	}, nil
+}
+
+func (a Analyzer) convertType(typ ast.Type) (super.Type, error) {
 	switch t := typ.(type) {
 	case *ast.TypePrimitive:
 		name := t.Name
@@ -626,115 +617,95 @@ func (a Analyzer) convertType(sctx *super.Context, typ ast.Type) (super.Type, er
 			return nil, fmt.Errorf("no such primitive type: %q", name)
 		}
 		return typ, nil
-	case *ast.TypeDef:
-		typ, err := a.convertType(sctx, t.Type)
-		if err != nil {
-			return nil, err
-		}
-		named, err := a.enterTypeDef(sctx, t.Name, typ)
-		if err != nil {
-			return nil, err
-		}
-		if named != nil {
-			typ = named
-		}
-		return typ, nil
 	case *ast.TypeRecord:
-		return a.convertTypeRecord(sctx, t)
+		return a.convertTypeRecord(t)
 	case *ast.TypeArray:
-		typ, err := a.convertType(sctx, t.Type)
+		typ, err := a.convertType(t.Type)
 		if err != nil {
 			return nil, err
 		}
-		return sctx.LookupTypeArray(typ), nil
+		return a.sctx.LookupTypeArray(typ), nil
 	case *ast.TypeSet:
-		typ, err := a.convertType(sctx, t.Type)
+		typ, err := a.convertType(t.Type)
 		if err != nil {
 			return nil, err
 		}
-		return sctx.LookupTypeSet(typ), nil
+		return a.sctx.LookupTypeSet(typ), nil
 	case *ast.TypeMap:
-		return a.convertTypeMap(sctx, t)
+		return a.convertTypeMap(t)
 	case *ast.TypeUnion:
-		return a.convertTypeUnion(sctx, t)
+		return a.convertTypeUnion(t)
 	case *ast.TypeEnum:
-		return a.convertTypeEnum(sctx, t)
+		return a.convertTypeEnum(t)
 	case *ast.TypeError:
-		typ, err := a.convertType(sctx, t.Type)
+		typ, err := a.convertType(t.Type)
 		if err != nil {
 			return nil, err
 		}
-		return sctx.LookupTypeError(typ), nil
-	case *ast.TypeName:
-		typ, ok := a[t.Name]
-		if !ok {
-			// We avoid the nil-interface bug here by assigning to named
-			// and then typ because assigning directly to typ will create
-			// a nin-nil interface pointer for a nil result.
-			named := sctx.LookupByName(t.Name)
-			if named == nil {
-				return nil, fmt.Errorf("no such type name: %q", t.Name)
-			}
-			typ = named
+		return a.sctx.LookupTypeError(typ), nil
+	case *ast.TypeRef:
+		typ := a.sctx.LookupByName(t.Name)
+		if typ == nil {
+			return nil, fmt.Errorf("no such type name: %q", t.Name)
 		}
 		return typ, nil
 	case *ast.TypeFusion:
-		typ, err := a.convertType(sctx, t.Type)
+		typ, err := a.convertType(t.Type)
 		if err != nil {
 			return nil, err
 		}
-		return sctx.LookupTypeFusion(typ), nil
+		return a.sctx.LookupTypeFusion(typ), nil
 	}
 	return nil, fmt.Errorf("unknown type in Analyzer.convertType: %T", typ)
 }
 
-func (a Analyzer) convertTypeRecord(sctx *super.Context, typ *ast.TypeRecord) (*super.TypeRecord, error) {
+func (a Analyzer) convertTypeRecord(typ *ast.TypeRecord) (*super.TypeRecord, error) {
 	fields := make([]super.Field, 0, len(typ.Fields))
 	for _, f := range typ.Fields {
-		typ, err := a.convertType(sctx, f.Type)
+		typ, err := a.convertType(f.Type)
 		if err != nil {
 			return nil, err
 		}
 		fields = append(fields, super.NewFieldWithOpt(f.Name, typ, f.Opt))
 	}
-	return sctx.LookupTypeRecord(fields)
+	return a.sctx.LookupTypeRecord(fields)
 }
 
-func (a Analyzer) convertTypeMap(sctx *super.Context, tmap *ast.TypeMap) (*super.TypeMap, error) {
-	keyType, err := a.convertType(sctx, tmap.KeyType)
+func (a Analyzer) convertTypeMap(tmap *ast.TypeMap) (*super.TypeMap, error) {
+	keyType, err := a.convertType(tmap.KeyType)
 	if err != nil {
 		return nil, err
 	}
-	valType, err := a.convertType(sctx, tmap.ValType)
+	valType, err := a.convertType(tmap.ValType)
 	if err != nil {
 		return nil, err
 	}
-	return sctx.LookupTypeMap(keyType, valType), nil
+	return a.sctx.LookupTypeMap(keyType, valType), nil
 }
 
 var errAnonUnion = errors.New("anonymous union inside union")
 
-func (a Analyzer) convertTypeUnion(sctx *super.Context, union *ast.TypeUnion) (*super.TypeUnion, error) {
+func (a Analyzer) convertTypeUnion(union *ast.TypeUnion) (*super.TypeUnion, error) {
 	var types []super.Type
 	for _, typ := range union.Types {
-		typ, err := a.convertType(sctx, typ)
+		typ, err := a.convertType(typ)
 		if err != nil {
 			return nil, err
 		}
 		types = append(types, typ)
 	}
-	out, ok := sctx.LookupTypeUnion(types)
+	out, ok := a.sctx.LookupTypeUnion(types)
 	if !ok {
 		return nil, errAnonUnion
 	}
 	return out, nil
 }
 
-func (a Analyzer) convertTypeEnum(sctx *super.Context, enum *ast.TypeEnum) (*super.TypeEnum, error) {
+func (a Analyzer) convertTypeEnum(enum *ast.TypeEnum) (*super.TypeEnum, error) {
 	if len(enum.Symbols) == 0 {
 		return nil, errors.New("enum body is empty")
 	}
-	return sctx.LookupTypeEnum(symbolsOfEnum(enum)), nil
+	return a.sctx.LookupTypeEnum(symbolsOfEnum(enum)), nil
 }
 
 func symbolsOfEnum(enum *ast.TypeEnum) []string {

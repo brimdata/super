@@ -1,11 +1,11 @@
-spq: values |[...a,...b]|
+spq: values set[...a,...b]
 
 vector: true
 
 input: |
-  {a:|[2,3]|,b:[2,1],c:"hi"}
+  {a:set[2,3],b:[2,1],c:"hi"}
   {a:[1,2],b:"hi"}
 
 output: |
-  |[1,2,3]|
-  |[1,2]|
+  set[1,2,3]
+  set[1,2]

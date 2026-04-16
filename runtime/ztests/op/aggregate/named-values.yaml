@@ -3,12 +3,14 @@ spq: count(), sum(this), min(this), max(this), avg(this), collect(this), any(thi
 vector: true
 
 input: | 
-  1::=named
-  2::=named
+  type named=int64
+  1::named
+  2::named
 
 output-flags: -pretty=4
 
 output: |
+  type named = int64
   {
       count: 2,
       sum: 3,
@@ -19,6 +21,6 @@ output: |
           1,
           2
       ],
-      any: 1::=named,
+      any: 1::named,
       dcount: 2
   }

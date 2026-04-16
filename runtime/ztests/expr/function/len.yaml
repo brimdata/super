@@ -20,17 +20,18 @@ input: |
   {x:{a:1,b:2}}
   []::[int64]
   [1,2]::[int64]
-  |[]|::|[int64]|
-  |{1:1}|::|{int64:int64}|
-  |[1,2]|::|[int64]|
-  |{1:1,2:2}|
+  set[]::set[int64]
+  map{1:1}::map{int64:int64}
+  set[1,2]::set[int64]
+  map{1:1,2:2}
   <int64>
   <type>
   <{x:int64,y:int64}>
   <int64|string>
   <[int64]>
   <[int64|string]>
-  <any=int64|string>
+  type any=int64|string
+  <any>
   error(null)
   error("")
   error("error")

@@ -1021,12 +1021,12 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 							&sem.FieldElem{
 								Node:  o.Expr,
 								Name:  "message",
-								Value: sem.NewLiteral(o, super.NewString("assertion failed")),
+								Value: sem.NewLiteral(o, super.NewString("assertion failed"), t.defs),
 							},
 							&sem.FieldElem{
 								Node:  o.Expr,
 								Name:  "expr",
-								Value: sem.NewLiteral(o, super.NewString(o.Text)),
+								Value: sem.NewLiteral(o, super.NewString(o.Text), t.defs),
 							},
 							&sem.FieldElem{
 								Node:  o.Expr,
@@ -1200,7 +1200,7 @@ func (t *translator) switchOp(op *ast.SwitchOp, seq sem.Seq, inType super.Type) 
 		if c.Expr != nil {
 			e, _ = t.expr(c.Expr, inType)
 		} else if op.Expr == nil {
-			e = sem.NewLiteral(op, super.True)
+			e = sem.NewLiteral(op, super.True, t.defs)
 		}
 		path, typ := t.seq(c.Path, inType)
 		types = append(types, typ)
@@ -1350,23 +1350,16 @@ func (t *translator) queryDecl(q *ast.QueryDecl) {
 }
 
 func (t *translator) typeDecl(d *ast.TypeDecl) {
-	typ, err := t.semType(d.Type)
+	id, err := t.types.BindType(d.Name.Name, d.Type)
 	if err != nil {
-		t.error(d.Type, err)
-		typ = "null"
-	}
-	e := &sem.PrimitiveExpr{
-		Node:  d.Name,
-		Value: fmt.Sprintf("<%s=%s>", sup.QuotedName(d.Name.Name), typ),
-	}
-	val, ok := t.mustEval(e)
-	if !ok {
-		// When this fails (e.., type redeclared), the error is already logged
-		// so we just return here.
+		t.error(d.Name, err)
 		return
 	}
-	e.Value = sup.FormatValue(val)
-	if err := t.scope.BindSymbol(d.Name.Name, e); err != nil {
+	typeRef := &sem.TypeExpr{
+		Node: d.Type,
+		ID:   id,
+	}
+	if err := t.scope.BindSymbol(d.Name.Name, typeRef); err != nil {
 		t.error(d.Name, err)
 	}
 }
@@ -1774,7 +1767,7 @@ func (t *translator) mustEvalConst(e sem.Expr) sem.Expr {
 	if !ok {
 		return badExpr
 	}
-	return sem.NewLiteral(e, val)
+	return sem.NewLiteral(e, val, t.defs)
 }
 
 // mustEval leaves errors on the reporter and returns a bool as to whether

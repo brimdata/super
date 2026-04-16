@@ -49,12 +49,14 @@ spq: cut ports:=id, resp_p:=quiet(id.resp_p)
 vector: true
 
 input: |
-  {id:{orig_p:1::(port=uint16),resp_p:2::port}}
-  {id:[3::(port=uint16),4::port]}
+  type port=uint16
+  {id:{orig_p:1::port,resp_p:2::port}}
+  {id:[3::port,4::port]}
 
 output: |
-  {ports:{orig_p:1::(port=uint16),resp_p:2::port},resp_p:2::port}
-  {ports:[3::(port=uint16),4::port]}
+  type port=uint16
+  {ports:{orig_p:1::port,resp_p:2::port},resp_p:2::port}
+  {ports:[3::port,4::port]}
 
 ---
 

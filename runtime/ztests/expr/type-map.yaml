@@ -1,10 +1,10 @@
 spq: |
   type conn = {_path:string, id:{src:ip,dst:ip}, etc:string}
   type dns = {_path:string, id:{src:ip,dst:ip}, query:string, query_size:uint64}
-  const schemas = |{
+  const schemas = map{
     "conn": conn,
     "dns": dns
-  }|
+  }
   switch missing(schemas[_path]) 
     case false ( cut schema:=schemas[_path] )
     case true  ( put _UNCLASSIFIED:=true )
@@ -20,8 +20,10 @@ input: |
   {y:"has no _path"}
 
 output: |
-  {schema:<conn={_path:string,id:{src:ip,dst:ip},etc:string}>}
-  {schema:<conn={_path:string,id:{src:ip,dst:ip},etc:string}>}
-  {schema:<dns={_path:string,id:{src:ip,dst:ip},query:string,query_size:uint64}>}
+  type conn={_path:string,id:{src:ip,dst:ip},etc:string}
+  {schema:<conn>}
+  {schema:<conn>}
+  type dns={_path:string,id:{src:ip,dst:ip},query:string,query_size:uint64}
+  {schema:<dns>}
   {y:"has no _path",_UNCLASSIFIED:true}
   {_path:"unknown",x:"has unknown _path",_UNCLASSIFIED:true}

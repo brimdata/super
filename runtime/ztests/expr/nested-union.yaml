@@ -6,6 +6,6 @@ input: |
   {}
 
 error: |
-  anonymous union inside union at line 1, column 8:
+  anonymous union inside union at line 1, column 10:
   values <((int64|bool)|(int64|string))>
-         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~

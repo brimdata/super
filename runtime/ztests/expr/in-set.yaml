@@ -1,4 +1,4 @@
-spq: a in |[1,2,3]|
+spq: a in set[1,2,3]
 
 vector: true
 

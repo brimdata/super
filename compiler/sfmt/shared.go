@@ -55,9 +55,9 @@ func (s *shared) typ(t ast.Type) {
 		s.typ(t.Type)
 		s.write("]")
 	case *ast.TypeSet:
-		s.write("|[")
+		s.write("set[")
 		s.typ(t.Type)
-		s.write("]|")
+		s.write("]")
 	case *ast.TypeUnion:
 		s.write("(")
 		s.types(t.Types, "|")
@@ -67,16 +67,12 @@ func (s *shared) typ(t ast.Type) {
 		// be different than SUP, requiring some ast adjustments.
 		s.write("TBD:ENUM")
 	case *ast.TypeMap:
-		s.write("|{")
+		s.write("map{")
 		s.typ(t.KeyType)
 		s.write(":")
 		s.typ(t.ValType)
-		s.write("}|")
-	case *ast.TypeDef:
-		s.write("%s=(", t.Name)
-		s.typ(t.Type)
-		s.write(")")
-	case *ast.TypeName:
+		s.write("}")
+	case *ast.TypeRef:
 		s.write(t.Name)
 	case *ast.TypeError:
 		s.write("error(")

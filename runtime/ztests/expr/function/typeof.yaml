@@ -3,65 +3,26 @@ spq: typeof(this)
 vector: true
 
 input: |
-  {
-      info: "Connection Example",
-      src: {
-          addr: 10.1.1.2,
-          port: 80::uint16
-      }::=socket,
-      dst: {
-          addr: 10.0.1.2,
-          port: 20130
-      }::socket
-  }::=conn
-  {
-      info: "Connection Example 2",
-      src: {
-          addr: 10.1.1.8,
-          port: 80::uint16
-      }::=socket,
-      dst: {
-          addr: 10.1.2.88,
-          port: 19801
-      }::socket
-  }::=conn
+  type socket={addr:ip,port:uint16}
+  type conn={info:string,src:socket,dst:socket}
+  {info:"Connection Example",src:{addr:10.1.1.2,port:80},dst:{addr:10.0.1.2,port:20130}}::conn
+  {info:"Connection Example 2",src:{addr:10.1.1.8,port:80},dst:{addr:10.1.2.88,port:19801}}::conn
   null
-  {
-      info: "Access List Example",
-      nets: [
-          10.1.1.0/24,
-          10.1.2.0/24
-      ]
-  }::=access_list
-  {
-      metric: "A",
-      ts: 2020-11-24T16:44:09.586441Z,
-      value: 120
-  }
-  {
-      metric: "B",
-      ts: 2020-11-24T16:44:20.726057Z,
-      value: 0.86
-  }
-  {
-      metric: "A",
-      ts: 2020-11-24T16:44:32.201458Z,
-      value: 126
-  }
-  {
-      metric: "C",
-      ts: 2020-11-24T16:44:43.547506Z,
-      value: {
-          x: 10,
-          y: 101
-      }
-  }
+  type access_list={info:string,nets:[net]}
+  {info:"Access List Example",nets:[10.1.1.0/24,10.1.2.0/24]}::access_list
+  {metric:"A",ts:2020-11-24T16:44:09.586441Z,value:120}
+  {metric:"B",ts:2020-11-24T16:44:20.726057Z,value:0.86}
+  {metric:"A",ts:2020-11-24T16:44:32.201458Z,value:126}
+  {metric:"C",ts:2020-11-24T16:44:43.547506Z,value:{x:10,y:101}}
 
 output: |
-  <conn={info:string,src:socket={addr:ip,port:uint16},dst:socket}>
-  <conn={info:string,src:socket={addr:ip,port:uint16},dst:socket}>
+  type socket={addr:ip,port:uint16}
+  type conn={info:string,src:socket,dst:socket}
+  <conn>
+  <conn>
   <null>
-  <access_list={info:string,nets:[net]}>
+  type access_list={info:string,nets:[net]}
+  <access_list>
   <{metric:string,ts:time,value:int64}>
   <{metric:string,ts:time,value:float64}>
   <{metric:string,ts:time,value:int64}>

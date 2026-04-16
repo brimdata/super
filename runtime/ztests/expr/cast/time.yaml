@@ -8,7 +8,8 @@ input: |
   "2015-03-05T16:07:13.154566+01:00"
   "1/2/2020"
   "12 Feb 2006 19:17"
-  "1e18"::=named
+  type named=string
+  "1e18"::named
   "foo"
   -1e9
   1
@@ -18,8 +19,8 @@ input: |
   error("bad")
   {x:1}
   [1,2]
-  |[1,2]|
-  |{"x":1}|
+  set[1,2]
+  map{"x":1}
   "e2"::enum(e1,e2)
 
 output: |
@@ -38,6 +39,6 @@ output: |
   error("bad")
   error({message:"cannot cast to time",on:{x:1}})
   error({message:"cannot cast to time",on:[1,2]})
-  error({message:"cannot cast to time",on:|[1,2]|})
-  error({message:"cannot cast to time",on:|{"x":1}|})
+  error({message:"cannot cast to time",on:set[1,2]})
+  error({message:"cannot cast to time",on:map{"x":1}})
   error({message:"cannot cast to time",on:"e2"::enum(e1,e2)})

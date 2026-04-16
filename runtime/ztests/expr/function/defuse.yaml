@@ -25,7 +25,9 @@ spq: fuse | defuse(this)
 
 input: &input |
   {a:{b:1}}
-  {a:{b:1,c:2}::=n1}::=n2
+  type n1={b:int64,c:int64}
+  type n2={a:n1}
+  {a:{b:1,c:2}}::n2
 
 output: *input
 
@@ -34,14 +36,33 @@ output: *input
 spq: fuse | defuse(this)
 
 input: &input |
-  1::=p1
-  {a:{b:1::=r1}::=r2}::=r3
-  [[1::=a1]::=a2]::=a3
-  |[|[1::=s1]|::=s2]|::=s3
-  |{1::=m1:2::=m2}|::=m3
-  "a"::(en1=enum(a,b))
-  1::=u1::(u2=u1|(u3=string))
-  error(1::=er1)::=er2
+  type p1=int64
+  1::p1
+  type r1=int64
+  type r2={b:r1}
+  type r3={a:r2}
+  {a:{b:1}}::r3
+  type a1=int64
+  type a2=[a1]
+  type a3=[a2]
+  [[1]]::"a3"
+  type s1=int64
+  type s2=set[s1]
+  type s3=set[s2]
+  set[set[1]]::s3
+  type m1=int64
+  type m2=int64
+  type m3=map{m1:m2}
+  map{1:2}::m3
+  type en1=enum(a,b)
+  "a"::en1
+  type u1=int64
+  type u3=string
+  type u2=u1|u3
+  1::u1::u2
+  type er1=int64
+  type er2=error(er1)
+  error(1)::er2
 
 output: *input
 
@@ -50,13 +71,29 @@ output: *input
 spq: fuse | defuse(this)
 
 input: &input |
-  1::=p1
-  {a:{b:1::=r1}::=r2}::=r3
-  [[1::=a1]::=a2]::=a3
-  |[|[1::=s1]|::=s2]|::=s3
-  |{1::=m1:2::=m2}|::=m3
-  "a"::(en1=enum(a,b))
-  error(1::=er1)::=er2
+  type p1=int64
+  1::p1
+  type r1=int64
+  type r2={b:r1}
+  type r3={a:r2}
+  {a:{b:1}}::r3
+  type a1=int64
+  type a2=[a1]
+  type a3=[a2]
+  [[1]]::"a3"
+  type s1=int64
+  type s2=set[s1]
+  type s3=set[s2]
+  set[set[1]]::s3
+  type m1=int64
+  type m2=int64
+  type m3=map{m1:m2}
+  map{1:2}::m3
+  type en1=enum(a,b)
+  "a"::en1
+  type er1=int64
+  type er2=error(er1)
+  error(1)::er2
 
 output: *input
 

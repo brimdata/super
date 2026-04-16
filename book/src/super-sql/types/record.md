@@ -102,11 +102,13 @@ _A record literal with casts_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values {b:true,u:1::uint8,a:[1,2,3],s:"hello"::=CustomString}
+type CustomString=string
+values {b:true,u:1::uint8,a:[1,2,3],s:"hello"::CustomString}
 # input
 
 # expected output
-{b:true,u:1::uint8,a:[1,2,3],s:"hello"::=CustomString}
+type CustomString=string
+{b:true,u:1::uint8,a:[1,2,3],s:"hello"::CustomString}
 ```
 
 ---

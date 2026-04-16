@@ -1,14 +1,19 @@
 script: |
   super -s -c "typeof(this)" in.sup
-  super -s -c 'typeof([1::(foo=int64),"bar"])'
+  echo ===
+  super -s -c 'type foo=int64 typeof([1::foo,"bar"])'
 
 inputs:
   - name: in.sup
     data: |
-      [1::=foo,"bar"]
+      type foo=int64
+      [1::foo,"bar"]
 
 outputs:
   - name: stdout
     data: |
-      <[(foo=int64)|string]>
-      <[(foo=int64)|string]>
+      type foo=int64
+      <[foo|string]>
+      ===
+      type foo=int64
+      <[foo|string]>

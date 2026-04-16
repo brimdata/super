@@ -17,10 +17,10 @@ input: |
   -,z,a,,dup,dup
 
 output: |
-  {f:null::(null||[string|null]|)}
-  {f:|[]|::|[string|null]|::(null||[string|null]|)}
-  {f:|["dup"]|::|[string|null]|::(null||[string|null]|)}
-  {f:|[""]|::|[string|null]|::(null||[string|null]|)}
-  {f:|["a","z"]|::|[string|null]|::(null||[string|null]|)}
-  {f:|["a","z"]|::|[string|null]|::(null||[string|null]|)}
-  {f:|["","a","z",null,"dup"]|::(null||[string|null]|)}
+  {f:null::(null|set[string|null])}
+  {f:set[]::set[string|null]::(null|set[string|null])}
+  {f:set["dup"]::set[string|null]::(null|set[string|null])}
+  {f:set[""]::set[string|null]::(null|set[string|null])}
+  {f:set["a","z"]::set[string|null]::(null|set[string|null])}
+  {f:set["a","z"]::set[string|null]::(null|set[string|null])}
+  {f:set["","a","z",null,"dup"]::(null|set[string|null])}

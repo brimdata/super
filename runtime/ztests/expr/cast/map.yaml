@@ -1,11 +1,11 @@
 spq: |
-  values this::|{int64:|{string:int64}|}|
+  values this::map{int64:map{string:int64}}
 
 vector: true
 
 input: |
-  |{}|
-  |{1:|{"2":3,4:"5"}|,"7":8,"9":|{10:[],[]:11,null:null}|}|
+  map{}
+  map{1:map{"2":3,4:"5"},"7":8,"9":map{10:[],[]:11,null:null}}
   null
   null::({}|null)
   1
@@ -13,10 +13,10 @@ input: |
   error("bad")
 
 output: |
-  |{}|
-  |{1:|{"2":3,"4":5}|,7:error({message:"cannot cast to |{string:int64}|",on:8}),9:|{null:null,"10":error({message:"cannot cast to int64",on:[]::[none]}),"[]":11}|}|
-  null::(null||{int64:|{string:int64}|}|)
-  null::(null||{int64:|{string:int64}|}|)
-  error({message:"cannot cast to |{int64:|{string:int64}|}|",on:1})
-  error({message:"cannot cast to |{int64:|{string:int64}|}|",on:"e2"::enum(e1,e2)})
+  map{}
+  map{1:map{"2":3,"4":5},7:error({message:"cannot cast to map{string:int64}",on:8}),9:map{null:null,"10":error({message:"cannot cast to int64",on:[]}),"[]":11}}
+  null::(null|map{int64:map{string:int64}})
+  null::(null|map{int64:map{string:int64}})
+  error({message:"cannot cast to map{int64:map{string:int64}}",on:1})
+  error({message:"cannot cast to map{int64:map{string:int64}}",on:"e2"::enum(e1,e2)})
   error("bad")

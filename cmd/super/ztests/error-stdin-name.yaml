@@ -4,8 +4,9 @@ script: |
 inputs:
   - name: stdin
     data: |
-      {a:1}::=0
-      {b:2}::1
+      type "0"={a:int64}
+      {a:1}::"0"
+      {b:2}::"1"
 
 outputs:
   - name: stderr

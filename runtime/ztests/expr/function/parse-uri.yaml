@@ -38,7 +38,7 @@ output: |
       host: "host",
       port: 12345::uint16,
       path: "/path",
-      query: |{
+      query: map{
         "a": [
           "1",
           "2"
@@ -49,7 +49,7 @@ output: |
         "c": [
           ""
         ]
-      }|,
+      },
       fragment: "fragment"
     }
   }

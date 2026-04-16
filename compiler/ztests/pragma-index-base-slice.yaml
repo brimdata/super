@@ -16,13 +16,13 @@ vector: true
 
 input: |
   {a:[1,2,3],from:1,to:3}
-  {a:|[1,2,3]|,from:-2,to:-1}
+  {a:set[1,2,3],from:-2,to:-1}
   {a:"123",from:1,to:3}
 
 output: |
   {s:"base0",from:[2,3],to:[1,2,3],both:[2,3]}
-  {s:"base0",from:|[2,3]|,to:|[1,2]|,both:|[2]|}
+  {s:"base0",from:set[2,3],to:set[1,2],both:set[2]}
   {s:"base0",from:"23",to:"123",both:"23"}
   {s:"base1",from:[1,2,3],to:[1,2],both:[1,2]}
-  {s:"base1",from:|[2,3]|,to:|[1,2]|,both:|[2]|}
+  {s:"base1",from:set[2,3],to:set[1,2],both:set[2]}
   {s:"base1",from:"123",to:"12",both:"12"}

@@ -4,13 +4,13 @@ vector: true
 
 input: |
   ["foo","bar",null]
-  |["foo","bar",null]|
+  set["foo","bar",null]
   "invalid"
   null
 
 output: |
   ["FOO","BAR",null]
-  |[null,"BAR","FOO"]|
+  set[null,"BAR","FOO"]
   error({message:"map: expected array or set value",on:"invalid"})
   null
   

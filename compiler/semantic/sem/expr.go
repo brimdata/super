@@ -121,6 +121,10 @@ type (
 		ast.Node
 		Path []string
 	}
+	TypeExpr struct {
+		ast.Node
+		ID int
+	}
 	UnaryExpr struct {
 		ast.Node
 		Op      string
@@ -159,7 +163,7 @@ type (
 	NoneElem struct {
 		ast.Node
 		Name string
-		Type Expr
+		Type int
 	}
 	SpreadElem struct {
 		ast.Node
@@ -198,6 +202,7 @@ func (*SetExpr) exprNode()          {}
 func (*SliceExpr) exprNode()        {}
 func (*SubqueryExpr) exprNode()     {}
 func (*ThisExpr) exprNode()         {}
+func (*TypeExpr) exprNode()         {}
 func (*UnaryExpr) exprNode()        {}
 
 // FuncRef is a pseudo-expression that represents a function reference as a value.
@@ -249,7 +254,7 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 		Elems: []RecordElem{
 			&FieldElem{
 				Name:  "message",
-				Value: NewLiteral(n, super.NewString(message)),
+				Value: NewLiteral(n, super.NewString(message), nil),
 			},
 			&FieldElem{
 				Name:  "on",
@@ -265,14 +270,24 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 }
 
 func NewStringError(n ast.Node, message string) Expr {
-	return NewCall(n, "error", []Expr{NewLiteral(n, super.NewString(message))})
+	return NewCall(n, "error", []Expr{NewLiteral(n, super.NewString(message), nil)})
 }
 
-func NewLiteral(n ast.Node, val super.Value) Expr {
+func NewLiteral(n ast.Node, val super.Value, defs *super.Context) Expr {
+	if val.Type() == super.TypeType {
+		typ, err := defs.LookupByValue(val.Bytes())
+		if err != nil {
+			panic(err)
+		}
+		return &TypeExpr{
+			Node: n,
+			ID:   super.TypeID(typ),
+		}
+	}
 	if super.IsPrimitiveType(val.Type()) {
 		return &PrimitiveExpr{Node: n, Value: sup.FormatValue(val)}
 	}
-	return valueToExpr(n, val.Type(), val.Bytes())
+	return valueToExpr(n, val.Type(), val.Bytes(), defs)
 }
 
 func CopyExpr(e Expr) Expr {
@@ -355,6 +370,7 @@ func CopyExpr(e Expr) Expr {
 			Node:    e.Node,
 			Entries: entries,
 		}
+		//XXX can we change primitive expr to not have types?
 	case *PrimitiveExpr:
 		return &PrimitiveExpr{
 			Node:  e.Node,
@@ -434,6 +450,11 @@ func CopyExpr(e Expr) Expr {
 			Node: e.Node,
 			Path: slices.Clone(e.Path),
 		}
+	case *TypeExpr:
+		return &TypeExpr{
+			Node: e.Node,
+			ID:   e.ID,
+		}
 	case *UnaryExpr:
 		return &UnaryExpr{
 			Node:    e.Node,
@@ -474,8 +495,18 @@ func copyArrayElems(elems []ArrayElem) []ArrayElem {
 	return out
 }
 
-func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes) Expr {
+func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes, defs *super.Context) Expr {
 	if super.IsPrimitiveType(typ) {
+		if super.TypeUnder(typ) == super.TypeType {
+			t, err := defs.LookupByValue(bytes)
+			if err != nil {
+				panic(err)
+			}
+			return &TypeExpr{
+				Node: loc,
+				ID:   super.TypeID(t),
+			}
+		}
 		return &PrimitiveExpr{
 			Node:  loc,
 			Value: sup.FormatValue(super.NewValue(typ, bytes)),
@@ -483,26 +514,27 @@ func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes) Expr {
 	}
 	switch typ := typ.(type) {
 	case *super.TypeNamed:
-		return NewCast(loc, valueToExpr(loc, typ.Type, bytes), typ)
+		_, _ = defs.LookupTypeNamed(typ.Name, typ.Type)
+		return NewCast(loc, valueToExpr(loc, typ.Type, bytes, defs), typ, defs)
 	case *super.TypeRecord:
-		return recordToExpr(loc, typ, bytes)
+		return recordToExpr(loc, typ, bytes, defs)
 	case *super.TypeArray:
-		return arrayToExpr(loc, typ, bytes)
+		return arrayToExpr(loc, typ, bytes, defs)
 	case *super.TypeSet:
-		return setToExpr(loc, typ, bytes)
+		return setToExpr(loc, typ, bytes, defs)
 	case *super.TypeUnion:
-		return unionToExpr(loc, typ, bytes)
+		return unionToExpr(loc, typ, bytes, defs)
 	case *super.TypeMap:
-		return mapToExpr(loc, typ, bytes)
+		return mapToExpr(loc, typ, bytes, defs)
 	case *super.TypeError:
-		args := []Expr{valueToExpr(loc, typ.Type, bytes)}
+		args := []Expr{valueToExpr(loc, typ.Type, bytes, defs)}
 		return NewCall(loc, "error", args)
 	default:
 		panic(typ)
 	}
 }
 
-func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
+func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes, defs *super.Context) Expr {
 	var elems []RecordElem
 	it := scode.NewRecordIter(bytes, typ.Opts)
 	for _, f := range typ.Fields {
@@ -511,9 +543,10 @@ func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
 		}
 		var elem RecordElem
 		if val, none := it.Next(f.Opt); none {
-			elem = &NoneElem{Node: loc, Name: f.Name, Type: NewLiteral(loc, super.NewTypeValue(typ))}
+			localRec := defs.MustLookupTypeRecord(typ.Fields)
+			elem = &NoneElem{Node: loc, Name: f.Name, Type: super.TypeID(localRec)}
 		} else {
-			elem = &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, val), Opt: f.Opt}
+			elem = &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, val, defs), Opt: f.Opt}
 		}
 		elems = append(elems, elem)
 	}
@@ -523,11 +556,11 @@ func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
 	}
 }
 
-func arrayToExpr(loc ast.Node, typ *super.TypeArray, bytes scode.Bytes) Expr {
+func arrayToExpr(loc ast.Node, typ *super.TypeArray, bytes scode.Bytes, defs *super.Context) Expr {
 	var elems []ArrayElem
 	inner := super.InnerType(typ)
 	for it := bytes.Iter(); !it.Done(); {
-		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next())})
+		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next(), defs)})
 	}
 	return &ArrayExpr{
 		Node:  loc,
@@ -535,12 +568,12 @@ func arrayToExpr(loc ast.Node, typ *super.TypeArray, bytes scode.Bytes) Expr {
 	}
 }
 
-func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes) Expr {
+func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes, defs *super.Context) Expr {
 	var elems []ArrayElem
 	inner := super.InnerType(typ)
 
 	for it := bytes.Iter(); !it.Done(); {
-		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next())})
+		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next(), defs)})
 	}
 	return &SetExpr{
 		Node:  loc,
@@ -548,18 +581,18 @@ func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes) Expr {
 	}
 }
 
-func unionToExpr(loc ast.Node, typ *super.TypeUnion, bytes scode.Bytes) Expr {
+func unionToExpr(loc ast.Node, typ *super.TypeUnion, bytes scode.Bytes, defs *super.Context) Expr {
 	innerType, innerBytes := typ.Untag(bytes)
-	return NewCast(loc, valueToExpr(loc, innerType, innerBytes), typ)
+	return NewCast(loc, valueToExpr(loc, innerType, innerBytes, defs), typ, defs)
 }
 
-func mapToExpr(loc ast.Node, typ *super.TypeMap, bytes scode.Bytes) Expr {
+func mapToExpr(loc ast.Node, typ *super.TypeMap, bytes scode.Bytes, defs *super.Context) Expr {
 	keyType := super.TypeUnder(typ.KeyType)
 	valType := super.TypeUnder(typ.ValType)
 	var entries []Entry
 	for it := bytes.Iter(); !it.Done(); {
-		key := valueToExpr(loc, keyType, it.Next())
-		val := valueToExpr(loc, valType, it.Next())
+		key := valueToExpr(loc, keyType, it.Next(), defs)
+		val := valueToExpr(loc, valType, it.Next(), defs)
 		entries = append(entries, Entry{Key: key, Value: val})
 
 	}
@@ -569,7 +602,7 @@ func mapToExpr(loc ast.Node, typ *super.TypeMap, bytes scode.Bytes) Expr {
 	}
 }
 
-func NewCast(loc ast.Node, e Expr, typ super.Type) Expr {
-	args := []Expr{e, NewLiteral(loc, super.NewTypeValue(typ))}
+func NewCast(loc ast.Node, e Expr, typ super.Type, defs *super.Context) Expr {
+	args := []Expr{e, NewLiteral(loc, super.NewTypeValue(typ), defs)}
 	return NewCall(loc, "cast", args)
 }

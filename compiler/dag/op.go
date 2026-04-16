@@ -18,6 +18,7 @@ import (
 )
 
 type Main struct {
+	Types []byte     `json:"types"`
 	Funcs []*FuncDef `json:"funcs"`
 	Body  Seq        `json:"body"`
 }

@@ -1,4 +1,4 @@
-spq: "values [v], |[v]|, |{k:v}|"
+spq: "values [v], set[v], map{k:v}"
 
 vector: true
 
@@ -7,5 +7,5 @@ input: |
 
 output: |
   ["foo"]::[int64|string]
-  |["foo"]|::|[int64|string]|
-  |{1:"foo"}|::|{int64:int64|string}|
+  set["foo"]::set[int64|string]
+  map{1:"foo"}::map{int64:int64|string}

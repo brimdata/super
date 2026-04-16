@@ -18,5 +18,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {len:1,union:|["a","d","e"]|}
-      {len:2,union:|["ab","bc"]|}
+      {len:1,union:set["a","d","e"]}
+      {len:2,union:set["ab","bc"]}

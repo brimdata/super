@@ -231,7 +231,7 @@ func TestUnmarshalNull(t *testing.T) {
 		require.NoError(t, sup.UnmarshalBSUP(super.Null, &m))
 		assert.Nil(t, m)
 		m = map[string]string{"key": "value"}
-		val := sup.MustParseValue(super.NewContext(), "null::(null||{string:string}|)")
+		val := sup.MustParseValue(super.NewContext(), "null::(null|map{string:string})")
 		require.NoError(t, sup.UnmarshalBSUP(val, &m))
 		assert.Nil(t, m)
 	})
@@ -441,18 +441,18 @@ func TestInterfaceBSUPMarshal(t *testing.T) {
 	m.Decorate(sup.StylePackage)
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "sup_test.ThingTwo={c:string}", sup.String(zv.Type()))
+	assert.Equal(t, `"sup_test.ThingTwo"`, sup.String(zv.Type()))
 
 	m.Decorate(sup.StyleSimple)
 	rolls := Rolls{1, 2, 3}
 	zv, err = m.Marshal(rolls)
 	require.NoError(t, err)
-	assert.Equal(t, "Rolls=[int64]", sup.String(zv.Type()))
+	assert.Equal(t, "Rolls", sup.String(zv.Type()))
 
 	m.Decorate(sup.StyleFull)
 	zv, err = m.Marshal(rolls)
 	require.NoError(t, err)
-	assert.Equal(t, `"github.com/brimdata/super/sup_test.Rolls"=[int64]`, sup.String(zv.Type()))
+	assert.Equal(t, `"github.com/brimdata/super/sup_test.Rolls"`, sup.String(zv.Type()))
 
 	plain := []int32{1, 2, 3}
 	zv, err = m.Marshal(plain)
@@ -466,7 +466,7 @@ func TestInterfaceUnmarshal(t *testing.T) {
 	m.Decorate(sup.StylePackage)
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "sup_test.BSUPThing={a:string,B:int64}", sup.String(zv.Type()))
+	assert.Equal(t, `"sup_test.BSUPThing"`, sup.String(zv.Type()))
 
 	u := sup.NewBSUPUnmarshaler()
 	u.Bind(BSUPThing{}, ThingTwo{})
@@ -499,7 +499,7 @@ func TestBindings(t *testing.T) {
 	})
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "SpecialThingOne={a:string,B:int64}", sup.String(zv.Type()))
+	assert.Equal(t, "SpecialThingOne", sup.String(zv.Type()))
 
 	u := sup.NewBSUPUnmarshaler()
 	u.NamedBindings([]sup.Binding{
@@ -540,7 +540,7 @@ func TestNamedNormal(t *testing.T) {
 
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "CustomInt8=int8", sup.String(zv.Type()))
+	assert.Equal(t, "CustomInt8", sup.String(zv.Type()))
 
 	var actual CustomInt8
 	u := sup.NewBSUPUnmarshaler()
@@ -573,7 +573,7 @@ func TestEmbeddedInterface(t *testing.T) {
 	m.Decorate(sup.StyleSimple)
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "EmbeddedA={A:BSUPThing={a:string,B:int64}}", sup.String(zv.Type()))
+	assert.Equal(t, "EmbeddedA", sup.String(zv.Type()))
 
 	u := sup.NewBSUPUnmarshaler()
 	u.Bind(BSUPThing{}, ThingTwo{})

@@ -4,13 +4,18 @@ vector: true
 
 input: |
   {x:1}
-  {x:1}::=foo1
-  null::=foo2
-  <foo3={x:int64}>
-  <{x:int64}>::=bar1
+  type foo1={x:int64}
+  {x:1}::foo1
+  type foo2=null
+  null::foo2
+  type foo3={x:int64}
+  <foo3>
+  type bar1=type
+  <{x:int64}>::bar1
   {y:1}
   {x:"foo",y:1,z:2}
-  {x:"foo",y:1,z:2}::=bar2
+  type bar2={x:string,y:int64,z:int64}
+  {x:"foo",y:1,z:2}::bar2
   <{x:string,y:int64,z:int64}>
   null
 

@@ -4,7 +4,7 @@ script: |
   super compile -C "values {x:1,s:'foo'}::{x:string,s:string}"
   super compile -C "values 3.3.3.0/24::net, ::1/128::net, 2::/16::net"
   super compile -C "values 3.3.3.3::ip, ::::ip, 2::::ip, (::)::ip, (2::)::ip"
-  super compile -C "values 80::(port=uint16)"
+  super compile -C "type port=uint16 values 80::port"
   super compile -C "values 123::uint16::(uint16|float64)"
   echo ===
   # IP6 addresses can collide with type names that happen to be hex strings 
@@ -22,10 +22,11 @@ outputs:
       values {x:1,s:"foo"}::<{x:string,s:string}>
       values 3.3.3.0/24::<net>, ::1/128::<net>, 2::/16::<net>
       values 3.3.3.3::<ip>, ::::<ip>, 2::::<ip>, ::::<ip>, 2::::<ip>
-      values 80::<port=(uint16)>
+      type port = uint16
+      values 80::<port>
       values 123::<uint16>::<(uint16|float64)>
       ===
       type ff = int64
-      values 1::ff, 1::<ff>, 1::ff
+      values 1::ff, 1::<ff>, 1::<ff>
       ===
       values cast(x, typeof(y))

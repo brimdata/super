@@ -24,8 +24,8 @@ inputs:
 outputs:
   - name: union.sup
     data: |
-      {key:"a",union:|[1::int32,-1::int32,8::int32]|}
-      {key:"b",union:|[1::int32,2::int32]|}
+      {key:"a",union:set[1::int32,-1::int32,8::int32]}
+      {key:"b",union:set[1::int32,2::int32]}
   - name: collect.sup
     data: |
       {key:"a",collect:[1::int32,-1::int32,8::int32]}

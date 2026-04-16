@@ -38,47 +38,67 @@ script: |
 inputs:
   - name: in.sup
     data: |
+      type myuint8=uint8
+      type myuint16=uint16
+      type myuint32=uint32
+      type myuint64=uint64
+      type myint8=int8
+      type myint16=int16
+      type myint32=int32
+      type myint64=int64
+      type myduration=duration
+      type mytime=time
+      type myfloat64=float64
+      type mybool=bool
+      type mybytes=bytes
+      type mystring=string
+      type myip=ip
+      type mynet=net
+      type myerror=error(string)
+      type mynull=null
+      type primitives={u8:myuint8,u16:myuint16,u32:myuint32,u64:myuint64,i8:myint8,i16:myint16,i32:myint32,i64:myint64,dur:myduration,tim:mytime,f64:myfloat64,false:mybool,true:bool,byt:mybytes,str:mystring,ip:myip,net:mynet,err:myerror,nul:mynull}
       {
-        u8: 0::myuint8=uint8,
-        u16: 0::myuint16=uint16,
-        u32: 0::myuint32=uint32,
-        u64: 0::myuint64=uint64,
-        i8: 0::myint8=int8,
-        i16: 0::myint16=int16,
-        i32: 0::myint32=int32,
-        i64: 0::=myint64,
-        dur: 0s::=myduration,
-        tim: 1970-01-01T00:00:00Z::=mytime,
-        f64: 0.::=myfloat64,
-        false: false::=mybool,
+        u8: 0::myuint8,
+        u16: 0::myuint16,
+        u32: 0::myuint32,
+        u64: 0::myuint64,
+        i8: 0::myint8,
+        i16: 0::myint16,
+        i32: 0::myint32,
+        i64: 0::myint64,
+        dur: 0s::myduration,
+        tim: 1970-01-01T00:00:00Z::mytime,
+        f64: 0.::myfloat64,
+        false: false::mybool,
         true: true,
-        byt: 0x00::=mybytes,
-        str: ""::=mystring,
-        ip: 0.0.0.0::=myip,
-        net: 0.0.0.0/0::=mynet,
-        err: error("")::=myerror,
-        nul: null::mynull=null
-      }::=primitives
+        byt: 0x00::mybytes,
+        str: ""::mystring,
+        ip: 0.0.0.0::myip,
+        net: 0.0.0.0/0::mynet,
+        err: error("")::myerror,
+        nul: null::mynull
+      }::primitives
+      type primitives2={u8:myuint8,u16:myuint16,u32:myuint32,u64:myuint64,i8:myint8,i16:myint16,i32:myint32,i64:myint64,dur:myduration,tim:mytime,f64:myfloat64,boo:mybool,byt:mybytes,str:mystring,ip:myip,net:mynet,err:myerror,nul:mynull}
       {
-        u8: 0::myuint8=uint8,
-        u16: 0::myuint16=uint16,
-        u32: 0::myuint32=uint32,
-        u64: 0::myuint64=uint64,
-        i8: 0::myint8=int8,
-        i16: 0::myint16=int16,
-        i32: 0::myint32=int32,
-        i64: 0::=myint64,
-        dur: 0s::=myduration,
-        tim: 1970-01-01T00:00:00Z::=mytime,
-        f64: 0.::=myfloat64,
-        boo: false::=mybool,
-        byt: 0x00::=mybytes,
-        str: ""::=mystring,
-        ip: 0.0.0.0::=myip,
-        net: 0.0.0.0/0::=mynet,
-        err: error("")::=myerror,
-        nul: null::mynull=null
-      }::=primitives2
+        u8: 0::myuint8,
+        u16: 0::myuint16,
+        u32: 0::myuint32,
+        u64: 0::myuint64,
+        i8: 0::myint8,
+        i16: 0::myint16,
+        i32: 0::myint32,
+        i64: 0::myint64,
+        dur: 0s::myduration,
+        tim: 1970-01-01T00:00:00Z::mytime,
+        f64: 0.::myfloat64,
+        boo: false::mybool,
+        byt: 0x00::mybytes,
+        str: ""::mystring,
+        ip: 0.0.0.0::myip,
+        net: 0.0.0.0/0::mynet,
+        err: error("")::myerror,
+        nul: null::mynull
+      }::primitives2
       {
         array: [
           {
@@ -90,7 +110,7 @@ inputs:
         ]
       }
       {
-        map: |{
+        map: map{
           "a": {
             a: 1::int32,
             b: 2::int32
@@ -103,18 +123,19 @@ inputs:
             a: 3::int32,
             b: 4::int32
           }
-        }|
+        }
       }
       {
-        set: |[
+        set: set[
           1,
           2,
           3,
           4
-        ]|
+        ]
       }
+      type foo=string|int32
       {
-        union: "hello"::(string|[int32]|[string]|(foo=(string|int32)))
+        union: "hello"::(string|[int32]|[string]|foo)
       }
       {
         union: [
@@ -126,10 +147,10 @@ inputs:
         union: [
           "a",
           "b"
-        ]::(string|[int32]|[string]|(foo=(string|int32)))
+        ]::(string|[int32]|[string]|foo)
       }
       {
-        union: 123::int32::(foo=(string|int32))::(string|[int32]|[string]|(foo=(string|int32)))
+        union: 123::int32::foo::(string|[int32]|[string]|foo)
       }
       {
         enum: "bar"::enum(foo,bar,baz)

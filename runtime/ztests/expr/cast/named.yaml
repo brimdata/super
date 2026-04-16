@@ -1,4 +1,6 @@
-spq: cast(this, "named")
+spq: |
+  type named={x:int64}
+  cast(this, "named")
 
 vector: true
 
@@ -7,15 +9,17 @@ input: |
   {x:2}
   "foo"
   "bar"
-  "baz"::=a
+  type a=string
+  "baz"::a
   1::(int64|null)
   null
   error("missing")
   error("foo")
 
 output: |
-  {x:1}::=named
-  {x:2}::=named
+  type named={x:int64}
+  {x:1}::named
+  {x:2}::named
   error("type \"named\" already exists")
   error("type \"named\" already exists")
   error("type \"named\" already exists")
@@ -38,5 +42,6 @@ input: |
   2
 
 output: |
-  {str:1::=foo,named:1::foo}
-  {str:2::=foo,named:2::foo}
+  type foo=int64
+  {str:1::foo,named:1::foo}
+  {str:2::foo,named:2::foo}

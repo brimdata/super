@@ -3,8 +3,8 @@ spq: values [...a,...b]
 vector: true
 
 input: |
-  {a:|[1,2]|,b:[0,1,null],c:"hi"}
-  {a:|[1,2]|,b:"hi"}
+  {a:set[1,2],b:[0,1,null],c:"hi"}
+  {a:set[1,2],b:"hi"}
   {a:[{x:"foo"},null],b:[{x:"bar"}]}
   {a:"foo",b:"bar"}
 

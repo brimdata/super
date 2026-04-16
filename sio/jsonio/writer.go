@@ -171,7 +171,7 @@ func mapKey(typ super.Type, b scode.Bytes) string {
 		return sup.FormatPrimitive(val.Type(), val.Bytes())
 	case super.UnionKind:
 		// Untagged, decorated SUP so
-		// |{0:1,0(uint64):2,0(=t):3,"0":4}| gets unique keys.
+		// map{0:1,0(uint64):2,0(=t):3,"0":4} gets unique keys.
 		typ, bytes := typ.(*super.TypeUnion).Untag(b)
 		return sup.FormatValue(super.NewValue(typ, bytes))
 	case super.EnumKind:

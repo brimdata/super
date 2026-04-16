@@ -9,14 +9,16 @@ input: |
   error("foo")
   {}
   [1,2,3]
-  [1,2,3]::array=[int8]
-  80::(port=uint16)
+  type array=[int8]
+  [1,2,3]::array
+  type port=uint16
+  80::port
   "foo"::(int64|string)
   1::(int64|string)
   <int64>
   <{s:string}>
-  |[1,2,3]|
-  |{1:1,2:2}|
+  set[1,2,3]
+  map{1:1,2:2}
   "heads"::enum(heads,tails)
 
 output: |
@@ -26,12 +28,14 @@ output: |
   {val:error("foo"),kind:"error"}
   {val:{},kind:"record"}
   {val:[1,2,3],kind:"array"}
-  {val:[1::int8,2::int8,3::int8]::=array,kind:"array"}
-  {val:80::(port=uint16),kind:"primitive"}
+  type array=[int8]
+  {val:[1,2,3]::array,kind:"array"}
+  type port=uint16
+  {val:80::port,kind:"primitive"}
   {val:"foo"::(int64|string),kind:"union"}
   {val:1::(int64|string),kind:"union"}
   {val:<int64>,kind:"primitive"}
   {val:<{s:string}>,kind:"record"}
-  {val:|[1,2,3]|,kind:"set"}
-  {val:|{1:1,2:2}|,kind:"map"}
+  {val:set[1,2,3],kind:"set"}
+  {val:map{1:1,2:2},kind:"map"}
   {val:"heads"::enum(heads,tails),kind:"enum"}

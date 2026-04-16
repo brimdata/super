@@ -97,18 +97,18 @@ func (l *Lexer) skip(n int) error {
 	return nil
 }
 
-func (l *Lexer) peek() (byte, error) {
+func (l *Lexer) peekByte() (byte, error) {
 	if err := l.check(1); err != nil {
 		return 0, err
 	}
 	return l.cursor[0], nil
 }
 
-func (l *Lexer) peek3() (string, error) {
-	if err := l.check(3); err != nil {
+func (l *Lexer) peek(n int) (string, error) {
+	if err := l.check(n); err != nil {
 		return "", noEOF(err)
 	}
-	return string(l.cursor[0:3]), nil
+	return string(l.cursor[0:n]), nil
 }
 
 func (l *Lexer) match(b byte) (bool, error) {
@@ -258,7 +258,7 @@ func (l *Lexer) scanString() (string, error) {
 	// we read the rest of the string into a bytes buffer and call scanStringBytes()
 	// to finish the job.
 	for {
-		c, err := l.peek()
+		c, err := l.peekByte()
 		if err != nil {
 			return "", err
 		}
@@ -315,7 +315,7 @@ func (l *Lexer) scanString() (string, error) {
 // It peeks at but does not consume the final end quote character.
 func (l *Lexer) scanToCloseQuote(b []byte) ([]byte, error) {
 	for {
-		c, err := l.peek()
+		c, err := l.peekByte()
 		if err != nil {
 			return nil, err
 		}

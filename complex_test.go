@@ -14,7 +14,7 @@ import (
 )
 
 func TestRecordAccessNamed(t *testing.T) {
-	const input = `{foo:"hello"::=zfile,bar:true::=zbool}::=0`
+	const input = `type zfile=string type zbool=bool {foo:"hello"::zfile,bar:true::zbool}`
 	rec := sup.MustParseValue(super.NewContext(), input)
 	s := rec.Deref("foo").AsString()
 	assert.Equal(t, s, "hello")
@@ -28,7 +28,7 @@ func TestNonRecordDeref(t *testing.T) {
 192.168.1.1
 null
 [1,2,3]
-|[1,2,3]|`
+set[1,2,3]`
 	reader := supio.NewReader(super.NewContext(), strings.NewReader(input))
 	for {
 		val, err := reader.Read()
@@ -99,7 +99,7 @@ func TestDuplicates(t *testing.T) {
 		{"b", setType, false},
 	})
 	require.NoError(t, err)
-	typ2, err := sup.ParseType(ctx, "{a:string,b:|[int32]|}")
+	typ2, err := sup.ParseType(ctx, "{a:string,b:set[int32]}")
 	require.NoError(t, err)
 	assert.EqualValues(t, typ1.ID(), typ2.ID())
 	assert.EqualValues(t, setType.ID(), typ2.(*super.TypeRecord).Fields[1].Type.ID())
@@ -111,9 +111,9 @@ func TestDuplicates(t *testing.T) {
 func TestTranslateNamed(t *testing.T) {
 	c1 := super.NewContext()
 	c2 := super.NewContext()
-	set1, err := sup.ParseType(c1, "|[int64]|")
+	set1, err := sup.ParseType(c1, "set[int64]")
 	require.NoError(t, err)
-	set2, err := sup.ParseType(c2, "|[int64]|")
+	set2, err := sup.ParseType(c2, "set[int64]")
 	require.NoError(t, err)
 	named1, err := c1.LookupTypeNamed("foo", set1)
 	require.NoError(t, err)

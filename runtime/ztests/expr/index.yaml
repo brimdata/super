@@ -14,12 +14,12 @@ input: |
   {val:[1,2,3,"foo"],idx:"hi"}
   {val:[1,2,3,"foo"],idx:9223372036854775808::uint64}
   // set
-  {val:|[1,2,3,"foo"]|,idx:-1}
-  {val:|[1,2,3,"bar"]|,idx:1}
-  {val:|[1,2,3,"foo"]|,idx:-4}
+  {val:set[1,2,3,"foo"],idx:-1}
+  {val:set[1,2,3,"bar"],idx:1}
+  {val:set[1,2,3,"foo"],idx:-4}
   {val:[1,2,3,null],idx:3}
-  {val:|[1,2,3,"foo"]|,idx:-5}
-  {val:|[1,2,3,"foo"]|,idx:"hi"}
+  {val:set[1,2,3,"foo"],idx:-5}
+  {val:set[1,2,3,"foo"],idx:"hi"}
   // record
   {val:{a:"foo",b:"bar"},idx:"a"}
   {val:{a:"bar",b:"baz"},idx:"b"}
@@ -29,11 +29,11 @@ input: |
   {val:{a:"foo",b:"bar"},idx:1.}
   {val:{a:"bar",b:"baz"},idx:"doesnotexist"}
   // map
-  {val:|{"foo":1,1:2}|,idx:"foo"}
-  {val:|{"foo":1,1:2}|,idx:1}
-  {val:|{"foo":1,1:2,"foo":2}|,idx:"foo"}
-  {val:|{"foo":1,1:2}|,idx:"bar"}
-  {val:|{"foo":1,"bar":127.0.0.1}|,idx:"bar"}
+  {val:map{"foo":1,1:2},idx:"foo"}
+  {val:map{"foo":1,1:2},idx:1}
+  {val:map{"foo":1,1:2,"foo":2},idx:"foo"}
+  {val:map{"foo":1,1:2},idx:"bar"}
+  {val:map{"foo":1,"bar":127.0.0.1},idx:"bar"}
 
 output: |
   "foo"
@@ -71,8 +71,8 @@ spq: |
   values returnArray()[0],
     cast(["1"],<[int64]>)[0],
     [1][0],
-    |[1]|[0],
-    |{1:1}|[1],
+    set[1][0],
+    map{1:1}[1],
     {x:1}["x"]
 
 vector: true
@@ -96,10 +96,14 @@ spq: values this[1],this["x"]
 vector: true
 
 input: |
-  [1,2,3]::=foo
-  |[4,5,6]|::=bar
-  |{1:"foo"}|::=baz
-  {"x":123}::=bap
+  type foo=[int64]
+  [1,2,3]::foo
+  type bar=set[int64]
+  set[4,5,6]::bar
+  type baz=map{int64:string}
+  map{1:"foo"}::baz
+  type bap={x:int64}
+  {"x":123}::bap
   
 output: |
   2

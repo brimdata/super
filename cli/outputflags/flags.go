@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"regexp"
 
 	"github.com/brimdata/super/cli/auto"
 	"github.com/brimdata/super/pkg/storage"
@@ -30,7 +29,6 @@ type Flags struct {
 	pretty        int
 	split         string
 	splitSize     auto.Bytes
-	supPersist    string
 	supPretty     bool
 	supShortcut   bool
 	unbuffered    bool
@@ -47,8 +45,6 @@ func (f *Flags) setFlags(fs *flag.FlagSet) {
 		"minimum Super Binary frame size in uncompressed bytes")
 	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -S and db text output")
 	fs.BoolVar(&f.CSV.NoHeader, "noheader", false, "omit header for CSV and TSV output")
-	fs.StringVar(&f.supPersist, "persist", "",
-		"regular expression to persist type definitions across the stream")
 	fs.IntVar(&f.pretty, "pretty", 2,
 		"tab size to pretty print JSON and Super JSON output (0 for newline-delimited output")
 	fs.StringVar(&f.outputFile, "o", "", "write data to output file")
@@ -83,13 +79,6 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 
 func (f *Flags) Init() error {
 	f.JSON.Pretty, f.SUP.Pretty = f.pretty, f.pretty
-	if f.supPersist != "" {
-		re, err := regexp.Compile(f.supPersist)
-		if err != nil {
-			return err
-		}
-		f.SUP.Persist = re
-	}
 	if f.jsonShortcut || f.jsonPretty {
 		if f.Format != f.DefaultFormat || f.supShortcut || f.supPretty {
 			return errors.New("cannot use -j or -J with -f, -s, or -S")

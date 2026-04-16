@@ -282,6 +282,9 @@ func eqExpr(aexpr, bexpr sem.Expr) bool {
 			}
 		}
 		return true
+	case *sem.TypeExpr:
+		b, ok := bexpr.(*sem.TypeExpr)
+		return ok && a.ID == b.ID
 	case *sem.UnaryExpr:
 		b, ok := bexpr.(*sem.UnaryExpr)
 		return ok && a.Op == b.Op && eqExpr(a.Operand, b.Operand)

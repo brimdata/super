@@ -69,7 +69,7 @@ _Simple index_
 values a[2]
 # input
 {a:[1,2,3,4]}
-{a:|[1,2,3,4]|}
+{a:set[1,2,3,4]}
 {a:"1234"}
 {a:0x01020304}
 # expected output
@@ -89,7 +89,7 @@ pragma index_base = 1
 values a[2]
 # input
 {a:[1,2,3,4]}
-{a:|[1,2,3,4]|}
+{a:set[1,2,3,4]}
 {a:"1234"}
 {a:0x01020304}
 # expected output
@@ -108,7 +108,7 @@ _Index from end of entity_
 values a[-1]
 # input
 {a:[1,2,3,4]}
-{a:|[1,2,3,4]|}
+{a:set[1,2,3,4]}
 {a:"1234"}
 {a:0x01020304}
 # expected output

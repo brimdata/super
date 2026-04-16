@@ -1,7 +1,10 @@
 spq: pass
 
 input: |
-  {a:{b:1::=my_int64}::=my_inner_record}::=my_outer_record
+  type my_int64=int64
+  type my_inner_record={b:my_int64}
+  type my_outer_record={a:my_inner_record}
+  {a:{b:1::my_int64}::my_inner_record}::my_outer_record
 
 output-flags: -f csv
 

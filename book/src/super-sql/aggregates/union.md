@@ -5,7 +5,7 @@ set union of input values
 ## Synopsis
 
 ```
-union(any) -> |[any]|
+union(any) -> set[any]
 ```
 
 ## Description
@@ -27,7 +27,7 @@ union(this)
 3
 3
 # expected output
-|[1,2,3]|
+set[1,2,3]
 ```
 
 Mixed types create a union type for the set elements:
@@ -40,8 +40,8 @@ set:=union(this) | values this,typeof(set)
 3
 "foo"
 # expected output
-{set:|[1,2,3,"foo"]|}
-<|[int64|string]|>
+{set:set[1,2,3,"foo"]}
+<set[int64|string]>
 ```
 
 Create sets of values bucketed by key:
@@ -54,6 +54,6 @@ union(a) by k | sort
 {a:3,k:2}
 {a:4,k:2}
 # expected output
-{k:1,union:|[1,2]|}
-{k:2,union:|[3,4]|}
+{k:1,union:set[1,2]}
+{k:2,union:set[3,4]}
 ```

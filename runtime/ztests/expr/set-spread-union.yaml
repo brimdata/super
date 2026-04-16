@@ -1,4 +1,4 @@
-spq: values |[a[0],...b]|
+spq: values set[a[0],...b]
 
 vector: true
 
@@ -7,5 +7,5 @@ input: |
   {a:[2],b:[2,3.,"bar"]}
 
 output: |
-  |[1,"foo",2.]|
-  |[2,"bar",3.]|
+  set[1,"foo",2.]
+  set[2,"bar",3.]

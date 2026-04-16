@@ -37,11 +37,13 @@ func TestInterfaceMarshal(t *testing.T) {
 
 	supRose, err := m.Marshal(Thing(&Plant{"red"}))
 	require.NoError(t, err)
-	assert.Equal(t, `{MyColor:"red"}::=Plant`, supRose)
+	assert.Equal(t, `type Plant={MyColor:string}
+{MyColor:"red"}::Plant`, supRose)
 
 	supFlamingo, err := m.Marshal(Thing(&Animal{"pink"}))
 	require.NoError(t, err)
-	assert.Equal(t, `{MyColor:"pink"}::=Animal`, supFlamingo)
+	assert.Equal(t, `type Animal={MyColor:string}
+{MyColor:"pink"}::Animal`, supFlamingo)
 
 	u := sup.NewUnmarshaler()
 	u.Bind(Plant{}, Animal{})
@@ -79,7 +81,7 @@ func TestMarshal(t *testing.T) {
 	m.Decorate(sup.StyleSimple)
 	z, err = m.Marshal(Roll(true))
 	require.NoError(t, err)
-	assert.Equal(t, `true::=Roll`, z)
+	assert.Equal(t, "type Roll=bool\ntrue::Roll", z)
 }
 
 type BytesRecord struct {
@@ -121,7 +123,9 @@ func TestBytes(t *testing.T) {
 	rec, err = m.Marshal(id)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{A:0x00010203::=ID,B:0x04050607::ID}::=IDRecord", sup.FormatValue(rec))
+	assert.Equal(t, `type ID=bytes
+type IDRecord={A:ID,B:ID}
+{A:0x00010203,B:0x04050607}::IDRecord`, sup.FormatValueWithTypes(rec))
 
 	var id2 IDRecord
 	u := sup.NewBSUPUnmarshaler()
@@ -193,10 +197,15 @@ type ArrayOfThings struct {
 }
 
 func TestMixedTypeUnmarshal(t *testing.T) {
+	const in = `
+		type Animal={MyColor:string}
+		type Plant={MyColor:string}
+		{S:[{MyColor:"red"}::Plant,{MyColor:"blue"}::Animal]}
+		`
 	u := sup.NewUnmarshaler()
 	u.Bind(Animal{}, Plant{}, ArrayOfThings{})
 	var out ArrayOfThings
-	err := u.Unmarshal(`{S:[{MyColor:"red"}::=Plant,{MyColor:"blue"}::=Animal]}`, &out)
+	err := u.Unmarshal(in, &out)
 	require.NoError(t, err)
 	assert.Equal(t, ArrayOfThings{S: []Thing{&Plant{"red"}, &Animal{"blue"}}}, out)
 }
@@ -275,7 +284,8 @@ func TestBSUPValueField(t *testing.T) {
 	m.Decorate(sup.StyleSimple)
 	zv, err := m.Marshal(bsupValueField)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test1",field:fusion(0xf6::all,<int64>)}::=BSUPValueField`, sup.FormatValue(zv))
+	assert.Equal(t, `type BSUPValueField={Name:string,field:fusion(all)}
+{Name:"test1",field:fusion(0xf6,<int64>)}::BSUPValueField`, sup.FormatValueWithTypes(zv))
 	u := sup.NewBSUPUnmarshaler()
 	var out BSUPValueField
 	err = u.Unmarshal(zv, &out)
@@ -293,7 +303,8 @@ func TestBSUPValueField(t *testing.T) {
 	m2.Decorate(sup.StyleSimple)
 	zv3, err := m2.Marshal(bsupValueField2)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test2",field:fusion(0x04666f6f07020202040206::all,<{s:string,a:[int64]}>)}::=BSUPValueField`, sup.FormatValue(zv3))
+	assert.Equal(t, `type BSUPValueField={Name:string,field:fusion(all)}
+{Name:"test2",field:fusion(0x04666f6f07020202040206,<{s:string,a:[int64]}>)}::BSUPValueField`, sup.FormatValueWithTypes(zv3))
 	u2 := sup.NewBSUPUnmarshaler()
 	var out2 BSUPValueField
 	err = u2.Unmarshal(zv3, &out2)
@@ -438,7 +449,7 @@ func TestInterfaceWithConcreteEmptyValue(t *testing.T) {
 	// This case doesn't need a binding because we set the
 	// interface value to an empty underlying value.
 	out := Metadata(&Primitive{})
-	err := u.Unmarshal(`{Foo:"foo"}::=Primitive`, &out)
+	err := u.Unmarshal(`type Primitive={Foo:string} {Foo:"foo"}::Primitive`, &out)
 	require.NoError(t, err)
 	assert.Equal(t, &Primitive{Foo: "foo"}, out)
 }

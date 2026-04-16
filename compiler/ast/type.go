@@ -58,15 +58,9 @@ type (
 		Type Type   `json:"type"`
 		Loc  `json:"loc"`
 	}
-	TypeName struct {
+	TypeRef struct {
 		Kind string `json:"kind" unpack:""`
 		Name string `json:"name"`
-		Loc  `json:"loc"`
-	}
-	TypeDef struct {
-		Kind string `json:"kind" unpack:""`
-		Name string `json:"name"`
-		Type Type   `json:"type"`
 		Loc  `json:"loc"`
 	}
 )
@@ -80,8 +74,7 @@ func (*TypeEnum) typeNode()      {}
 func (*TypeMap) typeNode()       {}
 func (*TypeError) typeNode()     {}
 func (*TypeFusion) typeNode()    {}
-func (*TypeName) typeNode()      {}
-func (*TypeDef) typeNode()       {}
+func (*TypeRef) typeNode()       {}
 
 // This is a hack that allows us to express a "date" type until we
 // get proper coverage of SQL date/time types natively in the super-structured

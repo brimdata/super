@@ -13,12 +13,12 @@ input: |
   {s:"[hello"}
   {s:"hello["}
   {s:";"}
-  {s:null::(|[string]||null)}
-  {s:|[]|::|[string]|}
-  {s:|[""]|}
-  {s:|["(empty)"]|}
-  {s:|["abc","xyz"]|}
-  {s:|["a,b"]|}
+  {s:null::(set[string]|null)}
+  {s:set[]::set[string]}
+  {s:set[""]}
+  {s:set["(empty)"]}
+  {s:set["abc","xyz"]}
+  {s:set["a,b"]}
   {s:null::([string]|null)}
   {s:[]::[string]}
   {s:[""]}

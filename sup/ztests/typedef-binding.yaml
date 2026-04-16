@@ -4,8 +4,12 @@ spq: |
   is(r,<rec>)
 
 input: |
-  {r:{p:80::(port=uint16)}::=rec}
+  type port=uint16
+  type rec={p:port}
+  {r:{p:80::port}::rec}
   {s:"hello"}
 
 output: |
-  {r:{p:80::(port=uint16)}::=rec}
+  type port=uint16
+  type rec={p:port}
+  {r:{p:80}::rec}

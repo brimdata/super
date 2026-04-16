@@ -12,7 +12,7 @@ input: |
   {a:"0\u2071\u20723"}
   {a:"\u2070\u2071\u2072\u2073"}
   {a:[10::int32,11::int32,12::int32,13::int32]}
-  {a:|[10::int32,11::int32,12::int32,13::int32]|}
+  {a:set[10::int32,11::int32,12::int32,13::int32]}
 
 output: |
   {a1:null,a2:null,a3:null,a4:null,a5:null,a6:null,a7:null,a8:null}
@@ -24,4 +24,4 @@ output: |
   {a1:"ⁱ⁲",a2:"ⁱ⁲3",a3:"0",a4:"0ⁱ⁲",a5:"",a6:"3",a7:"⁲",a8:error("missing")}
   {a1:"ⁱ⁲",a2:"ⁱ⁲⁳",a3:"⁰",a4:"⁰ⁱ⁲",a5:"",a6:"⁳",a7:"⁲",a8:error("missing")}
   {a1:[11::int32,12::int32],a2:[11::int32,12::int32,13::int32],a3:[10::int32],a4:[10::int32,11::int32,12::int32],a5:[]::[int32],a6:[13::int32],a7:[12::int32],a8:[10::int32,11::int32]}
-  {a1:|[11::int32,12::int32]|,a2:|[11::int32,12::int32,13::int32]|,a3:|[10::int32]|,a4:|[10::int32,11::int32,12::int32]|,a5:|[]|::|[int32]|,a6:|[13::int32]|,a7:|[12::int32]|,a8:|[10::int32,11::int32]|}
+  {a1:set[11::int32,12::int32],a2:set[11::int32,12::int32,13::int32],a3:set[10::int32],a4:set[10::int32,11::int32,12::int32],a5:set[]::set[int32],a6:set[13::int32],a7:set[12::int32],a8:set[10::int32,11::int32]}

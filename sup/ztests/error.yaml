@@ -4,8 +4,10 @@ input: &input |
   error(null)
   error({})
   error(1::(int64|string))
-  error(2::=named1)
-  error(3)::=named2
-  error({a:1::=named1,b:2::named1})
+  type named1=int64
+  error(2::named1)
+  type named2=error(int64)
+  error(3)::named2
+  error({a:1::named1,b:2::named1})
 
 output: *input

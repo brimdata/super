@@ -10,7 +10,7 @@ script: |
     select *
     from (values (1)) as t1(a1), (values (1)) as t2(a2), (values (1)) as t3(a3)
     where a1 in [1,5,9]
-      and a1 in |[1,5,9]|
+      and a1 in set[1,5,9]
       and a3 in (1,5,[9,11])
       and (1 == a2 or a2 == 2)
       and 1 == 1
@@ -39,7 +39,7 @@ outputs:
           fork
             (
               values {a1:1}
-              | where a1 in [1,5,9] and a1 in |[1,5,9]|
+              | where a1 in [1,5,9] and a1 in set[1,5,9]
             )
             (
               values {a2:1}

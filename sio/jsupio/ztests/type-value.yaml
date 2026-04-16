@@ -1,7 +1,8 @@
 spq: count() by typeof(this)
 
 input: |
-  {a:100}::=myrecord
+  type myrecord={a:int64}
+  {a:100}::myrecord
 
 output-flags: -f jsup
 

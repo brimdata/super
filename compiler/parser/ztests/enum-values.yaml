@@ -1,4 +1,5 @@
 spq: |
+  type flip=enum(HEADS,TAILS)
   values
     "foo"::enum(foo,bar),
     "bar"::enum("foo","bar"),
@@ -9,8 +10,8 @@ spq: |
     1::enum("foo","bar"),
     {x:1,s:"foo"}::enum("foo","bar"),
     {x:1,s:"foo"}.s::enum("foo","bar"),
-    "HEADS"::(flip=(enum(HEADS,TAILS))),
-    {head:"HEADS"::(flip=enum(HEADS,TAILS))},
+    "HEADS"::flip,
+    {head:"HEADS"::flip},
     <enum(a,b)>==<enum(a,b)>,
     <enum(a,b)>==<enum(b,c)>,
     <enum(a,b)>==<enum(a,b,c)>
@@ -28,8 +29,9 @@ output: |
   error({message:"cannot cast to enum",on:1})
   error({message:"cannot cast to enum",on:{x:1,s:"foo"}})
   "foo"::enum(foo,bar)
-  "HEADS"::(flip=enum(HEADS,TAILS))
-  {head:"HEADS"::(flip=enum(HEADS,TAILS))}
+  type flip=enum(HEADS,TAILS)
+  "HEADS"::flip
+  {head:"HEADS"::flip}
   true
   false
   false

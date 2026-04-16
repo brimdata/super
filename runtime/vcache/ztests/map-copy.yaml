@@ -8,11 +8,11 @@ script: |
 inputs:
   - name: stdin
     data: &input |
-      {m:|{"foo":"bar","hello":"goodby"}|}
-      {m:|{"foo":"bar2","hello2":"goodby"}|}
-      {m:|{1:"goodbye","foo":null}|}
+      {m:map{"foo":"bar","hello":"goodby"}}
+      {m:map{"foo":"bar2","hello2":"goodby"}}
+      {m:map{1:"goodbye","foo":null}}
       {m:null}
-      {m:|{2:"goodbye","bar":null}|}
+      {m:map{2:"goodbye","bar":null}}
 
 outputs:
   - name: stdout

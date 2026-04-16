@@ -1,8 +1,10 @@
 spq: |
-  values <"@foo"={x:int64}>
+  type `@foo`={x:int64}
+  values <"@foo">
 
 input: |
   null
 
 output: |
-  <"@foo"={x:int64}>
+  type "@foo"={x:int64}
+  <"@foo">

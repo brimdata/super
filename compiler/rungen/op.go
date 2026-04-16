@@ -52,6 +52,7 @@ var ErrJoinParents = errors.New("join requires two upstream parallel query paths
 type Builder struct {
 	rctx            *runtime.Context
 	mctx            *super.Context
+	mapper          *super.TypeDefsMapper
 	env             *exec.Environment
 	readers         []sio.Reader
 	progress        *vio.Progress
@@ -89,6 +90,10 @@ func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vio.P
 		return nil, nil, errors.New("internal error: DAG entry point is not a data source")
 	}
 	b.readers = readers
+	if len(main.Types) != 0 {
+		defs := super.NewTypeDefsFromBytes(main.Types)
+		b.mapper = super.NewTypeDefsMapper(b.rctx.Sctx, defs)
+	}
 	if b.env.UseVAM() {
 		if _, err := b.compileVamMain(main, nil); err != nil {
 			return nil, nil, err
@@ -147,7 +152,22 @@ func (b *Builder) compileMain(main *dag.Main, parents []sbuf.Puller) ([]sbuf.Pul
 	for _, f := range main.Funcs {
 		b.funcs[f.Tag] = f
 	}
+
 	return b.compileSeq(main.Body, parents)
+}
+
+func (b *Builder) lookupType(id int) (super.Type, error) {
+	if typ, err := super.LookupPrimitiveByID(id); err == nil {
+		return typ, nil
+	}
+	if b.mapper == nil {
+		return nil, fmt.Errorf("internal error: type ID %d not resolved due to missing types table", id)
+	}
+	typ := b.mapper.LookupType(uint32(id))
+	if typ == nil {
+		return nil, fmt.Errorf("internal error: type ID %d not found in types table", id)
+	}
+	return typ, nil
 }
 
 func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error) {
@@ -651,6 +671,10 @@ func EvalAtCompileTime(sctx *super.Context, main *dag.MainExpr) (val super.Value
 	b := NewBuilder(runtime.NewContext(context.Background(), sctx), nil)
 	for _, f := range main.Funcs {
 		b.funcs[f.Tag] = f
+	}
+	if len(main.Types) != 0 {
+		defs := super.NewTypeDefsFromBytes(main.Types)
+		b.mapper = super.NewTypeDefsMapper(b.rctx.Sctx, defs)
 	}
 	return b.evalAtCompileTime(main.Expr)
 }

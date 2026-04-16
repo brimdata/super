@@ -11,9 +11,9 @@ input: |
   [0,null,1]
   [0,[1,2],3]
   [0,[1,null],3]
-  |[0,1,2]|
-  |{1:null}|
-  |{null:1}|
+  set[0,1,2]
+  map{1:null}
+  map{null:1}
   1::(int64|string)
   {a:[0,1]::[int64|string]}
   null
@@ -63,7 +63,7 @@ output: |
 ---
 
 spq: |
-  values this in [{a:1},[2],|[3]|,|{4:4}|,"b"::enum(b,c)]
+  values this in [{a:1},[2],set[3],map{4:4},"b"::enum(b,c)]
 
 vector: true
 
@@ -72,13 +72,13 @@ input: |
   {a:2}
   [2]
   [3]
-  |[3]|
-  |[4]|
-  |{4:4}|
-  |{4:5}|
+  set[3]
+  set[4]
+  map{4:4}
+  map{4:5}
   "b"::enum(b,c)
   "b"::enum(b,d)
-  [{a:1},[2],|[3]|,|{4:4}|,"b"::enum(b,c)]
+  [{a:1},[2],set[3],map{4:4},"b"::enum(b,c)]
 
 output: |
   true
@@ -97,7 +97,7 @@ output: |
 
 # Test in expressions on a map constant.
 spq: |
-  const m = |{"a":1,"b":2}|
+  const m = map{"a":1,"b":2}
   values {b1: x in m,b2: "a" in a}
 
 vector: true
@@ -107,7 +107,7 @@ input: |
   {x:1}
   {x:10}
   {y:1}
-  {a:|{"a":"hello"}|}
+  {a:map{"a":"hello"}}
 
 output: |
   {b1:true,b2:error("missing")}

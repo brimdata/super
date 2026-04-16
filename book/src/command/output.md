@@ -189,49 +189,6 @@ produces the original data
 While the `-split` option is most useful for schema-rigid formats, it can
 be used with any output format.
 
-## Database Metadata
-
-> **TODO: We should get rid of this.  Or document it as an internal format.
-> It's not a format that people should rely upon.**
-
-The `db` format is used to pretty-print lake metadata, such as in
-[`super db` sub-command](db.md) outputs.  Because it's `super db`'s default output format,
-it's rare to request it explicitly via `-f`.  However, since it's possible for
-`super db` to generate output in any supported format,
-the `db` format is useful to reverse this.
-
-For example, imagine you'd executed a [meta-query](db.md#meta-queries) via
-`super db query -S "from :pools"` and saved the output in this file `pools.sup`.
-
-```mdtest-input pools.sup
-{
-    ts: 2024-07-19T19:28:22.893089Z,
-    name: "MyPool",
-    id: 0x132870564f00de22d252b3438c656691c87842c2::=ksuid.KSUID,
-    layout: {
-        order: "desc"::=order.Which,
-        keys: [
-            [
-                "ts"
-            ]::=field.Path
-        ]::=field.List
-    }::=order.SortKey,
-    seek_stride: 65536,
-    threshold: 524288000
-}::=pools.Config
-```
-
-Using `super -f db`, this can be rendered in the same pretty-printed form as it
-would have originally appeared in the output of `super db ls`, e.g.,
-
-```mdtest-command
-super -f db pools.sup
-```
-produces
-```mdtest-output
-MyPool 2jTi7n3sfiU7qTgPTAE1nwTUJ0M key ts order desc
-```
-
 ## Line Format
 
 The `line` format is convenient for interacting with other Unix-style tooling that

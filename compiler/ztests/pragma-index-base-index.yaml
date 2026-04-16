@@ -16,7 +16,7 @@ vector: true
 
 input: |
   [1,2]
-  |[1,2]|
+  set[1,2]
   {c0:1,c1:2}
 
 output: |

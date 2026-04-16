@@ -10,13 +10,17 @@ vector: true
 inputs:
   - name: in.sup
     data: |
-      {a:1::int32,p1:100::(port=uint16),p2:200::port}
+      type port=uint16
+      {a:1::int32,p1:100::port,p2:200::port}
 
 outputs:
   - name: stdout
     data: |
-      {a:1::int32,p1:100::(port=uint16),p2:200::port,x:101}
+      type port=uint16
+      {a:1::int32,p1:100::port,p2:200::port,x:101}
       ===
-      {a:1::int32,p1:100::(port=uint16),p2:200::port,x:false}
+      type port=uint16
+      {a:1::int32,p1:100::port,p2:200::port,x:false}
       ===
-      {a:1::int32,p1:100::(port=uint16),p2:200::port,x:301::int32}
+      type port=uint16
+      {a:1::int32,p1:100::port,p2:200::port,x:301::int32}

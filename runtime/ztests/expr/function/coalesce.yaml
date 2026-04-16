@@ -5,7 +5,9 @@ vector: true
 input: |
   [null, error("quiet"), "foo"::(uint64|string)]
   ["bar"::string, error("quiet"), 1::uint64::(uint64|string)]
-  [error("missing")::=missing, 2020::=port, null]
+  type port=int64
+  type missing=error("string")
+  [error("missing")::missing, 2020::port, null]
   [null, error("missing"), error("quiet")]
   [null, "gotme", "ted sando"]
   [null, error({x:1}), "foo"]
@@ -13,7 +15,8 @@ input: |
 output: |
   "foo"
   "bar"
-  2020::=port
+  type port=int64
+  2020::port
   null
   "gotme"
   "foo"

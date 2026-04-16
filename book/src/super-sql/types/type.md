@@ -64,7 +64,7 @@ values f"{this} has type {typeof(this)}"
 192.168.1.1
 192.168.1.0/24
 [1,"bar"]
-|[1,2,3]|
+set[1,2,3]
 2025-08-21T21:22:18.046568Z
 1d3h
 <int64>
@@ -75,7 +75,7 @@ values f"{this} has type {typeof(this)}"
 "192.168.1.1 has type <ip>"
 "192.168.1.0/24 has type <net>"
 "[1,\"bar\"] has type <[int64|string]>"
-"|[1,2,3]| has type <|[int64]|>"
+"set[1,2,3] has type <set[int64]>"
 "2025-08-21T21:22:18.046568Z has type <time>"
 "1d3h has type <duration>"
 "<int64> has type <type>"

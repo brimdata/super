@@ -219,18 +219,20 @@ _Multiple syntax options for casting_
 
 ```mdtest-spq
 # spq
+type port=uint16
 values
-  80::(port=uint16),
-  CAST(80 AS (port=uint16)),
+  80::port,
+  CAST(80 AS port),
   cast(80::uint16, 'port'),
   cast(cast(80, <uint16>), 'port')
 # input
 
 # expected output
-80::(port=uint16)
-80::(port=uint16)
-80::(port=uint16)
-80::(port=uint16)
+type port=uint16
+80::port
+80::port
+80::port
+80::port
 ```
 
 ---
@@ -259,8 +261,9 @@ values this::port
 80
 8080
 # expected output
-80::(port=uint16)
-8080::(port=uint16)
+type port=uint16
+80::port
+8080::port
 ```
 
 ---

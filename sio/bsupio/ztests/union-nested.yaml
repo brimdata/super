@@ -3,10 +3,11 @@ script: super - | super -s -
 inputs:
   - name: stdin
     data: &stdin |
-      {a:"\"hello\""::(string|[int64]|[string]|(foo=int64|string))}
-      {a:[1,2]::(string|[int64]|[string]|(foo=int64|string))}
-      {a:["\"a\"","\"b\""]::(string|[int64]|[string]|(foo=int64|string))}
-      {a:123::(foo=int64|string)::(string|[int64]|[string]|foo)}
+      type foo=int64|string
+      {a:"\"hello\""::(string|[int64]|[string]|foo)}
+      {a:[1,2]::(string|[int64]|[string]|foo)}
+      {a:["\"a\"","\"b\""]::(string|[int64]|[string]|foo)}
+      {a:123::foo::(string|[int64]|[string]|foo)}
 
 outputs:
   - name: stdout

@@ -24,29 +24,36 @@ inputs:
 outputs:
   - name: stdout
     data: |
+      type "order.Which" = string
+      type "field.Path" = [string]
+      type "field.List" = ["field.Path"]
+      type "order.SortKey" = {
+        order: "order.Which",
+        keys: "field.List"
+      }
       {
         name: "poolA",
         layout: {
-          order: "asc"::=order.Which,
+          order: "asc",
           keys: [
             [
               "a"
-            ]::=field.Path
-          ]::=field.List
-        }::=order.SortKey,
+            ]
+          ]
+        }::order.SortKey,
         seek_stride: 65536,
         threshold: 524288000
       }
       {
         name: "poolB",
         layout: {
-          order: "desc"::=order.Which,
+          order: "desc",
           keys: [
             [
               "b"
-            ]::=field.Path
-          ]::=field.List
-        }::=order.SortKey,
+            ]
+          ]
+        }::order.SortKey,
         seek_stride: 65536,
         threshold: 524288000
       }

@@ -50,10 +50,14 @@ spq: fuse(this)
 vector: true
 
 input: |
-  1::=u1::(u2=(u1|string))
+  type u1=int64
+  type u2=u1|string
+  1::u1::u2
 
 output: |
-  <u2=(u1=int64)|string>
+  type u1=int64
+  type u2=u1|string
+  <u2>
 
 ---
 
@@ -62,7 +66,11 @@ spq: fuse(this) by x:=1
 vector: true
 
 input: |
-  1::=u1::(u2=(u1|string))
+  type u1=int64
+  type u2=u1
+  1::u1::u2
 
 output: |
-  {x:1,fuse:<u2=(u1=int64)|string>}
+  type u1=int64
+  type u2=u1
+  {x:1,fuse:<u2>}

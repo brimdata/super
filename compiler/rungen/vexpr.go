@@ -63,6 +63,12 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamSubquery(e)
 	case *dag.ThisExpr:
 		return vamexpr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
+	case *dag.TypeExpr:
+		typ, err := b.lookupType(e.ID)
+		if err != nil {
+			return nil, err
+		}
+		return vamexpr.NewLiteral(b.rctx.Sctx, b.rctx.Sctx.LookupTypeValue(typ)), nil
 	case *dag.UnaryExpr:
 		return b.compileVamUnary(*e)
 	default:
@@ -297,7 +303,7 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 				Expr: expr,
 			})
 		case *dag.None:
-			noneType, err := b.noneType(elem.Type)
+			noneType, err := b.lookupType(elem.Type)
 			if err != nil {
 				return nil, err
 			}

@@ -6,8 +6,10 @@ input: |
   1
   [3,2,1,0]
   error("missing")
-  error("missing")::=foo
-  error("missing"::=bar)
+  type foo=error(string)
+  error("missing")::foo
+  type bar=string
+  error("missing"::bar)
   null
   error(null)
   error("quiet")
@@ -16,8 +18,10 @@ input: |
 output: |
   1
   [3,2,1,0]
-  error("missing")::=foo
-  error("missing"::=bar)
+  type foo=error(string)
+  error("missing")::foo
+  type bar=string
+  error("missing"::bar)
   null
   error(null)
   error({x:"missing"})

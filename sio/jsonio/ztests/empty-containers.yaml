@@ -1,7 +1,7 @@
 spq: pass
 
 input: |
-  {dns:["google.com"],uri:[]::[string],email:|[]|,ip:null}
+  {dns:["google.com"],uri:[]::[string],email:set[],ip:null}
 
 output-flags: -f json
 

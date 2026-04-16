@@ -24,7 +24,7 @@ func newDagen(r reporter) *dagen {
 	}
 }
 
-func (d *dagen) assemble(seq sem.Seq, funcs map[string]*funcDef) *dag.Main {
+func (d *dagen) assemble(seq sem.Seq, types []byte, funcs map[string]*funcDef) *dag.Main {
 	dagSeq := d.seq(seq)
 	dagSeq = d.checkOutputs(true, dagSeq)
 	dagFuncs := make([]*dag.FuncDef, 0, len(d.funcs))
@@ -35,16 +35,16 @@ func (d *dagen) assemble(seq sem.Seq, funcs map[string]*funcDef) *dag.Main {
 	slices.SortFunc(dagFuncs, func(a, b *dag.FuncDef) int {
 		return strings.Compare(a.Tag, b.Tag)
 	})
-	return &dag.Main{Funcs: dagFuncs, Body: dagSeq}
+	return &dag.Main{Types: types, Funcs: dagFuncs, Body: dagSeq}
 }
 
-func (d *dagen) assembleExpr(e sem.Expr, funcs map[string]*funcDef) *dag.MainExpr {
+func (d *dagen) assembleExpr(e sem.Expr, types []byte, funcs map[string]*funcDef) *dag.MainExpr {
 	dagExpr := d.expr(e)
 	dagFuncs := make([]*dag.FuncDef, 0, len(d.funcs))
 	for _, f := range funcs {
 		dagFuncs = append(dagFuncs, d.fn(f))
 	}
-	return &dag.MainExpr{Funcs: dagFuncs, Expr: dagExpr}
+	return &dag.MainExpr{Types: types, Funcs: dagFuncs, Expr: dagExpr}
 }
 
 func (d *dagen) seq(seq sem.Seq) dag.Seq {
@@ -477,6 +477,11 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			Kind: "ThisExpr",
 			Path: e.Path,
 		}
+	case *sem.TypeExpr:
+		return &dag.TypeExpr{
+			Kind: "TypeExpr",
+			ID:   e.ID,
+		}
 	case *sem.UnaryExpr:
 		return &dag.UnaryExpr{
 			Kind:    "UnaryExpr",
@@ -511,7 +516,7 @@ func (d *dagen) recordElems(elems []sem.RecordElem) []dag.RecordElem {
 		case *sem.FieldElem:
 			out = append(out, &dag.Field{Kind: "Field", Name: elem.Name, Value: d.expr(elem.Value), Opt: elem.Opt})
 		case *sem.NoneElem:
-			out = append(out, &dag.None{Kind: "None", Name: elem.Name, Type: d.expr(elem.Type)})
+			out = append(out, &dag.None{Kind: "None", Name: elem.Name, Type: elem.Type})
 		default:
 			panic(elem)
 		}

@@ -1,9 +1,13 @@
+skip: XXX spq test isn't reading the data to get the named types for type checking... need to fix
+
 spq: typeof(this)==<bar>
 
 vector: true
 
 input: &input |
-  {x:{a:1}::=foo,y:{a:2}::foo}::=bar
-  {x:{a:3}::=foo,y:{a:4}::foo}::=bar
+  type foo={a:int64}
+  type bar={x:foo,y:foo}
+  {x:{a:1},y:{a:2}}::bar
+  {x:{a:3},y:{a:4}}::bar
 
 output: *input

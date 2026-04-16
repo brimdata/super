@@ -5,11 +5,11 @@ script: |
 inputs:
   - name: stdin
     data: &input |
-      {m:|{"foo":"bar","hello":"goodby"}|}
-      {m:|{"foo":"bar2","hello2":"goodby"}|}
-      {m:|{1:"goodbye","foo":null}|}
-      {m:null::(null||{int64:string}|)}
-      {m:|{2:"goodbye","bar":null}|}
+      {m:map{"foo":"bar","hello":"goodby"}}
+      {m:map{"foo":"bar2","hello2":"goodby"}}
+      {m:map{1:"goodbye","foo":null}}
+      {m:null::(null|map{int64:string})}
+      {m:map{2:"goodbye","bar":null}}
 
 outputs:
   - name: stdout

@@ -50,7 +50,8 @@ but if you use the type name or typeof and under functions, there is a match_
 # spq
 values is(this, <{s:string}>)
 # input
-{s:"hello"}::=foo
+type foo={s:string}
+{s:"hello"}::foo
 # expected output
 false
 ```
@@ -59,9 +60,11 @@ false
 
 ```mdtest-spq
 # spq
+type foo={s:string}
 values is(this, <foo>)
 # input
-{s:"hello"}::=foo
+type foo={s:string}
+{s:"hello"}::foo
 # expected output
 true
 ```
@@ -74,7 +77,8 @@ _To test the underlying type, just use `==`_
 # spq
 values under(typeof(this))==<{s:string}>
 # input
-{s:"hello"}::=foo
+type foo={s:string}
+{s:"hello"}::foo
 # expected output
 true
 ```

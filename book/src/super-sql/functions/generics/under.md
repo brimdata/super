@@ -80,9 +80,11 @@ _Values of named types are unwrapped_
 # spq
 values this
 # input
-80::(port=uint16)
+type port=uint16
+80::port
 # expected output
-80::(port=uint16)
+type port=uint16
+80::port
 ```
 
 ---
@@ -91,7 +93,8 @@ values this
 # spq
 values under(this)
 # input
-80::(port=uint16)
+type port=uint16
+80::port
 # expected output
 80::uint16
 ```

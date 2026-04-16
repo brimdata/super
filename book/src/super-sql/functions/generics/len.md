@@ -56,24 +56,24 @@ values {this,kind:kind(this),type:typeof(this),len:len(this)}
 0x0102ffee
 192.168.4.1
 2001:0db8:85a3:0000:0000:8a2e:0370:7334
-|{"APPL":145.03,"GOOG":87.07}|
+map{"APPL":145.03,"GOOG":87.07}
 192.168.4.0/24
 2001:db8:abcd::/64
 null
 {a:1,b:2}
-|["x","y","z"]|
+set["x","y","z"]
 "hello"
 # expected output
 {that:[1,2,3],kind:"array",type:<[int64]>,len:3}
 {that:0x0102ffee,kind:"primitive",type:<bytes>,len:4}
 {that:192.168.4.1,kind:"primitive",type:<ip>,len:4}
 {that:2001:db8:85a3::8a2e:370:7334,kind:"primitive",type:<ip>,len:16}
-{that:|{"APPL":145.03,"GOOG":87.07}|,kind:"map",type:<|{string:float64}|>,len:2}
+{that:map{"APPL":145.03,"GOOG":87.07},kind:"map",type:<map{string:float64}>,len:2}
 {that:192.168.4.0/24,kind:"primitive",type:<net>,len:8}
 {that:2001:db8:abcd::/64,kind:"primitive",type:<net>,len:32}
 {that:null,kind:"primitive",type:<null>,len:0}
 {that:{a:1,b:2},kind:"record",type:<{a:int64,b:int64}>,len:2}
-{that:|["x","y","z"]|,kind:"set",type:<|[string]|>,len:3}
+{that:set["x","y","z"],kind:"set",type:<set[string]>,len:3}
 {that:"hello",kind:"primitive",type:<string>,len:5}
 ```
 
@@ -88,12 +88,12 @@ values {this,kind:kind(this),type:typeof(this),len:len(this)}
 <enum(HEADS,TAILS)>
 <error(string)>
 <error({ts:time,msg:string})>
-<|{string:float64}|>
-<|{string:{x:int64,y:float64}}|>
+<map{string:float64}>
+<map{string:{x:int64,y:float64}}>
 <int8>
 <{a:int64,b:string,c:bool}>
-<|[string]|>
-<|[{a:int64,b:string,c:bool}]|>
+<set[string]>
+<set[{a:int64,b:string,c:bool}]>
 <(int64|float64|string)>
 # expected output
 {that:<[string]>,kind:"array",type:<type>,len:1}
@@ -101,12 +101,12 @@ values {this,kind:kind(this),type:typeof(this),len:len(this)}
 {that:<enum(HEADS,TAILS)>,kind:"enum",type:<type>,len:2}
 {that:<error(string)>,kind:"error",type:<type>,len:1}
 {that:<error({ts:time,msg:string})>,kind:"error",type:<type>,len:2}
-{that:<|{string:float64}|>,kind:"map",type:<type>,len:1}
-{that:<|{string:{x:int64,y:float64}}|>,kind:"map",type:<type>,len:2}
+{that:<map{string:float64}>,kind:"map",type:<type>,len:1}
+{that:<map{string:{x:int64,y:float64}}>,kind:"map",type:<type>,len:2}
 {that:<int8>,kind:"primitive",type:<type>,len:1}
 {that:<{a:int64,b:string,c:bool}>,kind:"record",type:<type>,len:3}
-{that:<|[string]|>,kind:"set",type:<type>,len:1}
-{that:<|[{a:int64,b:string,c:bool}]|>,kind:"set",type:<type>,len:3}
+{that:<set[string]>,kind:"set",type:<type>,len:1}
+{that:<set[{a:int64,b:string,c:bool}]>,kind:"set",type:<type>,len:3}
 {that:<int64|float64|string>,kind:"union",type:<type>,len:3}
 ```
 

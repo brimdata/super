@@ -1,7 +1,8 @@
 spq: pass
 
 input: |
-  {a:1}::=custom
+  type custom={a:int64}
+  {a:1}::custom
   {b:2}
 
 output-flags: -f json

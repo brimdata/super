@@ -70,16 +70,15 @@ func ParseType(sctx *super.Context, sup string) (super.Type, error) {
 	if ast == nil || noEOF(err) != nil {
 		return nil, err
 	}
-	return NewAnalyzer().convertType(sctx, ast)
+	return NewAnalyzer(sctx).convertType(ast)
 }
 
 func ParseValue(sctx *super.Context, sup string) (super.Value, error) {
-	zp := NewParser(strings.NewReader(sup))
-	ast, err := zp.ParseValue()
+	ast, err := NewParser(strings.NewReader(sup)).ParseValue()
 	if err != nil {
 		return super.Null, err
 	}
-	val, err := NewAnalyzer().ConvertValue(sctx, ast)
+	val, err := NewAnalyzer(sctx).ConvertValue(ast)
 	if err != nil {
 		return super.Null, err
 	}
@@ -95,7 +94,7 @@ func MustParseValue(sctx *super.Context, sup string) super.Value {
 }
 
 func ParseValueFromAST(sctx *super.Context, ast ast.Value) (super.Value, error) {
-	val, err := NewAnalyzer().ConvertValue(sctx, ast)
+	val, err := NewAnalyzer(sctx).ConvertValue(ast)
 	if err != nil {
 		return super.Null, err
 	}
@@ -103,5 +102,5 @@ func ParseValueFromAST(sctx *super.Context, ast ast.Value) (super.Value, error) 
 }
 
 func TranslateType(sctx *super.Context, astType ast.Type) (super.Type, error) {
-	return NewAnalyzer().convertType(sctx, astType)
+	return NewAnalyzer(sctx).convertType(astType)
 }

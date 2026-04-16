@@ -3,22 +3,22 @@ spq: "values c[start:end]"
 vector: true
 
 input: |
-  {start:null,end:-1,c:|[1,2,3,4]|}
-  {start:1,end:null,c:|[1,2,3,4]|}
+  {start:null,end:-1,c:set[1,2,3,4]}
+  {start:1,end:null,c:set[1,2,3,4]}
   {start:1,end:-1,c:null}
-  {start:1,end:-1,c:|[1,2,3,4]|}
-  {start:-3,end:3,c:|[5,7,8,9]|}
-  {start:-5,end:3,c:|[5,7,8,9]|}
-  {start:0,end:5,c:|[5,7,8,9]|}
-  {start:4,end:3,c:|[5,7,8,9]|}
+  {start:1,end:-1,c:set[1,2,3,4]}
+  {start:-3,end:3,c:set[5,7,8,9]}
+  {start:-5,end:3,c:set[5,7,8,9]}
+  {start:0,end:5,c:set[5,7,8,9]}
+  {start:4,end:3,c:set[5,7,8,9]}
 
 
 output: |
   null
   null
   null
-  |[2,3]|
-  |[7,8]|
-  |[5,7,8]|
-  |[5,7,8,9]|
-  |[]|
+  set[2,3]
+  set[7,8]
+  set[5,7,8]
+  set[5,7,8,9]
+  set[]

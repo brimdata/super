@@ -1,8 +1,8 @@
 script: |
   super compile -C 'values <{a:int64}>'
   super compile -C 'values <[int64]>'
-  super compile -C 'values <|[int64]|>'
-  super compile -C 'values <|{int64:string}|>'
+  super compile -C 'values <set[int64]>'
+  super compile -C 'values <map{int64:string}>'
   super compile -C 'values <error({msg:string})>'
 
 outputs:
@@ -10,6 +10,6 @@ outputs:
     data: |
       values <{a:int64}>
       values <[int64]>
-      values <|[int64]|>
-      values <|{int64:string}|>
+      values <set[int64]>
+      values <map{int64:string}>
       values <error({msg:string})>

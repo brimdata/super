@@ -1,5 +1,5 @@
 spq: |
-  values cast(this, <{a:|[ip]|,b:|[{b:ip}]|}>)
+  values cast(this, <{a:set[ip],b:set[{b:ip}]}>)
 
 vector: true
 
@@ -10,7 +10,7 @@ input: |
   {a:["1.1.1.1","2"],b:[{b:null},{b:"1.1.1.1"},{b:"2"}]}
 
 output: |
-  {a:|[]|::|[ip]|,b:|[]|::|[{b:ip}]|}
-  {a:|[1.1.1.1,2.2.2.2]|,b:|[{b:1.1.1.1},{b:2.2.2.2}]|}
-  {a:|[1.1.1.1]|,b:|[{b:2.2.2.2},{b:null::(ip|null)}]|}
-  {a:|[1.1.1.1,error({message:"cannot cast to ip",on:"2"})]|,b:|[{b:1.1.1.1},{b:null::(ip|null)},{b:error({message:"cannot cast to ip",on:"2"})}]|}
+  {a:set[]::set[ip],b:set[]::set[{b:ip}]}
+  {a:set[1.1.1.1,2.2.2.2],b:set[{b:1.1.1.1},{b:2.2.2.2}]}
+  {a:set[1.1.1.1],b:set[{b:2.2.2.2},{b:null::(ip|null)}]}
+  {a:set[1.1.1.1,error({message:"cannot cast to ip",on:"2"})],b:set[{b:1.1.1.1},{b:null::(ip|null)},{b:error({message:"cannot cast to ip",on:"2"})}]}

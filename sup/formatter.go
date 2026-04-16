@@ -3,7 +3,6 @@ package sup
 import (
 	"encoding/hex"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -13,128 +12,155 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-type Formatter struct {
-	typedefs      map[string]*super.TypeNamed
-	permanent     map[string]*super.TypeNamed
-	persist       *regexp.Regexp
+type StreamFormatter struct {
+	formatter
+	decls map[string]struct{}
+}
+
+func NewStreamFormatter(pretty int, colorDisabled bool) *StreamFormatter {
+	return &StreamFormatter{
+		formatter: *newFormatter(pretty, colorDisabled),
+		decls:     make(map[string]struct{}),
+	}
+}
+
+func (s *StreamFormatter) FormatValue(val super.Value) string {
+	s.builder.Reset()
+	if s.formatTypeDecls(val.Type()) {
+		s.formatTypeValueDecls(val)
+	}
+	s.formatValueAndDecorate(val.Type(), val.Bytes())
+	return s.builder.String()
+}
+
+// Emit type declarations for each named type in typ that has not been
+// previously emitted.  Also, returns true if there are any type types
+// so that the type values can be subsequently parsed for named types.
+func (s *StreamFormatter) formatTypeDecls(typ super.Type) bool {
+	var hasTypeVal bool
+	switch typ := typ.(type) {
+	case *super.TypeOfType:
+		return true
+	case *super.TypeNamed:
+		if _, ok := s.decls[typ.Name]; !ok {
+			s.decls[typ.Name] = struct{}{}
+			hasTypeVal = s.formatTypeDecls(typ.Type)
+			s.formatTypeDecl(typ)
+		}
+	case *super.TypeRecord:
+		for _, field := range typ.Fields {
+			if s.formatTypeDecls(field.Type) {
+				hasTypeVal = true
+			}
+		}
+	case *super.TypeArray:
+		return s.formatTypeDecls(typ.Type)
+	case *super.TypeSet:
+		return s.formatTypeDecls(typ.Type)
+	case *super.TypeUnion:
+		for _, typ := range typ.Types {
+			if s.formatTypeDecls(typ) {
+				hasTypeVal = true
+			}
+		}
+	case *super.TypeMap:
+		return s.formatTypeDecls(typ.KeyType) || s.formatTypeDecls(typ.ValType)
+	case *super.TypeError:
+		return s.formatTypeDecls(typ.Type)
+	case *super.TypeFusion:
+		return s.formatTypeDecls(typ.Type)
+	}
+	return hasTypeVal
+}
+
+func (s *StreamFormatter) formatTypeValueDecls(val super.Value) {
+	val.Walk(func(typ super.Type, body scode.Bytes) error {
+		if super.TypeUnder(typ) == super.TypeType {
+			typ, err := s.sctx().LookupByValue(body)
+			if err != nil {
+				panic(err) //XXX
+			}
+			s.formatTypeDecls(typ)
+		}
+		return nil
+	})
+}
+
+func (s *StreamFormatter) formatTypeDecl(typ *super.TypeNamed) {
+	var space string
+	if s.tab != 0 {
+		space = " "
+	}
+	s.buildf("type %s%s=%s", QuotedName(typ.Name), space, space)
+	s.formatType(0, typ.Type, false)
+	s.build("\n")
+}
+
+type formatter struct {
+	formatterT
+	sctx_   *super.Context
+	implied map[super.Type]bool
+}
+
+type formatterT struct {
 	tab           int
 	newline       string
 	builder       strings.Builder
-	stack         []strings.Builder
-	implied       map[super.Type]bool
 	colors        color.Stack
 	colorDisabled bool
 }
 
-func NewFormatter(pretty int, colorDisabled bool, persist *regexp.Regexp) *Formatter {
+func newFormatter(pretty int, colorDisabled bool) *formatter {
+	return &formatter{
+		implied:    make(map[super.Type]bool),
+		formatterT: *newFormatterT(pretty, colorDisabled),
+	}
+}
+
+func newFormatterT(pretty int, colorDisabled bool) *formatterT {
 	var newline string
 	if pretty > 0 {
 		newline = "\n"
 	}
-	var permanent map[string]*super.TypeNamed
-	if persist != nil {
-		permanent = make(map[string]*super.TypeNamed)
-	}
-	return &Formatter{
-		typedefs:      make(map[string]*super.TypeNamed),
-		permanent:     permanent,
+	return &formatterT{
 		tab:           pretty,
 		newline:       newline,
-		implied:       make(map[super.Type]bool),
-		persist:       persist,
 		colorDisabled: colorDisabled,
 	}
 }
 
-// Persist matches type names to the regular expression provided and
-// persists the matched types across records in the stream.  This is useful
-// when typedefs have complicated type signatures, e.g., as generated
-// by fused fields of records creating a union of records.
-func (f *Formatter) Persist(re *regexp.Regexp) {
-	f.permanent = make(map[string]*super.TypeNamed)
-	f.persist = re
-}
-
-func (f *Formatter) push() {
-	f.stack = append(f.stack, f.builder)
-	f.builder = strings.Builder{}
-}
-
-func (f *Formatter) pop() {
-	n := len(f.stack)
-	f.builder = f.stack[n-1]
-	f.stack = f.stack[:n-1]
-}
-
-func (f *Formatter) FormatValue(val super.Value) string {
-	// We reset tyepdefs so named types are emitted with their
-	// definition at first use in each record according to the
-	// left-to-right DFS order.  We could make this more efficient
-	// by putting a record number/nonce in the map but SUP
-	// is already intended to be the low performance path.
-	f.typedefs = make(map[string]*super.TypeNamed)
-	return f.Format(val)
-}
-
-func FormatValue(val super.Value) string {
-	return NewFormatter(0, true, nil).Format(val)
-}
-
-func String(p any) string {
-	if typ, ok := p.(super.Type); ok {
-		return FormatType(typ)
-	}
-	switch val := p.(type) {
-	case *super.Value:
-		return FormatValue(*val)
-	case super.Value:
-		return FormatValue(val)
-	default:
-		panic(fmt.Sprintf("sup.String takes a super.Type or *super.Value: %T", val))
-	}
-}
-
-func (f *Formatter) Format(val super.Value) string {
+func (f *formatter) FormatValue(val super.Value) string {
 	f.builder.Reset()
 	f.formatValueAndDecorate(val.Type(), val.Bytes())
 	return f.builder.String()
 }
 
-func (f *Formatter) hasName(typ super.Type) bool {
+func (f *formatter) sctx() *super.Context {
+	if f.sctx_ == nil {
+		f.sctx_ = super.NewContext()
+	}
+	return f.sctx_
+}
+
+func (f *formatter) hasName(typ super.Type) bool {
 	return f.nameOf(typ) != ""
 }
 
-func (f *Formatter) nameOf(typ super.Type) string {
-	named, ok := typ.(*super.TypeNamed)
-	if !ok {
-		return ""
+func (f *formatter) nameOf(typ super.Type) string {
+	var name string
+	if named, ok := typ.(*super.TypeNamed); ok {
+		name = named.Name
 	}
-	if typ == f.typedefs[named.Name] {
-		return named.Name
-	}
-	if f.permanent != nil {
-		if typ == f.permanent[named.Name] {
-			return named.Name
-		}
-	}
-	return ""
+	return name
 }
 
-func (f *Formatter) saveType(named *super.TypeNamed) {
-	name := named.Name
-	f.typedefs[name] = named
-	if f.permanent != nil && f.persist.MatchString(name) {
-		f.permanent[name] = named
-	}
-}
-
-func (f *Formatter) formatValueAndDecorate(typ super.Type, bytes scode.Bytes) {
+func (f *formatter) formatValueAndDecorate(typ super.Type, bytes scode.Bytes) {
 	known := f.hasName(typ)
 	f.formatValue(0, typ, bytes, known, false)
-	f.decorate(typ, false)
+	f.decorate(typ, false, 0)
 }
 
-func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, decorate bool) {
+func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, decorate bool) {
 	known := parentKnown || f.hasName(typ)
 	var empty bool
 	switch t := typ.(type) {
@@ -147,9 +173,9 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 	case *super.TypeRecord:
 		f.formatRecord(indent, t, bytes, known)
 	case *super.TypeArray:
-		empty = f.formatVector(indent, "[", "]", t.Type, super.NewValue(t, bytes), known)
+		empty = f.formatElems(indent, "[", "]", t.Type, super.NewValue(t, bytes), known)
 	case *super.TypeSet:
-		empty = f.formatVector(indent, "|[", "]|", t.Type, super.NewValue(t, bytes), known)
+		empty = f.formatElems(indent, "set[", "]", t.Type, super.NewValue(t, bytes), known)
 	case *super.TypeUnion:
 		f.formatUnion(indent, t, bytes)
 	case *super.TypeMap:
@@ -172,226 +198,83 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.build("(")
 		it := bytes.Iter()
 		f.formatValue(indent, t.Type, it.Next(), known, true)
-		f.build(",<")
-		f.formatTypeValue(indent, it.Next(), false)
-		f.build(">)")
+		f.build(",")
+		f.formatTypeValue(indent, it.Next())
+		f.build(")")
 		// We don't need to decorate a fusion value because
 		// its type is always implied by its value.
 		return
 	case *super.TypeOfType:
 		f.startColor(color.Gray(200))
-		f.build("<")
-		f.formatTypeValue(indent, bytes, false)
-		f.build(">")
+		f.formatTypeValue(indent, bytes)
 		f.endColor()
 	}
 	if decorate && !parentKnown {
-		f.decorate(typ, empty)
+		f.decorate(typ, empty, indent)
 	}
 }
 
-func (f *Formatter) formatTypeValue(indent int, tv scode.Bytes, isComponentType bool) scode.Bytes {
-	n, tv := super.DecodeLength(tv)
-	if tv == nil {
-		f.truncTypeValueErr()
-		return nil
+func (f *formatter) formatTypeValue(indent int, bytes scode.Bytes) {
+	typ, err := f.sctx().LookupByValue(bytes)
+	if err != nil {
+		panic(err)
 	}
-	switch n {
-	default:
-		typ, err := super.LookupPrimitiveByID(n)
-		if err != nil {
-			f.buildf("<ERR bad type ID in type value: %s>", err)
-			return nil
-		}
-
-		f.startColor(color.Gray(160))
-		f.build(super.PrimitiveName(typ))
-		f.endColor()
-	case super.TypeValueNameDef:
-		var name string
-		name, tv = super.DecodeName(tv)
-		if tv == nil {
-			f.truncTypeValueErr()
-			return nil
-		}
-		if isComponentType {
-			f.build("(")
-		}
-		f.build(QuotedName(name))
-		f.build("=")
-		tv = f.formatTypeValue(indent, tv, false)
-		if isComponentType {
-			f.build(")")
-		}
-	case super.TypeValueNameRef:
-		var name string
-		name, tv = super.DecodeName(tv)
-		if tv == nil {
-			f.truncTypeValueErr()
-			return nil
-		}
-		f.build(QuotedName(name))
-	case super.TypeValueRecord:
-		f.build("{")
-		var n int
-		n, tv = super.DecodeLength(tv)
-		if tv == nil {
-			f.truncTypeValueErr()
-			return nil
-		}
-		if n == 0 {
-			f.build("}")
-			return tv
-		}
-		sep := f.newline
-		indent += f.tab
-		optlen := (n + 7) >> 3
-		if optlen > len(tv) {
-			f.truncTypeValueErr()
-			return nil
-		}
-		opts := tv[:optlen]
-		tv = tv[optlen:]
-		for k := range n {
-			f.build(sep)
-			var name string
-			name, tv = super.DecodeName(tv)
-			if tv == nil {
-				f.truncTypeValueErr()
-				return nil
-			}
-			f.indent(indent, QuotedName(name))
-			if scode.TestBit(opts, k) {
-				f.build("?")
-			}
-			f.build(":")
-			if f.tab > 0 {
-				f.build(" ")
-			}
-			tv = f.formatTypeValue(indent, tv, false)
-			sep = "," + f.newline
-		}
+	f.startColor(color.Gray(160))
+	if isShortType(typ) {
+		f.build("<")
+		f.formatType(indent, typ, false)
+		f.build(">")
+	} else {
+		f.build("<")
 		f.build(f.newline)
-		f.indent(indent-f.tab, "}")
-	case super.TypeValueArray:
-		tv = f.formatVectorTypeValue(indent, "[", "]", tv)
-	case super.TypeValueSet:
-		tv = f.formatVectorTypeValue(indent, "|[", "]|", tv)
-	case super.TypeValueMap:
-		f.build("|{")
-		newline := f.newline
 		indent += f.tab
-		if n, itv := super.DecodeLength(tv); n < super.IDTypeComplex {
-			n, _ = super.DecodeLength(itv)
-			if n < super.IDTypeComplex {
-				// If key and value are both primitives don't indent.
-				indent -= f.tab
-				newline = ""
-			}
-		}
-		f.build(newline)
 		f.indent(indent, "")
-		tv = f.formatTypeValue(indent, tv, false)
-		f.build(":")
-		if f.tab > 0 {
-			f.build(" ")
-		}
-		tv = f.formatTypeValue(indent, tv, false)
-		f.build(newline)
-		if newline != "" {
-			f.indent(indent-f.tab, "}|")
-		} else {
-			f.build("}|")
-		}
-	case super.TypeValueUnion:
-		var n int
-		n, tv = super.DecodeLength(tv)
-		if tv == nil {
-			f.truncTypeValueErr()
-			return nil
-		}
-		indent += f.tab
-		if isComponentType {
-			f.build("(" + f.newline)
-		} else {
-			f.build(f.newline)
-		}
-		f.indent(indent, "")
-		for k := range n {
-			tv = f.formatTypeValue(indent, tv, true)
-			if k != n-1 {
-				f.build("|" + f.newline)
-				f.indent(indent, "")
-			}
-		}
-		f.build(f.newline)
-		indent -= f.tab
-		if isComponentType {
-			f.indent(indent, ")")
-		} else {
-			f.indent(indent, "")
-		}
-	case super.TypeValueEnum:
-		f.build("enum(")
-		var n int
-		n, tv = super.DecodeLength(tv)
-		if tv == nil {
-			f.truncTypeValueErr()
-			return nil
-		}
-		for k := range n {
-			if k > 0 {
-				f.build(",")
-			}
-			var symbol string
-			symbol, tv = super.DecodeName(tv)
-			if tv == nil {
-				f.truncTypeValueErr()
-				return nil
-			}
-			f.build(QuotedName(symbol))
-		}
-		f.build(")")
-	case super.TypeValueError:
-		f.startColor(color.Red)
-		f.build("error")
-		f.endColor()
-		f.build("(")
-		tv = f.formatTypeValue(indent, tv, false)
-		f.build(")")
-	case super.TypeValueFusion:
-		f.startColor(color.Green)
-		f.build("fusion")
-		f.endColor()
-		f.build("(")
-		tv = f.formatTypeValue(indent, tv, false)
-		f.build(")")
+		f.formatType(indent, typ, false)
+		f.indent(indent-f.tab, ">")
 	}
-	return tv
+	f.endColor()
 }
 
-func (f *Formatter) formatVectorTypeValue(indent int, open, close string, tv scode.Bytes) scode.Bytes {
-	f.build(open)
-	if n, _ := super.DecodeLength(tv); n < super.IDTypeComplex {
-		tv = f.formatTypeValue(indent, tv, false)
-		f.build(close)
-		return tv
+func isShortType(typ super.Type) bool {
+	typ = super.TypeUnder(typ)
+	if super.IsPrimitiveType(typ) {
+		return true
 	}
-	indent += f.tab
-	f.build(f.newline)
-	f.indent(indent, "")
-	tv = f.formatTypeValue(indent, tv, false)
-	f.build(f.newline)
-	f.indent(indent-f.tab, close)
-	return tv
+	switch typ := typ.(type) {
+	case *super.TypeRecord:
+		if len(typ.Fields) <= 4 {
+			for _, f := range typ.Fields {
+				if !isShortType(f.Type) || len(f.Name) > 12 {
+					return false
+				}
+			}
+			return true
+		}
+	case *super.TypeArray:
+		return isShortType(typ.Type)
+	case *super.TypeSet:
+		return isShortType(typ.Type)
+	case *super.TypeMap:
+		return isShortType(typ.KeyType) && isShortType(typ.ValType)
+	case *super.TypeUnion:
+		if len(typ.Types) <= 6 {
+			for _, t := range typ.Types {
+				if !isShortType(t) {
+					return false
+				}
+			}
+			return true
+		}
+	case *super.TypeError:
+		return isShortType(typ.Type)
+	case *super.TypeFusion:
+		return isShortType(typ.Type)
+	}
+	return false
 }
 
-func (f *Formatter) truncTypeValueErr() {
-	f.build("<ERR truncated type value>")
-}
-
-func (f *Formatter) decorate(typ super.Type, empty bool) {
-	if !empty && f.isImplied(typ) {
+func (f *formatter) decorate(typ super.Type, empty bool, indent int) {
+	if (!empty && f.isImplied(typ)) || (empty && innerNone(typ)) {
 		return
 	}
 	f.startColor(color.Gray(200))
@@ -400,16 +283,36 @@ func (f *Formatter) decorate(typ super.Type, empty bool) {
 		f.buildf("::%s", quoteHexyString(QuotedTypeName(name)))
 	} else if !empty && SelfDescribing(typ) {
 		if typ, ok := typ.(*super.TypeNamed); ok {
-			f.saveType(typ)
 			f.buildf("::=%s", QuotedTypeName(typ.Name))
 		}
 	} else {
 		f.build("::")
-		f.formatType(typ, true)
+		f.formatType(indent, typ, true)
 	}
 }
 
-func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.Bytes, known bool) {
+func innerNone(typ super.Type) bool {
+	switch typ := typ.(type) {
+	case *super.TypeSet:
+		return typ.Type == super.TypeNone
+	case *super.TypeArray:
+		return typ.Type == super.TypeNone
+	case *super.TypeMap:
+		return typ.KeyType == super.TypeNone && typ.ValType == super.TypeNone
+	}
+	return false
+}
+
+func (f *formatter) isImplied(typ super.Type) bool {
+	implied, ok := f.implied[typ]
+	if !ok {
+		implied = Implied(typ)
+		f.implied[typ] = implied
+	}
+	return implied
+}
+
+func (f *formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.Bytes, known bool) {
 	f.build("{")
 	if len(typ.Fields) == 0 {
 		f.build("}")
@@ -435,7 +338,7 @@ func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 			f.build("_")
 			f.startColor(color.Gray(200))
 			f.build("::")
-			f.formatType(field.Type, true)
+			f.formatType(indent, field.Type, true)
 			f.endColor()
 		} else {
 			f.formatValue(indent, field.Type, elem, known, true)
@@ -446,7 +349,7 @@ func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 	f.indent(indent-f.tab, "}")
 }
 
-func (f *Formatter) formatVector(indent int, open, close string, inner super.Type, val super.Value, known bool) bool {
+func (f *formatter) formatElems(indent int, open, close string, inner super.Type, val super.Value, known bool) bool {
 	f.build(open)
 	n, err := val.ContainerLength()
 	if err != nil {
@@ -472,7 +375,7 @@ func (f *Formatter) formatVector(indent int, open, close string, inner super.Typ
 	if elems.needsDecoration() {
 		// If we haven't seen all the types in the union, print the decorator
 		// so the fullness of the union is persevered.
-		f.decorate(val.Type(), true)
+		f.decorate(val.Type(), true, indent)
 	}
 	return false
 }
@@ -504,7 +407,7 @@ func (e *elemHelper) needsDecoration() bool {
 	return e.union != nil && (isnamed || len(e.seen) < len(e.union.Types))
 }
 
-func (f *Formatter) formatUnion(indent int, union *super.TypeUnion, bytes scode.Bytes) {
+func (f *formatter) formatUnion(indent int, union *super.TypeUnion, bytes scode.Bytes) {
 	typ, bytes := union.Untag(bytes)
 	// XXX For now, we always decorate a union value so that
 	// we can determine the tag from the value's explicit type.
@@ -518,9 +421,9 @@ func (f *Formatter) formatUnion(indent int, union *super.TypeUnion, bytes scode.
 	f.formatValue(indent, typ, bytes, known, true)
 }
 
-func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes, known bool) bool {
+func (f *formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes, known bool) bool {
 	empty := true
-	f.build("|{")
+	f.build("map{")
 	indent += f.tab
 	sep := f.newline
 	keyElems := newElemBuilder(typ.KeyType)
@@ -547,276 +450,11 @@ func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes,
 		sep = "," + f.newline
 	}
 	f.build(f.newline)
-	f.indent(indent-f.tab, "}|")
+	f.indent(indent-f.tab, "}")
 	if keyElems.needsDecoration() || valElems.needsDecoration() {
-		f.decorate(typ, true)
+		f.decorate(typ, true, indent)
 	}
 	return empty
-}
-
-func (f *Formatter) indent(tab int, s string) {
-	for range tab {
-		f.builder.WriteByte(' ')
-	}
-	f.build(s)
-}
-
-func (f *Formatter) build(s string) {
-	f.builder.WriteString(s)
-}
-
-func (f *Formatter) buildf(s string, args ...any) {
-	f.builder.WriteString(fmt.Sprintf(s, args...))
-}
-
-// formatType builds typ as a type string with any needed
-// typedefs for named types that have not been previously defined,
-// or whose name is redefined to a different type.
-// These typedefs use the embedded syntax (name=type-string).
-// Typedefs handled by decorators are handled in decorate().
-// The routine re-enters the type formatter with a fresh builder by
-// invoking push()/pop().
-func (f *Formatter) formatType(typ super.Type, isComponentType bool) {
-	if name := f.nameOf(typ); name != "" {
-		f.build(name)
-		return
-	}
-	if named, ok := typ.(*super.TypeNamed); ok {
-		needParens := isComponentType || super.IsUnionType(named.Type)
-		f.saveType(named)
-		if needParens {
-			f.build("(")
-		}
-		f.build(named.Name)
-		f.build("=")
-		f.formatType(named.Type, false)
-		if needParens {
-			f.build(")")
-		}
-		return
-	}
-	if typ.ID() < super.IDTypeComplex {
-		f.build(super.PrimitiveName(typ))
-		return
-	}
-	f.push()
-	f.formatTypeBody(typ, isComponentType)
-	s := f.builder.String()
-	f.pop()
-	f.build(s)
-}
-
-func (f *Formatter) formatTypeBody(typ super.Type, isComponentType bool) {
-	if name := f.nameOf(typ); name != "" {
-		f.build(name)
-		return
-	}
-	switch typ := typ.(type) {
-	case *super.TypeNamed:
-		// Named types are handled differently above to determine the
-		// plain form vs embedded typedef.
-		panic("named type shouldn't be formatted")
-	case *super.TypeRecord:
-		f.formatTypeRecord(typ)
-	case *super.TypeArray:
-		f.build("[")
-		f.formatType(typ.Type, false)
-		f.build("]")
-	case *super.TypeSet:
-		f.build("|[")
-		f.formatType(typ.Type, false)
-		f.build("]|")
-	case *super.TypeMap:
-		f.build("|{")
-		f.formatType(typ.KeyType, false)
-		f.build(":")
-		f.formatType(typ.ValType, false)
-		f.build("}|")
-	case *super.TypeUnion:
-		f.formatTypeUnion(typ, isComponentType)
-	case *super.TypeEnum:
-		f.formatTypeEnum(typ)
-	case *super.TypeError:
-		f.build("error(")
-		formatType(&f.builder, make(map[string]*super.TypeNamed), typ.Type, false)
-		f.build(")")
-	case *super.TypeFusion:
-		f.build("fusion(")
-		formatType(&f.builder, make(map[string]*super.TypeNamed), typ.Type, false)
-		f.build(")")
-	case *super.TypeOfType:
-		formatType(&f.builder, make(map[string]*super.TypeNamed), typ, false)
-	default:
-		panic("unknown case in formatTypeBody: " + String(typ))
-	}
-}
-
-func (f *Formatter) formatTypeRecord(typ *super.TypeRecord) {
-	f.build("{")
-	for k, field := range typ.Fields {
-		if k > 0 {
-			f.build(",")
-		}
-		f.build(QuotedName(field.Name))
-		if field.Opt {
-			f.build("?")
-		}
-		f.build(":")
-		f.formatType(field.Type, false)
-	}
-	f.build("}")
-}
-
-func (f *Formatter) formatTypeUnion(typ *super.TypeUnion, isComponentType bool) {
-	if isComponentType {
-		f.build("(")
-	}
-	for k, typ := range typ.Types {
-		if k > 0 {
-			f.build("|")
-		}
-		f.formatType(typ, true)
-	}
-	if isComponentType {
-		f.build(")")
-	}
-}
-
-func (f *Formatter) formatTypeEnum(typ *super.TypeEnum) {
-	f.build("enum(")
-	for k, s := range typ.Symbols {
-		if k > 0 {
-			f.build(",")
-		}
-		f.buildf("%s", QuotedName(s))
-	}
-	f.build(")")
-}
-
-var colors = map[super.Type]color.Code{
-	super.TypeString: color.Green,
-	super.TypeType:   color.Orange,
-}
-
-func (f *Formatter) startColorPrimitive(typ super.Type) {
-	if !f.colorDisabled {
-		c, ok := colors[super.TypeUnder(typ)]
-		if !ok {
-			c = color.Reset
-		}
-		f.startColor(c)
-	}
-}
-
-func (f *Formatter) startColor(code color.Code) {
-	if !f.colorDisabled {
-		f.colors.Start(&f.builder, code)
-	}
-}
-
-func (f *Formatter) endColor() {
-	if !f.colorDisabled {
-		f.colors.End(&f.builder)
-	}
-}
-
-func (f *Formatter) isImplied(typ super.Type) bool {
-	implied, ok := f.implied[typ]
-	if !ok {
-		implied = Implied(typ)
-		f.implied[typ] = implied
-	}
-	return implied
-}
-
-// FormatType formats a type in canonical form to represent type values
-// as standalone entities.
-func FormatType(typ super.Type) string {
-	var b strings.Builder
-	formatType(&b, make(map[string]*super.TypeNamed), typ, false)
-	return b.String()
-}
-
-func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ super.Type, isComponentType bool) {
-	switch t := typ.(type) {
-	case *super.TypeNamed:
-		name := t.Name
-		b.WriteString(QuotedTypeName(name))
-		if typedefs[t.Name] != t {
-			b.WriteByte('=')
-			formatType(b, typedefs, t.Type, false)
-			// Don't set typedef until after children are recursively
-			// traversed so that we adhere to the DFS order of
-			// type bindings.
-			typedefs[name] = t
-		}
-	case *super.TypeRecord:
-		b.WriteByte('{')
-		for k, f := range t.Fields {
-			if k > 0 {
-				b.WriteByte(',')
-			}
-			b.WriteString(QuotedName(f.Name))
-			if f.Opt {
-				b.WriteString("?")
-			}
-			b.WriteString(":")
-			formatType(b, typedefs, f.Type, false)
-		}
-		b.WriteByte('}')
-	case *super.TypeArray:
-		b.WriteByte('[')
-		formatType(b, typedefs, t.Type, false)
-		b.WriteByte(']')
-	case *super.TypeSet:
-		b.WriteString("|[")
-		formatType(b, typedefs, t.Type, false)
-		b.WriteString("]|")
-	case *super.TypeMap:
-		b.WriteString("|{")
-		formatType(b, typedefs, t.KeyType, false)
-		b.WriteByte(':')
-		formatType(b, typedefs, t.ValType, false)
-		b.WriteString("}|")
-	case *super.TypeUnion:
-		if isComponentType {
-			b.WriteByte('(')
-		}
-		for k, typ := range t.Types {
-			if k > 0 {
-				b.WriteByte('|')
-			}
-			formatType(b, typedefs, typ, true)
-		}
-		if isComponentType {
-			b.WriteByte(')')
-		}
-	case *super.TypeEnum:
-		b.WriteString("enum(")
-		for k, s := range t.Symbols {
-			if k > 0 {
-				b.WriteByte(',')
-			}
-			b.WriteString(QuotedName(s))
-		}
-		b.WriteByte(')')
-	case *super.TypeError:
-		b.WriteString("error(")
-		formatType(b, typedefs, t.Type, false)
-		b.WriteByte(')')
-	case *super.TypeFusion:
-		b.WriteString("fusion(")
-		formatType(b, typedefs, t.Type, false)
-		b.WriteByte(')')
-	default:
-		b.WriteString(super.PrimitiveName(typ))
-	}
-}
-
-func FormatPrimitive(typ super.Type, bytes scode.Bytes) string {
-	var b strings.Builder
-	formatPrimitive(&b, typ, bytes)
-	return b.String()
 }
 
 func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
@@ -866,9 +504,7 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
 	case *super.TypeOfNet:
 		b.WriteString(super.DecodeNet(bytes).String())
 	case *super.TypeOfType:
-		b.WriteByte('<')
 		b.WriteString(FormatTypeValue(bytes))
-		b.WriteByte('>')
 	case *super.TypeOfNull:
 		b.WriteString("null")
 	case *super.TypeOfNone:
@@ -884,9 +520,216 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
 	}
 }
 
+// formatType builds typ as a type string with any needed
+// typedefs for named types that have not been previously defined,
+// or whose name is redefined to a different type.
+// These typedefs use the embedded syntax (name=type-string).
+// Typedefs handled by decorators are handled in decorate().
+// The routine re-enters the type formatter with a fresh builder by
+// invoking push()/pop().
+func (f *formatterT) formatType(indent int, typ super.Type, parens bool) {
+	if super.TypeID(typ) < super.IDTypeComplex {
+		f.build(super.PrimitiveName(typ))
+		return
+	}
+	switch typ := typ.(type) {
+	case *super.TypeNamed:
+		f.build(QuotedName(typ.Name))
+	case *super.TypeRecord:
+		f.formatTypeRecord(indent, typ)
+	case *super.TypeArray:
+		f.build("[")
+		f.formatType(indent, typ.Type, false)
+		f.build("]")
+	case *super.TypeSet:
+		f.build("set[")
+		f.formatType(indent, typ.Type, false)
+		f.build("]")
+	case *super.TypeMap:
+		f.build("map{")
+		newline := f.newline
+		tab := f.tab
+		indent += tab
+		if super.IsPrimitiveType(typ.KeyType) && super.IsPrimitiveType(typ.ValType) {
+			tab = 0
+			newline = ""
+			indent = 0
+		}
+		f.build(newline)
+		f.indent(indent, "")
+		f.formatType(indent, typ.KeyType, false)
+		f.build(":")
+		if tab > 0 {
+			f.build(" ")
+		}
+		f.formatType(indent, typ.ValType, false)
+		f.build(newline)
+		if newline != "" {
+			f.indent(indent-tab, "}")
+		} else {
+			f.build("}")
+		}
+	case *super.TypeUnion:
+		f.formatTypeUnion(indent, typ, parens)
+	case *super.TypeEnum:
+		f.formatTypeEnum(typ)
+	case *super.TypeError:
+		f.build("error(")
+		f.formatType(indent, typ.Type, false)
+		f.build(")")
+	case *super.TypeFusion:
+		f.build("fusion(")
+		f.formatType(indent, typ.Type, false)
+		f.build(")")
+	default:
+		panic("unknown case in formatTypeBody: " + FormatType(typ))
+	}
+}
+
+func (f *formatterT) formatTypeRecord(indent int, typ *super.TypeRecord) {
+	f.build("{")
+	sep := f.newline
+	indent += f.tab
+	for _, field := range typ.Fields {
+		f.build(sep)
+		f.indent(indent, QuotedName(field.Name))
+		if field.Opt {
+			f.build("?")
+		}
+		f.build(":")
+		if f.tab > 0 {
+			f.build(" ")
+		}
+		f.formatType(indent, field.Type, false)
+		sep = "," + f.newline
+	}
+	f.build(f.newline)
+	f.indent(indent-f.tab, "}")
+}
+
+func (f *formatterT) formatTypeUnion(indent int, typ *super.TypeUnion, parens bool) {
+	if isShortType(typ) {
+		if parens {
+			f.build("(")
+		}
+		sep := ""
+		for _, typ := range typ.Types {
+			f.build(sep)
+			f.formatType(indent, typ, false)
+			sep = "|"
+		}
+		if parens {
+			f.build(")")
+		}
+		return
+	}
+	if parens || f.tab != 0 {
+		f.build("(")
+	}
+	sep := f.newline
+	indent += f.tab
+	for _, typ := range typ.Types {
+		f.build(sep)
+		f.indent(indent, "")
+		f.formatType(indent, typ, false)
+		sep = "|" + f.newline
+	}
+	if parens || f.tab != 0 {
+		f.build(f.newline)
+		f.indent(indent-f.tab, ")")
+	}
+}
+
+func (f *formatterT) formatTypeEnum(typ *super.TypeEnum) {
+	f.build("enum(")
+	for k, s := range typ.Symbols {
+		if k > 0 {
+			f.build(",")
+		}
+		f.buildf("%s", QuotedName(s))
+	}
+	f.build(")")
+}
+
+var colors = map[super.Type]color.Code{
+	super.TypeString: color.Green,
+	super.TypeType:   color.Orange,
+}
+
+func (f *formatterT) startColorPrimitive(typ super.Type) {
+	if !f.colorDisabled {
+		c, ok := colors[super.TypeUnder(typ)]
+		if !ok {
+			c = color.Reset
+		}
+		f.startColor(c)
+	}
+}
+
+func (f *formatterT) startColor(code color.Code) {
+	if !f.colorDisabled {
+		f.colors.Start(&f.builder, code)
+	}
+}
+
+func (f *formatterT) endColor() {
+	if !f.colorDisabled {
+		f.colors.End(&f.builder)
+	}
+}
+
+func FormatType(typ super.Type) string {
+	f := newFormatterT(0, true)
+	f.formatType(0, typ, false)
+	return f.builder.String()
+}
+
+func FormatPrimitive(typ super.Type, bytes scode.Bytes) string {
+	var b strings.Builder
+	formatPrimitive(&b, typ, bytes)
+	return b.String()
+}
+
+func (f *formatterT) indent(tab int, s string) {
+	for range tab {
+		f.builder.WriteByte(' ')
+	}
+	f.build(s)
+}
+
+func (f *formatterT) build(s string) {
+	f.builder.WriteString(s)
+}
+
+func (f *formatterT) buildf(s string, args ...any) {
+	f.builder.WriteString(fmt.Sprintf(s, args...))
+}
+
+func FormatValue(val super.Value) string {
+	return newFormatter(0, true).FormatValue(val)
+}
+
+func FormatValueWithTypes(val super.Value) string {
+	return NewStreamFormatter(0, true).FormatValue(val)
+}
+
+func String(p any) string {
+	if typ, ok := p.(super.Type); ok {
+		return FormatType(typ)
+	}
+	switch val := p.(type) {
+	case *super.Value:
+		return FormatValue(*val)
+	case super.Value:
+		return FormatValue(val)
+	default:
+		panic(fmt.Sprintf("sup.String takes a super.Type or *super.Value: %T", val))
+	}
+}
+
 func FormatTypeValue(tv scode.Bytes) string {
-	f := NewFormatter(0, true, nil)
-	f.formatTypeValue(0, tv, false)
+	f := newFormatter(0, true)
+	f.formatTypeValue(0, tv)
 	return f.builder.String()
 }
 

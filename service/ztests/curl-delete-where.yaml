@@ -18,7 +18,9 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {commit:xxx::=ksuid.KSUID,warnings:[]::[string]}::=api.CommitResponse
+      type "ksuid.KSUID"=bytes
+      type "api.CommitResponse"={commit:"ksuid.KSUID",warnings:[string]}
+      {commit:xxx,warnings:[]}::api.CommitResponse
       ===
       {x:5}
       {x:6}

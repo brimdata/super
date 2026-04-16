@@ -2,6 +2,7 @@ package sup
 
 import (
 	"errors"
+	"unicode"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -27,9 +28,6 @@ func (p *Parser) matchType() (ast.Type, error) {
 }
 
 func (p *Parser) matchTypeComponent() (ast.Type, error) {
-	if typ, err := p.matchTypeName(); typ != nil || err != nil {
-		return typ, err
-	}
 	if typ, err := p.matchTypeRecord(); typ != nil || err != nil {
 		return typ, err
 	}
@@ -40,6 +38,9 @@ func (p *Parser) matchTypeComponent() (ast.Type, error) {
 		return typ, err
 	}
 	if typ, err := p.matchTypeParens(); typ != nil || err != nil {
+		return typ, err
+	}
+	if typ, err := p.matchTypeName(); typ != nil || err != nil {
 		return typ, err
 	}
 	// no match
@@ -67,7 +68,7 @@ func (p *Parser) matchTypeName() (ast.Type, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !(idChar(r) || isDigit(r) || r == '"') {
+	if !(idChar(r) || unicode.IsDigit(r) || r == '"') {
 		return nil, nil
 	}
 	name, err := l.scanTypeName()
@@ -86,20 +87,7 @@ func (p *Parser) matchTypeName() (ast.Type, error) {
 	if t := super.LookupPrimitive(name); t != nil {
 		return &ast.TypePrimitive{Kind: "TypePrimitive", Name: name}, nil
 	}
-	// Wherever we have a type name, we can have a type def defining the
-	// type name.
-	if ok, err := l.match('='); !ok || err != nil {
-		return &ast.TypeName{Kind: "TypeName", Name: name}, nil
-	}
-	typ, err := p.parseType()
-	if err != nil {
-		return nil, err
-	}
-	return &ast.TypeDef{
-		Kind: "TypeDef",
-		Name: name,
-		Type: typ,
-	}, nil
+	return &ast.TypeRef{Kind: "TypeRef", Name: name}, nil
 }
 
 func (p *Parser) matchTypeRecord() (*ast.TypeRecord, error) {
@@ -194,17 +182,13 @@ func (p *Parser) matchTypeArray() (*ast.TypeArray, error) {
 
 func (p *Parser) matchTypeSetOrMap() (ast.Type, error) {
 	l := p.lexer
-	if ok, err := l.match('|'); !ok || err != nil {
-		return nil, err
-	}
-	isSet, err := l.matchTight('[')
+	lookahead, err := l.peek(4)
 	if err != nil {
-		return nil, err
+		return nil, noEOF(err)
 	}
-	var typ ast.Type
-	var which string
-	if isSet {
-		which = "set"
+	switch lookahead {
+	case "set[":
+		l.skip(4)
 		inner, err := p.parseType()
 		if err != nil {
 			return nil, err
@@ -216,40 +200,27 @@ func (p *Parser) matchTypeSetOrMap() (ast.Type, error) {
 		if !ok {
 			return nil, p.error("mismatched set-brackets while parsing set type")
 		}
-		typ = &ast.TypeSet{
+		return &ast.TypeSet{
 			Kind: "TypeSet",
 			Type: inner,
-		}
-	} else {
-		ok, err := l.matchTight('{')
+		}, nil
+	case "map{":
+		l.skip(4)
+		typ, err := p.parseTypeMap()
 		if err != nil {
 			return nil, err
 		}
-		if !ok {
-			return nil, p.error("no '|[' or '|{' type token at '|' character")
-		}
-		which = "map"
-		typ, err = p.parseTypeMap()
-		if err != nil {
-			return nil, err
-		}
-		ok, err = l.match('}')
+		ok, err := l.match('}')
 		if err != nil {
 			return nil, err
 		}
 		if !ok {
 			return nil, p.error("mismatched set-brackets while parsing map type")
 		}
+		return typ, nil
+	default:
+		return nil, nil
 	}
-	ok, err := l.matchTight('|')
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, p.errorf("mismatched closing bracket while parsing type %q", which)
-	}
-	return typ, nil
-
 }
 
 func (p *Parser) parseTypeMap() (*ast.TypeMap, error) {
@@ -284,6 +255,10 @@ func (p *Parser) matchTypeParens() (ast.Type, error) {
 	if err != nil {
 		return nil, err
 	}
+	if ok, _ := l.match('='); ok {
+		return nil, p.error("value embedded type declarations at '=' no longer supported")
+	}
+
 	ok, err := l.match(')')
 	if err != nil {
 		return nil, err

@@ -54,7 +54,7 @@ _Dereference a map, a record, and a record type_
 # spq
 values this.x.y
 # input
-|{"x":{y:1},"y":2}|
+map{"x":{y:1},"y":2}
 {x:{y:1},y:2}
 <{x:{y:int64},y:int64}>
 # expected output

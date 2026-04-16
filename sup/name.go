@@ -10,7 +10,7 @@ func IsIdentifier(s string) bool {
 	}
 	first := true
 	for _, c := range s {
-		if !idChar(c) && (first || !isDigit(c)) {
+		if !idChar(c) && (first || !unicode.IsDigit(c)) {
 			return false
 		}
 		first = false
@@ -28,7 +28,7 @@ func IsTypeName(s string) bool {
 		if !typeChar(c) {
 			return false
 		}
-		if k == 0 && isDigit(c) {
+		if k == 0 && unicode.IsDigit(c) {
 			return false
 		}
 	}
@@ -36,5 +36,5 @@ func IsTypeName(s string) bool {
 }
 
 func typeChar(c rune) bool {
-	return idChar(c) || isDigit(c) || c == '.'
+	return idChar(c) || unicode.IsDigit(c) || c == '.'
 }

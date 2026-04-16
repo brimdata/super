@@ -41,5 +41,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {user:"izuzero",created_at:2024-11-13T02:13:58.281661Z,repos:|["zhouzhi2015/temp","izuzero/xe-module-ajaxboard"]|}
-      {user:"rspt",created_at:2024-11-13T02:14:27.813538Z,repos:|["rspt/rspt-theme","winterbe/streamjs","jdilt/jdilt.github.io"]|}
+      {user:"izuzero",created_at:2024-11-13T02:13:58.281661Z,repos:set["zhouzhi2015/temp","izuzero/xe-module-ajaxboard"]}
+      {user:"rspt",created_at:2024-11-13T02:14:27.813538Z,repos:set["rspt/rspt-theme","winterbe/streamjs","jdilt/jdilt.github.io"]}

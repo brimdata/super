@@ -64,29 +64,29 @@ func boomerangJSUP(t *testing.T, logs string) {
 }
 
 const sup1 = `
-{foo:|["\"test\""]|}
-{foo:|["\"testtest\""]|}
+{foo:set["\"test\""]}
+{foo:set["\"testtest\""]}
 `
 
 const sup2 = `{foo:{bar:"test"}}`
 
-const sup3 = "{foo:|[null]|}"
+const sup3 = "{foo:set[null]}"
 
 const sup4 = `{foo:"-"}`
 
 const sup5 = `{foo:"[",bar:"[-]"}`
 
 // Make sure we handle null fields and empty sets.
-const sup6 = "{id:{a:null,s:|[]|::|[string]|}}"
+const sup6 = "{id:{a:null,s:set[]::set[string]}}"
 
 // Make sure we handle empty and null sets.
-const sup7 = `{a:"foo",b:|[]|::|[string]|,c:null::(null||[string]|)}`
+const sup7 = `{a:"foo",b:set[]::set[string],c:null::(null|set[string])}`
 
 // recursive record with null set and empty set
 const sup8 = `
-{id:{a:null,s:|[]|::|[string]|}}
-{id:{a:null,s:null::(null||[string]|)}}
-{id:null::(null|{a:string,s:|[string]|})}
+{id:{a:null,s:set[]::set[string]}}
+{id:{a:null,s:null::(null|set[string])}}
+{id:null::(null|{a:string,s:set[string]})}
 `
 
 // generate some really big strings
@@ -138,14 +138,17 @@ func TestJsup(t *testing.T) {
 }
 
 func TestNamed(t *testing.T) {
-	const simple = `{foo:"bar",orig_h:127.0.0.1::=ipaddr}`
+	const simple = `type ipaddr=ip
+{foo:"bar",orig_h:127.0.0.1::ipaddr}`
 	const multipleRecords = `
-{foo:"bar",orig_h:127.0.0.1::=ipaddr}
-{foo:"bro",resp_h:127.0.0.1::=ipaddr}
+type ipaddr=ip
+{foo:"bar",orig_h:127.0.0.1::ipaddr}
+{foo:"bro",resp_h:127.0.0.1::ipaddr}
 `
 	const recordNamed = `
-{foo:{host:127.0.0.2}::=myrec}
-{foo:null::(null|(myrec={host:ip}))}
+type myrec={host:ip}
+{foo:{host:127.0.0.2}::myrec}
+{foo:null::(null|myrec)}
 `
 	t.Run("BSUP", func(t *testing.T) {
 		t.Run("simple", func(t *testing.T) {

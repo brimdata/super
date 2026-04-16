@@ -14,7 +14,8 @@ inputs:
       {x:2}
       {x:2}
       {y:3}
-      {y:3}::=named
+      type named={y:int64}
+      {y:3}::named
   - name: 2.sup
     data: |
       1

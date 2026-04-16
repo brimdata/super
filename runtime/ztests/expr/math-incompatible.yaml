@@ -5,9 +5,9 @@ vector: true
 
 input: |
   {a:[1,2],b:[3,4]}
-  {a:|[1,2]|,b:|[3,4]|}
+  {a:set[1,2],b:set[3,4]}
   {a:{foo:"bar"},b:{foo:"baz"}}
-  {a:|{"foo":"bar"}|,b:|{"foo":"baz"}|}
+  {a:map{"foo":"bar"},b:map{"foo":"baz"}}
 
 output: |
   error("type [int64] incompatible with '+' operator")
@@ -15,18 +15,18 @@ output: |
   error("type [int64] incompatible with '*' operator")
   error("type [int64] incompatible with '/' operator")
   error("type [int64] incompatible with '%' operator")
-  error("type |[int64]| incompatible with '+' operator")
-  error("type |[int64]| incompatible with '-' operator")
-  error("type |[int64]| incompatible with '*' operator")
-  error("type |[int64]| incompatible with '/' operator")
-  error("type |[int64]| incompatible with '%' operator")
+  error("type set[int64] incompatible with '+' operator")
+  error("type set[int64] incompatible with '-' operator")
+  error("type set[int64] incompatible with '*' operator")
+  error("type set[int64] incompatible with '/' operator")
+  error("type set[int64] incompatible with '%' operator")
   error("type {foo:string} incompatible with '+' operator")
   error("type {foo:string} incompatible with '-' operator")
   error("type {foo:string} incompatible with '*' operator")
   error("type {foo:string} incompatible with '/' operator")
   error("type {foo:string} incompatible with '%' operator")
-  error("type |{string:string}| incompatible with '+' operator")
-  error("type |{string:string}| incompatible with '-' operator")
-  error("type |{string:string}| incompatible with '*' operator")
-  error("type |{string:string}| incompatible with '/' operator")
-  error("type |{string:string}| incompatible with '%' operator")
+  error("type map{string:string} incompatible with '+' operator")
+  error("type map{string:string} incompatible with '-' operator")
+  error("type map{string:string} incompatible with '*' operator")
+  error("type map{string:string} incompatible with '/' operator")
+  error("type map{string:string} incompatible with '%' operator")

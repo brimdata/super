@@ -12,7 +12,7 @@ type Reader struct {
 	reader   io.Reader
 	sctx     *super.Context
 	parser   *sup.Parser
-	analyzer sup.Analyzer
+	analyzer *sup.Analyzer
 	builder  *scode.Builder
 	val      super.Value
 }
@@ -21,7 +21,7 @@ func NewReader(sctx *super.Context, r io.Reader) *Reader {
 	return &Reader{
 		reader:   r,
 		sctx:     sctx,
-		analyzer: sup.NewAnalyzer(),
+		analyzer: sup.NewAnalyzer(sctx),
 		builder:  scode.NewBuilder(),
 	}
 }
@@ -34,7 +34,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	if ast == nil || err != nil {
 		return nil, err
 	}
-	val, err := r.analyzer.ConvertValue(r.sctx, ast)
+	val, err := r.analyzer.ConvertValue(ast)
 	if err != nil {
 		return nil, err
 	}

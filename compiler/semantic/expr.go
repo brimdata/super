@@ -109,13 +109,10 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 		if _, ok := e.Type.(*ast.DateTypeHack); ok {
 			// cast to time then bucket by 1d as a workaround for not currently
 			// supporting a "date" type.
-			cast := sem.NewCast(e.Expr, expr, super.TypeTime)
+			cast := sem.NewCast(e.Expr, expr, super.TypeTime, t.defs)
 			return sem.NewCall(e, "bucket", []sem.Expr{cast, &sem.PrimitiveExpr{Node: e, Value: "1d"}}), super.TypeTime
 		}
-		typeVal, _ := t.expr(&ast.TypeValue{
-			Kind:  "TypeValue",
-			Value: e.Type,
-		}, inType)
+		typeVal, _ := t.semType(e.Type)
 		// In a future PR, we will add support to see if the expr type is
 		// cast-able and return the appropriate cast type.  For now, we just
 		// return unknown and we don't do futher type checking on this.
@@ -230,11 +227,15 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 					continue
 				}
 				fields[name] = struct{}{}
-				e, typ := t.expr(elem.Type, inType)
+				e, typ := t.semType(elem.Type)
+				var id int
+				if typeExpr, ok := e.(*sem.TypeExpr); ok {
+					id = typeExpr.ID
+				}
 				out = append(out, &sem.NoneElem{
 					Node: elem,
 					Name: elem.Name.Text,
-					Type: e,
+					Type: id,
 				})
 				types = append(types, typ)
 			case *ast.SpreadElem:
@@ -310,7 +311,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 		if e.Type == "date" {
 			ts = ts.Trunc(nano.Day)
 		}
-		return sem.NewLiteral(e, super.NewTime(ts)), super.TypeTime
+		return sem.NewLiteral(e, super.NewTime(ts), t.defs), super.TypeTime
 	case *ast.SearchTermExpr:
 		var val string
 		switch term := e.Value.(type) {
@@ -329,12 +330,16 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 			}
 			val = sup.FormatValue(v)
 		case *ast.TypeValue:
-			tv, err := t.semType(term.Value)
-			if err != nil {
-				t.error(e, err)
-				return badExpr, t.checker.unknown
+			e, typ := t.semType(term.Value)
+			typeExpr, ok := e.(*sem.TypeExpr)
+			if !ok {
+				return e, typ
 			}
-			val = "<" + tv + ">"
+			typ, err := t.defs.LookupType(typeExpr.ID)
+			if err != nil {
+				panic(err)
+			}
+			val = "<" + sup.FormatType(typ) + ">"
 		default:
 			panic(fmt.Errorf("unexpected term value: %s (%T)", e.Kind, e))
 		}
@@ -373,7 +378,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 			if slice.From != nil {
 				slice.To = sem.NewBinaryExpr(e, "+", slice.From, to)
 			} else {
-				slice.To = sem.NewBinaryExpr(e, "+", to, sem.NewLiteral(e, super.NewInt64(int64(indexBase))))
+				slice.To = sem.NewBinaryExpr(e, "+", to, sem.NewLiteral(e, super.NewInt64(int64(indexBase)), t.defs))
 			}
 		}
 		serr := sem.NewStructuredError(e, "SUBSTRING: string value required", expr)
@@ -401,27 +406,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 			Elems: elems,
 		}, t.sctx.MustLookupTypeRecord(fields)
 	case *ast.TypeValue:
-		typ, err := t.semType(e.Value)
-		if err != nil {
-			// If this is a type name, then we check to see if it's in the
-			// context because it has been defined locally.  If not, then
-			// the type needs to come from the data, in which case we replace
-			// the literal reference with a typename() call.
-			// Note that we just check the top value here but there can be
-			// nested dynamic type references inside a complex type; this
-			// is not yet supported and will fail here with a compile-time error
-			// complaining about the type not existing.
-			// XXX See issue #3413
-			if e := semDynamicType(e, e.Value); e != nil {
-				return e, super.TypeType
-			}
-			t.error(e, err)
-			return badExpr, t.checker.unknown
-		}
-		return &sem.PrimitiveExpr{
-			Node:  e,
-			Value: "<" + typ + ">",
-		}, super.TypeType
+		return t.semType(e.Value)
 	case *ast.UnaryExpr:
 		operand, typ := t.expr(e.Operand, inType)
 		if e.Op == "+" {
@@ -541,23 +526,23 @@ func (t *translator) existsExpr(e *ast.ExistsExpr, inType super.Type) (sem.Expr,
 	q, _ := t.subqueryExpr(e, true, e.Body, inType)
 	return sem.NewBinaryExpr(e, ">",
 		sem.NewCall(e, "len", []sem.Expr{q}),
-		sem.NewLiteral(e, super.NewInt64(0))), super.TypeBool
+		sem.NewLiteral(e, super.NewInt64(0), t.defs)), super.TypeBool
 }
 
-func semDynamicType(n ast.Node, tv ast.Type) *sem.CallExpr {
-	if typeName, ok := tv.(*ast.TypeName); ok {
-		return dynamicTypeName(n, typeName.Name)
+func semDynamicType(n ast.Node, tv ast.Type, defs *super.Context) *sem.CallExpr {
+	if ref, ok := tv.(*ast.TypeRef); ok {
+		return dynamicTypeName(n, ref.Name, defs)
 	}
 	return nil
 }
 
-func dynamicTypeName(n ast.Node, name string) *sem.CallExpr {
+func dynamicTypeName(n ast.Node, name string, defs *super.Context) *sem.CallExpr {
 	return sem.NewCall(
 		n,
 		"typename",
 		[]sem.Expr{
 			// SUP string literal of type name
-			sem.NewLiteral(n, super.NewString(name)),
+			sem.NewLiteral(n, super.NewString(name), defs),
 		},
 	)
 }
@@ -939,7 +924,7 @@ func (t *translator) semExtractExpr(e, partExpr, argExpr ast.Expr, inType super.
 	return sem.NewCall(e,
 		"date_part",
 		[]sem.Expr{
-			sem.NewLiteral(partExpr, super.NewString(strings.ToLower(partstr))),
+			sem.NewLiteral(partExpr, super.NewString(strings.ToLower(partstr)), t.defs),
 			argSemExpr,
 		},
 	), super.TypeInt64
@@ -1221,12 +1206,34 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 	return nil
 }
 
-func (t *translator) semType(typ ast.Type) (string, error) {
-	ztype, err := sup.TranslateType(t.sctx, typ)
+func (t *translator) semType(typ ast.Type) (sem.Expr, super.Type) {
+	id, err := t.types.LookupType(typ)
 	if err != nil {
-		return "", err
+		// Try looking in the input for named types which did not resolve,
+		// which will be holding the parsed input
+		if ref, ok := typ.(*ast.TypeRef); ok {
+			if named := t.sctx.LookupByName(ref.Name); named != nil {
+				// Found the type in the main context.  Translate it
+				// to the typedefs context.
+				local, err := t.defs.LookupTypeNamed(named.Name, named.Type)
+				if err != nil {
+					// There can't be conflict since we just tried looking up
+					// this name in the defs context via t.types.
+					panic(err)
+				}
+				return &sem.TypeExpr{
+					Node: typ,
+					ID:   super.TypeID(local),
+				}, super.TypeType
+			}
+		}
+		t.error(typ, err)
+		return badExpr, t.checker.unknown
 	}
-	return sup.FormatType(ztype), nil
+	return &sem.TypeExpr{
+		Node: typ,
+		ID:   id,
+	}, super.TypeType
 }
 
 func (t *translator) arrayElems(elems []ast.ArrayElem, inType super.Type) ([]sem.ArrayElem, super.Type) {
@@ -1251,7 +1258,7 @@ func (t *translator) arrayElems(elems []ast.ArrayElem, inType super.Type) ([]sem
 
 func (t *translator) fstringExpr(f *ast.FStringExpr, inType super.Type) (sem.Expr, super.Type) {
 	if len(f.Elems) == 0 {
-		return sem.NewLiteral(f, super.NewString("")), super.TypeString
+		return sem.NewLiteral(f, super.NewString(""), t.defs), super.TypeString
 	}
 	var out sem.Expr
 	for _, elem := range f.Elems {
@@ -1259,9 +1266,9 @@ func (t *translator) fstringExpr(f *ast.FStringExpr, inType super.Type) (sem.Exp
 		switch elem := elem.(type) {
 		case *ast.FStringExprElem:
 			e, _ = t.expr(elem.Expr, inType)
-			e = sem.NewCast(f, e, super.TypeString)
+			e = sem.NewCast(f, e, super.TypeString, t.defs)
 		case *ast.FStringTextElem:
-			e = sem.NewLiteral(elem, super.NewString(elem.Text))
+			e = sem.NewLiteral(elem, super.NewString(elem.Text), t.defs)
 		default:
 			panic(elem)
 		}
@@ -1328,14 +1335,14 @@ func (t *translator) scalarSubqueryCheck(n ast.Node, seq sem.Seq, thisType super
 		Node: n,
 		Op:   "==",
 		LHS:  lenCall,
-		RHS:  sem.NewLiteral(n, super.NewInt64(1)),
+		RHS:  sem.NewLiteral(n, super.NewInt64(1), t.defs),
 	}
 	// Note no need to check index_base here since we are directly
 	// creating the underlying index expression.
 	indexExpr := &sem.IndexExpr{
 		Node:  n,
 		Expr:  sem.NewThis(n, nil),
-		Index: sem.NewLiteral(n, super.NewInt64(0)),
+		Index: sem.NewLiteral(n, super.NewInt64(0), t.defs),
 	}
 	innerCond := &sem.CondExpr{
 		Node: n,

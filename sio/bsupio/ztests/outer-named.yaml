@@ -3,8 +3,10 @@ script: super - | super -s -|super - | super -s -
 inputs:
   - name: stdin
     data: &stdin |
-      0::=typ
-      {x:0}::=typ2
+      type typ=int64
+      0::typ
+      type typ2={x:int64}
+      {x:0}::typ2
 
 outputs:
   - name: stdout

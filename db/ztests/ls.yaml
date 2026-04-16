@@ -17,16 +17,23 @@ inputs:
 outputs:
   - name: stdout
     data: |
+      type "order.Which" = string
+      type "field.Path" = [string]
+      type "field.List" = ["field.Path"]
+      type "order.SortKey" = {
+        order: "order.Which",
+        keys: "field.List"
+      }
       {
         name: "logs",
         layout: {
-          order: "desc"::=order.Which,
+          order: "desc",
           keys: [
             [
               "ts"
-            ]::=field.Path
-          ]::=field.List
-        }::=order.SortKey,
+            ]
+          ]
+        }::order.SortKey,
         seek_stride: 65536,
         threshold: 524288000
       }

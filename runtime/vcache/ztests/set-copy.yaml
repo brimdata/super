@@ -8,8 +8,8 @@ script: |
 inputs:
   - name: stdin
     data: &input |
-      {a:|[1,2]|}
-      {a:|[3]|}
+      {a:set[1,2]}
+      {a:set[3]}
 
 outputs:
   - name: stdout

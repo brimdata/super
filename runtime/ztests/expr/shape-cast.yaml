@@ -1,16 +1,19 @@
 spq: |
+  type port=uint16
   put
   -- cast to type with same field order
-  id:=cast(id, <{orig_h:ip,orig_p:port=uint16,resp_h:ip,resp_p:port}>),
+  id:=cast(id, <{orig_h:ip,orig_p:port,resp_h:ip,resp_p:port}>),
   -- cast to type with different field order
-  id2:=cast(id, <{resp_h:ip,resp_p:port=uint16,orig_h:ip,orig_p:port}>)
+  id2:=cast(id, <{resp_h:ip,resp_p:port,orig_h:ip,orig_p:port}>)
 
 vector: true
 
 input: |
-  {id:{orig_h:ff02::fb,orig_p:5353::(port=uint16),resp_p:5353::port,resp_h:"1.2.3.4"},other:123.}
-  {id:{orig_h:ff02::fb,orig_p:5353::(port=uint16),resp_p:5353::port,resp_h:"notanip"},other:123.}
+  type port=uint16
+  {id:{orig_h:ff02::fb,orig_p:5353::port,resp_p:5353::port,resp_h:"1.2.3.4"},other:123.}
+  {id:{orig_h:ff02::fb,orig_p:5353::port,resp_p:5353::port,resp_h:"notanip"},other:123.}
 
 output: |
-  {id:{orig_h:ff02::fb,orig_p:5353::(port=uint16),resp_h:1.2.3.4,resp_p:5353::port},other:123.,id2:{resp_h:1.2.3.4,resp_p:5353::port,orig_h:ff02::fb,orig_p:5353::port}}
-  {id:{orig_h:ff02::fb,orig_p:5353::(port=uint16),resp_h:error({message:"cannot cast to ip",on:"notanip"}),resp_p:5353::port},other:123.,id2:{resp_h:error({message:"cannot cast to ip",on:"notanip"}),resp_p:5353::port,orig_h:ff02::fb,orig_p:5353::port}}
+  type port=uint16
+  {id:{orig_h:ff02::fb,orig_p:5353::port,resp_h:1.2.3.4,resp_p:5353::port},other:123.,id2:{resp_h:1.2.3.4,resp_p:5353::port,orig_h:ff02::fb,orig_p:5353::port}}
+  {id:{orig_h:ff02::fb,orig_p:5353::port,resp_h:error({message:"cannot cast to ip",on:"notanip"}),resp_p:5353::port},other:123.,id2:{resp_h:error({message:"cannot cast to ip",on:"notanip"}),resp_p:5353::port,orig_h:ff02::fb,orig_p:5353::port}}

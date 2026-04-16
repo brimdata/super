@@ -64,12 +64,14 @@ output: |
 spq: downcast(this[0], this[1])
 
 input: |
+  type foo=(int64|string)
   [1::(int64|string),<(int64|bool|string)>]
-  [2::(int64|string),<(int64|(foo=(int64|string)))>]
+  [2::(int64|string),<(int64|foo)>]
 
 output: |
   1::(int64|bool|string)
-  2::(int64|(foo=int64|string))
+  type foo=int64|string
+  2::(int64|foo)
 
 ---
 

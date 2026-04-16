@@ -54,7 +54,6 @@ The output command-line options are available to commands that produce output:
 * `-J` shortcut for `-f json -pretty`, i.e., multi-line JSON
 * `-j` shortcut for `-f json -pretty=0`, i.e., line-oriented JSON
 * `-o` write data to output file
-* `-persist` regular expression to persist type definitions across the stream
 * `-pretty` tab size to pretty print JSON and Super JSON output
 * `-S` shortcut for `-f sup -pretty`, i.e., multi-line SUP
 * `-s` shortcut for `-f sup -pretty=0`, i.e., line-oriented SUP

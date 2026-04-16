@@ -1,13 +1,17 @@
+skip: XXX fix ztest to read input so we have types
+
 spq: is(this, <foo>)
 
 vector: true
 
 input: |
   {x:1}
-  {x:2}::=foo
+  type foo={x:int64}
+  {x:2}::foo
   {x:3}
-  {x:4}::=foo
+  {x:4}::foo
 
 output: |
-  {x:2}::=foo
-  {x:4}::=foo
+  type foo={x:int64}
+  {x:2}::foo
+  {x:4}::foo

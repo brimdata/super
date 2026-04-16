@@ -1,4 +1,4 @@
-spq: "collect_map(|{stock: price}|)"
+spq: "collect_map(map{stock: price})"
 
 output-flags: -pretty 2
 
@@ -11,34 +11,37 @@ input: |
   {stock:"TMUS",price:152.22}
 
 output: |
-  |{
+  map{
     "NKE": 94.12,
     "APPL": 160.94,
     "GOOG": 91.22,
     "SBUX": 87.3,
     "TMUS": 152.22
-  }|
+  }
 
 ---
 
 # Test union values
-spq: "collect_map(|{k:v}|)"
+spq: "collect_map(map{k:v})"
 
 output-flags: -pretty 2
 
 input: |
   // Named type and union type.
-  {k:"foo"::=my_string,v:"bar"::(int64|string)}
+  type my_string=string
+  {k:"foo"::my_string,v:"bar"::(int64|string)}
   // Named union type.
-  {k:1::my_union=int32|int64,v:1}
+  type my_union=int32|int64
+  {k:1::my_union,v:1}
   {k:127.0.0.1,v:127.0.0.1}
   {k:2.,v:2.}
   {k:["bar","baz"],v:["bar","baz"]}
 
 output: |
-  |{
+  type my_string = string
+  map{
     1: 1,
-    "foo"::=my_string: "bar",
+    "foo"::my_string: "bar",
     127.0.0.1: 127.0.0.1,
     2.: 2.,
     [
@@ -48,13 +51,13 @@ output: |
       "bar",
       "baz"
     ]
-  }|
+  }
 
 ---
 
 # Test partials
 script: |
-  super -s -c 'collect_map(|{key:val}|) with -limit 1' in.sup
+  super -s -c 'collect_map(map{key:val}) with -limit 1' in.sup
 
 vector: true
 
@@ -67,4 +70,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      |{"k1":"v1","k2":"v1"}|
+      map{"k1":"v1","k2":"v1"}

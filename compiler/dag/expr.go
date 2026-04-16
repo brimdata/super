@@ -8,6 +8,7 @@ import (
 )
 
 type MainExpr struct {
+	Types []byte     `json:"types"`
 	Funcs []*FuncDef `json:"funcs"`
 	Expr  Expr       `json:"expr"`
 }
@@ -133,6 +134,10 @@ type (
 		Kind string   `json:"kind" unpack:""`
 		Path []string `json:"path"`
 	}
+	TypeExpr struct {
+		Kind string `json:"kind" unpack:""`
+		ID   int    `json:"id"`
+	}
 	UnaryExpr struct {
 		Kind    string `json:"kind" unpack:""`
 		Op      string `json:"op"`
@@ -160,6 +165,7 @@ func (*SetExpr) exprNode()          {}
 func (*SliceExpr) exprNode()        {}
 func (*SubqueryExpr) exprNode()     {}
 func (*ThisExpr) exprNode()         {}
+func (*TypeExpr) exprNode()         {}
 func (*UnaryExpr) exprNode()        {}
 
 // Various Expr fields.
@@ -178,7 +184,7 @@ type (
 	None struct {
 		Kind string `json:"kind" unpack:""`
 		Name string `json:"name"`
-		Type Expr   `json:"type"`
+		Type int    `json:"type"`
 	}
 	Spread struct {
 		Kind string `json:"kind" unpack:""`

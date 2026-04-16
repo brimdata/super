@@ -1,19 +1,24 @@
 script: |
   super -s -c 'is(this, <"@foo">)' in.sup
   echo ===
-  super -s -c 'const foo = <"@foo"={x:int64}> const yz = <"Y Z"={y:"@foo"}> is(this, <"Y Z">)' in.sup
+  super -s -c 'type `@foo`={x:int64} const foo = <"@foo"> type `Y Z`={y:"@foo"} const yz = <"Y Z"> is(this, <"Y Z">)' in.sup
 
 inputs:
   - name: in.sup
     data: |
+      type "@foo"={x:int64}
       {x:1}
-      {x:2}::="@foo"
+      {x:2}::"@foo"
       {x:3}
-      {y:{x:4}::="@foo"}::="Y Z"
+      type "Y Z"={y:"@foo"}
+      {y:{x:4}::"@foo"}::"Y Z"
 
 outputs:
   - name: stdout
     data: |
-      {x:2}::="@foo"
+      type "@foo"={x:int64}
+      {x:2}::"@foo"
       ===
-      {y:{x:4}::="@foo"}::="Y Z"
+      type "@foo"={x:int64}
+      type "Y Z"={y:"@foo"}
+      {y:{x:4}}::"Y Z"

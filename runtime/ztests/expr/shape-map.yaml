@@ -1,10 +1,10 @@
 spq: |
   type conn = {_path:string, id:{src:ip,dst:ip}, etc:string}
   type dns = {_path:string, id:{src:ip,dst:ip}, query:string, query_size:uint64}
-  const schemas = |{
+  const schemas = map{
     "conn": <conn>,
     "dns": <dns>
-  }|
+  }
   values cast(this,schemas[_path])
 
 vector: true
@@ -15,6 +15,8 @@ input: |
   {_path:"conn",id:{src:"192.168.1.1",dst:"192.168.1.3"},etc:"foo"}
 
 output: |
-  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.2},etc:"foo"}::=conn
-  {_path:"dns",id:{src:192.168.1.1,dst:192.168.1.2},query:"www.google.com",query_size:23::uint64}::=dns
-  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.3},etc:"foo"}::=conn
+  type conn={_path:string,id:{src:ip,dst:ip},etc:string}
+  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.2},etc:"foo"}::conn
+  type dns={_path:string,id:{src:ip,dst:ip},query:string,query_size:uint64}
+  {_path:"dns",id:{src:192.168.1.1,dst:192.168.1.2},query:"www.google.com",query_size:23}::dns
+  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.3},etc:"foo"}::conn

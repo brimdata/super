@@ -119,7 +119,7 @@ func TestOtherStrFuncs(t *testing.T) {
 }
 
 func TestLen(t *testing.T) {
-	record := "{s:|[1::int32,2::int32,3::int32]|,a:[4::int32,5::int32,6::int32]}"
+	record := "{s:set[1::int32,2::int32,3::int32],a:[4::int32,5::int32,6::int32]}"
 
 	testSuccessful(t, "len(s)", record, "3")
 	testSuccessful(t, "len(a)", record, "3")
@@ -141,7 +141,7 @@ func TestCast(t *testing.T) {
 	testSuccessful(t, "cast(1, 2)", "", `error({message:"cast target must be a type or type name",on:2})`)
 
 	// Constant name argument
-	testSuccessful(t, `cast(1, "my_int64")`, "", "1::=my_int64")
+	testSuccessful(t, `cast(1, "my_int64")`, "", "type my_int64=int64\n1::my_int64")
 	testSuccessful(t, `cast(1, "uint64")`, "",
 		`error("named type collides with primitive type: uint64")`)
 
@@ -151,7 +151,7 @@ func TestCast(t *testing.T) {
 		`error({message:"cast target must be a type or type name",on:2})`)
 
 	// Variable name argument
-	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "1::=my_int64")
+	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "type my_int64=int64\n1::my_int64")
 	testSuccessful(t, "cast(1, name)", `{name:"uint64"}`,
 		`error("named type collides with primitive type: uint64")`)
 	testCompilationError(t, "cast()", function.ErrTooFewArgs)

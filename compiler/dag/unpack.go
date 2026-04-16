@@ -70,6 +70,7 @@ var unpacker = unpack.New(
 	TailOp{},
 	ThisExpr{},
 	TopOp{},
+	TypeExpr{},
 	UnaryExpr{},
 	UniqOp{},
 	UnnestOp{},

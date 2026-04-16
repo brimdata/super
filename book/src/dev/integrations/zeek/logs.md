@@ -34,17 +34,19 @@ super -S -c 'head 1' conn.log
 
 ## Output
 ```mdtest-output
+type port = uint16
+type zenum = string
 {
   _path: "conn",
   ts: 2018-03-24T17:15:21.255387Z::(time|null),
   uid: "C8Tful1TvM3Zf5x8fl"::(string|null),
   id: {
     orig_h: 10.164.94.120::(ip|null),
-    orig_p: 39681::(port=uint16)::(port|null),
+    orig_p: 39681::port::(port|null),
     resp_h: 10.47.3.155::(ip|null),
     resp_p: 3389::port::(port|null)
   },
-  proto: "tcp"::=zenum::(zenum|null),
+  proto: "tcp"::zenum::(zenum|null),
   service: null::(string|null),
   duration: 4.266ms::(duration|null),
   orig_bytes: 97::uint64::(uint64|null),
@@ -58,7 +60,7 @@ super -S -c 'head 1' conn.log
   orig_ip_bytes: 730::uint64::(uint64|null),
   resp_pkts: 6::uint64::(uint64|null),
   resp_ip_bytes: 342::uint64::(uint64|null),
-  tunnel_parents: null::(null||[string|null]|)
+  tunnel_parents: null::(null|set[string|null])
 }
 ```
 

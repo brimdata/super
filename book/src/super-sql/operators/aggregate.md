@@ -145,9 +145,9 @@ set:=union(v) by key:=k | sort
 {k:"foo",v:3}
 {k:"baz",v:4}
 # expected output
-{key:"bar",set:|[2]|}
-{key:"baz",set:|[4]|}
-{key:"foo",set:|[1,3]|}
+{key:"bar",set:set[2]}
+{key:"baz",set:set[4]}
+{key:"foo",set:set[1,3]}
 ```
 
 ---
@@ -162,9 +162,9 @@ set:=union(v) filter (v > 1) by key:=k | sort
 {k:"foo",v:3}
 {k:"baz",v:4}
 # expected output
-{key:"bar",set:|[2]|}
-{key:"baz",set:|[4]|}
-{key:"foo",set:|[3]|}
+{key:"bar",set:set[2]}
+{key:"baz",set:set[4]}
+{key:"foo",set:set[3]}
 ```
 
 ---
@@ -182,9 +182,9 @@ array:=collect(v) filter (k=="foo")
 {k:"foo",v:3}
 {k:"baz",v:4}
 # expected output
-{key:"bar",set:|[2]|,array:null}
-{key:"baz",set:|[4]|,array:null}
-{key:"foo",set:|[3]|,array:[1,3]}
+{key:"bar",set:set[2],array:null}
+{key:"baz",set:set[4],array:null}
+{key:"foo",set:set[3],array:[1,3]}
 ```
 
 ---

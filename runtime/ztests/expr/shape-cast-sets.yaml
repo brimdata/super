@@ -1,18 +1,18 @@
 spq: |
-  values cast(this, <{a:|[ip]|,b:|[{b:ip}]|}>)
+  values cast(this, <{a:set[ip],b:set[{b:ip}]}>)
 
 vector: true
 
 input: |
   {a:null,b:null}
-  {a:|[]|::|[string]|,b:|[]|::|[{b:string}]|}
-  {a:|["1.1.1.1","2.2.2.2"]|,b:|[{b:"1.1.1.1"},{b:"2.2.2.2"}]|}
-  {a:|[null,"1.1.1.1"]|,b:|[null,{b:null},{b:"2.2.2.2"}]|}
-  {a:|[null,"1.1.1.1","2"]|,b:|[null,{b:null},{b:"1.1.1.1"},{b:"2"}]|}
+  {a:set[]::set[string],b:set[]::set[{b:string}]}
+  {a:set["1.1.1.1","2.2.2.2"],b:set[{b:"1.1.1.1"},{b:"2.2.2.2"}]}
+  {a:set[null,"1.1.1.1"],b:set[null,{b:null},{b:"2.2.2.2"}]}
+  {a:set[null,"1.1.1.1","2"],b:set[null,{b:null},{b:"1.1.1.1"},{b:"2"}]}
 
 output: |
-  {a:null::(null||[ip]|),b:null::(null||[{b:ip}]|)}
-  {a:|[]|::|[ip]|,b:|[]|::|[{b:ip}]|}
-  {a:|[1.1.1.1,2.2.2.2]|,b:|[{b:1.1.1.1},{b:2.2.2.2}]|}
-  {a:|[null,1.1.1.1]|,b:|[null,{b:null::(ip|null)},{b:2.2.2.2}]|}
-  {a:|[null,1.1.1.1,error({message:"cannot cast to ip",on:"2"})]|,b:|[null,{b:null::(ip|null)},{b:1.1.1.1},{b:error({message:"cannot cast to ip",on:"2"})}]|}
+  {a:null::(null|set[ip]),b:null::(null|set[{b:ip}])}
+  {a:set[]::set[ip],b:set[]::set[{b:ip}]}
+  {a:set[1.1.1.1,2.2.2.2],b:set[{b:1.1.1.1},{b:2.2.2.2}]}
+  {a:set[null,1.1.1.1],b:set[null,{b:null::(ip|null)},{b:2.2.2.2}]}
+  {a:set[null,1.1.1.1,error({message:"cannot cast to ip",on:"2"})],b:set[null,{b:null::(ip|null)},{b:1.1.1.1},{b:error({message:"cannot cast to ip",on:"2"})}]}

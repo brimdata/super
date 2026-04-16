@@ -7,7 +7,7 @@ in the super-structured data model and follow the
 of maps in the [SUP format](../../formats/sup.md), i.e.,
 a map type has the form
 ```
-|{ <key> : <value> }|
+map{ <key> : <value> }
 ```
 where `<key>` and `<value>` are any types and represent the keys
 and values types of the map.
@@ -17,11 +17,11 @@ is a valid map literal in the SuperSQL language.
 
 For example, this is a simple map value
 ```
-|{"foo":1,"bar":2}|
+map{"foo":1,"bar":2}
 ```
 whose type is
 ```
-|{string:int64}|
+map{string:int64}
 ```
 
 An empty map value has the form `|{}|` and
@@ -39,7 +39,7 @@ SuperSQL functions that produce maps.
 Map values are constructed from a _map expression_ that is comprised of
 zero or more comma-separated key-value pairs contained in pipe braces:
 ```
-|{ <key> : <value>, <key> : <value> ... }|
+map{ <key> : <value>, <key> : <value> ... }
 ```
 where `<key>` and `<value>`
 may be any valid [expression](../expressions/intro.md).
@@ -55,21 +55,21 @@ tied together with the corresponding [union type](union.md).
 ---
 ```mdtest-spq
 # spq
-values |{"foo":1,"bar"||"baz":2+3}|
+values map{"foo":1,"bar"||"baz":2+3}
 # input
 
 # expected output
-|{"foo":1,"barbaz":5}|
+map{"foo":1,"barbaz":5}
 ```
 ---
 _Look up network of host in a map and annotate if present_
 ```mdtest-spq {data-layout="stacked"}
 # spq
-const networks = |{
+const networks = map{
     192.168.1.0/24:"private net 1",
     192.168.2.0/24:"private net 2",
     10.0.0.0/8:"net 10"
-}|
+}
 note:=coalesce(networks[network_of(host)], f"unknown network for host {host}")
 # input
 {host:192.168.1.100}

@@ -1,7 +1,8 @@
 spq: values this
 
-input: |
-  1::(foo=int64)::((foo=int64)|foo2=string)
+input: &input |
+  type foo=int64
+  type foo2=string
+  1::foo::(foo|foo2)
 
-output: |
-  1::=foo::(foo|(foo2=string))
+output: *input

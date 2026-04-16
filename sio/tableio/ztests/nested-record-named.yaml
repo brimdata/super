@@ -1,7 +1,8 @@
 spq: pass
 
 input: |
-  {a:{b:1}::=record_named}
+  type record_named={b:int64}
+  {a:{b:1}::record_named}
 
 output-flags: -f table
 

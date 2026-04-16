@@ -4,7 +4,7 @@ script: |
   super -s -c "values {x:1,s:'foo'}::{x:string,s:string}"
   super -s -c "values 3.3.3.0/24::net, ::1/128::net, 2::/16::net"
   super -s -c "values 3.3.3.3::ip, ::::ip, 2::::ip, (::)::ip, (2::)::ip"
-  super -s -c "values 80::(port=uint16)"
+  super -s -c "type port=uint16 values 80::port"
   super -s -c "values 123::uint16::(uint16|float64)"
   echo ===
   # IP6 addresses can collide with type names that happen to be hex strings 
@@ -31,11 +31,13 @@ outputs:
       2::
       ::
       2::
-      80::(port=uint16)
+      type port=uint16
+      80::port
       123::uint16::(uint16|float64)
       ===
       1::ff
-      1::=ff
-      1::=ff
+      type ff=int64
+      1::"ff"
+      1::"ff"
       ===
       1::int8

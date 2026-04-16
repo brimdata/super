@@ -17,7 +17,7 @@ inputs:
 outputs:
   - name: union.sup
     data: |
-      |[1::int32,-1::int32,2::int32,8::int32]|
+      set[1::int32,-1::int32,2::int32,8::int32]
   - name: collect.sup
     data: |
       [1::int32,-1::int32,2::int32,1::int32,8::int32,1::int32]

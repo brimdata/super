@@ -90,6 +90,12 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		return b.compileSubquery(e)
 	case *dag.ThisExpr:
 		return expr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
+	case *dag.TypeExpr:
+		typ, err := b.lookupType(e.ID)
+		if err != nil {
+			return nil, err
+		}
+		return expr.NewLiteral(b.rctx.Sctx.LookupTypeValue(typ)), nil
 	case *dag.UnaryExpr:
 		return b.compileUnary(*e)
 	default:
@@ -398,7 +404,7 @@ func (b *Builder) compileRecordExpr(record *dag.RecordExpr) (expr.Evaluator, err
 				Opt:  elem.Opt,
 			})
 		case *dag.None:
-			noneType, err := b.noneType(elem.Type)
+			noneType, err := b.lookupType(elem.Type)
 			if err != nil {
 				return nil, err
 			}
@@ -415,25 +421,6 @@ func (b *Builder) compileRecordExpr(record *dag.RecordExpr) (expr.Evaluator, err
 		}
 	}
 	return expr.NewRecordExpr(b.sctx(), elems), nil
-}
-
-func (b *Builder) noneType(in dag.Expr) (super.Type, error) {
-	e, ok := in.(*dag.PrimitiveExpr)
-	if !ok {
-		return nil, errors.New("DAG none type is not a type value")
-	}
-	val, err := sup.ParseValue(b.sctx(), e.Value)
-	if err != nil {
-		return nil, err
-	}
-	if _, ok := val.Type().(*super.TypeOfType); !ok {
-		return nil, errors.New("DAG none type is not a type value")
-	}
-	typ, err := b.sctx().LookupByValue(val.Bytes())
-	if err != nil {
-		panic(err)
-	}
-	return typ, nil
 }
 
 func (b *Builder) compileArrayExpr(array *dag.ArrayExpr) (expr.Evaluator, error) {

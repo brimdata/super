@@ -4,19 +4,21 @@ script: |
 inputs:
   - name: in.sup
     data: |
+      type sint=int32|string
       {
           r: {
-              u: "\"hello\""::sint=int32|string
+              u: "\"hello\""::sint
           }
       }
       {
           r: {
-              v: 123::int32::sint=int32|string
+              v: 123::int32::sint
           }
       }
 
 outputs:
   - name: stdout
     data: |
-      <{r:{u:sint=int32|string}}>
-      <{r:{v:sint=int32|string}}>
+      type sint=int32|string
+      <{r:{u:sint}}>
+      <{r:{v:sint}}>

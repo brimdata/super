@@ -4,36 +4,20 @@ type Value interface {
 	valueNode()
 }
 
-type ImpliedValue struct {
-	Kind string `json:"kind" unpack:""`
-	Of   Any    `json:"of"`
+type DeclsValue struct {
+	Kind  string     `json:"kind" unpack:""`
+	Value Value      `json:"value"`
+	Decls []TypeDecl `json:"decls"`
 }
 
-type DefValue struct {
-	Kind     string `json:"kind" unpack:""`
-	Of       Any    `json:"of"`
-	TypeName string `json:"type_name"`
+type Decorated struct {
+	Kind  string `json:"kind" unpack:""`
+	Value Value  `json:"value"`
+	Type  Type   `json:"type"`
 }
 
-type CastValue struct {
-	Kind string `json:"kind" unpack:""`
-	Of   Value  `json:"of"`
-	Type Type   `json:"type"`
-}
-
-type None struct {
-	Kind string `json:"kind" unpack:""`
-	Type Type   `json:"type"`
-}
-
-func (*ImpliedValue) valueNode() {}
-func (*DefValue) valueNode()     {}
-func (*CastValue) valueNode()    {}
-func (*None) valueNode()         {}
-
-type Any interface {
-	anyNode()
-}
+func (*DeclsValue) valueNode() {}
+func (*Decorated) valueNode()  {}
 
 // Only Primitive and TypeValue are used in the parser so only these are given
 // ast.Node features.
@@ -63,10 +47,6 @@ type (
 		Kind     string  `json:"kind" unpack:""`
 		Elements []Value `json:"elements"`
 	}
-	Enum struct {
-		Kind string `json:"kind" unpack:""`
-		Name string `json:"name"`
-	}
 	Map struct {
 		Kind    string  `json:"kind" unpack:""`
 		Entries []Entry `json:"entries"`
@@ -89,19 +69,22 @@ type (
 		Value Value      `json:"value"`
 		Type  *TypeValue `json:"type"`
 	}
+	None struct {
+		Kind string `json:"kind" unpack:""`
+		Type Type   `json:"type"`
+	}
 )
 
-func (*Primitive) anyNode()       {}
-func (*Record) anyNode()          {}
-func (*Array) anyNode()           {}
-func (*Set) anyNode()             {}
-func (*Enum) anyNode()            {}
-func (*Map) anyNode()             {}
-func (*TypeValue) anyNode()       {}
-func (*Error) anyNode()           {}
-func (*Fusion) anyNode()          {}
-func (*None) anyNode()            {}
-func (*DoubleQuoteExpr) anyNode() {}
+func (*Primitive) valueNode()       {}
+func (*Record) valueNode()          {}
+func (*Array) valueNode()           {}
+func (*Set) valueNode()             {}
+func (*Map) valueNode()             {}
+func (*TypeValue) valueNode()       {}
+func (*Error) valueNode()           {}
+func (*Fusion) valueNode()          {}
+func (*None) valueNode()            {}
+func (*DoubleQuoteExpr) valueNode() {}
 
 func (*Primitive) ExprAST() {}
 func (*TypeValue) ExprAST() {}

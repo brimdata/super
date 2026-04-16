@@ -10,17 +10,19 @@ script: |
 inputs:
   - name: fruit.sup
     data: |
-      {name:"apple",color:"red",flavor:"tart"}::=fruit
-      {name:"banana",color:"yellow",flavor:"sweet"}::=fruit
-      {name:"strawberry",color:"red",flavor:"sweet"}::=fruit
-      {name:"dates",color:"brown",flavor:"sweet"}::=fruit
-      {name:"figs",color:"brown",flavor:"plain"}::=fruit
-      {name:"pomegranate",color:"red",flavor:"tart"}::=fruit
+      type fruit={name:string,color:string,flavor:string}
+      {name:"apple",color:"red",flavor:"tart"}::fruit
+      {name:"banana",color:"yellow",flavor:"sweet"}::fruit
+      {name:"strawberry",color:"red",flavor:"sweet"}::fruit
+      {name:"dates",color:"brown",flavor:"sweet"}::fruit
+      {name:"figs",color:"brown",flavor:"plain"}::fruit
+      {name:"pomegranate",color:"red",flavor:"tart"}::fruit
   - name: person.sup
     data: |
-      {name:"bob",likes:"tart",age:61}::=person
-      {name:"joe",likes:"sweet",age:14}::=person
-      {name:"jim",likes:"plain",age:30}::=person
+      type person={name:string,likes:string,age:int64}
+      {name:"bob",likes:"tart",age:61}::person
+      {name:"joe",likes:"sweet",age:14}::person
+      {name:"jim",likes:"plain",age:30}::person
   - name: join.spq
     data: |
       fork
@@ -32,6 +34,6 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {name:"bob",likes:|["apple","pomegranate"]|}
-      {name:"jim",likes:|["figs"]|}
-      {name:"joe",likes:|["dates","banana","strawberry"]|}
+      {name:"bob",likes:set["apple","pomegranate"]}
+      {name:"jim",likes:set["figs"]}
+      {name:"joe",likes:set["dates","banana","strawberry"]}
