@@ -40,3 +40,12 @@ input: |
 
 output: |
   {y?:_::int64,z?:_::int64}
+
+---
+
+spq: upcast({x?:_::int64},<{x?:int64}>)
+
+vector: true
+
+output: |
+  {x?:_::int64}
