@@ -2,7 +2,7 @@ package op
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
+	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/vam/expr/function"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
@@ -14,7 +14,7 @@ type Fuse struct {
 	parent   vio.Puller
 	complete bool
 
-	fuser    *agg.Fuser
+	fuser    *samagg.Fuser
 	vecs     []vector.Any
 	upcaster *function.Upcast
 }
@@ -35,7 +35,7 @@ func (f *Fuse) Pull(done bool) (vector.Any, error) {
 		return f.parent.Pull(done)
 	}
 	if f.fuser == nil {
-		f.fuser = agg.NewFuser(f.sctx, f.complete)
+		f.fuser = samagg.NewFuser(f.sctx, f.complete)
 		for {
 			vec, err := f.parent.Pull(false)
 			if err != nil {
