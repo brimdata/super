@@ -1587,7 +1587,7 @@ PrimitiveType
       / "duration" / "time"
       / "bytes"
       / "ip" / "net"
-      / "type" / "null") {
+      / "type" / "null" / "none" / "all" ) {
             return &ast.TypePrimitive{
                 Kind: "TypePrimitive",
                 Name: string(c.text),

@@ -78,6 +78,9 @@ func (u *Upcast) Cast(vec vector.Any, to super.Type) (vector.Any, bool) {
 }
 
 func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
+	if vec.Type() == to {
+		return vec
+	}
 	switch vec := vec.(type) {
 	case *vector.Const:
 		vec2 := u.upcast(vec.Any, to)
@@ -116,10 +119,7 @@ func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 	case *super.TypeFusion:
 		return u.toFusion(vec, to)
 	default:
-		if vec.Type() != to {
-			return nil
-		}
-		return vec
+		return nil
 	}
 }
 
