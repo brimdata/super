@@ -9,16 +9,16 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-type upcast struct {
+type Upcast struct {
 	sctx      *super.Context
 	typeToTag map[super.Type]uint32
 }
 
-func newUpcast(sctx *super.Context) *upcast {
-	return &upcast{sctx, map[super.Type]uint32{}}
+func NewUpcast(sctx *super.Context) *Upcast {
+	return &Upcast{sctx, map[super.Type]uint32{}}
 }
 
-func (u *upcast) Call(args ...vector.Any) vector.Any {
+func (u *Upcast) Call(args ...vector.Any) vector.Any {
 	from, to := args[0], args[1]
 	if to.Kind() != vector.KindType {
 		return vector.NewWrappedError(u.sctx, "upcast: type argument not a type", to)
@@ -64,7 +64,7 @@ func (u *upcast) Call(args ...vector.Any) vector.Any {
 	return vector.NewDynamic(tags, vecs)
 }
 
-func (u *upcast) upcastOrError(vec vector.Any, typ super.Type) vector.Any {
+func (u *Upcast) upcastOrError(vec vector.Any, typ super.Type) vector.Any {
 	out := u.upcast(vec, typ)
 	if out == nil {
 		out = vector.NewWrappedError(u.sctx, "upcast: value not a subtype of "+sup.FormatType(typ), vec)
@@ -72,7 +72,12 @@ func (u *upcast) upcastOrError(vec vector.Any, typ super.Type) vector.Any {
 	return out
 }
 
-func (u *upcast) upcast(vec vector.Any, to super.Type) vector.Any {
+func (u *Upcast) Cast(vec vector.Any, to super.Type) (vector.Any, bool) {
+	out := u.upcast(vec, to)
+	return out, out != nil
+}
+
+func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		vec2 := u.upcast(vec.Any, to)
@@ -118,7 +123,7 @@ func (u *upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 	}
 }
 
-func (u *upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
+func (u *Upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 	recVec, ok := vec.(*vector.Record)
 	if !ok {
 		return nil
@@ -141,7 +146,7 @@ func (u *upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 	return vector.NewRecord(to, fieldVecs, vec.Len())
 }
 
-func (u *upcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
+func (u *Upcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
 	arrVec, ok := vec.(*vector.Array)
 	if !ok {
 		return nil
@@ -153,7 +158,7 @@ func (u *upcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
 	return vector.NewArray(to, arrVec.Offsets, values)
 }
 
-func (u *upcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
+func (u *Upcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
 	setVec, ok := vec.(*vector.Set)
 	if !ok {
 		return nil
@@ -165,7 +170,7 @@ func (u *upcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
 	return vector.NewSet(to, setVec.Offsets, values)
 }
 
-func (u *upcast) deunionAndUpcast(vec vector.Any, to super.Type) vector.Any {
+func (u *Upcast) deunionAndUpcast(vec vector.Any, to super.Type) vector.Any {
 	d, ok := vector.Deunion(vec).(*vector.Dynamic)
 	if !ok {
 		return u.upcast(vec, to)
@@ -183,7 +188,7 @@ func (u *upcast) deunionAndUpcast(vec vector.Any, to super.Type) vector.Any {
 	return vector.MergeSameTypesInDynamic(u.sctx, vector.NewDynamic(d.Tags, vecs))
 }
 
-func (u *upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
+func (u *Upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
 	mapVec, ok := vec.(*vector.Map)
 	if !ok {
 		return nil
@@ -199,7 +204,7 @@ func (u *upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
 	return vector.NewMap(to, mapVec.Offsets, keys, values)
 }
 
-func (u *upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
+func (u *Upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 	if unionVec, ok := vec.(*vector.Union); ok {
 		values := make([]vector.Any, len(unionVec.Values))
 		for i, vec := range unionVec.Values {
@@ -218,7 +223,7 @@ func (u *upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 	return vector.NewUnion(to, tags, []vector.Any{values})
 }
 
-func (u *upcast) toUnionValue(vec vector.Any, to *super.TypeUnion) vector.Any {
+func (u *Upcast) toUnionValue(vec vector.Any, to *super.TypeUnion) vector.Any {
 	tag := samfunc.UpcastUnionTag(to.Types, vec.Type())
 	if tag < 0 {
 		return nil
@@ -226,7 +231,7 @@ func (u *upcast) toUnionValue(vec vector.Any, to *super.TypeUnion) vector.Any {
 	return u.upcast(vec, to.Types[tag])
 }
 
-func (u *upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
+func (u *Upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 	errVec, ok := vec.(*vector.Error)
 	if !ok {
 		return nil
@@ -238,7 +243,7 @@ func (u *upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 	return vector.NewError(to, values)
 }
 
-func (u *upcast) toNamed(vec vector.Any, to *super.TypeNamed) vector.Any {
+func (u *Upcast) toNamed(vec vector.Any, to *super.TypeNamed) vector.Any {
 	namedVec, ok := vec.(*vector.Named)
 	if !ok {
 		return nil
@@ -250,7 +255,7 @@ func (u *upcast) toNamed(vec vector.Any, to *super.TypeNamed) vector.Any {
 	return vector.NewNamed(to, vec)
 }
 
-func (u *upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {
+func (u *Upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {
 	values := u.upcast(vec, to.Type)
 	if values == nil {
 		return nil
