@@ -63,7 +63,10 @@ func NewDecoder(sctx *super.Context) *Decoder {
 }
 
 func (d *Decoder) decode(b *buffer) error {
-	defs := super.NewTypeDefsFromBytes(b.data)
+	defs, err := super.NewTypeDefsFromBytes(b.data)
+	if err != nil {
+		return fmt.Errorf("invalid type defs: %w", err)
+	}
 	mapper := super.NewTypeDefsMapper(d.sctx, defs)
 	for id := range defs.NTypes() {
 		typ := mapper.LookupType(uint32(id + super.IDTypeComplex))

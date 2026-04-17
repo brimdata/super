@@ -138,7 +138,10 @@ func (c *Context) readSubTypes(r io.Reader) error {
 			if val.Type() != super.TypeBytes {
 				return errors.New("CSUP metadata typedefs section must be a bytes type")
 			}
-			c.typedefs = super.NewTypeDefsFromBytes(val.Bytes())
+			c.typedefs, err = super.NewTypeDefsFromBytes(val.Bytes())
+			if err != nil {
+				return fmt.Errorf("invalid type defs: %w", err)
+			}
 			return err
 		}
 		for _, val := range batch.Values() {

@@ -27,3 +27,20 @@ func TestContextLookupTypeNamedAndLookupTypeDef(t *testing.T) {
 	require.NoError(t, err)
 	assert.Same(t, named1, sctx.LookupByName("x"))
 }
+
+func TestNewTypeDefsFromBytesInvalid(t *testing.T) {
+	// Empty bytes should return error
+	_, err := super.NewTypeDefsFromBytes(nil)
+	require.Error(t, err)
+	
+	// Truncated typedef (just type byte, no data)
+	_, err = super.NewTypeDefsFromBytes([]byte{0})
+	require.Error(t, err)
+	
+	// Unknown typedef type
+	_, err = super.NewTypeDefsFromBytes([]byte{99})
+	require.Error(t, err)
+	
+	// Forward reference (type ID >= localID)
+	// This is harder to construct without encoding utilities
+}

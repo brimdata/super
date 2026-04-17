@@ -91,7 +91,10 @@ func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vio.P
 	}
 	b.readers = readers
 	if len(main.Types) != 0 {
-		defs := super.NewTypeDefsFromBytes(main.Types)
+		defs, err := super.NewTypeDefsFromBytes(main.Types)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid type defs: %w", err)
+		}
 		b.mapper = super.NewTypeDefsMapper(b.rctx.Sctx, defs)
 	}
 	if b.env.UseVAM() {
@@ -673,7 +676,10 @@ func EvalAtCompileTime(sctx *super.Context, main *dag.MainExpr) (val super.Value
 		b.funcs[f.Tag] = f
 	}
 	if len(main.Types) != 0 {
-		defs := super.NewTypeDefsFromBytes(main.Types)
+		defs, err := super.NewTypeDefsFromBytes(main.Types)
+		if err != nil {
+			return super.NewValue(sctx, super.StringError("invalid type defs")), err
+		}
 		b.mapper = super.NewTypeDefsMapper(b.rctx.Sctx, defs)
 	}
 	return b.evalAtCompileTime(main.Expr)

@@ -512,12 +512,31 @@ func MustDecodeName(tv scode.Bytes) (string, scode.Bytes) {
 	return string(tv[:namelen]), tv[namelen:]
 }
 
-func DecodeLength(tv scode.Bytes) (int, scode.Bytes) {
+func DecodeNameSafe(tv scode.Bytes) (string, []byte, error) {
+	namelen, n := binary.Uvarint(tv)
+	if n <= 0 {
+		return "", nil, errors.New("truncated name")
+	}
+	if namelen > len(tv[n:]) {
+		return "", nil, errors.New("truncated name")
+	}
+	return string(tv[n:n+namelen]), tv[n+namelen:], nil
+}
+
+func DecodeLength(tv scode.Bytes) (int, []byte) {
 	namelen, n := binary.Uvarint(tv)
 	if n <= 0 {
 		return 0, nil
 	}
 	return int(namelen), tv[n:]
+}
+
+func DecodeLengthSafe(tv scode.Bytes) (int, []byte, error) {
+	namelen, n := binary.Uvarint(tv)
+	if n <= 0 {
+		return 0, nil, errors.New("truncated length")
+	}
+	return int(namelen), tv[n:], nil
 }
 
 func MustDecodeLength(tv scode.Bytes) (int, scode.Bytes) {
@@ -534,6 +553,14 @@ func DecodeID(b []byte) (uint32, []byte) {
 		return 0, nil
 	}
 	return uint32(v), b[n:]
+}
+
+func DecodeIDSafe(b []byte) (uint32, []byte, error) {
+	v, n := binary.Uvarint(b)
+	if n <= 0 {
+		return 0, nil, errors.New("truncated ID")
+	}
+	return uint32(v), b[n:], nil
 }
 
 func MustDecodeID(b []byte) (uint32, []byte) {
@@ -1155,76 +1182,119 @@ func (t *TypeDefsMerger) LookupID(extID uint32) uint32 {
 // and computes the lookup table and offsets of each typedef in the table, returning
 // a new TypeDefs table.  It checks that all referenced IDs in the table maintain
 // the invariant that they are defined before use in the scan order of the table.
-// It panics if malformed data is encountered.
-func NewTypeDefsFromBytes(bytes []byte) *TypeDefs {
+// It returns an error if malformed data is encountered.
+func NewTypeDefsFromBytes(bytes []byte) (*TypeDefs, error) {
 	defs := NewTypeDefs()
 	defs.bytes = bytes
 	localID := uint32(IDTypeComplex)
 	var off uint32
 	for len(bytes) > 0 {
 		before := bytes
+		if len(bytes) < 1 {
+			return nil, errors.New("truncated typedef")
+		}
 		typedef := bytes[0]
 		bytes = bytes[1:]
 		var id uint32
 		var n int
+		var err error
 		switch typedef {
 		case TypeDefNamed:
-			_, bytes = MustDecodeName(bytes)
-			id, bytes = MustDecodeID(bytes)
+			_, bytes, err = DecodeNameSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
+			id, bytes, err = DecodeIDSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
 			if id >= localID {
-				panic(id)
+				return nil, fmt.Errorf("bad forward reference in named type: %d >= %d", id, localID)
 			}
 		case TypeDefRecord:
-			n, bytes = MustDecodeLength(bytes)
+			n, bytes, err = DecodeLengthSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
 			if n > MaxRecordFields {
-				panic(n)
+				return nil, fmt.Errorf("too many record fields: %d", n)
 			}
 			for range n {
-				_, bytes = MustDecodeName(bytes)
-				id, bytes = MustDecodeID(bytes)
+				_, bytes, err = DecodeNameSafe(bytes)
+				if err != nil {
+					return nil, err
+				}
+				id, bytes, err = DecodeIDSafe(bytes)
+				if err != nil {
+					return nil, err
+				}
 				if id >= localID {
-					panic(id)
+					return nil, fmt.Errorf("bad forward reference in record field: %d >= %d", id, localID)
 				}
 				// field opt
+				if len(bytes) < 1 {
+					return nil, errors.New("truncated record: missing field opts")
+				}
 				bytes = bytes[1:]
 			}
 		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion:
-			id, bytes = MustDecodeID(bytes)
+			id, bytes, err = DecodeIDSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
 			if id >= localID {
-				panic(id)
+				return nil, fmt.Errorf("bad forward reference in container type: %d >= %d", id, localID)
 			}
 		case TypeDefMap:
 			// key ID
-			id, bytes = MustDecodeID(bytes)
+			id, bytes, err = DecodeIDSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
 			if id >= localID {
-				panic(id)
+				return nil, fmt.Errorf("bad forward reference in map key: %d >= %d", id, localID)
 			}
 			// val ID
-			id, bytes = MustDecodeID(bytes)
+			id, bytes, err = DecodeIDSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
 			if id >= localID {
-				panic(id)
+				return nil, fmt.Errorf("bad forward reference in map value: %d >= %d", id, localID)
 			}
 		case TypeDefUnion:
-			n, bytes = MustDecodeLength(bytes)
+			n, bytes, err = DecodeLengthSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
 			if n > MaxUnionTypes {
-				panic(n)
+				return nil, fmt.Errorf("too many union types: %d", n)
 			}
 			for range n {
-				id, bytes = MustDecodeID(bytes)
+				id, bytes, err = DecodeIDSafe(bytes)
+				if err != nil {
+					return nil, err
+				}
 				if id >= localID {
-					panic(id)
+					return nil, fmt.Errorf("bad forward reference in union type: %d >= %d", id, localID)
 				}
 			}
 		case TypeDefEnum:
-			n, bytes = MustDecodeLength(bytes)
+			n, bytes, err = DecodeLengthSafe(bytes)
+			if err != nil {
+				return nil, err
+			}
 			if n > MaxEnumSymbols {
-				panic(n)
+				return nil, fmt.Errorf("too many enum symbols: %d", n)
 			}
 			for range n {
-				_, bytes = MustDecodeName(bytes)
+				_, bytes, err = DecodeNameSafe(bytes)
+				if err != nil {
+					return nil, err
+				}
 			}
 		default:
-			panic(typedef)
+			return nil, fmt.Errorf("unknown typedef type: %d", typedef)
 		}
 		size := len(before) - len(bytes)
 		off += uint32(size)
@@ -1232,5 +1302,5 @@ func NewTypeDefsFromBytes(bytes []byte) *TypeDefs {
 		defs.offsets = append(defs.offsets, off)
 		localID++
 	}
-	return defs
+	return defs, nil
 }
