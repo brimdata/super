@@ -50,15 +50,6 @@ archives:
 release:
   header: |
     View [change log](CHANGELOG.md#{{ replace .Tag "." "" }}).
-homebrew_casks:
-  - repository:
-      owner: brimdata
-      name: homebrew-tap
-    commit_author:
-      name: brim-bot
-      email: bot@brimdata.io
-    homepage: https://github.com/brimdata/super
-    description: An analytics database that fuses structured and semi-structured data
 checksum:
   name_template: 'super-checksums.txt'
 snapshot:
