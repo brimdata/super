@@ -1,22 +1,24 @@
-spq: coalesce(this[0], this[1], this[2])
+spq: coalesce(a, b, c)
 
 vector: true
 
 input: |
-  [null, error("quiet"), "foo"::(uint64|string)]
-  ["bar"::string, error("quiet"), 1::uint64::(uint64|string)]
+  {a:null, b:error("quiet"), c:"foo"::(uint64|string)}
+  {a:"bar"::string, b:error("quiet"), c:1::uint64::(uint64|string)}
   type port=int64
   type missing=error("string")
-  [error("missing")::missing, 2020::port, null]
-  [null, error("missing"), error("quiet")]
-  [null, "gotme", "ted sando"]
-  [null, error({x:1}), "foo"]
+  {a:error("missing")::missing, b:2020::port, c:null}
+  {a:null, b:error("missing"), c:error("quiet")}
+  {a:null, b:"gotme", c:"ted sando"}
+  {a:null, b:error({x:1}), c:"foo"}
+  {a:null::(string|null), b:error(0)::(error(int64)|null), c:"foo"::(string|null)}
 
 output: |
-  "foo"
+  "foo"::(uint64|string)
   "bar"
   type port=int64
   2020::port
   null
   "gotme"
   "foo"
+  "foo"::(string|null)
