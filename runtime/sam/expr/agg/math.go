@@ -44,6 +44,7 @@ func (m *mathReducer) Consume(val super.Value) {
 }
 
 func (m *mathReducer) consumeVal(val super.Value) {
+	val = val.Under()
 	if val.IsString() || (m.math != nil && m.math.typ() == super.TypeString) {
 		m.consumeString(val)
 		return
