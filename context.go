@@ -294,7 +294,7 @@ func (c *Context) DeclareTypeNamed(name string) (*TypeNamed, int) {
 	return typ, patch
 }
 
-func (c *Context) DeclareBlock(compIDs []compID) []patch {
+func (c *Context) declareBlock(compIDs []compID) []patch {
 	c.mu.Lock()
 	if c.named == nil {
 		c.named = make(map[string]*TypeNamed)
@@ -745,12 +745,12 @@ const (
 
 // Different modes for named types:
 // (1) they are created from SUP or SuperSQL in which case the named type
-// is first declared with an undefined inner type.  Let's let's it be referenced
+// is first declared with an undefined inner type.  Let's let it be referenced
 // for recursive type creation but not used so it then must be immediately bound
 // after the inner type is created. TypeDefs itselfs handles this with DeclareTypeNamed
 // followed by BindTypedName.
 // (2) A Named type exists and is bound in a serialized TypeDefs and can be created
-// with NewTypeDefsFromBytes... nothing special need be done here.
+// with NewTypeDefsFromBytes. Nothing special need be done here.
 // (3) A named type exists and is bound in a TypeDefs and is being copied with a
 // mapper.  In this case, the mapper needs to do the decl followed by the
 // binding in case recursive types are created.
@@ -973,14 +973,11 @@ func (t *TypeDefs) LookupTypeNamed(name string, inner Type) uint32 {
 }
 
 func (t *TypeDefs) lookupName(name string) (uint32, bool) {
-	at := len(t.bytes)
-	defer func() {
-		t.bytes = t.bytes[:at]
-	}()
-	t.bytes = append(t.bytes, TypeDefNamed)
-	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
-	t.bytes = append(t.bytes, name...)
-	s, ok := t.lut[string(t.bytes[at:])]
+	scratch := make([]byte, 0, len(name)+1+binary.MaxVarintLen64)
+	scratch = append(scratch, TypeDefNamed)
+	scratch = binary.AppendUvarint(scratch, uint64(len(name)))
+	scratch = append(scratch, name...)
+	s, ok := t.lut[string(scratch)]
 	return s, ok
 }
 
@@ -1198,7 +1195,7 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 			}
 			return out
 		}
-		patches := t.sctx.DeclareBlock(compIDs)
+		patches := t.sctx.declareBlock(compIDs)
 		for _, p := range patches {
 			t.patches[p.named.Name] = p
 		}

@@ -167,9 +167,6 @@ type genericBuilder[E any] struct {
 }
 
 func (b *genericBuilder[E]) Write(vec Any) {
-	if vec.Len() == 0 {
-		return
-	}
 	switch vec := vec.(type) {
 	case *View:
 		vals := b.valuesOf(vec.Any)
