@@ -171,8 +171,8 @@ func marshalTypeDefs(marshaler *sup.MarshalBSUPContext, vals []super.Value, byte
 	return vals, nil
 }
 
-func DecodeTypeDefs(bytes []byte) ([]any, error) {
-	id := uint32(super.IDTypeComplex)
+func DecodeTypeDefs(bytes []byte, offset int) ([]any, error) {
+	id := uint32(offset + super.IDTypeComplex)
 	var out []any
 	for len(bytes) > 0 {
 		var desc any

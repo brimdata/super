@@ -52,8 +52,9 @@ func (e *Encoder) Encode(external super.Type) uint32 {
 }
 
 type Decoder struct {
-	// shared/output context
-	sctx *super.Context
+	sctx   *super.Context
+	defs   *super.TypeDefs
+	mapper *super.TypeDefsMapper
 	// Local type IDs are mapped to the shared-context types with the types array.
 	// The types slice is protected with mutex as the slice can be expanded while
 	// worker threads are scanning earlier batches.
@@ -64,17 +65,22 @@ type Decoder struct {
 var _ super.TypeFetcher = (*Decoder)(nil)
 
 func NewDecoder(sctx *super.Context) *Decoder {
-	return &Decoder{sctx: sctx}
+	defs := super.NewTypeDefs()
+	return &Decoder{
+		sctx:   sctx,
+		defs:   defs,
+		mapper: super.NewTypeDefsMapper(sctx, defs),
+	}
 }
 
 func (d *Decoder) decode(b *buffer) error {
-	defs, ok := super.NewTypeDefsFromBytes(b.data)
-	if !ok {
+	before := d.defs.NTypes()
+	if ok := d.defs.AppendBytes(b.Bytes()); !ok {
 		return errors.New("corrupt BSUP types frame")
 	}
-	mapper := super.NewTypeDefsMapper(d.sctx, defs)
-	for id := range defs.NTypes() {
-		typ := mapper.LookupType(uint32(id + super.IDTypeComplex))
+	after := d.defs.NTypes()
+	for id := before; id < after; id++ {
+		typ := d.mapper.LookupType(uint32(id + super.IDTypeComplex))
 		if typ == nil {
 			return errors.New("corrupt BSUP types frame")
 		}

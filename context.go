@@ -1095,6 +1095,96 @@ func (t *TypeDefs) loops(id uint32, scoreboard map[string]comp) {
 	}
 }
 
+func (d *TypeDefs) AppendBytes(bytes []byte) bool {
+	off := uint32(len(d.bytes))
+	d.bytes = append(d.bytes, bytes...)
+	localID := uint32(d.NTypes() + IDTypeComplex)
+	for len(bytes) > 0 {
+		before := bytes
+		typedef := bytes[0]
+		bytes = bytes[1:]
+		var id uint32
+		var n int
+		switch typedef {
+		case TypeDefNamed:
+			_, bytes = MustDecodeName(bytes)
+			if bytes == nil {
+				return false
+			}
+			id, bytes = DecodeFixedID(bytes)
+			if bytes == nil {
+				return false
+			}
+		case TypeDefRecord:
+			n, bytes = DecodeLength(bytes)
+			if bytes == nil || n > MaxRecordFields {
+				return false
+			}
+			for range n {
+				_, bytes = DecodeName(bytes)
+				if bytes == nil {
+					return false
+				}
+				id, bytes = DecodeID(bytes)
+				if bytes == nil || id >= localID {
+					return false
+				}
+				// field opt
+				bytes = bytes[1:]
+			}
+		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion:
+			id, bytes = DecodeID(bytes)
+			if bytes == nil || id >= localID {
+				return false
+			}
+		case TypeDefMap:
+			// key ID
+			id, bytes = DecodeID(bytes)
+			if bytes == nil || id >= localID {
+				return false
+			}
+			// val ID
+			id, bytes = DecodeID(bytes)
+			if bytes == nil || id >= localID {
+				return false
+			}
+		case TypeDefUnion:
+			n, bytes = DecodeLength(bytes)
+			if bytes == nil || n > MaxUnionTypes {
+				return false
+			}
+			for range n {
+				id, bytes = DecodeID(bytes)
+				if bytes == nil || id >= localID {
+					return false
+				}
+			}
+		case TypeDefEnum:
+			n, bytes = DecodeLength(bytes)
+			if bytes == nil || n > MaxEnumSymbols {
+				return false
+			}
+			for range n {
+				_, bytes = DecodeName(bytes)
+				if bytes == nil {
+					return false
+				}
+			}
+		default:
+			return false
+		}
+		size := len(before) - len(bytes)
+		off += uint32(size)
+		if before[0] == TypeDefNamed {
+			size -= 4
+		}
+		d.lut[string(before[:size])] = localID
+		d.offsets = append(d.offsets, off)
+		localID++
+	}
+	return true
+}
+
 func AppendFixedID(b []byte, id uint32) []byte {
 	b = append(b, byte(id>>24))
 	b = append(b, byte(id>>16))
@@ -1482,91 +1572,5 @@ func (t *TypeDefsMerger) LookupID(extID uint32) uint32 {
 // It panics if malformed data is encountered.
 func NewTypeDefsFromBytes(bytes []byte) (*TypeDefs, bool) {
 	defs := NewTypeDefs()
-	defs.bytes = bytes
-	localID := uint32(IDTypeComplex)
-	var off uint32
-	for len(bytes) > 0 {
-		before := bytes
-		typedef := bytes[0]
-		bytes = bytes[1:]
-		var id uint32
-		var n int
-		switch typedef {
-		case TypeDefNamed:
-			_, bytes = MustDecodeName(bytes)
-			if bytes == nil {
-				return nil, false
-			}
-			id, bytes = DecodeFixedID(bytes)
-			if bytes == nil {
-				return nil, false
-			}
-		case TypeDefRecord:
-			n, bytes = DecodeLength(bytes)
-			if bytes == nil || n > MaxRecordFields {
-				return nil, false
-			}
-			for range n {
-				_, bytes = DecodeName(bytes)
-				if bytes == nil {
-					return nil, false
-				}
-				id, bytes = DecodeID(bytes)
-				if bytes == nil || id >= localID {
-					return nil, false
-				}
-				// field opt
-				bytes = bytes[1:]
-			}
-		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion:
-			id, bytes = DecodeID(bytes)
-			if bytes == nil || id >= localID {
-				return nil, false
-			}
-		case TypeDefMap:
-			// key ID
-			id, bytes = DecodeID(bytes)
-			if bytes == nil || id >= localID {
-				return nil, false
-			}
-			// val ID
-			id, bytes = DecodeID(bytes)
-			if bytes == nil || id >= localID {
-				return nil, false
-			}
-		case TypeDefUnion:
-			n, bytes = DecodeLength(bytes)
-			if bytes == nil || n > MaxUnionTypes {
-				return nil, false
-			}
-			for range n {
-				id, bytes = DecodeID(bytes)
-				if bytes == nil || id >= localID {
-					return nil, false
-				}
-			}
-		case TypeDefEnum:
-			n, bytes = DecodeLength(bytes)
-			if bytes == nil || n > MaxEnumSymbols {
-				return nil, false
-			}
-			for range n {
-				_, bytes = DecodeName(bytes)
-				if bytes == nil {
-					return nil, false
-				}
-			}
-		default:
-			return nil, false
-		}
-		size := len(before) - len(bytes)
-		off += uint32(size)
-		if before[0] == TypeDefNamed {
-			size -= 4
-		}
-		defs.lut[string(before[:size])] = localID
-		defs.offsets = append(defs.offsets, off)
-		localID++
-	}
-	return defs, true
+	return defs, defs.AppendBytes(bytes)
 }

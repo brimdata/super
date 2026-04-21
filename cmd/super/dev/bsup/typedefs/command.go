@@ -84,6 +84,7 @@ type metaReader struct {
 	reader    *reader
 	marshaler *sup.MarshalBSUPContext
 	metas     []any
+	off       int
 }
 
 var _ sio.Reader = (*metaReader)(nil)
@@ -101,11 +102,12 @@ func (m *metaReader) Read() (*super.Value, error) {
 		if bytes == nil || err != nil {
 			return nil, err
 		}
-		metas, err := csup.DecodeTypeDefs(bytes)
+		metas, err := csup.DecodeTypeDefs(bytes, m.off)
 		if err != nil {
 			return nil, err
 		}
 		m.metas = metas
+		m.off += len(metas)
 	}
 	meta := m.metas[0]
 	m.metas = m.metas[1:]
@@ -122,6 +124,7 @@ func (m *metaReader) nextFrame() ([]byte, error) {
 		}
 		if version == 0xff {
 			// EOS
+			m.off = 0
 			continue
 		}
 		if err := bsupio.CheckVersion(version); err != nil {
@@ -181,7 +184,7 @@ func (r *reader) readUncomp(code byte) ([]byte, error) {
 		return nil, errors.New("BSUP frame too big")
 	}
 	out := make([]byte, size)
-	n, err := r.reader.Read(out)
+	n, err := io.ReadFull(r.reader, out)
 	if err != nil {
 		return nil, err
 	}
@@ -213,12 +216,12 @@ func (r *reader) readComp(code byte) ([]byte, error) {
 		return nil, fmt.Errorf("bsupio: unknown compression format 0x%x", format)
 	}
 	compressed := make([]byte, zlen)
-	n, err := r.reader.Read(compressed)
+	n, err := io.ReadFull(r.reader, compressed)
 	if err != nil {
 		return nil, err
 	}
 	if n != len(compressed) {
-		return nil, errors.New("bsupio: short read compression buffer")
+		return nil, fmt.Errorf("bsupio: short read compression buffer (%d of %d)", n, zlen)
 	}
 	uncompressed := make([]byte, size)
 	n, err = lz4.UncompressBlock(compressed, uncompressed)
