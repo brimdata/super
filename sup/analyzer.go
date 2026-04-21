@@ -218,7 +218,7 @@ func (a *Analyzer) bindTypeDecls(decls []ast.TypeDecl) error {
 	// Take two passes over the decls.  The first pass converts the
 	// types that this thread is responsible for binding and binds them.
 	// The second pass converts types that we are not responsible for
-	// binding and checks that the type bound elsewhere as the same type
+	// binding and checks that the type bound elsewhere is the same type
 	// as this declaration.
 	for k, decl := range decls {
 		if patch := patches[k]; patch >= 0 {
@@ -235,7 +235,7 @@ func (a *Analyzer) bindTypeDecls(decls []ast.TypeDecl) error {
 			if err != nil {
 				return err
 			}
-			// A different concurret thread took responsibility for
+			// A different concurrent thread took responsibility for
 			// binding this named type.  Check that that declaration
 			// is the same as the one here.
 			if named := nameds[k]; named.Type != typ {

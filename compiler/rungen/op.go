@@ -93,7 +93,7 @@ func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vio.P
 	if len(main.Types) != 0 {
 		defs, ok := super.NewTypeDefsFromBytes(main.Types)
 		if !ok {
-			panic(main)
+			return nil, nil, fmt.Errorf("bad typedefs: %v", main.Types)
 		}
 		b.mapper = super.NewTypeDefsMapper(b.rctx.Sctx, defs)
 	}
@@ -678,7 +678,7 @@ func EvalAtCompileTime(sctx *super.Context, main *dag.MainExpr) (val super.Value
 	if len(main.Types) != 0 {
 		defs, ok := super.NewTypeDefsFromBytes(main.Types)
 		if !ok {
-			panic(main)
+			return super.Value{}, fmt.Errorf("bad typedefs: %v", main.Types)
 		}
 		b.mapper = super.NewTypeDefsMapper(b.rctx.Sctx, defs)
 	}

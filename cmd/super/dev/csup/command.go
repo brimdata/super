@@ -211,6 +211,7 @@ func decodeTypeDef(slot uint32, bytes []byte) ([]byte, any) {
 			Kind: "TypeDefNamed",
 			Slot: slot,
 			Name: name,
+			ID:   id,
 		}
 	case super.TypeDefRecord:
 		type Field struct {

@@ -87,4 +87,3 @@ output: |
   <enum(b,c,d)>
   <error(enum(a,c,d))>
   <error(enum(b,c,d))>
-

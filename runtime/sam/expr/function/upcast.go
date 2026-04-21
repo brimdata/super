@@ -171,9 +171,7 @@ func (u *Upcast) toMap(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *
 func (u *Upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeUnion) bool {
 	// Take the value out of the union (if it is union), then look for it
 	// in the target union.
-	if !isNamed(typ) {
-		typ, bytes = deunion(typ, bytes)
-	}
+	typ, bytes = deunion(typ, bytes)
 	tag := UpcastUnionTag(to.Types, typ)
 	if tag < 0 {
 		return false

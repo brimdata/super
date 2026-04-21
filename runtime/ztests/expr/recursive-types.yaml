@@ -2,6 +2,8 @@ spq: |
   type JSON = float64 | string | bool | null | [ JSON ] | map{string:JSON}
   values 1.5::JSON, [1.5,2.5,3.5]::[JSON],[map{"foo":"hello","bar":true}]::[map{string:JSON}]::[JSON]
 
+vector: true
+
 output: |
   type JSON=float64|bool|string|null|[JSON]|map{string:JSON}
   1.5::JSON
@@ -11,6 +13,8 @@ output: |
 ---
 
 spq: pass
+
+vector: true
 
 input: |
   type Foo=string|[Bar]
@@ -31,6 +35,8 @@ spq: |
   type Bar={x:Foo}
   values "abc"::Foo, [{x:"hello"}::Bar]::Foo
 
+vector: true
+
 output: |
   type Bar={x:Foo}
   type Foo=string|[Bar]
@@ -43,6 +49,8 @@ spq: |
   type List={val:string,next?:List}
   values {val:1}::List, {val:2,next?:{val:3}}::List
 
+vector: true
+
 output: |
   type List={val:string,next?:List}
   {val:"1",next?:_::List}::List
@@ -52,6 +60,8 @@ output: |
 
 spq: |
   values next
+
+vector: true
 
 input: |
   type List={val:string,next?:List}

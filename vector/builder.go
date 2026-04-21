@@ -296,7 +296,7 @@ type nullBuilder struct {
 }
 
 func (n *nullBuilder) Write(vec Any) {
-	n.len += vec.Len()
+	n.len += vec.(*Null).len
 }
 
 func (n *nullBuilder) Build(*super.Context) Any {
