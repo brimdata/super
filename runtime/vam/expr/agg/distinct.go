@@ -39,6 +39,9 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 	if vec.Len() != 1 {
 		panic("distinct: invalid partial")
 	}
+	if vec.Kind() == vector.KindNull {
+		return
+	}
 	var slot uint32
 	if view, ok := vec.(*vector.View); ok {
 		vec = view.Any
