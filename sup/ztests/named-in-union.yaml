@@ -2,7 +2,7 @@ spq: pass
 
 input: &input |
   type string_named=string
-  type union_named=int64|string_named
+  type union_named=string_named|int64
   ""::string_named::union_named
   {a:""::string_named::union_named}
 

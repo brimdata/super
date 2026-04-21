@@ -130,7 +130,10 @@ func (c *Context) readSubTypes(r io.Reader) error {
 	var vals []super.Value
 	for {
 		batch, err := scanner.Pull(false)
-		if batch == nil || err != nil {
+		if err != nil {
+			return err
+		}
+		if batch == nil {
 			if len(vals) != 1 {
 				return errors.New("CSUP metadata typedefs section must be a single bytes value")
 			}
@@ -138,8 +141,12 @@ func (c *Context) readSubTypes(r io.Reader) error {
 			if val.Type() != super.TypeBytes {
 				return errors.New("CSUP metadata typedefs section must be a bytes type")
 			}
-			c.typedefs = super.NewTypeDefsFromBytes(val.Bytes())
-			return err
+			defs, ok := super.NewTypeDefsFromBytes(val.Bytes())
+			if !ok {
+				return errors.New("CSUP metadata typedefs has invalid format")
+			}
+			c.typedefs = defs
+			return nil
 		}
 		for _, val := range batch.Values() {
 			vals = append(vals, val)

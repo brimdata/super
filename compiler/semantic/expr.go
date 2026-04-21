@@ -1215,7 +1215,7 @@ func (t *translator) semType(typ ast.Type) (sem.Expr, super.Type) {
 			if named := t.sctx.LookupByName(ref.Name); named != nil {
 				// Found the type in the main context.  Translate it
 				// to the typedefs context.
-				local, err := t.defs.LookupTypeNamed(named.Name, named.Type)
+				local, err := t.defs.TranslateType(named)
 				if err != nil {
 					// There can't be conflict since we just tried looking up
 					// this name in the defs context via t.types.

@@ -1254,7 +1254,10 @@ func (t *translator) singletonKey(agg ast.Assignment, seq sem.Seq, inType super.
 
 // semDecls enters a block of declarations into the current scope.  We do late binding
 // of symbols to sem-tree entities so that the order of definition doesn't matter.
+// For type declarations, we gather them all up into a scoped block and analyze
+// them together so that mutually recursive types all know about each other.
 func (t *translator) decls(decls []ast.Decl) {
+	var typeDecls []*ast.TypeDecl
 	for _, d := range decls {
 		switch d := d.(type) {
 		case *ast.ConstDecl:
@@ -1268,10 +1271,13 @@ func (t *translator) decls(decls []ast.Decl) {
 		case *ast.QueryDecl:
 			t.queryDecl(d)
 		case *ast.TypeDecl:
-			t.typeDecl(d)
+			typeDecls = append(typeDecls, d)
 		default:
 			panic(d)
 		}
+	}
+	if len(typeDecls) != 0 {
+		t.typeDecls(typeDecls)
 	}
 }
 
@@ -1349,18 +1355,37 @@ func (t *translator) queryDecl(q *ast.QueryDecl) {
 	}
 }
 
-func (t *translator) typeDecl(d *ast.TypeDecl) {
-	id, err := t.types.BindType(d.Name.Name, d.Type)
-	if err != nil {
-		t.error(d.Name, err)
+func (t *translator) typeDecls(in []*ast.TypeDecl) {
+	// First check for name collisions within the scope since
+	// BindTypeScope requires unique names to avoid deadlocks.
+	names := make(map[string]struct{})
+	var decls []*ast.TypeDecl
+	for _, d := range in {
+		name := d.Name.Name
+		if _, ok := names[name]; ok {
+			t.error(d.Name, fmt.Errorf("type %q already exists", name))
+			continue
+		}
+		names[name] = struct{}{}
+		decls = append(decls, d)
+	}
+	ids, errs := t.types.BindTypeScope(decls)
+	if errs != nil {
+		for k, err := range errs {
+			if err != nil {
+				t.error(decls[k].Type, err)
+			}
+		}
 		return
 	}
-	typeRef := &sem.TypeExpr{
-		Node: d.Type,
-		ID:   id,
-	}
-	if err := t.scope.BindSymbol(d.Name.Name, typeRef); err != nil {
-		t.error(d.Name, err)
+	for k, d := range decls {
+		typeRef := &sem.TypeExpr{
+			Node: d.Type,
+			ID:   ids[k],
+		}
+		if err := t.scope.BindSymbol(d.Name.Name, typeRef); err != nil {
+			t.error(d.Name, err)
+		}
 	}
 }
 

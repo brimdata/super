@@ -20,11 +20,11 @@ output: |
   type named={x:int64}
   {x:1}::named
   {x:2}::named
-  error("type \"named\" already exists")
-  error("type \"named\" already exists")
-  error("type \"named\" already exists")
-  error("type \"named\" already exists")
-  error("type \"named\" already exists")
+  error("type \"named\" redefined")
+  error("type \"named\" redefined")
+  error("type \"named\" redefined")
+  error("type \"named\" redefined")
+  error("type \"named\" redefined")
   error("missing")
   error("foo")
 

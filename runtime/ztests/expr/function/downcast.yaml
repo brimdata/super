@@ -71,7 +71,7 @@ input: |
 output: |
   1::(int64|bool|string)
   type foo=int64|string
-  2::(int64|foo)
+  2::(foo|int64)
 
 ---
 

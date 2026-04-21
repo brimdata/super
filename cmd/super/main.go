@@ -28,6 +28,7 @@ import (
 	_ "github.com/brimdata/super/cmd/super/dev"
 	_ "github.com/brimdata/super/cmd/super/dev/bsup/frames"
 	_ "github.com/brimdata/super/cmd/super/dev/bsup/slice"
+	_ "github.com/brimdata/super/cmd/super/dev/bsup/typedefs"
 	_ "github.com/brimdata/super/cmd/super/dev/csup"
 	_ "github.com/brimdata/super/cmd/super/dev/vector/copy"
 	_ "github.com/brimdata/super/cmd/super/dev/vector/project"

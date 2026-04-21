@@ -236,7 +236,9 @@ func (f *formatter) formatTypeValue(indent int, bytes scode.Bytes) {
 }
 
 func isShortType(typ super.Type) bool {
-	typ = super.TypeUnder(typ)
+	if named, ok := typ.(*super.TypeNamed); ok {
+		return len(named.Name) < 20
+	}
 	if super.IsPrimitiveType(typ) {
 		return true
 	}

@@ -100,18 +100,28 @@ func NewValueBuilder(typ super.Type) ValueBuilder {
 	case *super.TypeError:
 		return &errorValueBuilder{typ: typ, ValueBuilder: NewValueBuilder(typ.Type)}
 	case *super.TypeNamed:
-		return &namedValueBuilder{typ: typ, ValueBuilder: NewValueBuilder(typ.Type)}
+		return &namedValueBuilder{typ: typ}
 	}
 	panic(typ)
 }
 
 type namedValueBuilder struct {
-	ValueBuilder
-	typ *super.TypeNamed
+	builder ValueBuilder
+	typ     *super.TypeNamed
+}
+
+func (n *namedValueBuilder) Write(bytes scode.Bytes) {
+	if n.builder == nil {
+		n.builder = NewValueBuilder(n.typ.Type)
+	}
+	n.builder.Write(bytes)
 }
 
 func (n *namedValueBuilder) Build(sctx *super.Context) Any {
-	return NewNamed(n.typ, n.ValueBuilder.Build(sctx))
+	if n.builder == nil {
+		return &Empty{n.typ}
+	}
+	return NewNamed(n.typ, n.builder.Build(sctx))
 }
 
 type recordValueBuilder struct {

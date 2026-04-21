@@ -113,7 +113,7 @@ type ipaddr=ip
 	const recordNamed = `
 type myrec={host:ip}
 {foo:{host:127.0.0.2}::myrec}
-{foo:null::(null|myrec)}
+{foo:null::(myrec|null)}
 `
 	t.Run("BSUP", func(t *testing.T) {
 		t.Run("simple", func(t *testing.T) {

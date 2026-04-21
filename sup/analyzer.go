@@ -104,7 +104,7 @@ func (a *Analyzer) ConvertValue(val ast.Value) (Value, error) {
 	return a.convertValue(val)
 }
 
-// BindType provides a means to create a named type with the given name.
+// BindTypeScope provides a means to create named types from declarations.
 // This is used by the semantic analyzer to create persistent typedefs for
 // each named type defined in the query (which contrasts from named types
 // that are defined by the data).  All such bindings are stored in the typedefs
@@ -113,16 +113,35 @@ func (a *Analyzer) ConvertValue(val ast.Value) (Value, error) {
 // types defined by the query as a DAG.  At query runtime, the DAG typedefs
 // are translated to query context types and the runtime references by typeID
 // are resolved to actual super.Types relative to query context.
-func (a *Analyzer) BindType(name string, t ast.Type) (int, error) {
-	typ, err := a.convertType(t)
-	if err != nil {
-		return 0, err
+// The decls arguments must have unique names.
+func (a *Analyzer) BindTypeScope(decls []*ast.TypeDecl) ([]int, []error) {
+	patches := make([]int, len(decls))
+	nameds := make([]*super.TypeNamed, len(decls))
+	for k, d := range decls {
+		named, patch := a.sctx.DeclareTypeNamed(d.Name.Name)
+		patches[k] = patch
+		nameds[k] = named
 	}
-	typ, err = a.sctx.LookupTypeNamed(name, typ)
-	if err != nil {
-		return 0, err
+	var ids []int
+	var haveErr bool
+	errors := make([]error, len(decls))
+	for k, d := range decls {
+		if errors[k] == nil {
+			inner, err := a.convertType(d.Type)
+			if err != nil {
+				errors[k] = err
+				haveErr = true
+				// Avoid deadlock waiting for declared-but-not-resolved type
+				inner = super.TypeNone
+			}
+			a.sctx.BindTypeNamed(patches[k], nameds[k], inner)
+			ids = append(ids, super.TypeID(nameds[k]))
+		}
 	}
-	return super.TypeID(typ), nil
+	if haveErr {
+		return nil, errors
+	}
+	return ids, nil
 }
 
 func (a *Analyzer) LookupType(t ast.Type) (int, error) {
@@ -189,13 +208,43 @@ func (a *Analyzer) convertValue(val ast.Value) (Value, error) {
 }
 
 func (a *Analyzer) bindTypeDecls(decls []ast.TypeDecl) error {
+	var patches []int
+	var nameds []*super.TypeNamed
 	for _, decl := range decls {
-		typ, err := a.convertType(decl.Type)
-		if err != nil {
-			return err
+		named, patch := a.sctx.DeclareTypeNamed(decl.Name.Name)
+		patches = append(patches, patch)
+		nameds = append(nameds, named)
+	}
+	// Take two passes over the decls.  The first pass converts the
+	// types that this thread is responsible for binding and binds them.
+	// The second pass converts types that we are not responsible for
+	// binding and checks that the type bound elsewhere as the same type
+	// as this declaration.
+	for k, decl := range decls {
+		if patch := patches[k]; patch >= 0 {
+			typ, err := a.convertType(decl.Type)
+			if err != nil {
+				return err
+			}
+			a.sctx.BindTypeNamed(patch, nameds[k], typ)
 		}
-		if _, err := a.sctx.LookupTypeNamed(decl.Name.Name, typ); err != nil {
-			return err
+	}
+	for k, decl := range decls {
+		if patch := patches[k]; patch < 0 {
+			typ, err := a.convertType(decl.Type)
+			if err != nil {
+				return err
+			}
+			// A different concurret thread took responsibility for
+			// binding this named type.  Check that that declaration
+			// is the same as the one here.
+			if named := nameds[k]; named.Type != typ {
+				// XXX type conflicts are currently a fatal errors.
+				// In a future version of SUP, we will have an option
+				// to continue parsing data with such errors and create
+				// structured errors for each named type with a conclict.
+				return fmt.Errorf("type %q redefined", named.Name)
+			}
 		}
 	}
 	return nil

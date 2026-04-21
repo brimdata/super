@@ -171,6 +171,20 @@ func marshalTypeDefs(marshaler *sup.MarshalBSUPContext, vals []super.Value, byte
 	return vals, nil
 }
 
+func DecodeTypeDefs(bytes []byte) ([]any, error) {
+	id := uint32(super.IDTypeComplex)
+	var out []any
+	for len(bytes) > 0 {
+		var desc any
+		bytes, desc = decodeTypeDef(id, bytes)
+		if desc != nil {
+			out = append(out, desc)
+		}
+		id++
+	}
+	return out, nil
+}
+
 func decodeTypeDef(slot uint32, bytes []byte) ([]byte, any) {
 	var out any
 	typedef := bytes[0]
@@ -184,7 +198,7 @@ func decodeTypeDef(slot uint32, bytes []byte) ([]byte, any) {
 		if bytes == nil {
 			return nil, errInfo(slot, "TypeDefNamed", "at name field")
 		}
-		id, bytes = super.DecodeID(bytes)
+		id, bytes = super.DecodeFixedID(bytes)
 		if bytes == nil {
 			return nil, errInfo(slot, "TypeDefNamed", "at ID field")
 		}
@@ -197,7 +211,6 @@ func decodeTypeDef(slot uint32, bytes []byte) ([]byte, any) {
 			Kind: "TypeDefNamed",
 			Slot: slot,
 			Name: name,
-			ID:   id,
 		}
 	case super.TypeDefRecord:
 		type Field struct {

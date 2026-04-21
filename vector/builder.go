@@ -167,6 +167,9 @@ type genericBuilder[E any] struct {
 }
 
 func (b *genericBuilder[E]) Write(vec Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	switch vec := vec.(type) {
 	case *View:
 		vals := b.valuesOf(vec.Any)
@@ -258,6 +261,8 @@ func bytesTableOf(vec Any) BytesTable {
 		return vec.table
 	case *Bytes:
 		return vec.table
+	case *Empty:
+		return BytesTable{}
 	default:
 		panic(vec)
 	}
@@ -291,7 +296,7 @@ type nullBuilder struct {
 }
 
 func (n *nullBuilder) Write(vec Any) {
-	n.len += vec.(*Null).len
+	n.len += vec.Len()
 }
 
 func (n *nullBuilder) Build(*super.Context) Any {

@@ -242,25 +242,101 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 		return nil, fmt.Errorf("named type collides with primitive type: %s", name)
 	}
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	if c.named == nil {
 		c.named = make(map[string]*TypeNamed)
 	}
 	if typ, ok := c.named[name]; ok {
+		c.mu.Unlock()
+		typ.Wait()
 		if typ.Type != inner {
-			return nil, fmt.Errorf("type %q already exists", name)
+			return nil, fmt.Errorf("type %q redefined", name)
 		}
 		return typ, nil
+
 	}
-	id := c.typedefs.LookupTypeNamed(name, inner)
-	if _, ok := c.byID[id]; ok {
-		// If it wasn't in the named table, it can't be in byID table.
+	c.mu.Unlock()
+	named, patch := c.DeclareTypeNamed(name)
+	if patch < 0 {
+		return named, nil
+	}
+	c.BindTypeNamed(patch, named, inner)
+	return named, nil
+}
+
+func (c *Context) DeclareTypeNamed(name string) (*TypeNamed, int) {
+	c.mu.Lock()
+	if c.named == nil {
+		c.named = make(map[string]*TypeNamed)
+	}
+	// If this type already exists (or another thread is concurrently creating it),
+	// we wait for the wrapped type to exist, then return completed type to the
+	// caller with a patch of -1.  This indicates that the caller needs to
+	// check that the types match instead of creating the inner and patching.
+	if typ, ok := c.named[name]; ok {
+		c.mu.Unlock()
+		typ.Wait()
+		return typ, -1
+	}
+	// The name doesn't exist at all, so let's create an unresolved TypeNamed
+	// that can be looked up and referenced but the inner Type cannot be used
+	// until BindTypeNamed resolves it.
+	defer c.mu.Unlock()
+	id, patch, ok := c.typedefs.DeclareTypeNamed(name)
+	if !ok {
+		// This shouldn't happen because we would be waiting above if the
+		// name already exists.
 		panic(name)
 	}
-	typ := NewTypeNamed(int(id), name, inner)
+	// Create the unresolved named type with a nil wrapped type.
+	typ := NewTypeNamed(int(id), name, nil)
 	c.byID[id] = typ
 	c.named[name] = typ
-	return typ, nil
+	return typ, patch
+}
+
+func (c *Context) DeclareBlock(compIDs []compID) []patch {
+	c.mu.Lock()
+	if c.named == nil {
+		c.named = make(map[string]*TypeNamed)
+	}
+	var patches []patch
+	for _, cid := range compIDs {
+		if typ, ok := c.named[cid.name]; ok {
+			c.mu.Unlock()
+			typ.Wait()
+			c.mu.Lock()
+			continue
+		}
+		id, off, ok := c.typedefs.DeclareTypeNamed(cid.name)
+		if !ok {
+			// This shouldn't happen because we would be waiting above if the
+			// name already exists.
+			c.mu.Unlock()
+			panic(cid.name)
+		}
+		// Create the unresolved named type with a nil wrapped type.
+		typ := NewTypeNamed(int(id), cid.name, nil)
+		c.byID[id] = typ
+		c.named[cid.name] = typ
+		patches = append(patches, patch{named: typ, off: off, inner: cid.inner})
+	}
+	c.mu.Unlock()
+	return patches
+}
+
+func (c *Context) BindTypeNamed(patch int, named *TypeNamed, inner Type) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	named.mu.Lock()
+	defer named.mu.Unlock()
+	if named.Type != nil {
+		panic("type binding protocol violation")
+	}
+	// Set the inner type, patch the named typedef, and signal
+	// any concurent threads waiting on this type's resolution.
+	named.Type = inner
+	c.typedefs.BindTypeNamed(patch, uint32(TypeID(inner)))
+	named.cond.Signal()
 }
 
 func (c *Context) LookupTypeError(inner Type) *TypeError {
@@ -351,15 +427,26 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 		if tv == nil {
 			return nil, nil
 		}
-		var typ Type
-		typ, tv = c.DecodeTypeValue(tv)
+		if named := c.LookupByName(name); named != nil {
+			// This name already exists in the context.
+			// Check that inner type is the same
+			var inner Type
+			inner, tv = c.DecodeTypeValue(tv)
+			if tv == nil {
+				return nil, nil
+			}
+			if inner != named.Type {
+				return nil, nil
+			}
+			return named, tv
+		}
+		named, patch := c.DeclareTypeNamed(name)
+		var inner Type
+		inner, tv = c.DecodeTypeValue(tv)
 		if tv == nil {
 			return nil, nil
 		}
-		named, err := c.LookupTypeNamed(name, typ)
-		if err != nil {
-			return nil, nil
-		}
+		c.BindTypeNamed(patch, named, inner)
 		return named, tv
 	case TypeValueNameRef:
 		name, tv := DecodeName(tv)
@@ -656,6 +743,21 @@ const (
 	TypeDefFusion = 8
 )
 
+// Different modes for named types:
+// (1) they are created from SUP or SuperSQL in which case the named type
+// is first declared with an undefined inner type.  Let's let's it be referenced
+// for recursive type creation but not used so it then must be immediately bound
+// after the inner type is created. TypeDefs itselfs handles this with DeclareTypeNamed
+// followed by BindTypedName.
+// (2) A Named type exists and is bound in a serialized TypeDefs and can be created
+// with NewTypeDefsFromBytes... nothing special need be done here.
+// (3) A named type exists and is bound in a TypeDefs and is being copied with a
+// mapper.  In this case, the mapper needs to do the decl followed by the
+// binding in case recursive types are created.
+// (4) A named type exists and is bound in a TypeDefs that is the source with a merger
+// In this case, we can do the merge one-for-one into the target typedefs and there's
+// no need to do a declare/bind sequence.
+
 // TypeDefs encodes an interned set of types using type IDs that are
 // local to this data structure.  This is used by Context to hold
 // its type system and by fusion types and type values that implement
@@ -711,6 +813,13 @@ func (t *TypeDefs) AppendInPlace() uint32 {
 
 func (t *TypeDefs) Lookup(at int) uint32 {
 	key := string(t.bytes[at:])
+	if key[0] == TypeDefNamed {
+		// For named types we key on just {TypeDefNamed,name} and
+		// ignore the ID pointer to the wrapped type. This way we hit
+		// the same entry whether or not the wrapped type has been resolved
+		// and backfilled, i.e., to support (mutually) recursive types.
+		key = key[:len(key)-4]
+	}
 	id, ok := t.lut[key]
 	if !ok {
 		id = t.AppendInPlace()
@@ -844,19 +953,185 @@ func (t *TypeDefs) LookupTypeEnum(symbols []string) uint32 {
 }
 
 func (t *TypeDefs) LookupTypeNamed(name string, inner Type) uint32 {
-	id := t.LookupType(inner)
+	if id, ok := t.lookupName(name); ok {
+		return id
+	}
+	// This can only be called after a name has been declared and
+	// installed in the table.  It's up to the Context to make sure
+	// the name gets declared then patched after the inner type
+	// is computed.  Here, we just look up at the name.
 	at := len(t.bytes)
 	t.bytes = append(t.bytes, TypeDefNamed)
 	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
 	t.bytes = append(t.bytes, name...)
-	t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
-	return t.Lookup(at)
+	patch := len(t.bytes)
+	t.bytes = AppendFixedID(t.bytes, 0xdeadbeef)
+	id := t.Lookup(at)
+	innerID := t.LookupType(inner)
+	t.BindTypeNamed(patch, innerID)
+	return id
+}
+
+func (t *TypeDefs) lookupName(name string) (uint32, bool) {
+	at := len(t.bytes)
+	defer func() {
+		t.bytes = t.bytes[:at]
+	}()
+	t.bytes = append(t.bytes, TypeDefNamed)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
+	t.bytes = append(t.bytes, name...)
+	s, ok := t.lut[string(t.bytes[at:])]
+	return s, ok
+}
+
+func (t *TypeDefs) DeclareTypeNamed(name string) (uint32, int, bool) {
+	at := len(t.bytes)
+	t.bytes = append(t.bytes, TypeDefNamed)
+	t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
+	t.bytes = append(t.bytes, name...)
+	if _, ok := t.lut[string(t.bytes[at:])]; ok {
+		// Name already exists. Cannot redeclare it.
+		return 0, 0, false
+	}
+	// Remember backfill position and leave space.
+	patch := len(t.bytes)
+	t.bytes = AppendFixedID(t.bytes, 0xdeadbeef)
+	return t.Lookup(at), patch, true
+}
+
+func (t *TypeDefs) BindTypeNamed(patch int, id uint32) {
+	PutFixedID(t.bytes[patch:patch+4], id)
+}
+
+type comp struct {
+	inner uint32
+	count int
+}
+
+type compID struct {
+	name  string
+	inner uint32
+}
+
+// Find the connected components of a possibly mutually recursive type.
+// XXX instead of computing this for every named type lookup, we could
+// change the typedefs format and store this information on write.
+func (t *TypeDefs) conncomps(id uint32) []compID {
+	scoreboard := make(map[string]comp)
+	t.loops(id, scoreboard)
+	var compIDs []compID
+	for name, c := range scoreboard {
+		if c.count > 1 {
+			compIDs = append(compIDs, compID{name: name, inner: c.inner})
+		}
+	}
+	return compIDs
+}
+
+func (t *TypeDefs) loops(id uint32, scoreboard map[string]comp) {
+	if id < IDTypeComplex {
+		return
+	}
+	b := t.Serialization(id)
+	typedef := b[0]
+	b = b[1:]
+	switch typedef {
+	case TypeDefNamed:
+		name, b := MustDecodeName(b)
+		id, b = DecodeFixedID(b)
+		if b == nil {
+			panic(name)
+		}
+		c, ok := scoreboard[name]
+		if ok {
+			if c.inner != id {
+				panic(id)
+			}
+			scoreboard[name] = comp{inner: id, count: c.count + 1}
+		} else {
+			scoreboard[name] = comp{inner: id, count: 1}
+			t.loops(id, scoreboard)
+		}
+	case TypeDefRecord:
+		n, b := DecodeLength(b)
+		if b == nil || n > MaxRecordFields {
+			panic(typedef)
+		}
+		for range n {
+			_, b = MustDecodeName(b)
+			var id uint32
+			id, b = DecodeID(b)
+			t.loops(id, scoreboard)
+			// opt
+			b = b[1:]
+		}
+	case TypeDefArray:
+		id, _ := MustDecodeID(b)
+		t.loops(id, scoreboard)
+	case TypeDefSet:
+		id, _ := MustDecodeID(b)
+		t.loops(id, scoreboard)
+	case TypeDefMap:
+		id, b := MustDecodeID(b)
+		t.loops(id, scoreboard)
+		id, b = MustDecodeID(b)
+		t.loops(id, scoreboard)
+	case TypeDefUnion:
+		n, b := DecodeLength(b)
+		if b == nil || n > MaxUnionTypes {
+			panic(typedef)
+		}
+		for range n {
+			var id uint32
+			id, b = MustDecodeID(b)
+			t.loops(id, scoreboard)
+		}
+	case TypeDefEnum:
+	case TypeDefError:
+		id, _ := MustDecodeID(b)
+		t.loops(id, scoreboard)
+	case TypeDefFusion:
+		id, _ := MustDecodeID(b)
+		t.loops(id, scoreboard)
+	default:
+		panic(id)
+	}
+}
+
+func AppendFixedID(b []byte, id uint32) []byte {
+	b = append(b, byte(id>>24))
+	b = append(b, byte(id>>16))
+	b = append(b, byte(id>>8))
+	b = append(b, byte(id))
+	return b
+}
+
+func PutFixedID(b []byte, id uint32) {
+	b[0] = byte(id >> 24)
+	b[1] = byte(id >> 16)
+	b[2] = byte(id >> 8)
+	b[3] = byte(id)
+}
+
+func DecodeFixedID(b []byte) (uint32, []byte) {
+	if len(b) < 4 {
+		return 0, nil
+	}
+	v := uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
+	return v, b[4:]
+}
+
+type patch struct {
+	named *TypeNamed
+	off   int
+	inner uint32
 }
 
 type TypeDefsMapper struct {
 	*TypeDefs
-	sctx  *Context
-	cache map[uint32]Type
+	sctx    *Context
+	cache   map[uint32]Type
+	patches map[string]patch
 }
 
 func NewTypeDefsMapper(sctx *Context, defs *TypeDefs) *TypeDefsMapper {
@@ -890,16 +1165,65 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 		if b == nil {
 			return nil
 		}
-		id, b := DecodeID(b)
-		typ := t.LookupType(id)
-		if typ == nil {
+		if typ := t.sctx.LookupByName(name); typ != nil {
+			return typ
+		}
+		if t.patches == nil {
+			t.patches = make(map[string]patch)
+		}
+		// If we're already part of a loop analysis, then a call frame
+		// somewhere up the stack is responsible for patching this type
+		// so we can just return it here.
+		if p, ok := t.patches[name]; ok {
+			return p.named
+		}
+		var innerID uint32
+		innerID, b = DecodeFixedID(b)
+		if b == nil {
 			return nil
 		}
-		named, err := t.sctx.LookupTypeNamed(name, typ)
+		// At this point, this name has not been declared and is not
+		// in an existing mutually recursive loop that is being resolved.
+		// So we can see if it initiates a loop, and otherwise, just resolve it.
+		compIDs := t.conncomps(id)
+		if len(compIDs) == 0 {
+			// There's no loop to deal with...
+			inner := t.LookupType(innerID)
+			if inner == nil {
+				return nil
+			}
+			out, err := t.sctx.LookupTypeNamed(name, inner)
+			if err != nil {
+				return nil
+			}
+			return out
+		}
+		patches := t.sctx.DeclareBlock(compIDs)
+		for _, p := range patches {
+			t.patches[p.named.Name] = p
+		}
+		// With the patches pending, we can call lookup on the inner ID now
+		// knowing that all named types are resolved to at least a placeholder
+		// type.
+		inner := t.LookupType(innerID)
+		if inner == nil {
+			return nil
+		}
+		// Now that LookupType was recursively called on in this inner type ID all
+		// of the connected components will have been declared so we can go through
+		// them all and do a lookup on the from-context inner ID and bind each one
+		// to the resolved inner type in to-context.
+		for _, p := range patches {
+			inner := t.LookupType(p.inner)
+			t.sctx.BindTypeNamed(p.off, p.named, inner)
+		}
+		// Finally we can lookup the named type now that it's inner type and all
+		// connected components have been resolved.
+		out, err := t.sctx.LookupTypeNamed(name, inner)
 		if err != nil {
 			return nil
 		}
-		return named
+		return out
 	case TypeDefRecord:
 		n, b := DecodeLength(b)
 		if b == nil || n > MaxRecordFields {
@@ -1056,13 +1380,16 @@ func (t *TypeDefsMerger) LookupID(extID uint32) uint32 {
 	switch typedef {
 	case TypeDefNamed:
 		name, bytes = MustDecodeName(bytes)
-		id, bytes = MustDecodeID(bytes)
+		id, bytes = DecodeFixedID(bytes)
+		if bytes == nil {
+			panic(typedef)
+		}
 		id = t.LookupID(id)
 		at = len(t.bytes)
 		t.bytes = append(t.bytes, TypeDefNamed)
 		t.bytes = binary.AppendUvarint(t.bytes, uint64(len(name)))
 		t.bytes = append(t.bytes, name...)
-		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+		t.bytes = AppendFixedID(t.bytes, id)
 	case TypeDefRecord:
 		// extra alloc and copy due to recursion.  XXX put this in a pool.
 		var out []byte
@@ -1156,7 +1483,7 @@ func (t *TypeDefsMerger) LookupID(extID uint32) uint32 {
 // a new TypeDefs table.  It checks that all referenced IDs in the table maintain
 // the invariant that they are defined before use in the scan order of the table.
 // It panics if malformed data is encountered.
-func NewTypeDefsFromBytes(bytes []byte) *TypeDefs {
+func NewTypeDefsFromBytes(bytes []byte) (*TypeDefs, bool) {
 	defs := NewTypeDefs()
 	defs.bytes = bytes
 	localID := uint32(IDTypeComplex)
@@ -1170,67 +1497,79 @@ func NewTypeDefsFromBytes(bytes []byte) *TypeDefs {
 		switch typedef {
 		case TypeDefNamed:
 			_, bytes = MustDecodeName(bytes)
-			id, bytes = MustDecodeID(bytes)
-			if id >= localID {
-				panic(id)
+			if bytes == nil {
+				return nil, false
+			}
+			id, bytes = DecodeFixedID(bytes)
+			if bytes == nil {
+				return nil, false
 			}
 		case TypeDefRecord:
-			n, bytes = MustDecodeLength(bytes)
-			if n > MaxRecordFields {
-				panic(n)
+			n, bytes = DecodeLength(bytes)
+			if bytes == nil || n > MaxRecordFields {
+				return nil, false
 			}
 			for range n {
-				_, bytes = MustDecodeName(bytes)
-				id, bytes = MustDecodeID(bytes)
-				if id >= localID {
-					panic(id)
+				_, bytes = DecodeName(bytes)
+				if bytes == nil {
+					return nil, false
+				}
+				id, bytes = DecodeID(bytes)
+				if bytes == nil || id >= localID {
+					return nil, false
 				}
 				// field opt
 				bytes = bytes[1:]
 			}
 		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion:
-			id, bytes = MustDecodeID(bytes)
-			if id >= localID {
-				panic(id)
+			id, bytes = DecodeID(bytes)
+			if bytes == nil || id >= localID {
+				return nil, false
 			}
 		case TypeDefMap:
 			// key ID
-			id, bytes = MustDecodeID(bytes)
-			if id >= localID {
-				panic(id)
+			id, bytes = DecodeID(bytes)
+			if bytes == nil || id >= localID {
+				return nil, false
 			}
 			// val ID
-			id, bytes = MustDecodeID(bytes)
-			if id >= localID {
-				panic(id)
+			id, bytes = DecodeID(bytes)
+			if bytes == nil || id >= localID {
+				return nil, false
 			}
 		case TypeDefUnion:
-			n, bytes = MustDecodeLength(bytes)
-			if n > MaxUnionTypes {
-				panic(n)
+			n, bytes = DecodeLength(bytes)
+			if bytes == nil || n > MaxUnionTypes {
+				return nil, false
 			}
 			for range n {
-				id, bytes = MustDecodeID(bytes)
-				if id >= localID {
-					panic(id)
+				id, bytes = DecodeID(bytes)
+				if bytes == nil || id >= localID {
+					return nil, false
 				}
 			}
 		case TypeDefEnum:
-			n, bytes = MustDecodeLength(bytes)
-			if n > MaxEnumSymbols {
-				panic(n)
+			n, bytes = DecodeLength(bytes)
+			if bytes == nil || n > MaxEnumSymbols {
+				return nil, false
 			}
 			for range n {
-				_, bytes = MustDecodeName(bytes)
+				_, bytes = DecodeName(bytes)
+				if bytes == nil {
+					return nil, false
+				}
 			}
 		default:
-			panic(typedef)
+			return nil, false
 		}
 		size := len(before) - len(bytes)
 		off += uint32(size)
+		if before[0] == TypeDefNamed {
+			size -= 4
+		}
 		defs.lut[string(before[:size])] = localID
 		defs.offsets = append(defs.offsets, off)
 		localID++
 	}
-	return defs
+	return defs, true
 }
