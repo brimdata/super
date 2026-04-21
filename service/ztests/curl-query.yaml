@@ -4,8 +4,7 @@ script: |
   super db load -q -use test -
   for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek} ""; do
     echo === $accept ===
-    curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB/query\?ctrl=true |
-      sed -E '/QueryStats/s/[0-9]{3,}/xxx/g' # for JSUP
+    curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB/query\?ctrl=true
   done
   echo === application/vnd.apache.arrow.stream ===
   curl -H 'Accept: application/vnd.apache.arrow.stream' -d '{"query":"from test"}' $SUPER_DB/query |
