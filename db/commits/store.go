@@ -392,7 +392,10 @@ func (s *Store) PatchOfPath(ctx context.Context, base *Snapshot, baseID, commit 
 	return patch, nil
 }
 
-// FindNearestToTs finds the last commit that is greater than or equal to ts.
+// FindNearestToTs walks the commit chain from tail toward its root and
+// returns the oldest commit whose Date is still greater than or equal to
+// ts. That commit becomes the new base for "db vacate"; anything older is
+// dropped, so commits strictly before ts must not be picked here (#6746).
 func (s *Store) FindNearestToTs(ctx context.Context, tail ksuid.KSUID, ts nano.Ts) (ksuid.KSUID, error) {
 	at := tail
 	var prev ksuid.KSUID
@@ -405,10 +408,10 @@ func (s *Store) FindNearestToTs(ctx context.Context, tail ksuid.KSUID, ts nano.T
 			}
 			return ksuid.Nil, err
 		}
-		if ts >= commit.Date {
-			return commit.ID, nil
+		if commit.Date < ts {
+			return prev, nil
 		}
-		prev = at
+		prev = commit.ID
 		at = commit.Parent
 	}
 }
