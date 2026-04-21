@@ -88,6 +88,9 @@ func (w *Writer) Write(val super.Value) error {
 		return fmt.Errorf("%w: %s", ErrNotRecord, sup.FormatValue(val))
 	}
 	if w.typ == nil {
+		if isRecursive(recType, make(map[string]struct{})) {
+			return fmt.Errorf("%w: %s", ErrUnsupportedType, sup.FormatType(val.Type()))
+		}
 		w.typ = recType
 		dt, err := w.newArrowDataType(recType)
 		if err != nil {
@@ -520,4 +523,38 @@ func nullableUnion(typ super.Type) (*super.TypeUnion, bool) {
 		return nil, false
 	}
 	return u, true
+}
+
+func isRecursive(typ super.Type, seen map[string]struct{}) bool {
+	switch typ := typ.(type) {
+	case *super.TypeNamed:
+		if _, ok := seen[typ.Name]; ok {
+			return true
+		}
+		seen[typ.Name] = struct{}{}
+		return isRecursive(typ.Type, seen)
+	case *super.TypeRecord:
+		for _, f := range typ.Fields {
+			if isRecursive(f.Type, seen) {
+				return true
+			}
+		}
+	case *super.TypeArray:
+		return isRecursive(typ.Type, seen)
+	case *super.TypeSet:
+		return isRecursive(typ.Type, seen)
+	case *super.TypeMap:
+		return isRecursive(typ.KeyType, seen) || isRecursive(typ.ValType, seen)
+	case *super.TypeUnion:
+		for _, t := range typ.Types {
+			if isRecursive(t, seen) {
+				return true
+			}
+		}
+	case *super.TypeError:
+		return isRecursive(typ.Type, seen)
+	case *super.TypeFusion:
+		return isRecursive(typ.Type, seen)
+	}
+	return false
 }

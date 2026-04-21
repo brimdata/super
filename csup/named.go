@@ -23,6 +23,9 @@ func (n *NamedEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 }
 
 func (n *NamedEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	if n.encoder == nil {
 		n.encoder = NewEncoder(n.cctx, n.typ.Type)
 	}

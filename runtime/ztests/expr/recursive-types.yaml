@@ -36,3 +36,29 @@ output: |
   type Foo=string|[Bar]
   "abc"::Foo
   [{x:"hello"}::Bar]::Foo
+
+---
+
+spq: |
+  type List={val:string,next?:List}
+  values {val:1}::List, {val:2,next?:{val:3}}::List
+
+output: |
+  type List={val:string,next?:List}
+  {val:"1",next?:_::List}::List
+  {val:"2",next?:{val:"3",next?:_::List}}::List
+
+---
+
+spq: |
+  values next
+
+input: |
+  type List={val:string,next?:List}
+  {val:"1",next?:_::List}::List
+  {val:"2",next?:{val:"3",next?:_::List}}::List
+
+output: |
+  error("missing")
+  type List={val:string,next?:List}
+  {val:"3",next?:_::List}::List
