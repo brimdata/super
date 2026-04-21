@@ -1,4 +1,4 @@
-package dig
+package bsup
 
 import (
 	"flag"
@@ -8,12 +8,12 @@ import (
 )
 
 var Spec = &charm.Spec{
-	Name:  "dig",
-	Usage: "dig sub-command [arguments...]",
-	Short: "extract useful information from super-structured streams or files",
+	Name:  "bsup",
+	Usage: "bsup sub-command [arguments...]",
+	Short: "extract useful information from BSUP streams or files",
 	Long: `
-The dig command provide various debug and test functions regarding super-structured
-formats. When run with no arguments or -h, it lists help for the dig sub-commands.`,
+The bsup command provide various debug and test functions regarding the BSUP format.
+When run with no arguments or -h, it lists help for the bsup sub-commands.`,
 	New: New,
 }
 

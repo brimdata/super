@@ -10,7 +10,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
-	"github.com/brimdata/super/cmd/super/dev/dig"
+	"github.com/brimdata/super/cmd/super/dev/bsup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
@@ -30,16 +30,16 @@ The command will fail if the slice boundary does not fall on a valid BSUP bounda
 }
 
 func init() {
-	dig.Spec.Add(spec)
+	bsup.Spec.Add(spec)
 }
 
 type Command struct {
-	*dig.Command
+	*bsup.Command
 	outputFlags outputflags.Flags
 }
 
 func newCommand(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	c := &Command{Command: parent.(*dig.Command)}
+	c := &Command{Command: parent.(*bsup.Command)}
 	c.outputFlags.SetFlags(f)
 	return c, nil
 }
@@ -51,7 +51,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer cleanup()
 	if len(args) != 2 {
-		return errors.New("super dev dig slice: requires a from:to specifier and a file")
+		return errors.New("super dev bsup slice: requires a from:to specifier and a file")
 	}
 	uri, err := storage.ParseURI(args[1])
 	if err != nil {
