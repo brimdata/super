@@ -1,6 +1,6 @@
 # Python
 
-** TBD: UPDATE THIS PAGE **
+**TBD: UPDATE THIS PAGE**
 
 SuperDB includes preliminary support for Python-based interaction
 with a SuperDB database.
