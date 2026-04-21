@@ -218,7 +218,7 @@ func (r *reader) readComp(code byte) ([]byte, error) {
 		return nil, err
 	}
 	if n != len(compressed) {
-		return nil, errors.New("bsupio: short read compression byffer")
+		return nil, errors.New("bsupio: short read compression buffer")
 	}
 	uncompressed := make([]byte, size)
 	n, err = lz4.UncompressBlock(compressed, uncompressed)
