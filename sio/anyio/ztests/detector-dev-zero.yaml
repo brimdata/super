@@ -15,4 +15,3 @@ outputs:
       	sup: short buffer
       	tsv: line 1: bufio: buffer full
       	zeek: line 1: line too long
-      	jsup: line 1: line too long

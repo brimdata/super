@@ -1,5 +1,7 @@
 # Test the output mux to make sure channel end messages appear in JSUP
 
+skip: TBD replace deprecated JSUP control
+
 script: |
   source service.sh
   super db create -q test

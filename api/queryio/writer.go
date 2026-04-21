@@ -38,8 +38,6 @@ func NewWriter(sctx *super.Context, w io.WriteCloser, format string, flusher htt
 	switch format {
 	case "bsup":
 		d.writer = NewBSUPWriter(w)
-	case "jsup":
-		d.writer = NewJSUPWriter(w)
 	case "json":
 		// A JSON response is always an array.
 		d.writer = jsonio.NewArrayWriter(w)

@@ -27,8 +27,6 @@ func Extension(format string) string {
 		return ".tbl"
 	case "zeek":
 		return ".log"
-	case "jsup":
-		return ".ndjson"
 	default:
 		return ""
 	}
@@ -46,8 +44,6 @@ func FormatFromPath(path string) string {
 		return "fjson"
 	case ".json", ".jsonl", ".ndjson":
 		return "json"
-	case ".jsup":
-		return "jsup"
 	case ".parquet":
 		return "parquet"
 	case ".sup":

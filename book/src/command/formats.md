@@ -9,7 +9,6 @@ The supported [input](input.md) and [output](output.md) formats include the foll
 | `csup`    |  yes | `.csup` | [CSUP](../formats/csup.md) |
 | `csv`     |  yes | `.csv` | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    |  yes | `.json` | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
-| `jsup`   |  yes | `.jsup` | [Super over JSON (JSUP)](../formats/jsup.md) |
 | `line`    |  no  | n/a | One text value per line |
 | `parquet` |  yes | `.parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `sup`     |  yes | `.sup` | [SUP](../formats/sup.md) |

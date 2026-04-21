@@ -1,5 +1,7 @@
 # Python
 
+** TBD: UPDATE THIS PAGE **
+
 SuperDB includes preliminary support for Python-based interaction
 with a SuperDB database.
 
@@ -16,7 +18,7 @@ with a SuperDB database.
 > implementation of [CSUP](../../formats/csup.md).  Stay tuned.
 
 The Python package supports loading data into a database as well as
-querying and retrieving results in the [JSUP format](../../formats/jsup.md).
+querying and retrieving results in a TBD format.
 The Python client interacts with the database via the REST API served by
 [`super db serve`](../../command/db.md#super-db-serve).
 

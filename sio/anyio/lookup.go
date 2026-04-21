@@ -14,7 +14,6 @@ import (
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/fjsonio"
 	"github.com/brimdata/super/sio/jsonio"
-	"github.com/brimdata/super/sio/jsupio"
 	"github.com/brimdata/super/sio/lineio"
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/sio/supio"
@@ -52,8 +51,6 @@ func lookupReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCl
 		return sio.NopReadCloser(csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "zeek":
 		return sio.NopReadCloser(zeekio.NewReader(sctx, r)), nil
-	case "jsup":
-		return sio.NopReadCloser(jsupio.NewReader(sctx, r)), nil
 	}
 	return nil, fmt.Errorf("no such format: \"%s\"", opts.Format)
 }

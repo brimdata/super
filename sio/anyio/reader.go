@@ -17,7 +17,6 @@ import (
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/jsonio"
-	"github.com/brimdata/super/sio/jsupio"
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sio/zeekio"
@@ -80,13 +79,6 @@ func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadClose
 	}
 	track.Reset()
 
-	// JSUP must come before JSON and SUP since it is a subset of both.
-	jsupErr := match(jsupio.NewReader(super.NewContext(), track), "jsup", 1)
-	if jsupErr == nil {
-		return sio.NopReadCloser(jsupio.NewReader(sctx, track.Reader())), nil
-	}
-	track.Reset()
-
 	// JSON comes before SUP because the JSON reader is faster than the
 	// SUP reader.  The number of values wanted is greater than one for the
 	// sake of tests.
@@ -140,7 +132,6 @@ func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadClose
 		supErr,
 		tsvErr,
 		zeekErr,
-		jsupErr,
 	})
 }
 
