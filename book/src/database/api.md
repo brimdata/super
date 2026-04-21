@@ -550,7 +550,6 @@ The following table shows the supported MIME types and where they can be used.
 | CSUP             | yes       | yes      | `application/x-csup`                  |
 | CSV              | yes       | yes      | `text/csv`                            |
 | JSON             | yes       | yes      | `application/json`                    |
-| JSUP             | yes       | yes      | `application/x-zjson`                 |
 | Line             | yes       | yes      | `application/x-line`                  |
 | NDJSON           | no        | yes      | `application/x-ndjson`                |
 | Parquet          | yes       | yes      | `application/x-parquet`               |
