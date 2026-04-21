@@ -5,8 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "superdb"
 dynamic = ["version"]
-dependencies = ["durationpy", "python-dateutil", "requests"]
-requires-python = ">=3.3"
+dependencies = ["pyarrow", "requests"]
+requires-python = ">=3.8"
+
+[tool.setuptools]
+py-modules = ["superdb"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+addopts = "-rs"
 
 [tool.setuptools_scm]
 fallback_version = "0+unknown"
