@@ -12,9 +12,9 @@ inputs:
       #fields	orig_p
       #types	port
       80
-  # {src_port:81::(port=uint16)}
+  # type port=uint16 {src_port:81::port}
   - name: b.bsup
-    data: !!binary gwcBBwRwb3J0AAAAAQABCHNyY19wb3J0IACDFAAhAwJR/w==
+    data: !!binary hAcBBwRwb3J0AAAAAQABCHNyY19wb3J0IACEFAAhAwJR/w==
 
 outputs:
   - name: stdout
