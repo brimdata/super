@@ -116,4 +116,4 @@ func (nopBuilder) OnObjectKey(key string) error             { return nil }
 func (nopBuilder) OnObjectEnd() error                       { return nil }
 func (nopBuilder) OnArrayBegin(capacity int) error          { return ast.VisitOPSkip }
 func (nopBuilder) OnArrayEnd() error                        { return nil }
-func (nopBuilder) Value() Value                             { return new(Empty) }
+func (nopBuilder) Value() Value                             { return new(None) }

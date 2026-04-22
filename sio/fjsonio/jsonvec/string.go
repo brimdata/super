@@ -17,6 +17,7 @@ func (s *String) OnString(v string) Value {
 	return s
 }
 
+func (s *String) OnNone() Value           { return ToUnion(s).OnNone() }
 func (s *String) OnNull() Value           { return ToUnion(s).OnNull() }
 func (s *String) OnBool(v bool) Value     { return ToUnion(s).OnBool(v) }
 func (s *String) OnInt(v int64) Value     { return ToUnion(s).OnInt(v) }

@@ -5,6 +5,7 @@ import (
 )
 
 type Value interface {
+	OnNone() Value
 	OnNull() Value
 	OnBool(bool) Value
 	OnInt(int64) Value
@@ -24,6 +25,7 @@ var _ Value = Unknown{}
 
 type Unknown struct{}
 
+func (Unknown) OnNone() Value           { return &None{} }
 func (Unknown) OnNull() Value           { return new(Null).OnNull() }
 func (Unknown) OnBool(v bool) Value     { return new(Bool).OnBool(v) }
 func (Unknown) OnInt(v int64) Value     { return NewInt().OnInt(v) }

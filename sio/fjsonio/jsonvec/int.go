@@ -20,6 +20,7 @@ func (i *Int) OnInt(v int64) Value {
 	return i
 }
 
+func (i *Int) OnNone() Value           { return ToUnion(i).OnNone() }
 func (i *Int) OnNull() Value           { return ToUnion(i).OnNull() }
 func (i *Int) OnBool(v bool) Value     { return ToUnion(i).OnBool(v) }
 func (i *Int) OnFloat(v float64) Value { return ToUnion(i).OnFloat(v) }

@@ -13,6 +13,7 @@ func (n *Null) OnNull() Value {
 	return n
 }
 
+func (n *Null) OnNone() Value           { return ToUnion(n).OnNone() }
 func (n *Null) OnBool(v bool) Value     { return ToUnion(n).OnBool(v) }
 func (n *Null) OnString(v string) Value { return ToUnion(n).OnString(v) }
 func (n *Null) OnInt(v int64) Value     { return ToUnion(n).OnInt(v) }

@@ -67,6 +67,7 @@ func (r *Record) EndRecord() {
 	r.tags = append(r.tags, tag)
 }
 
+func (r *Record) OnNone() Value           { return ToUnion(r).OnNone() }
 func (r *Record) OnNull() Value           { return ToUnion(r).OnNull() }
 func (r *Record) OnBool(v bool) Value     { return ToUnion(r).OnBool(v) }
 func (r *Record) OnInt(v int64) Value     { return ToUnion(r).OnInt(v) }

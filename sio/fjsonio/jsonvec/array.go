@@ -1,6 +1,8 @@
 package jsonvec
 
-import "github.com/brimdata/super/vector"
+import (
+	"github.com/brimdata/super/vector"
+)
 
 var _ Value = (*Array)(nil)
 
@@ -20,14 +22,17 @@ func (a *Array) BeginArray() Value { return a }
 func (a *Array) EnterArray() Value { return a.Inner }
 
 func (a *Array) EndArray(inner Value) {
-	a.Inner = inner
-	n := a.Inner.Len()
-	if n == 0 {
-		a.Inner = new(Empty)
+	off := inner.Len()
+	if off == a.Offsets[len(a.Offsets)-1] {
+		// empty array
+		a.Inner = a.Inner.OnNone()
+	} else {
+		a.Inner = inner
 	}
-	a.Offsets = append(a.Offsets, n)
+	a.Offsets = append(a.Offsets, off)
 }
 
+func (a *Array) OnNone() Value           { return ToUnion(a).OnNone() }
 func (a *Array) OnNull() Value           { return ToUnion(a).OnNull() }
 func (a *Array) OnBool(v bool) Value     { return ToUnion(a).OnBool(v) }
 func (a *Array) OnInt(v int64) Value     { return ToUnion(a).OnInt(v) }
@@ -38,7 +43,3 @@ func (a *Array) Field(v string) Value    { panic("system error") }
 func (a *Array) EndRecord()              { panic("system error") }
 func (a *Array) Kind() vector.Kind       { return vector.KindArray }
 func (a *Array) Len() uint32             { return uint32(len(a.Offsets)) - 1 }
-
-type Empty struct {
-	Unknown
-}

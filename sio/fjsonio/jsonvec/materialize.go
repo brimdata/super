@@ -18,12 +18,16 @@ func Materialize(sctx *super.Context, b Builder) vector.Any {
 }
 
 type materializer struct {
-	sctx *super.Context
-	defs *super.TypeDefs
+	sctx   *super.Context
+	defs   *super.TypeDefs
+	mapper *super.TypeDefsMapper
 }
 
 func (m *materializer) value(v Value) (vector.Any, []uint32) {
 	switch v := v.(type) {
+	case *None:
+		// nones are only used in empty arrays so length is always 0
+		return vector.NewNone(0), nil
 	case *Null:
 		return vector.NewNull(v.len), nil
 	case *Bool:
@@ -40,13 +44,6 @@ func (m *materializer) value(v Value) (vector.Any, []uint32) {
 		return m.array(v)
 	case *Record:
 		return m.record(v)
-	case *Empty:
-		// This happens when an array value never saw any contents
-		// so all of the inner values of the array are zero length
-		// and thus have an unknown inner type.  We return a
-		// a zero-length null value here so that the type of the
-		// array is [null] as the value will never be used.
-		return vector.NewNull(0), nil
 	default:
 		panic(v)
 	}
@@ -68,6 +65,10 @@ func (m *materializer) union(u *Union) (vector.Any, []uint32) {
 		fixed = append(fixed, uint32(id))
 		vecs = append(vecs, vec)
 		types = append(types, vec.Type())
+	}
+	if u.None != nil {
+		types = append(types, super.TypeNone)
+		vecs = append(vecs, vector.NewEmpty(super.TypeNone))
 	}
 	utyp, ok := m.sctx.LookupTypeUnion(super.UniqueTypes(types))
 	if !ok {
@@ -100,20 +101,54 @@ func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixe
 
 func (m *materializer) array(a *Array) (vector.Any, []uint32) {
 	inner, ids := m.value(a.Inner)
-	typ := m.sctx.LookupTypeArray(inner.Type())
-	subtypes := m.makeArraySubtypes(ids)
-	return vector.NewArray(typ, a.Offsets, inner), subtypes
+	arrayType := m.sctx.LookupTypeArray(inner.Type())
+	array := vector.NewArray(arrayType, a.Offsets, inner)
+	if ids == nil {
+		// There is only one type.
+		return array, nil
+	}
+	n := len(a.Offsets) - 1
+	subtypes := make([]uint32, 0, n)
+	for k := range n {
+		id := m.arrayID(ids[a.Offsets[k]:a.Offsets[k+1]])
+		subtypes = append(subtypes, id)
+	}
+	fusionType := m.sctx.LookupTypeFusion(arrayType)
+	loader := &subtypesLoader{
+		defs:     m.defs,
+		subtypes: subtypes,
+	}
+	return vector.NewFusionWithLoader(m.sctx, fusionType, loader, array), subtypes
 }
 
-func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
-	if ids == nil {
-		return nil
+func (m *materializer) arrayID(ids []uint32) uint32 {
+	if len(ids) == 0 {
+		return m.defs.BindTypeWrapped(super.TypeDefArray, super.IDNone)
 	}
-	subtypes := make([]uint32, 0, len(ids))
+	id := ids[0]
+	for _, other := range ids[1:] {
+		if other != id {
+			return m.unionArrayID(ids)
+		}
+	}
+	return m.defs.BindTypeWrapped(super.TypeDefArray, id)
+}
+
+func (m *materializer) unionArrayID(ids []uint32) uint32 {
+	// If this heavyweight lookup becomes a bottleneck, we should optimize.
+	if m.mapper == nil {
+		m.mapper = super.NewTypeDefsMapper(super.NewContext(), m.defs)
+	}
+	uniq := make(map[super.Type]struct{})
 	for _, id := range ids {
-		subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
+		uniq[m.mapper.LookupType(id)] = struct{}{}
 	}
-	return subtypes
+	types := make([]super.Type, 0, len(uniq))
+	for typ := range uniq {
+		types = append(types, typ)
+	}
+	unionID := m.mapper.LookupTypeUnion(types)
+	return m.defs.BindTypeWrapped(super.TypeDefArray, unionID)
 }
 
 func (m *materializer) record(r *Record) (vector.Any, []uint32) {
@@ -125,7 +160,7 @@ func (m *materializer) record(r *Record) (vector.Any, []uint32) {
 	n := r.Len()
 	var vecs []vector.Any
 	var allFields []super.Field
-	// dynamic and fixed are index by the supertype's column number.
+	// dynamic and fixed are indexed by the supertype's column number.
 	// dynamic holds the subtype ID vectors of fields that have them
 	// attached (because there is a fusion type below).
 	// Otherwise, fixed holds the constant ID for all all rows in that

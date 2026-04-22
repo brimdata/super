@@ -7,6 +7,7 @@ var _ Value = (*Union)(nil)
 type Union struct {
 	Tags   []uint32
 	lut    map[vector.Kind]uint32
+	None   *None
 	Null   *Null
 	Bool   *Bool
 	Int    *Int
@@ -31,9 +32,15 @@ func NewUnion() *Union {
 
 func ToUnion(val Value) *Union {
 	u := NewUnion()
+	if val, ok := val.(*None); ok {
+		u.None = val
+		return u
+	}
 	u.lut[val.Kind()] = 0
 	u.Tags = make([]uint32, val.Len())
 	switch val := val.(type) {
+	case *None:
+		u.None = val
 	case *Null:
 		u.Null = val
 	case *Bool:
@@ -51,6 +58,14 @@ func ToUnion(val Value) *Union {
 	default:
 		panic(val)
 	}
+	return u
+}
+
+func (u *Union) OnNone() Value {
+	if u.None == nil {
+		u.None = new(None)
+	}
+	u.None.OnNone()
 	return u
 }
 
@@ -125,6 +140,8 @@ func (u *Union) Values() []Value {
 	values := make([]Value, len(u.lut))
 	for kind, idx := range u.lut {
 		switch kind {
+		case vector.KindNone:
+			values[idx] = u.None
 		case vector.KindNull:
 			values[idx] = u.Null
 		case vector.KindBool:
