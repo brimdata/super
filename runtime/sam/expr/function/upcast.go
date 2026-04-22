@@ -41,6 +41,9 @@ func (u *Upcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 }
 
 func (u *Upcast) upcast(b *scode.Builder, typ super.Type, bytes scode.Bytes, to super.Type) bool {
+	if f, ok := typ.(*super.TypeFusion); ok {
+		typ, bytes = f.DerefFusion(bytes)
+	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return u.toRecord(b, typ, bytes, to)
