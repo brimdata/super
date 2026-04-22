@@ -261,7 +261,7 @@ func (m *MarshalBSUPContext) encodeValue(v reflect.Value) (super.Type, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := typ.(*super.TypeNamed); ok {
+	if super.IsTypeNamed(typ) {
 		// We already have a named type.
 		return typ, nil
 	}

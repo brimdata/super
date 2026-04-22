@@ -405,8 +405,7 @@ func (e *elemHelper) add(b scode.Bytes) (super.Type, scode.Bytes) {
 }
 
 func (e *elemHelper) needsDecoration() bool {
-	_, isnamed := e.typ.(*super.TypeNamed)
-	return e.union != nil && (isnamed || len(e.seen) < len(e.union.Types))
+	return e.union != nil && (super.IsTypeNamed(e.typ) || len(e.seen) < len(e.union.Types))
 }
 
 func (f *formatter) formatUnion(indent int, union *super.TypeUnion, bytes scode.Bytes) {

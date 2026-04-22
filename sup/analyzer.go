@@ -464,7 +464,7 @@ func (a *Analyzer) createUnion(val Value, decorator super.Type) (Value, error) {
 		return val, nil
 	}
 	if union, ok := val.(*Union); ok {
-		if _, ok := val.Type().(*super.TypeNamed); !ok {
+		if !super.IsTypeNamed(val.Type()) {
 			// If we're putting an anonymous union inside of another union then we
 			// need to unflatten the union relationship by deunioning the value,
 			// which can then be inserted into the flat parent.  If this is a named
@@ -584,7 +584,7 @@ func (a Analyzer) decorateUnion(union *Union, decorator super.Type) (Value, erro
 		return nil, fmt.Errorf("union decorator not a union: %q", FormatType(decorator))
 	}
 	val := Value(union)
-	if _, ok := union.Type().(*super.TypeNamed); !ok {
+	if !super.IsTypeNamed(union.Type()) {
 		// When a union is inside a union and it's not a named type,
 		// the parent union is flattened and contains
 		// this union's elemental types, so we just pull out the value from the child

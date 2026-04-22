@@ -426,7 +426,7 @@ func CompareTypes(a, b Type) int {
 		}
 		return -1
 	}
-	if _, ok := b.(*TypeNamed); ok {
+	if IsTypeNamed(b) {
 		return 1
 	}
 	if cmp := cmp.Compare(a.Kind(), b.Kind()); cmp != 0 {
