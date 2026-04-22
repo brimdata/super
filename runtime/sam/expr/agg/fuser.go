@@ -151,6 +151,11 @@ func isAll(t super.Type) bool {
 	return ok
 }
 
+func isNone(t super.Type) bool {
+	_, ok := t.(*super.TypeOfNone)
+	return ok
+}
+
 func (f *Fuser) redefPanic(named *super.TypeNamed) {
 	previous := f.sctx.LookupByName(named.Name)
 	panic(fmt.Sprintf("type %s redefined: %s to %s", named.Name, sup.String(previous), sup.String(named.Type)))
@@ -202,6 +207,8 @@ func (f *Fuser) fuseInternal(typ super.Type) super.Type {
 // types contains at most one type of each complex kind but no unions.
 func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.Type {
 	switch typ := typ.(type) {
+	case *super.TypeOfNone:
+		return types
 	case *super.TypeNamed:
 		return f.addNamed(types, typ)
 	case *super.TypeUnion:

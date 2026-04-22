@@ -1,0 +1,13 @@
+# Test simple array
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: |
+  {"b":true,"a":[{"x":1}]}
+  {"a":[]}
+
+output: |
+  fusion({a:fusion([]::[{x:int64}],<[none]>),b?:_::bool},<{a:[none]}>)
+  fusion({a:fusion([{x:1}],<[{x:int64}]>),b?:true},<{b:bool,a:[{x:int64}]}>)

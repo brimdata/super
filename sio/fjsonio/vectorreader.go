@@ -2,6 +2,7 @@ package fjsonio
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync/atomic"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/fjsonio/jsonvec"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -62,7 +64,9 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 		}
 	}
 	bytesTablePool.Put(table)
-	return jsonvec.Materialize(v.sctx, builder), nil
+	vec := jsonvec.Materialize(v.sctx, builder)
+	fmt.Println("LEN", vec.Len(), sup.String(vec.Type()))
+	return vec, nil
 }
 
 func (v *VectorReader) newBuilder() jsonvec.Builder {

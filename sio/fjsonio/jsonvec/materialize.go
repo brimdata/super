@@ -46,6 +46,7 @@ func (m *materializer) value(v Value) (vector.Any, []uint32) {
 		// and thus have an unknown inner type.  We return a
 		// a zero-length null value here so that the type of the
 		// array is [null] as the value will never be used.
+		// XXX should be none?
 		return vector.NewNull(0), nil
 	default:
 		panic(v)
@@ -100,9 +101,52 @@ func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixe
 
 func (m *materializer) array(a *Array) (vector.Any, []uint32) {
 	inner, ids := m.value(a.Inner)
-	typ := m.sctx.LookupTypeArray(inner.Type())
-	subtypes := m.makeArraySubtypes(ids)
-	return vector.NewArray(typ, a.Offsets, inner), subtypes
+	if ids == nil {
+		if hasEmpty(a.Offsets) {
+			subtypes := m.makeArraySubtypesSingleEmpty(uint32(super.TypeID(inner.Type())), a.Offsets)
+			return m.makeArrayFusion(inner, a.Offsets, subtypes)
+		}
+		typ := m.sctx.LookupTypeArray(inner.Type())
+		return vector.NewArray(typ, a.Offsets, inner), nil
+	}
+	subtypes := m.makeArraySubtypesWithEmpties(ids, a.Offsets)
+	return m.makeArrayFusion(inner, a.Offsets, subtypes)
+}
+
+func (m *materializer) makeArrayFusion(inner vector.Any, offsets, subtypes []uint32) (vector.Any, []uint32) {
+	// There are empty array elements so we need to do an array fusion
+	// to get back []::[none]
+	innerType := m.sctx.LookupTypeArray(inner.Type())
+	fusionType := m.sctx.LookupTypeFusion(innerType)
+	array := vector.NewArray(innerType, offsets, inner)
+	loader := &subtypesLoader{
+		defs:     m.defs,
+		subtypes: subtypes,
+	}
+	return vector.NewFusionWithLoader(m.sctx, fusionType, loader, array), subtypes
+
+}
+
+func (m *materializer) makeArraySubtypesSingleEmpty(id uint32, offsets []uint32) []uint32 {
+	noneArrayID := m.defs.BindTypeWrapped(super.TypeDefArray, super.IDNone)
+	subtypes := make([]uint32, 0, len(offsets)-1)
+	for k := range len(offsets) - 1 {
+		if offsets[k] == offsets[k+1] {
+			subtypes = append(subtypes, noneArrayID)
+		} else {
+			subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
+		}
+	}
+	return subtypes
+}
+
+func hasEmpty(offsets []uint32) bool {
+	for k := range len(offsets) - 1 {
+		if offsets[k] == offsets[k+1] {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
@@ -111,6 +155,21 @@ func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
 	}
 	subtypes := make([]uint32, 0, len(ids))
 	for _, id := range ids {
+		subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
+	}
+	return subtypes
+}
+
+func (m *materializer) makeArraySubtypesWithEmpties(ids []uint32, offsets []uint32) []uint32 {
+	noneArrayID := m.defs.BindTypeWrapped(super.TypeDefArray, super.IDNone)
+	subtypes := make([]uint32, 0, len(offsets)-1)
+	for k := range len(offsets) - 1 {
+		if offsets[k] == offsets[k+1] {
+			subtypes = append(subtypes, noneArrayID)
+			continue
+		}
+		id := ids[0]
+		ids = ids[1:]
 		subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
 	}
 	return subtypes
@@ -125,7 +184,7 @@ func (m *materializer) record(r *Record) (vector.Any, []uint32) {
 	n := r.Len()
 	var vecs []vector.Any
 	var allFields []super.Field
-	// dynamic and fixed are index by the supertype's column number.
+	// dynamic and fixed are indexed by the supertype's column number.
 	// dynamic holds the subtype ID vectors of fields that have them
 	// attached (because there is a fusion type below).
 	// Otherwise, fixed holds the constant ID for all all rows in that
