@@ -358,6 +358,11 @@ func IsRecordType(typ Type) bool {
 	return ok
 }
 
+func IsNamedType(typ Type) bool {
+	_, ok := typ.(*TypeNamed)
+	return ok
+}
+
 func TypeRecordOf(typ Type) *TypeRecord {
 	t, _ := TypeUnder(typ).(*TypeRecord)
 	return t

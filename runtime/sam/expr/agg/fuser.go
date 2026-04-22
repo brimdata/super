@@ -219,7 +219,7 @@ func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.T
 		case t == typ:
 			// This is already in the union.
 			return types
-		case typKind != super.PrimitiveKind && typKind == t.Kind():
+		case typKind != super.PrimitiveKind && typKind == t.Kind() && !super.IsNamedType(t):
 			types[i] = noFusion(f.fuse(t, typ))
 			return types
 		}

@@ -74,3 +74,21 @@ output: |
   type u1=int64
   type u2=u1
   {x:1,fuse:<u2>}
+
+---
+
+spq: fuse(this)
+
+vector: true
+
+input: |
+  type n1=[int64]
+  type n2=int64
+  [1]::n1
+  [2::n2]
+  [3]
+
+output: |
+  type n1=[int64]
+  type n2=int64
+  <fusion(n1|[fusion(n2|int64)])>
