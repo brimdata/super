@@ -8,12 +8,12 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func Materialize(sctx *super.Context, b *Builder) vector.Any {
+func Materialize(sctx *super.Context, b Builder) vector.Any {
 	m := &materializer{
 		sctx: sctx,
 		defs: super.NewTypeDefs(),
 	}
-	vec, subtypes := m.value(b.stack[0], false)
+	vec, subtypes := m.value(b.Value(), false)
 	if subtypes != nil {
 		panic(subtypes)
 	}

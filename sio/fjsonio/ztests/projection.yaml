@@ -1,0 +1,14 @@
+script: |
+  super -s -c 'select x, x.a from test.fjson'
+
+inputs:
+  - name: test.fjson
+    data: |
+      {"x":{"a":1},"y":"foo","z":[1,2,3]}
+      {"x":{"a":1},"y":"foo","z":[1,2,3]}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:{a:1},a:1}
+      {x:{a:1},a:1}

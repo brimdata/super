@@ -9,6 +9,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/fjsonio/jsonvec"
 	"github.com/brimdata/super/vector"
@@ -17,20 +18,25 @@ import (
 var VecBatchSize uint32 = 10 * 1024
 
 type VectorReader struct {
-	sctx     *super.Context
-	ctx      context.Context
-	stream   *stream
-	pushdown sbuf.Pushdown
+	sctx       *super.Context
+	ctx        context.Context
+	stream     *stream
+	pushdown   sbuf.Pushdown
+	projection field.List
 
 	hasClosed atomic.Bool
 }
 
 func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) *VectorReader {
+	var fields field.List
+	if p != nil {
+		fields = p.Projection().Paths()
+	}
 	return &VectorReader{
-		sctx:     sctx,
-		ctx:      ctx,
-		stream:   newStream(ctx, r, concurrentReaders),
-		pushdown: p,
+		sctx:       sctx,
+		ctx:        ctx,
+		stream:     newStream(ctx, r, concurrentReaders),
+		projection: fields,
 	}
 }
 
@@ -47,8 +53,7 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 		v.close()
 		return nil, err
 	}
-	// XXX Support projections.
-	builder := jsonvec.NewBuilder()
+	builder := v.newBuilder()
 	for i := range table.Len() {
 		if err := ast.Preorder(byteconv.UnsafeString(table.Bytes(i)), builder, nil); err != nil {
 			bytesTablePool.Put(table)
@@ -58,6 +63,13 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	}
 	bytesTablePool.Put(table)
 	return jsonvec.Materialize(v.sctx, builder), nil
+}
+
+func (v *VectorReader) newBuilder() jsonvec.Builder {
+	if v.projection != nil {
+		return jsonvec.NewProjectionBuilder(v.projection)
+	}
+	return jsonvec.NewBuilder()
 }
 
 func (v *VectorReader) close() error {
