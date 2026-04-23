@@ -71,6 +71,7 @@ func (u *Upcast) upcast(b *scode.Builder, typ super.Type, bytes scode.Bytes, to 
 }
 
 func (u *Upcast) toRecord(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeRecord) bool {
+	typ, bytes = deunion(typ, bytes)
 	recType, ok := typ.(*super.TypeRecord)
 	if !ok {
 		return false
