@@ -17,3 +17,45 @@ input: &input |
   "foo"::named2
 
 output: *input
+
+---
+
+spq: fuse(this)
+
+input: |
+  []
+  [{id:1,s:"foo"},{id:2,s:null}]
+
+output: |
+  <fusion([fusion(none|{id:int64,s:fusion(string|null)})])>
+
+---
+
+spq: fuse(this)
+
+input: |
+  [{id:1,s:"foo"},{id:2,s:null}]
+  []
+
+output: |
+  <fusion([fusion(none|{id:int64,s:fusion(string|null)})])>
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  [{id:1,s:"foo"},{id:2,s:null}]
+  []
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  []
+  [{id:1,s:"foo"},{id:2,s:null}]
+
+output: *input
