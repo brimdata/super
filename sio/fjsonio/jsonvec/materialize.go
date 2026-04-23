@@ -6,6 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/kr/pretty"
 )
 
 func Materialize(sctx *super.Context, b Builder) vector.Any {
@@ -47,7 +48,7 @@ func (m *materializer) value(v Value) (vector.Any, []uint32) {
 		// a zero-length null value here so that the type of the
 		// array is [null] as the value will never be used.
 		// XXX should be none?
-		return vector.NewNull(0), nil
+		return vector.NewNoneTmp(0), nil
 	default:
 		panic(v)
 	}
@@ -100,7 +101,9 @@ func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixe
 }
 
 func (m *materializer) array(a *Array) (vector.Any, []uint32) {
+	pretty.Println("ARRAY", a)
 	inner, ids := m.value(a.Inner)
+	pretty.Println("INNER", inner, "IDS", ids)
 	if ids == nil {
 		if hasEmpty(a.Offsets) {
 			subtypes := m.makeArraySubtypesSingleEmpty(uint32(super.TypeID(inner.Type())), a.Offsets)
