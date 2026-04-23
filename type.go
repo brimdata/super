@@ -358,7 +358,7 @@ func IsRecordType(typ Type) bool {
 	return ok
 }
 
-func IsNamedType(typ Type) bool {
+func IsTypeNamed(typ Type) bool {
 	_, ok := typ.(*TypeNamed)
 	return ok
 }
