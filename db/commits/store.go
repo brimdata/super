@@ -133,12 +133,10 @@ func (s *Store) buildSnapshot(ctx context.Context, leaf ksuid.KSUID) (*Snapshot,
 		var o *Object
 		var oErr error
 		var wg sync.WaitGroup
-		wg.Add(1)
 		// Start fetching the next data object.
-		go func() {
+		wg.Go(func() {
 			o, oErr = s.Get(ctx, at)
-			wg.Done()
-		}()
+		})
 		// Concurrently check for a snapshot.
 		if snap, err := s.getSnapshot(ctx, at); err != nil && !errors.Is(err, fs.ErrNotExist) {
 			s.logger.Error("Loading snapshot", zap.Error(err))

@@ -29,8 +29,8 @@ func NewClient(cfg *aws.Config) *s3.S3 {
 	// Add ability to override s3 endpoint via env variable (the aws sdk doesn't
 	// support this). This is mostly for system tests w/ minio.
 	if endpoint := os.Getenv("AWS_S3_ENDPOINT"); cfg.Endpoint == nil && endpoint != "" {
-		cfg.Endpoint = aws.String(endpoint)
-		cfg.S3ForcePathStyle = aws.Bool(true) // https://github.com/minio/minio/tree/master/docs/config#domain
+		cfg.Endpoint = new(endpoint)
+		cfg.S3ForcePathStyle = new(true) // https://github.com/minio/minio/tree/master/docs/config#domain
 	}
 
 	// Unless the user has a environment setting for shared config, enable it
@@ -101,17 +101,15 @@ func NewWriter(ctx context.Context, path string, client s3iface.S3API, options .
 }
 
 func (w *Writer) init() {
-	w.done.Add(1)
-	go func() {
+	w.done.Go(func() {
 		_, err := w.uploader.UploadWithContext(w.ctx, &s3manager.UploadInput{
-			Bucket: aws.String(w.bucket),
-			Key:    aws.String(w.key),
+			Bucket: new(w.bucket),
+			Key:    new(w.key),
 			Body:   w.reader,
 		})
 		w.err = err
 		_ = w.reader.CloseWithError(err) // can ignore, return value will always be nil
-		w.done.Done()
-	}()
+	})
 }
 
 func (w *Writer) Write(b []byte) (int, error) {
@@ -140,8 +138,8 @@ func ReadFile(ctx context.Context, path string, client s3iface.S3API) ([]byte, e
 	wbuf := aws.NewWriteAtBuffer(nil)
 	downloader := s3manager.NewDownloaderWithClient(client)
 	_, err = downloader.DownloadWithContext(ctx, wbuf, &s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
+		Bucket: new(bucket),
+		Key:    new(key),
 	})
 	if err != nil {
 		return nil, err
@@ -156,8 +154,8 @@ func RemoveAll(ctx context.Context, path string, client s3iface.S3API) error {
 	}
 	deleter := s3manager.NewBatchDeleteWithClient(client)
 	it := s3manager.NewDeleteListIterator(client, &s3.ListObjectsInput{
-		Bucket: aws.String(bucket),
-		Prefix: aws.String(key),
+		Bucket: new(bucket),
+		Prefix: new(key),
 	})
 	if err := deleter.Delete(ctx, it); err != nil {
 		return err
@@ -212,8 +210,8 @@ func Stat(ctx context.Context, uri string, client s3iface.S3API) (Info, error) {
 
 func head(ctx context.Context, bucket, key string, client s3iface.S3API) (*s3.HeadObjectOutput, error) {
 	return client.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
+		Bucket: new(bucket),
+		Key:    new(key),
 	})
 }
 
@@ -226,9 +224,9 @@ func List(ctx context.Context, path string, client s3iface.S3API) ([]Info, error
 		key += "/"
 	}
 	input := &s3.ListObjectsV2Input{
-		Prefix:    aws.String(key),
-		Bucket:    aws.String(bucket),
-		Delimiter: aws.String("/"),
+		Prefix:    new(key),
+		Bucket:    new(bucket),
+		Delimiter: new("/"),
 	}
 	var entries []Info
 	err = client.ListObjectsV2PagesWithContext(ctx, input, func(out *s3.ListObjectsV2Output, lastPage bool) bool {

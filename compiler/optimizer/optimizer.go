@@ -849,8 +849,8 @@ func walkT[T any](v reflect.Value, post func(T) T) {
 	case reflect.Interface, reflect.Pointer:
 		walkT(v.Elem(), post)
 	case reflect.Struct:
-		for i := range v.NumField() {
-			walkT(v.Field(i), post)
+		for _, field := range v.Fields() {
+			walkT(field, post)
 		}
 	}
 	if v.CanSet() {
