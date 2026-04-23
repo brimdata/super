@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -114,6 +115,8 @@ func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 		return u.toMap(vec, to)
 	case *super.TypeUnion:
 		return u.toUnion(vec, to)
+	case *super.TypeEnum:
+		return u.toEnum(vec, to)
 	case *super.TypeError:
 		return u.toError(vec, to)
 	case *super.TypeNamed:
@@ -231,6 +234,26 @@ func (u *Upcast) toUnionValue(vec vector.Any, to *super.TypeUnion) vector.Any {
 		return nil
 	}
 	return u.upcast(vec, to.Types[tag])
+}
+
+func (u *Upcast) toEnum(vec vector.Any, to *super.TypeEnum) vector.Any {
+	enumVec, ok := vec.(*vector.Enum)
+	if !ok {
+		return nil
+	}
+	indexes := make([]uint64, vec.Len())
+	for i, fromIndex := range enumVec.Uint.Values {
+		symbol, err := enumVec.Typ.Symbol(int(fromIndex))
+		if err != nil {
+			panic(fmt.Sprintf("bad index %d in %s value", fromIndex, sup.FormatType(enumVec.Typ)))
+		}
+		toIndex := to.Lookup(symbol)
+		if toIndex < 0 {
+			return nil
+		}
+		indexes[i] = uint64(toIndex)
+	}
+	return vector.NewEnum(to, indexes)
 }
 
 func (u *Upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {

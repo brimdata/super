@@ -7,6 +7,8 @@ input: |
   [[1,"a"],<[int8|string]>]
   [[1::int8,"a"],<[int8|string]>]
   [[1]::[int64|string],<[int64|string|null]>]
+  ["a"::enum(a,b),<fusion(enum(a,b,c))>]
+  ["a"::enum(a,b),<fusion(enum(b,c))>]
   [fusion(1::(int64|string),<int64>),<fusion(int64|string)>]
   type n31=int64
   type n32=int64
@@ -53,6 +55,8 @@ output: |
   error({message:"upcast: value not a subtype of [int8|string]",on:[1,"a"]})
   [1::int8,"a"]
   [1]::[int64|string|null]
+  fusion("a"::enum(a,b,c),<enum(a,b)>)
+  error({message:"upcast: value not a subtype of fusion(enum(b,c))",on:"a"::enum(a,b)})
   fusion(1::(int64|string),<int64|string>)
   type n32=int64
   1::n32

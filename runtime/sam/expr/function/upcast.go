@@ -55,6 +55,8 @@ func (u *Upcast) upcast(b *scode.Builder, typ super.Type, bytes scode.Bytes, to 
 		return u.toMap(b, typ, bytes, to)
 	case *super.TypeUnion:
 		return u.toUnion(b, typ, bytes, to)
+	case *super.TypeEnum:
+		return u.toEnum(b, typ, bytes, to)
 	case *super.TypeError:
 		return u.toError(b, typ, bytes, to)
 	case *super.TypeNamed:
@@ -184,6 +186,23 @@ func (u *Upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to
 		return false
 	}
 	b.EndContainer()
+	return true
+}
+
+func (u *Upcast) toEnum(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeEnum) bool {
+	enumType, ok := typ.(*super.TypeEnum)
+	if !ok {
+		return false
+	}
+	symbol, err := enumType.Symbol(int(super.DecodeUint(bytes)))
+	if err != nil {
+		return false
+	}
+	i := to.Lookup(symbol)
+	if i < 0 {
+		return false
+	}
+	b.Append(super.EncodeUint(uint64(i)))
 	return true
 }
 
