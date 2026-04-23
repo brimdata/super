@@ -60,6 +60,9 @@ test-run: build bin/minio
 test-heavy: build
 	@PATH="$(CURDIR)/dist:$(PATH)" go test -tags=heavy ./mdtest
 
+test-boomerangs: build bin/minio
+	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" go test -parallel 1 . -run TestSPQ/boomerang -v
+
 build: $(PEG_DEP)
 	@mkdir -p dist
 	@go build -ldflags='$(LDFLAGS)' -o dist ./cmd/...
