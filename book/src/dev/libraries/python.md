@@ -60,7 +60,7 @@ client = superdb.Client()
 client.create_pool('TestPool')
 
 # Load some SUP records from a string.  A file-like object also works.
-# Data format is detected automatically.
+# Most data formats are detected automatically.
 client.load('TestPool', '{s:"hello"} {s:"world"}')
 
 # Begin executing a SuperDB query for all values in TestPool.
@@ -175,3 +175,38 @@ is stored in a list, and the list has an arbitrary order.
   pool containing only empty records will return no results rather than an
   error.
 - **Unions with more than 255 fields** are not supported.
+
+### MIME types
+
+When `load()` is called without a `mime_type`, the server auto-detects the format
+by inspecting the beginning of the uploaded stream. This works for most formats:
+
+| Format | MIME type |
+|---|---|
+| SUP | `application/x-sup` |
+| BSUP | `application/x-bsup` |
+| NDJSON | `application/x-ndjson` |
+| JSON | `application/json` |
+| CSV | `text/csv` |
+| TSV | `text/tab-separated-values` |
+| Zeek | `application/x-zeek` |
+| Arrow IPC stream | `application/vnd.apache.arrow.stream` |
+
+Three formats cannot be auto-detected over the API and **require an explicit
+`mime_type`**:
+
+| Format | MIME type | Reason |
+|---|---|---|
+| CSUP | `application/x-csup` | Detection requires seekable input |
+| Parquet | `application/x-parquet` | Detection requires seekable input |
+| Line | `application/x-line` | Auto-detection not supported |
+
+CSUP and Parquet store identifying metadata outside the stream header (Parquet's
+footer is at the end of the file), so the server cannot detect them from an HTTP
+request body. Line format is plain text with no identifying structure and is
+intentionally excluded from auto-detection.
+
+```python
+with open('data.parquet', 'rb') as f:
+    client.load('MyPool', f, mime_type='application/x-parquet')
+```
