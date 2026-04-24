@@ -214,12 +214,12 @@ def test_enum_arrives_as_string(record):
 
 def test_error_arrives_as_string(record):
     assert isinstance(record['error_val'], str)
-    assert 'something went wrong' in record['error_val']
+    assert record['error_val'] == 'error("something went wrong")'
 
 
 def test_type_value_arrives_as_string(record):
     assert isinstance(record['type_val'], str)
-    assert 'int64' in record['type_val']
+    assert record['type_val'] == '<int64>'
 
 
 # ---------------------------------------------------------------------------
