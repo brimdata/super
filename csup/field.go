@@ -7,10 +7,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// XXX in a forthcoming PR, we will change this to OptionEncoder
 type FieldEncoder struct {
 	name   string
 	values Encoder
-	opt    bool
 	rle    []uint32
 	nones  *Uint32Encoder
 }
@@ -38,16 +38,16 @@ func (f *FieldEncoder) Metadata(cctx *Context, off uint64) (uint64, Field) {
 	return off, Field{
 		Name:   f.name,
 		Values: id,
-		Opt:    f.opt,
 		Nones:  nones,
 	}
 }
 
 func (f *FieldEncoder) Encode(group *errgroup.Group, count uint32) {
-	if f.opt {
-		f.nones = &Uint32Encoder{vals: f.rle}
-		f.nones.Encode(group)
-	}
+	//XXX
+	//if f.opt {
+	//	f.nones = &Uint32Encoder{vals: f.rle}
+	//	f.nones.Encode(group)
+	//}
 	f.values.Encode(group)
 }
 

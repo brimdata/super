@@ -50,7 +50,9 @@ func (d *DynamicBuilder) write(vec Any) uint32 {
 		d.which[typ] = i
 		d.values = append(d.values, NewBuilder(typ))
 	}
-	d.values[i].Write(vec)
+	if vec.Len() != 0 {
+		d.values[i].Write(vec)
+	}
 	return i
 }
 
@@ -183,6 +185,7 @@ func (b *genericBuilder[E]) Write(vec Any) {
 		for _, slot := range vec.Index {
 			b.vals = append(b.vals, vals[slot])
 		}
+	case *Empty:
 	default:
 		b.vals = append(b.vals, b.valuesOf(vec)...)
 	}
@@ -281,11 +284,11 @@ type noneBuilder struct {
 }
 
 func (n *noneBuilder) Write(vec Any) {
-	n.len += vec.(*NoneTmp).len
+	n.len += vec.(*None).len
 }
 
 func (n *noneBuilder) Build(*super.Context) Any {
-	return NewNoneTmp(n.len)
+	return NewNone(n.len)
 }
 
 type nullBuilder struct {
@@ -486,11 +489,10 @@ type recordBuilder struct {
 func newRecordBuilder(typ *super.TypeRecord) Builder {
 	var fields []Builder
 	for _, f := range typ.Fields {
-		b := NewBuilder(f.Type)
-		if f.Opt {
-			b = &optionalBuilder{value: b}
-		}
-		fields = append(fields, b)
+		// XXX when we re-integrate vector.Option, we could have an option builder
+		// here for the fields to compute RLEs, or we can leave it to CSUP to figure
+		// out when to create thm.
+		fields = append(fields, NewBuilder(f.Type))
 	}
 	return &recordBuilder{
 		typ:    typ,
@@ -551,7 +553,7 @@ func (o *optionalBuilder) Write(vec Any) {
 
 func (o *optionalBuilder) Build(sctx *super.Context) Any {
 	rle := o.rle.End(o.len)
-	return NewFieldFromRLE(sctx, o.value.Build(sctx), o.len, rle)
+	return NewOptionFromRLE(sctx, o.value.Build(sctx), o.len, rle)
 }
 
 type unionBuilder struct {
@@ -577,5 +579,5 @@ func (u *unionBuilder) Write(vec Any) {
 }
 
 func (u *unionBuilder) Build(sctx *super.Context) Any {
-	return NewUnionFromDynamic(sctx, u.builder.build(sctx))
+	return &Union{Dynamic: u.builder.build(sctx), Typ: u.typ}
 }

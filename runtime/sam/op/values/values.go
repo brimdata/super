@@ -8,12 +8,14 @@ import (
 
 type Op struct {
 	parent sbuf.Puller
+	sctx   *super.Context
 	exprs  []expr.Evaluator
 }
 
-func New(parent sbuf.Puller, exprs []expr.Evaluator) *Op {
+func New(parent sbuf.Puller, sctx *super.Context, exprs []expr.Evaluator) *Op {
 	return &Op{
 		parent: parent,
+		sctx:   sctx,
 		exprs:  exprs,
 	}
 }
@@ -28,7 +30,7 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 		out := make([]super.Value, 0, len(o.exprs)*len(vals))
 		for i := range vals {
 			for _, e := range o.exprs {
-				val := e.Eval(vals[i])
+				val := e.Eval(vals[i]).DeoptionWithMissing(o.sctx)
 				if val.IsQuiet() {
 					continue
 				}

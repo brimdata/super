@@ -24,7 +24,7 @@ func Pick(val Any, index []uint32) Any {
 	case *Error:
 		return NewError(val.Typ, Pick(val.Vals, index))
 	case *None:
-		return NewNoneWithError(OptType(val), NewError(val.Typ, Pick(val.Vals, index)))
+		return NewNone(uint32(len(index)))
 	case *Null:
 		return NewNull(uint32(len(index)))
 	case *Union:
@@ -34,7 +34,7 @@ func Pick(val Any, index []uint32) Any {
 		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values))
 	case *Optional:
 		d := NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values))
-		return &Optional{d}
+		return &Optional{Dynamic: d} //XXX type field
 	case *View:
 		index2 := make([]uint32, len(index))
 		for k, idx := range index {

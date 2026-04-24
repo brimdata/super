@@ -637,13 +637,10 @@ func getNthFromRecord(typ *super.TypeRecord, container scode.Bytes, idx int) (sc
 			return nil, -1
 		}
 	}
-	it := scode.NewRecordIter(container, typ.Opts)
+	it := container.Iter()
 	for i := 0; !it.Done(); i++ {
-		elem, none := it.Next(typ.Fields[i].Opt)
+		elem := it.Next()
 		if i == idx {
-			if none {
-				return nil, -1
-			}
 			return elem, idx
 		}
 	}

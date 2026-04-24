@@ -34,35 +34,21 @@ func (d *Dropper) recode(b *scode.Builder, typ super.Type, bytes scode.Bytes, ou
 		return
 	}
 	outRecType := super.TypeUnder(outType).(*super.TypeRecord)
-	var outOff int
 	b.BeginContainer()
-	it := scode.NewRecordIter(bytes, recType.Opts)
-	var optOff int
-	var nones []int
-	for _, f := range recType.Fields {
-		elem, none := it.Next(f.Opt)
+	it := bytes.Iter()
+	for k, f := range recType.Fields {
+		elem := it.Next()
 		dropMapChild, ok := dropMap[f.Name]
 		if ok {
 			if dropMapChild == nil {
 				continue
 			}
-			if none {
-				nones = append(nones, optOff)
-				optOff++
-				continue
-			}
-			d.recode(b, f.Type, elem, outRecType.Fields[outOff].Type, dropMapChild)
-		} else if none {
-			nones = append(nones, optOff)
+			d.recode(b, f.Type, elem, outRecType.Fields[k].Type, dropMapChild)
 		} else {
 			b.Append(elem)
 		}
-		if f.Opt {
-			optOff++
-		}
-		outOff++
 	}
-	b.EndContainerWithNones(outRecType.Opts, nones)
+	b.EndContainer()
 }
 
 func (d *Dropper) Eval(in super.Value) super.Value {
@@ -124,7 +110,7 @@ func (f fieldsMap) dropType(sctx *super.Context, typ super.Type) super.Type {
 			}
 			typ = ff.dropType(sctx, typ)
 		}
-		out = append(out, super.NewFieldWithOpt(field.Name, typ, field.Opt))
+		out = append(out, super.NewField(field.Name, typ))
 	}
 	return sctx.MustLookupTypeRecord(out)
 }

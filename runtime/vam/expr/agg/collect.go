@@ -18,7 +18,10 @@ func (c *collect) Consume(vec vector.Any) {
 	for i := range vec.Len() {
 		b.Truncate()
 		vec.Serialize(&b, i)
-		c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))
+		val := super.NewValue(typ, b.Bytes().Body())
+		if !val.IsNone() {
+			c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))
+		}
 	}
 }
 

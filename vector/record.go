@@ -43,24 +43,6 @@ func (r *Record) ChangeType(typ *super.TypeRecord) *Record {
 
 func (r *Record) Serialize(b *scode.Builder, slot uint32) {
 	b.BeginContainer()
-	if r.Typ.Opts != 0 {
-		// XXX TBD: improve performance of this in summit
-		var nones []int
-		var optOff int
-		for k := range r.Fields {
-			if r.Typ.Fields[k].Opt {
-				if isNone(r.Fields[k], slot) {
-					nones = append(nones, optOff)
-					optOff++
-					continue
-				}
-				optOff++
-			}
-			r.Fields[k].Serialize(b, uint32(slot))
-		}
-		b.EndContainerWithNones(r.Typ.Opts, nones)
-		return
-	}
 	for _, f := range r.Fields {
 		f.Serialize(b, slot)
 	}
@@ -142,60 +124,55 @@ func (r *RLE) emit(run uint32) {
 	r.runs = append(r.runs, run)
 }
 
-// A None vector arises from values not present in an optional field.
-// In a future version of the runtime, we will have operators
-// that handle noneness (?? and ?.) but for now the only
-// thing you can do with none is assign it to a optional
-// record field or express it as missing.  None wraps Error as
-// an error("missing") so it expresses this when not assigned to
-// a field.
-type None struct {
-	*Error
-	typ super.Type
-}
-
-func (*None) Kind() Kind {
-	return KindNone
-}
-
-func NewNone(sctx *super.Context, typ super.Type, length uint32) *None {
-	return NewNoneWithError(typ, NewMissing(sctx, length))
-}
-
-func NewNoneWithError(typ super.Type, err *Error) *None {
-	return &None{typ: typ, Error: err}
-}
-
-func isNone(vec Any, slot uint32) bool {
-	if _, ok := vec.(*None); ok {
-		return true
+// XXX this will be cleaned up in a subsequent PR when we add a proper vector.Option
+func NewOptionFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) Any {
+	typ := vec.Type()
+	if super.IsOptionType(typ) {
+		panic(typ)
 	}
-	if o, ok := vec.(*Optional); ok {
-		return o.Dynamic.Tags[slot] == 1
-	}
-	return false
-}
-
-func NewFieldFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) Any {
-	if len(runlens) == 0 {
-		return vec
+	optionType := sctx.Option(typ)
+	if union, ok := vec.(*Union); ok {
+		// If it's a union, let's make it an option type by adding type none at the end
+		types := slices.Clone(union.Typ.Types)
+		types = append(types, super.TypeNone)
+		vecs := slices.Clone(union.Dynamic.Values)
+		noneTag := uint32(len(vecs))
+		// buildTags assumes a single value at tag 0 and a none at tag 1.
+		// we'll build that then convert it from this unions tags, where the
+		// union tags are preserved and the none at tag 1 goes to the last tag (noneTag).
+		tags, noneLen := buildTags(runlens, length)
+		vecs = append(vecs, NewNone(noneLen))
+		from := 0
+		for k := range tags {
+			if tags[k] == 0 {
+				tags[k] = union.Tags[from]
+				from++
+			} else {
+				tags[k] = noneTag
+			}
+		}
+		return NewUnion(optionType, tags, vecs)
 	}
 	tags, noneLen := buildTags(runlens, length)
-	if noneLen == 0 {
-		// This field is optional but everything is here in this instance.
-		return vec
-	}
-	return &Optional{NewDynamic(tags, []Any{vec, NewNone(sctx, vec.Type(), noneLen)})}
+	vecs := []Any{vec, NewNone(noneLen)}
+	return NewUnion(optionType, tags, vecs)
 }
 
-// An Optional value is a special Dynamic that has two tags comprising the
-// values present and the Nones.
+// XXX this will be reworked in a subsequent PR
+// option values should have two forms like typevalues...
+// the union form with a type none in the union and the RLE form,
+// with the underlying compact vector... we turn RLEs into tags
+// on demand so that when we load record with lots of optional fields
+// (as is common with fusion) then we only unroll the tags on demand
+// and an optional field can round trip from vcache to runtime and back
+// to CSUP without the tags ever being built.
 type Optional struct {
+	typ *super.TypeUnion
 	*Dynamic
 }
 
 func (o *Optional) Type() super.Type {
-	return o.Dynamic.Values[0].Type()
+	return o.typ
 }
 
 func (f *Optional) RLE() []uint32 {
@@ -209,21 +186,52 @@ func (f *Optional) RLE() []uint32 {
 	return rle.End(f.Len())
 }
 
-func Opt(vec Any) Any {
+// XXX this will be cleaned up in a subsequent PR
+func deoptionApply(sctx *super.Context, vec Any) Any {
 	switch vec := vec.(type) {
 	case *Optional:
 		return vec.Dynamic
 	case *None:
-		return vec.Error
+		return NewMissing(sctx, vec.len)
 	}
 	return vec
 }
 
-// OptType returns the type of `v` preventing None values from expressing
-// themselves as missing and instead retuning the type bound to that None.
-func OptType(vec Any) super.Type {
-	if none, ok := vec.(*None); ok {
-		return none.typ
+func DeoptionWithMissing(sctx *super.Context, vec Any) Any {
+	switch vec := vec.(type) {
+	case *None:
+		return NewMissing(sctx, vec.Len())
+	case *Dynamic:
+		if hasOptionTypesOrNones(vec.Values) {
+			vecs := make([]Any, 0, len(vec.Values))
+			for _, v := range vec.Values {
+				vecs = append(vecs, DeoptionWithMissing(sctx, v))
+			}
+			return stitch(vec.Tags, vecs)
+		}
+	case *Union:
+		if super.IsOptionType(vec.Typ) {
+			out := Deunion(vec)
+			out = DeoptionWithMissing(sctx, out)
+			return out
+		}
+	case *Optional:
+		return vec.Dynamic
 	}
-	return vec.Type()
+	return vec
+}
+
+func hasOptionTypesOrNones(vecs []Any) bool {
+	return slices.IndexFunc(vecs, func(vec Any) bool {
+		// XXX apparently the runtime sometimes creates nil vectors inside
+		// of Dynamics where said vector is never referenced by a tag
+		// (e.g., at the output of vector switch), so we check for nil here.
+		if vec == nil {
+			return false
+		}
+		if vec, ok := vec.(*Dynamic); ok {
+			return hasOptionTypesOrNones(vec.Values)
+		}
+		return super.IsOptionType(vec.Type()) || vec.Type() == super.TypeNone
+	}) >= 0
 }

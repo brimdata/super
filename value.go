@@ -172,10 +172,6 @@ func (v Value) ContainerIter() scode.Iter {
 	return v.Bytes().Iter()
 }
 
-func (v Value) RecordIter(opts int) scode.RecordIter {
-	return scode.NewRecordIter(v.Bytes(), opts)
-}
-
 // If the passed-in element is an array, attempt to get the idx'th
 // element, and return its type and raw representation.  Returns an
 // error if the passed-in element is not an array or if idx is
@@ -320,11 +316,11 @@ func (r Value) nth(n int) (scode.Bytes, bool, bool) {
 	if typ := TypeRecordOf(r.typ); typ != nil {
 		var elem scode.Bytes
 		var none bool
-		for i, it := 0, scode.NewRecordIter(r.Bytes(), typ.Opts); i <= n; i++ {
+		for i, it := 0, r.Bytes().Iter(); i <= n; i++ {
 			if it.Done() {
 				return nil, false, false
 			}
-			elem, none = it.Next(typ.Fields[i].Opt)
+			elem = it.Next()
 		}
 		return elem, none, true
 	}
@@ -371,17 +367,6 @@ func (v *Value) Deref(field string) *Value {
 	}
 	val, _ := v.DerefByColumn(i)
 	return val
-}
-
-func (v *Value) DerefWithNone(field string) (*Value, bool) {
-	if v == nil {
-		return nil, false
-	}
-	i, ok := v.IndexOfField(field)
-	if !ok {
-		return nil, false
-	}
-	return v.DerefByColumn(i)
 }
 
 func (v *Value) DerefPath(path field.Path) *Value {
@@ -459,6 +444,31 @@ func (v Value) DeunionIntoNameds() Value {
 		}
 		v = NewValue(union.Untag(v.bytes()))
 	}
+}
+
+// to its underlying value.  It does not Deunion union values that are named types.
+func (v Value) DeoptionWithMissing(sctx *Context) Value {
+	if union, _ := OptionUnion(v.Type()); union != nil {
+		v = v.Deunion()
+		if v.Type() == TypeNone {
+			return sctx.Missing()
+		}
+	}
+	return v
+}
+
+func (v Value) Deoption() Value {
+	if union, _ := OptionUnion(v.Type()); union != nil {
+		return v.Deunion()
+	}
+	return v
+}
+
+func (v Value) IsNone() bool {
+	if IsOptionType(v.Type()) {
+		return v.Deunion().Type() == TypeNone
+	}
+	return false
 }
 
 // Under resolves named types and untags unions repeatedly, returning a value

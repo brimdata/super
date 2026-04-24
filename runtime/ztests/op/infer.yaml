@@ -92,13 +92,13 @@ input: |
   {y:"foo"}
 
 output: |
+  {x?:1,y?:_::string,ts?:_::time,a?:_::[bool],b?:_::[int64]}
+  {x?:_::int64,y?:"2",ts?:_::time,a?:_::[bool],b?:_::[int64]}
   {x?:_::int64,y?:_::string,ts?:_::time,a?:_::[bool],b?:[1,2]}
   {x?:_::int64,y?:_::string,ts?:_::time,a?:[true,false],b?:_::[int64]}
   {x?:_::int64,y?:_::string,ts?:2025-06-02T00:00:00Z,a?:_::[bool],b?:_::[int64]}
   {x?:_::int64,y?:_::string,ts?:2025-06-01T00:00:00Z,a?:_::[bool],b?:_::[int64]}
-  {x?:_::int64,y?:"2",ts?:_::time,a?:_::[bool],b?:_::[int64]}
   {x?:_::int64,y?:"foo",ts?:_::time,a?:_::[bool],b?:_::[int64]}
-  {x?:1,y?:_::string,ts?:_::time,a?:_::[bool],b?:_::[int64]}
 
 ---
 

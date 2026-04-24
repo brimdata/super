@@ -16,6 +16,6 @@ outputs:
     data: ""
   - name: stdout
     data: |
-      {a?:"hello"::(string|null),b:"world"::(string|null),c?:_::(string|null)}
-      {a?:_::(string|null),b:"goodnight"::(string|null),c?:"gracie"::(string|null)}
-      {a?:null::(string|null),b:null::(string|null),c?:null::(string|null)}
+      {a?:"hello"::(string|null|none),b:"world"::(string|null),c?:_::(string|null|none)}
+      {a?:_::(string|null|none),b:"goodnight"::(string|null),c?:"gracie"::(string|null|none)}
+      {a?:null::(string|null|none),b:null::(string|null),c?:null::(string|null|none)}

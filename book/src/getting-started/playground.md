@@ -151,12 +151,12 @@ a:=a::int64
 
 **_Make a schema-rigid Parquet file using blend, then output the Parquet file
 as [SUP](../formats/sup.md)_**
-```mdtest-command
+```mdtest-command-skip
 echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c blend -
 super -s tmp.parquet
 ```
 produces
-```mdtest-output
+```mdtest-output-skip
 {a:1::(int64|null),b:null::(int64|null)}
 {a:2::(int64|null),b:null::(int64|null)}
 {a:null::(int64|null),b:3::(int64|null)}

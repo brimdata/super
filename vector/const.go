@@ -95,6 +95,8 @@ func NewConstFromValue(sctx *super.Context, val super.Value, length uint32) *Con
 			panic("bad type value")
 		}
 		return NewConstType(sctx, typ, length)
+	case id == super.IDNone:
+		return &Const{NewNone(length), length}
 	}
 	panic(fmt.Sprintf("%#v\n", super.TypeUnder(val.Type())))
 }

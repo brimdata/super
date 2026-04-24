@@ -126,58 +126,59 @@ func (n *namedValueBuilder) Build(sctx *super.Context) Any {
 
 type recordValueBuilder struct {
 	typ    *super.TypeRecord
-	fields []fieldValueBuilder
+	fields []ValueBuilder
 	len    uint32
 }
 
 func newRecordValueBuilder(typ *super.TypeRecord) ValueBuilder {
-	var fields []fieldValueBuilder
+	var fields []ValueBuilder
 	for _, f := range typ.Fields {
-		fields = append(fields, fieldValueBuilder{opt: f.Opt, val: NewValueBuilder(f.Type)})
+		fields = append(fields, NewValueBuilder(f.Type))
 	}
 	return &recordValueBuilder{typ: typ, fields: fields}
 }
 
 func (r *recordValueBuilder) Write(bytes scode.Bytes) {
-	off := r.len
 	r.len++
-	it := scode.NewRecordIter(bytes, r.typ.Opts)
+	it := bytes.Iter()
 	for k := range r.fields {
-		elem, none := it.Next(r.typ.Fields[k].Opt)
-		// The none condition is captured by RLE.
-		if !none {
-			r.fields[k].write(elem, off)
-		}
+		r.fields[k].Write(it.Next())
 	}
 }
 
 func (r *recordValueBuilder) Build(sctx *super.Context) Any {
 	var fields []Any
 	for k := range r.fields {
-		fields = append(fields, r.fields[k].build(sctx, r.len))
+		fields = append(fields, r.fields[k].Build(sctx))
 	}
 	return NewRecord(r.typ, fields, r.len)
 }
 
-type fieldValueBuilder struct {
-	opt  bool
-	val  ValueBuilder
-	runs RLE
+// XXX not clear we need option builders here since they can be unraveled
+// when writing to CSUP.  This may or may not be cleaned up or deleted in
+// a subsequent PR.
+type optionValueBuilder struct {
+	union *super.TypeUnion
+	val   *unionValueBuilder
+	off   uint32
+	runs  RLE
 }
 
-func (f *fieldValueBuilder) write(bytes scode.Bytes, off uint32) {
-	if f.opt {
-		f.runs.Touch(off)
+func (o *optionValueBuilder) Write(bytes scode.Bytes) {
+	off := o.off
+	o.off++
+	typ, _ := o.union.Untag(bytes)
+	if typ == super.TypeNone {
+		return
 	}
-	f.val.Write(bytes)
+	o.runs.Touch(off)
+	o.val.Write(bytes)
 }
 
-func (f *fieldValueBuilder) build(sctx *super.Context, n uint32) Any {
-	var runs []uint32
-	if f.opt {
-		runs = f.runs.End(n)
-	}
-	return NewFieldFromRLE(sctx, f.val.Build(sctx), n, runs)
+func (o *optionValueBuilder) Build(sctx *super.Context) Any {
+	vec := o.val.Build(sctx)
+	n := vec.Len()
+	return NewOptionFromRLE(sctx, vec, n, o.runs.End(n))
 }
 
 type errorValueBuilder struct {
@@ -252,11 +253,17 @@ type unionValueBuilder struct {
 }
 
 func newUnionValueBuilder(typ *super.TypeUnion) ValueBuilder {
+
 	var values []ValueBuilder
 	for _, typ := range typ.Types {
 		values = append(values, NewValueBuilder(typ))
 	}
-	return &unionValueBuilder{typ: typ, values: values}
+	builder := &unionValueBuilder{typ: typ, values: values}
+	// XXX this will be added back or deleted in a subsequent PR
+	//if union, _ := super.OptionUnion(typ); union != nil {
+	//	return &optionValueBuilder{union: union, val: builder}
+	//}
+	return builder
 }
 
 func (u *unionValueBuilder) Write(bytes scode.Bytes) {
@@ -473,5 +480,5 @@ func (n *noneValueBuilder) Write(scode.Bytes) {
 }
 
 func (n *noneValueBuilder) Build(*super.Context) Any {
-	return NewNoneTmp(n.len)
+	return NewNone(n.len)
 }

@@ -56,9 +56,13 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 		var vec vector.Any
 		switch elem := elem.(type) {
 		case *NoneElem:
-			vec = vector.NewNone(r.sctx, elem.Type, this.Len())
+			optionType := r.sctx.Option(elem.Type)
+			vec = vector.NewOptionNone(r.sctx, optionType, this.Len())
 		case *FieldElem:
 			vec = elem.Expr.Eval(this)
+			if elem.Opt {
+				vec = vector.NewOptionSome(r.sctx, vec)
+			}
 		case *SpreadElem:
 			vec = elem.Expr.Eval(this)
 		default:
@@ -77,9 +81,10 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 	for k, vec := range vecs {
 		switch elem := r.elems[k].(type) {
 		case *NoneElem:
-			r.addOrUpdateNone(elem.Name, elem.Type, length)
+			optionType := r.sctx.Option(elem.Type)
+			r.addOrUpdateNone(elem.Name, optionType, length)
 		case *FieldElem:
-			r.addOrUpdateField(elem.Name, elem.Opt, vec)
+			r.addOrUpdateField(elem.Name, vec)
 		case *SpreadElem:
 			r.spread(vec)
 		default:
@@ -90,26 +95,26 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 	return vector.NewRecord(typ, r.fieldVecs, vecs[0].Len())
 }
 
-func (r *recordExpr) addOrUpdateField(name string, opt bool, vec vector.Any) {
+func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 	if i, ok := r.fieldIndexes[name]; ok {
-		r.fields[i].Type = vector.OptType(vec)
+		r.fields[i].Type = vec.Type()
 		r.fieldVecs[i] = vec
 		return
 	}
 	r.fieldIndexes[name] = len(r.fields)
-	r.fields = append(r.fields, super.NewFieldWithOpt(name, vector.OptType(vec), opt))
+	r.fields = append(r.fields, super.NewField(name, vec.Type()))
 	r.fieldVecs = append(r.fieldVecs, vec)
 }
 
-func (r *recordExpr) addOrUpdateNone(name string, typ super.Type, length uint32) {
+func (r *recordExpr) addOrUpdateNone(name string, optionType *super.TypeUnion, length uint32) {
 	if i, ok := r.fieldIndexes[name]; ok {
-		r.fields[i].Type = typ
-		r.fieldVecs[i] = vector.NewNone(r.sctx, typ, length)
+		r.fields[i].Type = optionType
+		r.fieldVecs[i] = vector.NewOptionNone(r.sctx, optionType, length)
 		return
 	}
 	r.fieldIndexes[name] = len(r.fields)
-	r.fields = append(r.fields, super.NewFieldWithOpt(name, typ, true))
-	r.fieldVecs = append(r.fieldVecs, vector.NewNone(r.sctx, typ, length))
+	r.fields = append(r.fields, super.NewField(name, optionType))
+	r.fieldVecs = append(r.fieldVecs, vector.NewOptionNone(r.sctx, optionType, length))
 }
 
 func (r *recordExpr) spread(vec vector.Any) {
@@ -117,12 +122,12 @@ func (r *recordExpr) spread(vec vector.Any) {
 	switch vec := vector.Under(vec).(type) {
 	case *vector.Record:
 		for k, f := range super.TypeRecordOf(vec.Type()).Fields {
-			r.addOrUpdateField(f.Name, f.Opt, vec.Fields[k])
+			r.addOrUpdateField(f.Name, vec.Fields[k])
 		}
 	case *vector.View:
 		if rec, ok := vec.Any.(*vector.Record); ok {
 			for k, f := range super.TypeRecordOf(rec.Type()).Fields {
-				r.addOrUpdateField(f.Name, f.Opt, vector.Pick(rec.Fields[k], vec.Index))
+				r.addOrUpdateField(f.Name, vector.Pick(rec.Fields[k], vec.Index))
 			}
 		}
 	}

@@ -185,6 +185,7 @@ func (a *Analyzer) convertValue(val ast.Value) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
+		typ = a.sctx.Option(typ)
 		return &None{typ: typ}, nil
 	case *ast.Primitive:
 		return a.convertPrimitive(val)
@@ -281,7 +282,15 @@ func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
+		typ := val.Type()
+		if f.Opt {
+			typ = a.sctx.Option(typ)
+			val, err = a.createUnion(val, typ)
+			if err != nil {
+				return nil, err
+			}
+		}
+		fields = append(fields, super.NewField(f.Name, typ))
 		vals = append(vals, val)
 	}
 	return &Record{
@@ -715,7 +724,10 @@ func (a Analyzer) convertTypeRecord(typ *ast.TypeRecord) (*super.TypeRecord, err
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewFieldWithOpt(f.Name, typ, f.Opt))
+		if f.Opt {
+			typ = a.sctx.Option(typ)
+		}
+		fields = append(fields, super.NewField(f.Name, typ))
 	}
 	return a.sctx.LookupTypeRecord(fields)
 }

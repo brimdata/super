@@ -13,7 +13,8 @@ type recordExpr struct {
 	builder *scode.Builder
 	fields  []super.Field
 	exprs   []Evaluator
-	nones   []int
+	options []*super.TypeUnion
+	somes   []bool
 }
 
 func NewRecordExpr(sctx *super.Context, elems []RecordElem) Evaluator {
@@ -26,37 +27,34 @@ func NewRecordExpr(sctx *super.Context, elems []RecordElem) Evaluator {
 func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	fields := make([]super.Field, 0, len(elems))
 	exprs := make([]Evaluator, 0, len(elems))
-	var optOff int
-	var nones []int
+	options := make([]*super.TypeUnion, 0, len(elems))
+	somes := make([]bool, 0, len(elems))
 	for _, elem := range elems {
 		var name string
-		var opt bool
 		var typ super.Type
 		switch elem := elem.(type) {
 		case *NoneElem:
 			name = elem.Name
-			typ = elem.Type
 			exprs = append(exprs, nil)
-			nones = append(nones, optOff)
-			opt = true
+			options = append(options, sctx.Option(elem.Type))
+			somes = append(somes, false)
 		case *FieldElem:
 			name = elem.Name
-			opt = elem.Opt
 			exprs = append(exprs, elem.Expr)
+			options = append(options, nil)
+			somes = append(somes, elem.Opt)
 		case *SpreadElem:
 			return nil
 		}
-		fields = append(fields, super.NewFieldWithOpt(name, typ, opt))
-		if opt {
-			optOff++
-		}
+		fields = append(fields, super.NewField(name, typ))
 	}
 	return &recordExpr{
 		sctx:    sctx,
 		builder: scode.NewBuilder(),
 		fields:  fields,
 		exprs:   exprs,
-		nones:   nones,
+		options: options,
+		somes:   somes,
 	}
 }
 
@@ -66,10 +64,16 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 	b.Reset()
 	b.BeginContainer()
 	for k, e := range r.exprs {
+		var val super.Value
 		if e == nil {
-			continue
+			val = super.None(r.options[k])
+		} else {
+			val = e.Eval(this)
+			if r.somes[k] {
+				optionType := r.sctx.Option(val.Type())
+				val = super.Some(optionType, val.Type(), val.Bytes())
+			}
 		}
-		val := e.Eval(this)
 		if r.fields[k].Type != val.Type() {
 			r.fields[k].Type = val.Type()
 			changed = true
@@ -79,7 +83,7 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 	if changed || r.typ == nil {
 		r.typ = r.sctx.MustLookupTypeRecord(r.fields)
 	}
-	b.EndContainerWithNones(r.typ.Opts, r.nones)
+	b.EndContainer()
 	return super.NewValue(r.typ, b.Bytes().Body())
 }
 
@@ -124,9 +128,7 @@ func newRecordSpreadExpr(sctx *super.Context, elems []RecordElem) *recordSpreadE
 
 type fieldValue struct {
 	index int
-	opt   bool
 	value super.Value
-	none  super.Type
 }
 
 func get(rec map[string]fieldValue, name string) fieldValue {
@@ -152,32 +154,24 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 				// Treat non-record spread values like missing.
 				continue
 			}
-			it := scode.NewRecordIter(val.Bytes(), typ.Opts)
+			it := val.Bytes().Iter()
 			for _, f := range typ.Fields {
 				fv := get(rec, f.Name)
-				elem, none := it.Next(f.Opt)
-				if none {
-					fv.none = f.Type
-					fv.opt = true
-				} else {
-					fv.value = super.NewValue(f.Type, elem)
-					fv.opt = f.Opt
-					fv.none = nil
-				}
+				fv.value = super.NewValue(f.Type, it.Next())
 				rec[f.Name] = fv
 			}
 		case *FieldElem:
 			val := elem.Expr.Eval(this)
 			fv := get(rec, elem.Name)
+			if elem.Opt {
+				optionType := r.sctx.Option(val.Type())
+				val = super.Some(optionType, val.Type(), val.Bytes())
+			}
 			fv.value = val
-			fv.none = nil
-			fv.opt = elem.Opt
 			rec[elem.Name] = fv
 		case *NoneElem:
-			// None
 			fv := get(rec, elem.Name)
-			fv.none = elem.Type
-			fv.opt = true
+			fv.value = super.None(r.sctx.Option(elem.Type))
 			rec[elem.Name] = fv
 		default:
 			panic(elem)
@@ -190,20 +184,10 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 	b := r.builder
 	b.Reset()
 	b.BeginContainer()
-	var optOff int
-	var nones []int
-	for k, fv := range r.vals {
-		if fv.none != nil {
-			nones = append(nones, optOff)
-			optOff++
-			continue
-		}
+	for _, fv := range r.vals {
 		b.Append(fv.value.Bytes())
-		if r.cache.Fields[k].Opt {
-			optOff++
-		}
 	}
-	b.EndContainerWithNones(r.cache.Opts, nones)
+	b.EndContainer()
 	return super.NewValue(r.cache, b.Bytes().Body())
 }
 
@@ -216,11 +200,7 @@ func (r *recordSpreadExpr) update(rec map[string]fieldValue) {
 		return
 	}
 	for name, fv := range rec {
-		typ := fv.none
-		if typ == nil {
-			typ = fv.value.Type()
-		}
-		if r.fields[fv.index] != super.NewFieldWithOpt(name, typ, fv.opt) {
+		if r.fields[fv.index] != super.NewField(name, fv.value.Type()) {
 			r.invalidate(rec)
 			return
 		}
@@ -233,11 +213,7 @@ func (r *recordSpreadExpr) invalidate(rec map[string]fieldValue) {
 	r.fields = slices.Grow(r.fields[:0], n)[:n]
 	r.vals = slices.Grow(r.vals[:0], n)[:n]
 	for name, fv := range rec {
-		typ := fv.none
-		if typ == nil {
-			typ = fv.value.Type()
-		}
-		r.fields[fv.index] = super.NewFieldWithOpt(name, typ, fv.opt)
+		r.fields[fv.index] = super.NewField(name, fv.value.Type())
 		r.vals[fv.index] = fv
 	}
 	r.cache = r.sctx.MustLookupTypeRecord(r.fields)

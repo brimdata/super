@@ -60,7 +60,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 			// First change all fields to optional that are in "a" but not in "b".
 			for k, field := range fields {
 				if _, ok := indexOfField(b.Fields, field.Name); !ok {
-					fields[k].Opt = true
+					fields[k].Type = f.sctx.Option(fields[k].Type)
 				}
 			}
 			// Now fuse all the fields in "b" that are also in "a" and add the fields
@@ -69,11 +69,9 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 				i, ok := indexOfField(fields, field.Name)
 				if ok {
 					fields[i].Type = f.fuse(fields[i].Type, field.Type)
-					if field.Opt {
-						fields[i].Opt = true
-					}
 				} else {
-					fields = append(fields, super.NewFieldWithOpt(field.Name, field.Type, true))
+					typ := f.sctx.Option(field.Type)
+					fields = append(fields, super.NewField(field.Name, typ))
 				}
 			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
@@ -275,7 +273,7 @@ func recChanged(a, b *super.TypeRecord) bool {
 	}
 	for k, af := range a.Fields {
 		bf := b.Fields[k]
-		if af.Name != bf.Name || af.Opt != bf.Opt {
+		if af.Name != bf.Name || super.IsOptionType(af.Type) != super.IsOptionType(bf.Type) {
 			return true
 		}
 	}

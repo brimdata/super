@@ -135,15 +135,14 @@ func (u *Upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 	}
 	fieldVecs := make([]vector.Any, len(to.Fields))
 	for i, f := range to.Fields {
+		var vec vector.Any
 		n, ok := recVec.Typ.IndexOfField(f.Name)
-		if !ok {
-			if !f.Opt {
-				return nil
-			}
-			fieldVecs[i] = vector.NewNone(u.sctx, f.Type, vec.Len())
-			continue
+		if ok {
+			vec = recVec.Fields[n]
+		} else {
+			vec = vector.NewNone(recVec.Len())
 		}
-		fieldVecs[i] = u.upcast(recVec.Fields[n], f.Type)
+		fieldVecs[i] = u.upcast(vec, f.Type)
 		if fieldVecs[i] == nil {
 			return nil
 		}

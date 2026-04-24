@@ -45,7 +45,39 @@ func (c *cast) Call(args []super.Value) super.Value {
 	return c.sctx.WrapError("cast target must be a type or type name", to)
 }
 
+func deoptionType(sctx *super.Context, typ super.Type) super.Type {
+	if union, noneTag := super.OptionUnion(typ); union != nil {
+		if len(union.Types) == 2 {
+			var valTag int
+			if noneTag == 0 {
+				valTag = 1
+			}
+			return union.Types[valTag]
+		}
+		types := slices.DeleteFunc(slices.Clone(union.Types), func(t super.Type) bool {
+			return t == super.TypeNone
+		})
+		out, ok := sctx.LookupTypeUnion(types)
+		if !ok {
+			panic(types)
+		}
+		return out
+	}
+	return typ
+}
+
 func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
+	if optionType, _ := super.OptionUnion(to); optionType != nil {
+		val := from.Deoption()
+		if val.Type() == super.TypeNone {
+			return super.None(optionType), true
+		}
+		val, ok := c.Cast(val, deoptionType(c.sctx, to))
+		if !ok {
+			return val, ok
+		}
+		return super.Some(optionType, val.Type(), val.Bytes()), true
+	}
 	from = from.DeunionIntoNameds()
 	switch fromType := from.Type(); {
 	case fromType == to:
@@ -92,26 +124,23 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bo
 	}
 	var b scode.Builder
 	var fields []super.Field
-	var nones []int
-	var optOff int
 	b.BeginContainer()
 	aok := true
 	for i, f := range to.Fields {
 		var val2 super.Value
-		fieldVal, ok, none := derefWithNone(fromRecType, from.Bytes(), f.Name)
-		if !ok || none {
-			if f.Opt {
-				nones = append(nones, optOff)
-				optOff++
-				continue
+		fieldVal := from.Deref(f.Name) // deref(fromRecType, from.Bytes(), f.Name)
+		if fieldVal == nil {
+			// This field isn't present.  If the target type is optional,
+			// code a none value.  Otherwise, code error missing.
+			if optionType, _ := super.OptionUnion(f.Type); optionType != nil {
+				val2 = super.None(optionType)
+			} else {
+				val2 = c.sctx.Missing()
 			}
-			val2 = c.sctx.Missing()
 		} else {
-			val2, ok = c.Cast(fieldVal, f.Type)
+			var ok bool
+			val2, ok = c.Cast(*fieldVal, f.Type)
 			aok = aok && ok
-			if f.Opt {
-				optOff++
-			}
 		}
 		if t := val2.Type(); t != f.Type {
 			if fields == nil {
@@ -124,24 +153,8 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bo
 	if fields != nil {
 		to = c.sctx.MustLookupTypeRecord(fields)
 	}
-	b.EndContainerWithNones(to.Opts, nones)
+	b.EndContainer()
 	return super.NewValue(to, b.Bytes().Body()), aok
-}
-
-func derefWithNone(typ *super.TypeRecord, bytes scode.Bytes, name string) (super.Value, bool, bool) {
-	n, ok := typ.IndexOfField(name)
-	if !ok {
-		return super.Value{}, false, false
-	}
-	var elem scode.Bytes
-	var none bool
-	for i, it := 0, scode.NewRecordIter(bytes, typ.Opts); i <= n; i++ {
-		elem, none = it.Next(typ.Fields[i].Opt)
-	}
-	if none {
-		return super.Value{}, true, true
-	}
-	return super.NewValue(typ.Fields[n].Type, elem), true, false
 }
 
 func (c *cast) toArrayOrSet(from super.Value, to super.Type) (super.Value, bool) {

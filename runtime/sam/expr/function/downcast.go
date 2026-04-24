@@ -85,6 +85,9 @@ func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (s
 				return super.NewValue(typ, bytes), nil
 			}
 		}
+		if typ == super.TypeNone {
+			return super.Value{}, d.errNonOptionNone(to)
+		}
 		return super.Value{}, d.errMismatch(typ, bytes, to)
 	}
 }
@@ -99,25 +102,16 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 	if !ok {
 		return super.Value{}, d.errMismatch(typ, bytes, to)
 	}
-	var nones []int
-	var optOff int
 	b := scode.NewBuilder()
 	b.BeginContainer()
 	for k, toField := range to.Fields { // ranging through to fields and lookup up from
-		elemType, elemBytes, none, ok := derefWithNoneAndOk(fromType, bytes, toField.Name)
+		elemType, elemBytes, ok := derefAsBytes(fromType, bytes, toField.Name)
 		if !ok {
 			// The super value must have all the fields of the subtype cast.
 			// It's missing a field, so fail.
 			return super.Value{}, d.errSubtype(typ, bytes, to)
 		}
-		if none {
-			if !toField.Opt {
-				// A none can't go in a non-optional field.
-				return super.Value{}, d.errSubtype(typ, bytes, to)
-			}
-			nones = append(nones, optOff)
-			optOff++
-		} else if toField.Opt && !fromType.Fields[k].Opt {
+		if super.IsOptionType(toField.Type) && !super.IsOptionType(fromType.Fields[k].Type) {
 			return super.Value{}, d.errSubtype(typ, bytes, to)
 		} else {
 			// We have the value and the to field.  Downcast recursively.
@@ -125,13 +119,10 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 			if errVal != nil {
 				return super.Value{}, errVal
 			}
-			if toField.Opt {
-				optOff++
-			}
 			b.Append(val.Bytes())
 		}
 	}
-	b.EndContainerWithNones(to.Opts, nones)
+	b.EndContainer()
 	return super.NewValue(to, b.Bytes().Body()), nil
 }
 
@@ -281,6 +272,10 @@ func (d *downcast) toNamed(typ super.Type, bytes scode.Bytes, to *super.TypeName
 		return super.Value{}, errVal
 	}
 	return super.NewValue(to, val.Bytes()), errVal
+}
+
+func (d *downcast) errNonOptionNone(to super.Type) *super.Value {
+	return d.sctx.NewErrorf("downcast: none value in non-option type: %s", sup.FormatType(to)).Ptr()
 }
 
 func (d *downcast) errMismatch(typ super.Type, bytes []byte, to super.Type) *super.Value {

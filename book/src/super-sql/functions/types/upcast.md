@@ -43,7 +43,7 @@ values
 
 # expected output
 {x:1,y?:_::string}
-{x:1,y?:_::(string|null)}
+{x:1,y?:_::(string|null|none)}
 ```
 
 ---

@@ -17,6 +17,9 @@ func (h *Has) Call(args []super.Value) super.Value {
 			}
 			return val
 		}
+		if val.IsNone() {
+			return super.False
+		}
 	}
 	return super.True
 }
