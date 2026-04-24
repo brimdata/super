@@ -1,0 +1,19 @@
+script: |
+  source service.sh
+  python3 -m venv .venv
+  .venv/bin/python -m pip install -q '.[test]'
+  .venv/bin/pytest test_superdb.py
+
+inputs:
+  - name: service.sh
+    source: ../../../service/ztests/service.sh
+  - name: superdb.py
+    source: ../superdb.py
+  - name: pyproject.toml
+    source: ../pyproject.toml
+  - name: test_superdb.py
+    source: ../test_superdb.py
+
+outputs:
+  - name: stdout
+    regexp: \d+ passed
