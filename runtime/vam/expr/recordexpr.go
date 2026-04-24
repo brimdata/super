@@ -56,7 +56,7 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 		var vec vector.Any
 		switch elem := elem.(type) {
 		case *NoneElem:
-			vec = vector.NewNone(r.sctx, elem.Type, this.Len())
+			vec = vector.NewNone(r.sctx, this.Len())
 		case *FieldElem:
 			vec = elem.Expr.Eval(this)
 		case *SpreadElem:

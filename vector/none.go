@@ -5,26 +5,26 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-type NoneTmp struct {
-	len uint32
+type None struct {
+	*Error
 }
 
-func NewNoneTmp(len uint32) *NoneTmp {
-	return &NoneTmp{len}
+func NewNone(sctx *super.Context, len uint32) *None {
+	return &None{Error: NewMissing(sctx, len)}
 }
 
-func (*NoneTmp) Kind() Kind {
+func (n *None) Derive(len uint32) *None {
+	return &None{&Error{Typ: n.Typ, Vals: NewConstString("missing", len)}}
+}
+
+func (*None) Kind() Kind {
 	return KindNone
 }
 
-func (n *NoneTmp) Len() uint32 {
-	return n.len
-}
-
-func (*NoneTmp) Serialize(b *scode.Builder, _ uint32) {
+func (*None) Serialize(b *scode.Builder, _ uint32) {
 	b.Append(nil)
 }
 
-func (*NoneTmp) Type() super.Type {
+func (*None) Type() super.Type {
 	return super.TypeNone
 }

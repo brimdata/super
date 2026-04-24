@@ -472,6 +472,6 @@ func (n *noneValueBuilder) Write(scode.Bytes) {
 	n.len++
 }
 
-func (n *noneValueBuilder) Build(*super.Context) Any {
-	return NewNoneTmp(n.len)
+func (n *noneValueBuilder) Build(sctx *super.Context) Any {
+	return NewNone(sctx, n.len)
 }

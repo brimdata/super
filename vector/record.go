@@ -149,22 +149,25 @@ func (r *RLE) emit(run uint32) {
 // record field or express it as missing.  None wraps Error as
 // an error("missing") so it expresses this when not assigned to
 // a field.
-type None struct {
-	*Error
-	typ super.Type
-}
 
-func (*None) Kind() Kind {
-	return KindNone
-}
+/*
+	type None struct {
+		*Error
+		typ super.Type
+	}
 
-func NewNone(sctx *super.Context, typ super.Type, length uint32) *None {
-	return NewNoneWithError(typ, NewMissing(sctx, length))
-}
+	func (*None) Kind() Kind {
+		return KindNone
+	}
 
-func NewNoneWithError(typ super.Type, err *Error) *None {
-	return &None{typ: typ, Error: err}
-}
+	func NewNone(sctx *super.Context, typ super.Type, length uint32) *None {
+		return NewNoneWithError(typ, NewMissing(sctx, length))
+	}
+
+	func NewNoneWithError(typ super.Type, err *Error) *None {
+		return &None{typ: typ, Error: err}
+	}
+*/
 
 func isNone(vec Any, slot uint32) bool {
 	if _, ok := vec.(*None); ok {
@@ -185,7 +188,7 @@ func NewFieldFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uint
 		// This field is optional but everything is here in this instance.
 		return vec
 	}
-	return &Optional{NewDynamic(tags, []Any{vec, NewNone(sctx, vec.Type(), noneLen)})}
+	return &Optional{NewDynamic(tags, []Any{vec, NewNone(sctx, noneLen)})}
 }
 
 // An Optional value is a special Dynamic that has two tags comprising the
@@ -194,6 +197,7 @@ type Optional struct {
 	*Dynamic
 }
 
+// XXX an optional could have all nones but still be optional type?
 func (o *Optional) Type() super.Type {
 	return o.Dynamic.Values[0].Type()
 }
@@ -219,11 +223,13 @@ func Opt(vec Any) Any {
 	return vec
 }
 
+/*
 // OptType returns the type of `v` preventing None values from expressing
 // themselves as missing and instead retuning the type bound to that None.
-func OptType(vec Any) super.Type {
+func xOptType(vec Any) super.Type {
 	if none, ok := vec.(*None); ok {
 		return none.typ
 	}
 	return vec.Type()
 }
+*/

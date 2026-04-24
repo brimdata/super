@@ -24,7 +24,7 @@ func Pick(val Any, index []uint32) Any {
 	case *Error:
 		return NewError(val.Typ, Pick(val.Vals, index))
 	case *None:
-		return NewNoneWithError(OptType(val), NewError(val.Typ, Pick(val.Vals, index)))
+		return val.Derive(uint32(len(index)))
 	case *Null:
 		return NewNull(uint32(len(index)))
 	case *Union:

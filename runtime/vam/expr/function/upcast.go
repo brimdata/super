@@ -140,7 +140,7 @@ func (u *Upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 			if !f.Opt {
 				return nil
 			}
-			fieldVecs[i] = vector.NewNone(u.sctx, f.Type, vec.Len())
+			fieldVecs[i] = vector.NewNone(u.sctx, vec.Len())
 			continue
 		}
 		fieldVecs[i] = u.upcast(recVec.Fields[n], f.Type)
