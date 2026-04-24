@@ -15,4 +15,4 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      stdio:stdin: type "foo" already exists
+      stdio:stdin: type "foo" redefined

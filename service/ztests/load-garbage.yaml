@@ -14,7 +14,7 @@ outputs:
     data: |
       stdio:stdin: format detection error
       	arrows: schema message length exceeds 1 MiB
-      	bsup: BSUP version mismatch: expected 3, found 0
+      	bsup: BSUP version mismatch: expected 4, found 0
       	csup: auto-detection requires seekable input
       	csv: line 1: delimiter ',' not found
       	json: invalid character 'T' looking for beginning of value
@@ -23,6 +23,5 @@ outputs:
       	sup: line 1: syntax error
       	tsv: line 1: delimiter '\t' not found
       	zeek: line 1: bad types/fields definition in zeek header
-      	jsup: line 1: malformed JSUP: bad type object: "This file contains no records.": unpacker error parsing JSON: invalid character 'T' looking for beginning of value
       status code 400: no records in request
 

@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/dbio"
 	"github.com/brimdata/super/sio/jsonio"
-	"github.com/brimdata/super/sio/jsupio"
 	"github.com/brimdata/super/sio/lineio"
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/sio/supio"
@@ -61,8 +60,6 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
 		return csvio.NewWriter(w, opts.CSV), nil
 	case "zeek":
 		return zeekio.NewWriter(w), nil
-	case "jsup":
-		return jsupio.NewWriter(w), nil
 	default:
 		return nil, fmt.Errorf("unknown format: %s", opts.Format)
 	}

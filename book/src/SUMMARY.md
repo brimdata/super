@@ -192,7 +192,6 @@
     - [Super (SUP)](formats/sup.md)
     - [Super Binary (BSUP)](formats/bsup.md)
     - [Super Column (CSUP)](formats/csup.md)
-    - [Super JSON (JSUP)](formats/jsup.md)
 !!- [Database](database/intro.md)
 !!    - [API](database/api.md)
 !!    - [Format](database/format.md)

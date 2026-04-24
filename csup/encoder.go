@@ -37,7 +37,7 @@ type PrimitiveEncoder interface {
 func NewEncoder(cctx *Context, typ super.Type) Encoder {
 	switch typ := typ.(type) {
 	case *super.TypeNamed:
-		return &NamedEncoder{NewEncoder(cctx, typ.Type), typ.Name}
+		return &NamedEncoder{cctx: cctx, typ: typ}
 	case *super.TypeError:
 		return &ErrorEncoder{NewEncoder(cctx, typ.Type)}
 	case *super.TypeRecord:
@@ -79,20 +79,6 @@ func NewPrimitiveEncoder(cctx *Context, typ super.Type) PrimitiveEncoder {
 	default:
 		return NewScodeEncoder(typ)
 	}
-}
-
-type NamedEncoder struct {
-	Encoder
-	name string
-}
-
-func (n *NamedEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
-	off, id := n.Encoder.Metadata(cctx, off)
-	return off, cctx.enter(&Named{n.name, id})
-}
-
-func (n *NamedEncoder) Write(vec vector.Any) {
-	n.Encoder.Write(vec.(*vector.Named).Any)
 }
 
 type ErrorEncoder struct {

@@ -45,7 +45,6 @@ func TestSPQ(t *testing.T) {
 		runAllBoomerangs(t, "csup", data)
 		runAllBoomerangs(t, "parquet", data)
 		runAllBoomerangs(t, "sup", data)
-		runAllBoomerangs(t, "jsup", data)
 	})
 
 	for d := range dirs {
@@ -197,4 +196,44 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	require.NoError(t, boomerangWriter.Close())
 
 	require.Equal(t, baseline.String(), boomerang.String(), "baseline and boomerang differ")
+}
+
+// If there's a problem with panics in the boomerangs, the Skip() can be commented
+// out and this test run to have each input loaded in a test to see where the problem lies.
+func TestLoad(t *testing.T) {
+	t.Skip("this test used for debugging only")
+	dirs, err := findZTests()
+	require.NoError(t, err)
+	for dir := range dirs {
+		bundles, err := ztest.Load(dir)
+		require.NoError(t, err)
+		for _, b := range bundles {
+			if b.Test == nil {
+				continue
+			}
+			testName := b.FileName + "/" + strconv.Itoa(b.Test.Line)
+			if i := b.Test.Input; i != nil {
+				t.Run(testName+"/input", func(t *testing.T) {
+					isValid(t, testName+"/input", *i)
+				})
+			}
+			t.Run(testName+"/output", func(t *testing.T) {
+				isValid(t, testName+"/output", b.Test.Output)
+			})
+			for _, i := range b.Test.Inputs {
+				if i.Data != nil {
+					t.Run(testName+"/inputs", func(t *testing.T) {
+						isValid(t, testName+"/inputs", *i.Data)
+					})
+				}
+			}
+			for _, o := range b.Test.Outputs {
+				if o.Data != nil {
+					t.Run(testName+"/outputs", func(t *testing.T) {
+						isValid(t, testName, *o.Data)
+					})
+				}
+			}
+		}
+	}
 }

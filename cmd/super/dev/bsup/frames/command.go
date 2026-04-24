@@ -10,7 +10,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
-	"github.com/brimdata/super/cmd/super/dev/dig"
+	"github.com/brimdata/super/cmd/super/dev/bsup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
@@ -33,16 +33,16 @@ in any format.`,
 }
 
 func init() {
-	dig.Spec.Add(Frames)
+	bsup.Spec.Add(Frames)
 }
 
 type Command struct {
-	*dig.Command
+	*bsup.Command
 	outputFlags outputflags.Flags
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	c := &Command{Command: parent.(*dig.Command)}
+	c := &Command{Command: parent.(*bsup.Command)}
 	c.outputFlags.SetFlags(f)
 	return c, nil
 }

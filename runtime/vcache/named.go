@@ -28,9 +28,18 @@ func (n *named) unmarshal(cctx *csup.Context, projection field.Projection) {
 
 func (n *named) project(loader *loader, projection field.Projection) vector.Any {
 	vec := n.values.project(loader, projection)
-	typ, err := loader.sctx.LookupTypeNamed(n.meta.Name, vec.Type())
-	if err != nil {
-		panic(err)
+	// Try to preserve the named type if possible but if the projection changes
+	// the underlying type, then just return the inner vector.
+	inner := vec.Type()
+	named := loader.sctx.LookupByName(n.meta.Name)
+	if named == nil {
+		var err error
+		named, err = loader.sctx.LookupTypeNamed(n.meta.Name, vec.Type())
+		if err != nil {
+			panic(err)
+		}
+	} else if named.Type != inner {
+		return vec
 	}
-	return vector.NewNamed(typ, vec)
+	return vector.NewNamed(named, vec)
 }

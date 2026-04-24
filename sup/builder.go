@@ -21,8 +21,7 @@ func Build(b *scode.Builder, val Value) (super.Value, error) {
 		return super.Null, err
 	}
 	it := b.Bytes().Iter()
-	out := super.NewValue(val.Type(), it.Next())
-	return out, nil
+	return super.NewValue(val.Type(), it.Next()), nil
 }
 
 func buildValue(b *scode.Builder, val Value) error {

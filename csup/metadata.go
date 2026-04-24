@@ -12,6 +12,14 @@ type Metadata interface {
 	Len(*Context) uint32
 }
 
+type Empty struct {
+	Type super.Type
+}
+
+func (*Empty) Len(*Context) uint32 {
+	return 0
+}
+
 type Record struct {
 	Length uint32
 	Fields []Field
@@ -322,4 +330,5 @@ var Template = []any{
 	Dict{},
 	Dynamic{},
 	Fusion{},
+	Empty{},
 }

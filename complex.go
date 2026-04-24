@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"sort"
+	"sync"
 
 	"github.com/brimdata/super/scode"
 )
@@ -153,27 +154,37 @@ func NormalizeMap(zv scode.Bytes) scode.Bytes {
 type TypeNamed struct {
 	id   int
 	Name string
-	Type Type
+	// We protect the Type field with a condition variable since named types
+	// may be initially declared without an inner type then bound.  The condition
+	// is the presence of Type.  If multiple threads try to create the same
+	// named type, this provides synchronization between creating the unbound
+	// named type and the bound type and provides a means to reliably check
+	// that the wrapped type is the same when the name is the same.
+	mu   sync.Mutex
+	cond *sync.Cond
+	Type
 }
 
 func NewTypeNamed(id int, name string, typ Type) *TypeNamed {
-	return &TypeNamed{
+	named := &TypeNamed{
 		id:   id,
 		Name: name,
 		Type: typ,
 	}
+	named.cond = sync.NewCond(&named.mu)
+	return named
 }
 
-func (t *TypeNamed) ID() int {
-	return t.Type.ID()
+func (t *TypeNamed) Wait() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	for t.Type == nil {
+		t.cond.Wait()
+	}
 }
 
 func (t *TypeNamed) NamedID() int {
 	return t.id
-}
-
-func (t *TypeNamed) Kind() Kind {
-	return t.Type.Kind()
 }
 
 func TypeUnder(typ Type) Type {

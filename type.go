@@ -358,6 +358,11 @@ func IsRecordType(typ Type) bool {
 	return ok
 }
 
+func IsTypeNamed(typ Type) bool {
+	_, ok := typ.(*TypeNamed)
+	return ok
+}
+
 func TypeRecordOf(typ Type) *TypeRecord {
 	t, _ := TypeUnder(typ).(*TypeRecord)
 	return t
@@ -403,23 +408,26 @@ func UniqueTypes(types []Type) []Type {
 }
 
 func CompareTypes(a, b Type) int {
-	aID, bID := a.ID(), b.ID()
+	aID, bID := TypeID(a), TypeID(b)
 	if aID == bID {
-		if a, ok := a.(*TypeNamed); ok {
-			if b, ok := b.(*TypeNamed); ok {
-				// Named types sharing an underlying type are
-				// ordered by name.
-				return strings.Compare(a.Name, b.Name)
-			}
-			// Named type a is ordered after its underlying type b.
-			return 1
-		}
-		if _, ok := b.(*TypeNamed); ok {
-			// Named type b is ordered after its underlying type a.
-			return -1
-		}
-		// a == b
 		return 0
+	}
+	// Named types come first.  We are careful here to not look into the
+	// Type field of the named type as we need to be able to order types
+	// (e.g., to create union types) while a named type is not fully resolved.
+	if a, ok := a.(*TypeNamed); ok {
+		if b, ok := b.(*TypeNamed); ok {
+			if a.Name < b.Name {
+				return -1
+			}
+			if a.Name > b.Name {
+				return 1
+			}
+		}
+		return -1
+	}
+	if IsTypeNamed(b) {
+		return 1
 	}
 	if cmp := cmp.Compare(a.Kind(), b.Kind()); cmp != 0 {
 		return cmp
@@ -511,8 +519,13 @@ func appendTypeValue(b scode.Bytes, t Type, typedefs *map[string]Type) scode.Byt
 			*typedefs = make(map[string]Type)
 		}
 		id := byte(TypeValueNameDef)
-		if previous := (*typedefs)[t.Name]; previous == t.Type {
+		if previous, ok := (*typedefs)[t.Name]; ok {
+			if previous != t.Type {
+				panic(t.Type)
+			}
 			id = TypeValueNameRef
+		} else {
+			(*typedefs)[t.Name] = t.Type
 		}
 		b = append(b, id)
 		b = binary.AppendUvarint(b, uint64(len(t.Name)))
@@ -521,10 +534,6 @@ func appendTypeValue(b scode.Bytes, t Type, typedefs *map[string]Type) scode.Byt
 			return b
 		}
 		b = appendTypeValue(b, t.Type, typedefs)
-		// Set the typedef *after* the child has been recursively traversed
-		// in case the child sets the name to a different type.  This insures
-		// that the DFS binding order is maintained.
-		(*typedefs)[t.Name] = t.Type
 		return b
 
 	case *TypeRecord:

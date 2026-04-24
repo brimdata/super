@@ -51,6 +51,9 @@ test-unit:
 test-system: build bin/minio
 	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" go test .
 
+test-boomerangs: build bin/minio
+	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" go test -parallel 1 . -run TestSPQ/boomerang -v
+
 test-run: build bin/minio
 	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" go test . -v -run $(TEST)
 

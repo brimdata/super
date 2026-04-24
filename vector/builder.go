@@ -258,6 +258,8 @@ func bytesTableOf(vec Any) BytesTable {
 		return vec.table
 	case *Bytes:
 		return vec.table
+	case *Empty:
+		return BytesTable{}
 	default:
 		panic(vec)
 	}

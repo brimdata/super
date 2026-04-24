@@ -79,6 +79,8 @@ func newShadow(cctx *csup.Context, id csup.ID) shadow {
 		return newTypeValue(cctx, meta)
 	case *csup.Const:
 		return newConst(cctx, meta)
+	case *csup.Empty:
+		return newEmpty(meta)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", meta))
 	}

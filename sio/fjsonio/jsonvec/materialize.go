@@ -8,15 +8,12 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func Materialize(sctx *super.Context, b *Builder) vector.Any {
+func Materialize(sctx *super.Context, b Builder) vector.Any {
 	m := &materializer{
 		sctx: sctx,
 		defs: super.NewTypeDefs(),
 	}
-	vec, subtypes := m.value(b.stack[0], false)
-	if subtypes != nil {
-		panic(subtypes)
-	}
+	vec, _ := m.value(b.Value())
 	return vec
 }
 
@@ -25,7 +22,7 @@ type materializer struct {
 	defs *super.TypeDefs
 }
 
-func (m *materializer) value(v Value, fuse bool) (vector.Any, []uint32) {
+func (m *materializer) value(v Value) (vector.Any, []uint32) {
 	switch v := v.(type) {
 	case *Null:
 		return vector.NewNull(v.len), nil
@@ -38,11 +35,11 @@ func (m *materializer) value(v Value, fuse bool) (vector.Any, []uint32) {
 	case *String:
 		return v.Value, nil
 	case *Union:
-		return m.union(v, fuse)
+		return m.union(v)
 	case *Array:
-		return m.array(v, fuse)
+		return m.array(v)
 	case *Record:
-		return m.record(v, fuse)
+		return m.record(v)
 	case *Empty:
 		// This happens when an array value never saw any contents
 		// so all of the inner values of the array are zero length
@@ -55,14 +52,14 @@ func (m *materializer) value(v Value, fuse bool) (vector.Any, []uint32) {
 	}
 }
 
-func (m *materializer) union(u *Union, fuse bool) (vector.Any, []uint32) {
+func (m *materializer) union(u *Union) (vector.Any, []uint32) {
 	var types []super.Type
 	var vecs []vector.Any
 	vals := u.Values()
 	dynamic := make([][]uint32, 0, len(vals))
 	fixed := make([]uint32, 0, len(vals))
 	for _, v := range vals {
-		vec, ids := m.value(v, true)
+		vec, ids := m.value(v)
 		dynamic = append(dynamic, ids)
 		var id uint32
 		if ids == nil {
@@ -83,9 +80,6 @@ func (m *materializer) union(u *Union, fuse bool) (vector.Any, []uint32) {
 		subtypes: subtypes,
 	}
 	vec := vector.NewUnion(utyp, u.Tags, vecs)
-	if !fuse {
-		subtypes = nil
-	}
 	return vector.NewFusionWithLoader(m.sctx, typ, loader, vec), subtypes
 }
 
@@ -104,8 +98,8 @@ func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixe
 	return subtypes
 }
 
-func (m *materializer) array(a *Array, fuse bool) (vector.Any, []uint32) {
-	inner, ids := m.value(a.Inner, fuse)
+func (m *materializer) array(a *Array) (vector.Any, []uint32) {
+	inner, ids := m.value(a.Inner)
 	typ := m.sctx.LookupTypeArray(inner.Type())
 	subtypes := m.makeArraySubtypes(ids)
 	return vector.NewArray(typ, a.Offsets, inner), subtypes
@@ -122,9 +116,8 @@ func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
 	return subtypes
 }
 
-func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
+func (m *materializer) record(r *Record) (vector.Any, []uint32) {
 	fuseHere := len(r.perm) > 1
-	fuseChildren := fuseHere || fuse
 	fieldNames := make([]string, len(r.LUT))
 	for name, id := range r.LUT {
 		fieldNames[id] = name
@@ -141,7 +134,7 @@ func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
 	fixed := make([]uint32, len(r.Fields))
 	for i, field := range r.Fields {
 		rle := r.RLEs[i].End(n)
-		vec, ids := m.value(field.Value, fuseChildren)
+		vec, ids := m.value(field.Value)
 		dynamic[i] = ids
 		// XXX We shouldn't always pollute the typedefs with this
 		// type... only if there is a demand for fusion, i.e.,
@@ -150,6 +143,8 @@ func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
 		// and we can cleanup later.
 		if ids == nil {
 			fixed[i] = m.defs.LookupType(vec.Type())
+		} else {
+			fuseHere = true
 		}
 		field := super.NewFieldWithOpt(fieldNames[i], vec.Type(), len(rle) > 0)
 		vecs = append(vecs, vector.NewFieldFromRLE(m.sctx, vec, n, rle))
@@ -157,25 +152,16 @@ func (m *materializer) record(r *Record, fuse bool) (vector.Any, []uint32) {
 	}
 	rtyp := m.sctx.MustLookupTypeRecord(allFields)
 	record := vector.NewRecord(rtyp, vecs, n)
-	if !fuseHere && !fuseChildren {
+	if !fuseHere {
 		return record, nil
 	}
 	subtypes := m.makeRecordSubtypes(r.perm, allFields, dynamic, fixed, r.tags)
-	if fuseHere {
-		typ := m.sctx.LookupTypeFusion(rtyp)
-		loader := &subtypesLoader{
-			defs:     m.defs,
-			subtypes: subtypes,
-		}
-		if !fuse {
-			subtypes = nil
-		}
-		return vector.NewFusionWithLoader(m.sctx, typ, loader, record), subtypes
+	typ := m.sctx.LookupTypeFusion(rtyp)
+	loader := &subtypesLoader{
+		defs:     m.defs,
+		subtypes: subtypes,
 	}
-	if !fuse {
-		subtypes = nil
-	}
-	return record, subtypes
+	return vector.NewFusionWithLoader(m.sctx, typ, loader, record), subtypes
 }
 
 func (m *materializer) makeRecordSubtypes(perm map[string]uint32, fields []super.Field, dynamic [][]uint32, fixed []uint32, tags []uint32) []uint32 {

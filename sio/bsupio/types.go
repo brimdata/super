@@ -43,12 +43,18 @@ func (e *Encoder) nextBuffer() []byte {
 // inside this context and emits BSUP typedefs for any type needed to construct
 // the new type into the buffer provided.
 func (e *Encoder) Encode(external super.Type) uint32 {
+	// In general, a type can have a forward reference to another named type
+	// that isn't defined here yet, so we need to recursively bind/patch
+	// named types in the local type context, which a mapper can do but it
+	// needs the original type context (actually just the original typedefs
+	// table from the query sctx)
 	return e.defs.LookupType(external)
 }
 
 type Decoder struct {
-	// shared/output context
-	sctx *super.Context
+	sctx   *super.Context
+	defs   *super.TypeDefs
+	mapper *super.TypeDefsMapper
 	// Local type IDs are mapped to the shared-context types with the types array.
 	// The types slice is protected with mutex as the slice can be expanded while
 	// worker threads are scanning earlier batches.
@@ -59,14 +65,22 @@ type Decoder struct {
 var _ super.TypeFetcher = (*Decoder)(nil)
 
 func NewDecoder(sctx *super.Context) *Decoder {
-	return &Decoder{sctx: sctx}
+	defs := super.NewTypeDefs()
+	return &Decoder{
+		sctx:   sctx,
+		defs:   defs,
+		mapper: super.NewTypeDefsMapper(sctx, defs),
+	}
 }
 
 func (d *Decoder) decode(b *buffer) error {
-	defs := super.NewTypeDefsFromBytes(b.data)
-	mapper := super.NewTypeDefsMapper(d.sctx, defs)
-	for id := range defs.NTypes() {
-		typ := mapper.LookupType(uint32(id + super.IDTypeComplex))
+	before := d.defs.NTypes()
+	if ok := d.defs.AppendBytes(b.Bytes()); !ok {
+		return errors.New("corrupt BSUP types frame")
+	}
+	after := d.defs.NTypes()
+	for id := before; id < after; id++ {
+		typ := d.mapper.LookupType(uint32(id + super.IDTypeComplex))
 		if typ == nil {
 			return errors.New("corrupt BSUP types frame")
 		}

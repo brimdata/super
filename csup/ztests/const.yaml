@@ -12,6 +12,6 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {Version:18::uint32,MetaSize:44::uint64,TypeSize:6::uint64,DataSize:0::uint64,Root:0::uint32}
+      {Version:19::uint32,MetaSize:47::uint64,TypeSize:6::uint64,DataSize:0::uint64,Root:0::uint32}
       type Const={Value:fusion(all),Count:uint32}
       {Value:fusion(0x02,<int64>),Count:3}::Const

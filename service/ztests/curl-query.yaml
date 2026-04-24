@@ -2,10 +2,9 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek,x-jsup} ""; do
+  for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek} ""; do
     echo === $accept ===
-    curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB/query\?ctrl=true |
-      sed -E '/QueryStats/s/[0-9]{3,}/xxx/g' # for JSUP
+    curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB/query\?ctrl=true
   done
   echo === application/vnd.apache.arrow.stream ===
   curl -H 'Accept: application/vnd.apache.arrow.stream' -d '{"query":"from test"}' $SUPER_DB/query |
@@ -47,12 +46,6 @@ outputs:
       #types	string	string	string
       hello	world	goodbye
       one	two	three
-      === application/x-jsup ===
-      {"type":"QueryChannelSet","value":{"channel":"main"}}
-      {"type":{"kind":"record","id":33,"fields":[{"name":"a","type":{"kind":"primitive","name":"string"},"opt":false},{"name":"b","type":{"kind":"record","id":32,"fields":[{"name":"c","type":{"kind":"primitive","name":"string"},"opt":false},{"name":"d","type":{"kind":"primitive","name":"string"},"opt":false}]},"opt":false}]},"value":["hello",["world","goodbye"]]}
-      {"type":{"kind":"ref","id":33},"value":["one",["two","three"]]}
-      {"type":"QueryChannelEnd","value":{"channel":"main"}}
-      {"type":"QueryStats","value":{"start_time":{"sec":xxx,"ns":xxx},"update_time":{"sec":xxx,"ns":xxx},"bytes_read":36,"bytes_matched":36,"records_read":2,"records_matched":2}}
       === ===
       {a:"hello",b:{c:"world",d:"goodbye"}}
       {a:"one",b:{c:"two",d:"three"}}

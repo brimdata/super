@@ -27,8 +27,9 @@ func (f *Fuser) Fuse(t super.Type) {
 		return
 	}
 	f.types[t] = struct{}{}
+	t = f.fuseInternal(t)
 	if f.typ == nil {
-		f.typ = f.fuseMono(t)
+		f.typ = t
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
@@ -53,8 +54,6 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		return super.TypeAll
 	}
 	switch a := a.(type) {
-	case *super.TypeOfNone:
-		return b
 	case *super.TypeRecord:
 		if b, ok := b.(*super.TypeRecord); ok {
 			fields := slices.Clone(a.Fields)
@@ -157,24 +156,24 @@ func (f *Fuser) redefPanic(named *super.TypeNamed) {
 	panic(fmt.Sprintf("type %s redefined: %s to %s", named.Name, sup.String(previous), sup.String(named.Type)))
 }
 
-func (f *Fuser) fuseMono(typ super.Type) super.Type {
+func (f *Fuser) fuseInternal(typ super.Type) super.Type {
 	if typ, ok := typ.(*super.TypeFusion); ok {
-		return f.fusion(f.fuseMono(typ.Type))
+		return f.fusion(f.fuseInternal(typ.Type))
 	}
 	var out super.Type
 	switch typ := typ.(type) {
 	case *super.TypeRecord:
 		fields := slices.Clone(typ.Fields)
 		for i, field := range fields {
-			fields[i].Type = f.fuseMono(field.Type)
+			fields[i].Type = f.fuseInternal(field.Type)
 		}
 		out = f.sctx.MustLookupTypeRecord(fields)
 	case *super.TypeArray:
-		out = f.sctx.LookupTypeArray(f.fuseMono(typ.Type))
+		out = f.sctx.LookupTypeArray(f.fuseInternal(typ.Type))
 	case *super.TypeSet:
-		out = f.sctx.LookupTypeSet(f.fuseMono(typ.Type))
+		out = f.sctx.LookupTypeSet(f.fuseInternal(typ.Type))
 	case *super.TypeMap:
-		out = f.fusion(f.sctx.LookupTypeMap(f.fuseMono(typ.KeyType), f.fuseMono(typ.ValType)))
+		out = f.fusion(f.sctx.LookupTypeMap(f.fuseInternal(typ.KeyType), f.fuseInternal(typ.ValType)))
 	case *super.TypeUnion:
 		types := f.fuseIntoUnionTypes(nil, typ)
 		if len(types) == 1 {
@@ -189,7 +188,7 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 	case *super.TypeEnum:
 		return typ
 	case *super.TypeError:
-		out = f.sctx.LookupTypeError(f.fuseMono(typ.Type))
+		out = f.sctx.LookupTypeError(f.fuseInternal(typ.Type))
 	default:
 		out = typ
 	}
@@ -219,7 +218,7 @@ func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.T
 		case t == typ:
 			// This is already in the union.
 			return types
-		case typKind != super.PrimitiveKind && typKind == t.Kind():
+		case typKind != super.PrimitiveKind && typKind == t.Kind() && !super.IsTypeNamed(t):
 			types[i] = noFusion(f.fuse(t, typ))
 			return types
 		}

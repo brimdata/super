@@ -7,7 +7,6 @@ import (
 	"io"
 	"syscall"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 )
@@ -134,9 +133,9 @@ func (r *Reader) Close() error {
 
 func (r *Reader) makeRequest(off int64, count int64) (io.ReadCloser, error) {
 	input := &s3.GetObjectInput{
-		Bucket: aws.String(r.bucket),
-		Key:    aws.String(r.key),
-		Range:  aws.String(fmt.Sprintf("bytes=%d-%d", off, off+count-1)),
+		Bucket: new(r.bucket),
+		Key:    new(r.key),
+		Range:  new(fmt.Sprintf("bytes=%d-%d", off, off+count-1)),
 	}
 	res, err := r.client.GetObjectWithContext(r.ctx, input)
 	if err != nil {

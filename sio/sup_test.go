@@ -11,7 +11,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/jsupio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,22 +43,6 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	err := sio.Copy(supDst, rawSrc)
 	if assert.NoError(t, err) {
 		assert.Equal(t, in, out.Bytes())
-	}
-}
-
-func boomerangJSUP(t *testing.T, logs string) {
-	supSrc := supio.NewReader(super.NewContext(), strings.NewReader(logs))
-	var jsupOutput Output
-	jsupDst := jsupio.NewWriter(&jsupOutput)
-	err := sio.Copy(jsupDst, supSrc)
-	require.NoError(t, err)
-
-	var out Output
-	jsupSrc := jsupio.NewReader(super.NewContext(), &jsupOutput)
-	supDst := supio.NewWriter(&out, supio.WriterOpts{})
-	err = sio.Copy(supDst, jsupSrc)
-	if assert.NoError(t, err) {
-		assert.Equal(t, strings.TrimSpace(logs), strings.TrimSpace(out.String()))
 	}
 }
 
@@ -119,24 +102,6 @@ func TestRawCompressed(t *testing.T) {
 	boomerang(t, supBig(), true)
 }
 
-func TestJsup(t *testing.T) {
-	boomerangJSUP(t, sup1)
-	boomerangJSUP(t, sup2)
-	// XXX this one doesn't work right now but it's sort of ok becaue
-	// it's a little odd to have an null string value inside of a set.
-	// semantically this would mean the value shouldn't be in the set,
-	// but right now this turns into an empty string, which is somewhat reasonable.
-	//boomerangJSUP(t, sup3)
-	boomerangJSUP(t, sup4)
-	boomerangJSUP(t, sup5)
-	boomerangJSUP(t, sup6)
-	boomerangJSUP(t, sup7)
-	// XXX need to fix bug in json reader where it always uses a primitive null
-	// even within a container type (like json array)
-	//boomerangJSUP(t, sup8)
-	boomerangJSUP(t, supBig())
-}
-
 func TestNamed(t *testing.T) {
 	const simple = `type ipaddr=ip
 {foo:"bar",orig_h:127.0.0.1::ipaddr}`
@@ -148,7 +113,7 @@ type ipaddr=ip
 	const recordNamed = `
 type myrec={host:ip}
 {foo:{host:127.0.0.2}::myrec}
-{foo:null::(null|myrec)}
+{foo:null::(myrec|null)}
 `
 	t.Run("BSUP", func(t *testing.T) {
 		t.Run("simple", func(t *testing.T) {
@@ -159,17 +124,6 @@ type myrec={host:ip}
 		})
 		t.Run("named-record-type", func(t *testing.T) {
 			boomerang(t, recordNamed, true)
-		})
-	})
-	t.Run("JSUP", func(t *testing.T) {
-		t.Run("simple", func(t *testing.T) {
-			boomerangJSUP(t, simple)
-		})
-		t.Run("named-type-in-different-records", func(t *testing.T) {
-			boomerangJSUP(t, multipleRecords)
-		})
-		t.Run("named-record-type", func(t *testing.T) {
-			boomerangJSUP(t, recordNamed)
 		})
 	})
 }

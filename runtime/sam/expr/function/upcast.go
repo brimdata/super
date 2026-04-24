@@ -41,6 +41,9 @@ func (u *Upcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 }
 
 func (u *Upcast) upcast(b *scode.Builder, typ super.Type, bytes scode.Bytes, to super.Type) bool {
+	if f, ok := typ.(*super.TypeFusion); ok {
+		typ, bytes = f.DerefFusion(bytes)
+	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return u.toRecord(b, typ, bytes, to)
@@ -52,6 +55,8 @@ func (u *Upcast) upcast(b *scode.Builder, typ super.Type, bytes scode.Bytes, to 
 		return u.toMap(b, typ, bytes, to)
 	case *super.TypeUnion:
 		return u.toUnion(b, typ, bytes, to)
+	case *super.TypeEnum:
+		return u.toEnum(b, typ, bytes, to)
 	case *super.TypeError:
 		return u.toError(b, typ, bytes, to)
 	case *super.TypeNamed:
@@ -68,6 +73,7 @@ func (u *Upcast) upcast(b *scode.Builder, typ super.Type, bytes scode.Bytes, to 
 }
 
 func (u *Upcast) toRecord(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeRecord) bool {
+	typ, bytes = deunion(typ, bytes)
 	recType, ok := typ.(*super.TypeRecord)
 	if !ok {
 		return false
@@ -184,6 +190,23 @@ func (u *Upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to
 	return true
 }
 
+func (u *Upcast) toEnum(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeEnum) bool {
+	enumType, ok := typ.(*super.TypeEnum)
+	if !ok {
+		return false
+	}
+	symbol, err := enumType.Symbol(int(super.DecodeUint(bytes)))
+	if err != nil {
+		return false
+	}
+	i := to.Lookup(symbol)
+	if i < 0 {
+		return false
+	}
+	b.Append(super.EncodeUint(uint64(i)))
+	return true
+}
+
 func (u *Upcast) toFusion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeFusion) bool {
 	b.BeginContainer()
 	if to.Type == super.TypeAll {
@@ -216,11 +239,10 @@ func UpcastUnionTag(types []super.Type, out super.Type) int {
 	k := out.Kind()
 	if k == super.PrimitiveKind {
 		id := out.ID()
-		return slices.IndexFunc(types, func(t super.Type) bool { return t.ID() == id })
+		return slices.IndexFunc(types, func(t super.Type) bool { return !super.IsTypeNamed(t) && t.ID() == id })
 	}
-	return slices.IndexFunc(types, func(t super.Type) bool { return t.Kind() == k })
+	return slices.IndexFunc(types, func(t super.Type) bool { return !super.IsTypeNamed(t) && t.Kind() == k })
 }
-
 func (u *Upcast) toError(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeError) bool {
 	if errorType, ok := typ.(*super.TypeError); ok {
 		return u.upcast(b, errorType.Type, bytes, to.Type)

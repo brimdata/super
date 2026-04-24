@@ -15,8 +15,6 @@ type BSUPWriter struct {
 	marshaler *sup.MarshalBSUPContext
 }
 
-var _ controlWriter = (*JSUPWriter)(nil)
-
 func NewBSUPWriter(w io.Writer) *BSUPWriter {
 	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)

@@ -14,8 +14,8 @@ input: |
 
 output: |
   type string_named=string
-  type union=int64|string|string_named
-  {a:null::(null|union)}
+  type union=string_named|int64|string
+  {a:null::(union|null)}
   {a:1::union}
   {a:"hello"::union}
   {a:"goodbye"::string_named::union}

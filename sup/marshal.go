@@ -261,7 +261,7 @@ func (m *MarshalBSUPContext) encodeValue(v reflect.Value) (super.Type, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := typ.(*super.TypeNamed); ok {
+	if super.IsTypeNamed(typ) {
 		// We already have a named type.
 		return typ, nil
 	}
@@ -595,8 +595,8 @@ func (m *MarshalBSUPContext) lookupType(t reflect.Type) (super.Type, error) {
 
 func (m *MarshalBSUPContext) lookupTypeRecord(structType reflect.Type) (super.Type, error) {
 	var fields []super.Field
-	for i := range structType.NumField() {
-		field := structType.Field(i)
+	for field := range structType.Fields() {
+		field := field
 		name := fieldName(field)
 		fieldType, err := m.lookupType(field.Type)
 		if err != nil {

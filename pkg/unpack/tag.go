@@ -51,8 +51,8 @@ func structToUnpackRule(typ reflect.Type) (string, string, bool, error) {
 	var unpackKey string
 	var unpackVal string
 	var unpackSkip bool
-	for k := range typ.NumField() {
-		field := typ.Field(k)
+	for field := range typ.Fields() {
+		field := field
 		jsonField, jsonOk, _ := parseTag(tagJSON, field)
 		if jsonOk {
 			if _, ok := names[jsonField]; ok {

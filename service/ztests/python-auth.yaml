@@ -1,3 +1,5 @@
+skip: old python client required deprecated JSUP format
+
 script: |
   python3 -m venv v
   . v/bin/activate

@@ -46,6 +46,10 @@ input: |
   <int8>
 
 output: |
+  type named1=type
+  <named1>
+  type named2=type
+  <named2>
   <uint8>
   <uint16>
   <uint32>
@@ -65,10 +69,6 @@ output: |
   <ip>
   <net>
   <type>
-  type named1=type
-  <named1>
-  type named2=type
-  <named2>
   <null>
   <{x:uint16}>
   <{x:string}>

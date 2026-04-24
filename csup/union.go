@@ -46,7 +46,9 @@ func (u *UnionEncoder) Write(vec vector.Any) {
 	vecs, tags := u.reorder(u.typ, union)
 	u.tags.Append(tags)
 	for k, vec := range vecs {
-		u.values[k].Write(vec)
+		if vec.Len() != 0 {
+			u.values[k].Write(vec)
+		}
 	}
 }
 
