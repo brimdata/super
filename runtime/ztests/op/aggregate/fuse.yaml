@@ -27,7 +27,7 @@ input: |
   {fixed:{x:5},var:{s:"foo",t:{x:1}}}
 
 output: |
-  <{fixed:{x:int64},var:fusion({s:string,a?:[int64],t?:fusion(int64|{x:int64})})}>
+  <fusion({fixed:{x:int64},var:fusion({s:string,a?:[int64],t?:fusion(int64|{x:int64})})})>
 
 ---
 
@@ -41,7 +41,7 @@ input: |
   {a:[null]}
 
 output: |
-  <{a:fusion([fusion(int64|string|null)])}>
+  <fusion({a:fusion([fusion(int64|string|null)])})>
 
 ---
 

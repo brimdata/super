@@ -1,6 +1,8 @@
 # Test downcast on records.
 spq: downcast(this[0], this[1])
 
+vector: true
+
 input: |
   [{x:1},<{}>]
   [{x?:1},<{x:int64}>]
@@ -25,6 +27,8 @@ output: |
 # Test downcast on unions.
 spq: downcast(this[0], this[1])
 
+vector: true
+
 input: |
   [1::(int64|bool|string),<(int64|string)>]
   [1,<(int64|string)>]
@@ -45,6 +49,8 @@ output: |
 # Test downcast on arrays.
 spq: downcast(this[0], this[1])
 
+vector: true
+
 input: |
   [[1::(int64|bool|string),"foo"::(int64|bool|string)],<[int64|bool|string]>]
   [[{x:1::(int64|string)},{y:"foo"::(int64|string)}],<[{x:int64}|{y:string}]>]
@@ -52,6 +58,27 @@ input: |
 output: |
   [1,"foo"]::[int64|bool|string]
   error({message:"downcast: invalid subtype {x:int64}|{y:string}",on:{x:1::(int64|string)}})
+---
+
+# Test downcast on maps.
+spq: downcast(this, <map{string:string}>)
+
+vector: true
+
+input: |
+  map{"a"::(int64|string):"b"::(int64|string)}
+  map{1::(int64|string):"c"::(int64|string)}
+  map{"d"::(int64|string):"e"::(int64|string)}
+  map{"f"::(int64|string):2::(int64|string)}
+  map{3::(int64|string):4::(int64|string)}
+
+output: |
+  map{"a":"b"}
+  error({message:"downcast: type mismatch to string",on:1})
+  map{"d":"e"}
+  error({message:"downcast: type mismatch to string",on:2})
+  error({message:"downcast: type mismatch to string",on:3})
+
 ---
 
 # This should seemingly fail because int64|bool|string is not subtype of 
@@ -62,6 +89,8 @@ output: |
 # allows for unnested values, this can arise, e.g., fusing the values 
 # 1 with 2::(int64|(foo=(int64|string))).
 spq: downcast(this[0], this[1])
+
+vector: true
 
 input: |
   type foo=(int64|string)
@@ -78,6 +107,8 @@ output: |
 # Test downcast on fusion values.
 spq: downcast(this[0], this[1])
 
+vector: true
+
 input: |
   [fusion({x?:1,y?:_::string},<{x:int64}>),<{x:int64}>]
   [fusion({x?:1,y?:_::string},<{x:int64}>),<{y?:string}>]
@@ -86,5 +117,44 @@ input: |
 
 output: |
   {x:1}
-  error({message:"downcast: invalid subtype {y?:string}",on:fusion({x?:1,y?:_::string},<{x:int64}>)})
-  error({message:"downcast: invalid subtype {y:int64|string}",on:fusion({x?:_::int64,y?:"foo"},<{y:string}>)})
+  error({message:"downcast: invalid subtype {y?:string}",on:{x:1}})
+  error({message:"downcast: invalid subtype {y:int64|string}",on:{y:"foo"}})
+
+---
+
+# Test downcast on error values.
+spq: downcast(this, <error(string)>)
+
+vector: true
+
+input: |
+  error("foo"::(int64|string))
+  error(1::(int64|string))
+  error(1)
+
+output: |
+  error("foo")
+  error({message:"downcast: type mismatch to string",on:1})
+  error({message:"downcast: type mismatch to string",on:1})
+
+---
+
+# Test downcast on named values.
+spq: downcast(this[0], this[1]) 
+
+vector: true
+
+input: |
+  type foo=int64
+  type bar=int64
+  [1,<foo>]
+  [1::(int64|string),<foo>]
+  [1::foo,<bar>]
+  ["foo"::(int64|string),<foo>]
+
+output: |
+  type foo=int64
+  1::foo
+  1::foo
+  error({message:"downcast: type mismatch to bar",on:1::foo})
+  error({message:"downcast: type mismatch to int64",on:"foo"})
