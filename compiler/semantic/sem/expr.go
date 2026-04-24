@@ -536,19 +536,18 @@ func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes, defs *super.Co
 
 func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes, defs *super.Context) Expr {
 	var elems []RecordElem
-	it := scode.NewRecordIter(bytes, typ.Opts)
+	it := bytes.Iter()
 	for _, f := range typ.Fields {
 		if it.Done() {
 			panic(it)
 		}
-		var elem RecordElem
-		if val, none := it.Next(f.Opt); none {
-			localRec := defs.MustLookupTypeRecord(typ.Fields)
-			elem = &NoneElem{Node: loc, Name: f.Name, Type: super.TypeID(localRec)}
-		} else {
-			elem = &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, val, defs), Opt: f.Opt}
-		}
-		elems = append(elems, elem)
+		//XXX I think NoneElem can go away and be replaced with sum type
+		// record expr needs to look for option type in fields to create
+		// the right resulting type... actually doesn't need to look, just
+		// SUP needs to look to make it user friend and SuperSQL needs to
+		// parse field? with union-none implications.
+		// e.g., {f?:_::string} is just short hand for {f:none::(string|none)}
+		elems = append(elems, &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, it.Next(), defs)})
 	}
 	return &RecordExpr{
 		Node:  loc,

@@ -487,7 +487,7 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 	var fields []Builder
 	for _, f := range typ.Fields {
 		b := NewBuilder(f.Type)
-		if f.Opt {
+		if super.IsOptionType(f.Type) {
 			b = &optionalBuilder{value: b}
 		}
 		fields = append(fields, b)
@@ -551,7 +551,7 @@ func (o *optionalBuilder) Write(vec Any) {
 
 func (o *optionalBuilder) Build(sctx *super.Context) Any {
 	rle := o.rle.End(o.len)
-	return NewFieldFromRLE(sctx, o.value.Build(sctx), o.len, rle)
+	return NewOptionFromRLE(sctx, o.value.Build(sctx), o.len, rle)
 }
 
 type unionBuilder struct {

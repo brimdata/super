@@ -464,13 +464,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			return nil, nil
 		}
 		fields := make([]Field, 0, n)
-		optlen := (n + 7) >> 3
-		if optlen > len(tv) {
-			return nil, nil
-		}
-		opts := tv[:optlen]
-		tv = tv[optlen:]
-		for k := range n {
+		for range n {
 			var name string
 			name, tv = DecodeName(tv)
 			if tv == nil {
@@ -481,7 +475,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			if tv == nil {
 				return nil, nil
 			}
-			fields = append(fields, Field{name, typ, scode.TestBit(opts, k)})
+			fields = append(fields, Field{name, typ})
 		}
 		typ, err := c.LookupTypeRecord(fields)
 		if err != nil {
@@ -658,8 +652,8 @@ func (c *Context) StringTypeError() *TypeError {
 
 func (c *Context) WrapError(msg string, val Value) Value {
 	recType := c.MustLookupTypeRecord([]Field{
-		{"message", TypeString, false},
-		{"on", val.Type(), false},
+		{"message", TypeString},
+		{"on", val.Type()},
 	})
 	errType := c.LookupTypeError(recType)
 	var b scode.Builder
@@ -696,6 +690,41 @@ func NullableUnion(typ Type) (*TypeUnion, int) {
 		}
 	}
 	return nil, 0
+}
+
+func (c *Context) Option(typ Type) *TypeUnion {
+	var types []Type
+	if union, ok := typ.(*TypeUnion); ok {
+		for _, t := range union.Types {
+			if t == TypeNone {
+				return union
+			}
+		}
+		types = slices.Clone(union.Types)
+	} else {
+		types = []Type{typ}
+	}
+	out, ok := c.LookupTypeUnion(append(types, TypeNone))
+	if !ok {
+		panic(typ)
+	}
+	return out
+}
+
+func OptionUnion(typ Type) (*TypeUnion, int) {
+	if union, ok := typ.(*TypeUnion); ok {
+		for tag, typ := range union.Types {
+			if typ == TypeNone {
+				return union, tag
+			}
+		}
+	}
+	return nil, 0
+}
+
+func IsOptionType(typ Type) bool {
+	u, _ := OptionUnion(typ)
+	return u != nil
 }
 
 // TypeCache wraps a TypeFetcher with an unsynchronized cache for its LookupType
@@ -871,11 +900,6 @@ func (t *TypeDefs) LookupTypeRecord(fields []Field) uint32 {
 		t.bytes = binary.AppendUvarint(t.bytes, uint64(len(f.Name)))
 		t.bytes = append(t.bytes, f.Name...)
 		t.bytes = binary.AppendUvarint(t.bytes, uint64(ids[k]))
-		var opt byte
-		if f.Opt {
-			opt = 1
-		}
-		t.bytes = append(t.bytes, opt)
 	}
 	return t.Lookup(at)
 }
@@ -888,11 +912,6 @@ func (t *TypeDefs) BindTypeRecord(names []string, fields []uint32, opts []bool) 
 		t.bytes = binary.AppendUvarint(t.bytes, uint64(len(names[k])))
 		t.bytes = append(t.bytes, names[k]...)
 		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
-		var opt byte
-		if opts != nil && opts[k] {
-			opt = 1
-		}
-		t.bytes = append(t.bytes, opt)
 	}
 	return t.Lookup(at)
 }
@@ -1329,13 +1348,7 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 			if typ == nil {
 				return nil
 			}
-			optByte := b[0]
-			b = b[1:]
-			var opt bool
-			if optByte != 0 {
-				opt = true
-			}
-			fields = append(fields, Field{name, typ, opt})
+			fields = append(fields, Field{name, typ})
 		}
 		typ, err := t.sctx.LookupTypeRecord(fields)
 		if err != nil {

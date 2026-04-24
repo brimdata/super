@@ -320,11 +320,11 @@ func (r Value) nth(n int) (scode.Bytes, bool, bool) {
 	if typ := TypeRecordOf(r.typ); typ != nil {
 		var elem scode.Bytes
 		var none bool
-		for i, it := 0, scode.NewRecordIter(r.Bytes(), typ.Opts); i <= n; i++ {
+		for i, it := 0, r.Bytes().Iter(); i <= n; i++ {
 			if it.Done() {
 				return nil, false, false
 			}
-			elem, none = it.Next(typ.Fields[i].Opt)
+			elem = it.Next()
 		}
 		return elem, none, true
 	}

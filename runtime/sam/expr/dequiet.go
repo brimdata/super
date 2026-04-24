@@ -37,39 +37,25 @@ func (d *Dequiet) rec(builder *scode.Builder, typ super.Type, b scode.Bytes) sup
 	var changed bool
 	builder.BeginContainer()
 	var fields []super.Field
-	it := scode.NewRecordIter(b, rtyp.Opts)
-	// For building the output record, we don't how many optional fields there
-	// will be until after we make the type.  So we call EndContainerWithBits
-	// to deal with.
-	var nones []int
-	var optOff int
+	it := b.Iter()
 	for _, f := range rtyp.Fields {
-		fbytes, none := it.Next(f.Opt)
-		if none {
-			nones = append(nones, optOff)
-			fields = append(fields, super.NewFieldWithOpt(f.Name, f.Type, f.Opt))
-			optOff++
-			continue
-		}
-		ftyp := d.dequiet(builder, f.Type, fbytes)
+		ftyp := d.dequiet(builder, f.Type, it.Next())
 		if ftyp == nil {
 			changed = true
 			continue
 		}
-		fields = append(fields, super.NewFieldWithOpt(f.Name, ftyp, f.Opt))
-		if f.Opt {
-			optOff++
-		}
+		fields = append(fields, super.NewField(f.Name, ftyp))
 	}
 	if changed {
 		rtyp = d.sctx.MustLookupTypeRecord(fields)
 		typ = rtyp
 	}
-	builder.EndContainerWithNones(rtyp.Opts, nones)
+	builder.EndContainer()
 	return typ
 }
 
 func (d *Dequiet) dequiet(builder *scode.Builder, typ super.Type, b scode.Bytes) super.Type {
+	//XXX unwrap optional
 	if typ.Kind() == super.RecordKind {
 		return d.rec(builder, typ, b)
 	}

@@ -533,20 +533,11 @@ func appendTypeValue(b scode.Bytes, t Type, typedefs *map[string]Type) scode.Byt
 		if id == TypeValueNameRef {
 			return b
 		}
-		b = appendTypeValue(b, t.Type, typedefs)
-		return b
-
+		return appendTypeValue(b, t.Type, typedefs)
 	case *TypeRecord:
 		b = append(b, TypeValueRecord)
 		n := len(t.Fields)
 		b = binary.AppendUvarint(b, uint64(n))
-		opts := make([]byte, (n+7)>>3)
-		for k := range n {
-			if t.Fields[k].Opt {
-				opts[k>>3] = opts[k>>3] | (1 << (k & 7))
-			}
-		}
-		b = append(b, opts...)
 		for _, f := range t.Fields {
 			b = binary.AppendUvarint(b, uint64(len(f.Name)))
 			b = append(b, f.Name...)

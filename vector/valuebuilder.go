@@ -126,28 +126,23 @@ func (n *namedValueBuilder) Build(sctx *super.Context) Any {
 
 type recordValueBuilder struct {
 	typ    *super.TypeRecord
-	fields []fieldValueBuilder
+	fields []ValueBuilder
 	len    uint32
 }
 
 func newRecordValueBuilder(typ *super.TypeRecord) ValueBuilder {
-	var fields []fieldValueBuilder
+	var fields []ValueBuilder
 	for _, f := range typ.Fields {
-		fields = append(fields, fieldValueBuilder{opt: f.Opt, val: NewValueBuilder(f.Type)})
+		fields = append(fields, NewValueBuilder(f.Type))
 	}
 	return &recordValueBuilder{typ: typ, fields: fields}
 }
 
 func (r *recordValueBuilder) Write(bytes scode.Bytes) {
-	off := r.len
 	r.len++
-	it := scode.NewRecordIter(bytes, r.typ.Opts)
+	it := bytes.Iter()
 	for k := range r.fields {
-		elem, none := it.Next(r.typ.Fields[k].Opt)
-		// The none condition is captured by RLE.
-		if !none {
-			r.fields[k].write(elem, off)
-		}
+		r.fields[k].Write(it.Next())
 	}
 }
 
@@ -159,25 +154,25 @@ func (r *recordValueBuilder) Build(sctx *super.Context) Any {
 	return NewRecord(r.typ, fields, r.len)
 }
 
-type fieldValueBuilder struct {
-	opt  bool
-	val  ValueBuilder
-	runs RLE
+type optionValueBuilder struct {
+	union *super.TypeUnion
+	val   *unionValueBuilder
+	runs  RLE
 }
 
-func (f *fieldValueBuilder) write(bytes scode.Bytes, off uint32) {
-	if f.opt {
-		f.runs.Touch(off)
+func (o *optionValueBuilder) write(bytes scode.Bytes, off uint32) {
+	typ, _ := o.union.Untag(bytes)
+	if typ == super.TypeNone {
+		return
 	}
-	f.val.Write(bytes)
+	o.runs.Touch(off)
+	o.val.Write(bytes)
 }
 
-func (f *fieldValueBuilder) build(sctx *super.Context, n uint32) Any {
-	var runs []uint32
-	if f.opt {
-		runs = f.runs.End(n)
-	}
-	return NewFieldFromRLE(sctx, f.val.Build(sctx), n, runs)
+func (o *optionValueBuilder) build(sctx *super.Context, n uint32) Any {
+	// Strip the none type from the underlying union.
+	vec := o.val.Build(sctx)
+	return NewOptionFromRLE(sctx, vec, n, o.runs.End(n))
 }
 
 type errorValueBuilder struct {
@@ -259,6 +254,18 @@ func newUnionValueBuilder(typ *super.TypeUnion) ValueBuilder {
 	return &unionValueBuilder{typ: typ, values: values}
 }
 
+func optionTypes(u *super.TypeUnion) []super.Type {
+	//XXX arrange for type order of none to be last?
+	if u, tag := super.OptionUnion(u); u != nil {
+		if len(u.Types) == 2 {
+
+		}
+		types := make([]super.Type, 0, len(u.Types)-1)
+
+	}
+	return nil
+}
+
 func (u *unionValueBuilder) Write(bytes scode.Bytes) {
 	var typ super.Type
 	typ, bytes = u.typ.Untag(bytes)
@@ -267,7 +274,38 @@ func (u *unionValueBuilder) Write(bytes scode.Bytes) {
 	u.tags = append(u.tags, uint32(tag))
 }
 
+// XXX optional should have two forms like typevalues...
+// the union form with a type none in the union and the RLE form,
+// with the underlying compact vector... we turn RLEs into tags
+// on demand so that when we load record with lots of optional fields
+// (as is common with fusion) then we only unroll the tags on demand
+// and an optional field can round trip from vcache to runtime and back
+// to CSUP without the tags ever being built.
+
 func (u *unionValueBuilder) Build(sctx *super.Context) Any {
+	// If there is a none type in this union, then we were wrapped
+	// with an option type builder and we need to remove the none type
+	// from the union.
+	if unionType, tag := super.OptionUnion(u.typ); u != nil {
+		if len(unionType.Types) == 2 {
+			var valTag int
+			if tag == 0 {
+				valTag = 1
+			}
+			return u.values[valTag].Build()
+		}
+		types := make([]super.Type, 0, len(unionType.Types)-1)
+		vecs := make([]Any, 0, len(unionType.Types)-1)
+		tags := make([][]uint32, 0, len(unionType.Types)-1)
+		for k, t := range unionType.Types {
+			if k != tag {
+				vecs = append(vecs, u.values[k].Build(sctx))
+				types = append(types, t)
+				tags = append(tags, u.tags[k])
+			}
+		}
+		return NewUnion(sctx.LookupTypeUnion(types), u.tags, vecs)
+	}
 	var vecs []Any
 	for _, v := range u.values {
 		vecs = append(vecs, v.Build(sctx))

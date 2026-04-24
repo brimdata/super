@@ -43,24 +43,6 @@ func (r *Record) ChangeType(typ *super.TypeRecord) *Record {
 
 func (r *Record) Serialize(b *scode.Builder, slot uint32) {
 	b.BeginContainer()
-	if r.Typ.Opts != 0 {
-		// XXX TBD: improve performance of this in summit
-		var nones []int
-		var optOff int
-		for k := range r.Fields {
-			if r.Typ.Fields[k].Opt {
-				if isNone(r.Fields[k], slot) {
-					nones = append(nones, optOff)
-					optOff++
-					continue
-				}
-				optOff++
-			}
-			r.Fields[k].Serialize(b, uint32(slot))
-		}
-		b.EndContainerWithNones(r.Typ.Opts, nones)
-		return
-	}
 	for _, f := range r.Fields {
 		f.Serialize(b, slot)
 	}
@@ -176,15 +158,16 @@ func isNone(vec Any, slot uint32) bool {
 	return false
 }
 
-func NewFieldFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) Any {
+func NewOptionFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) Any {
 	if len(runlens) == 0 {
 		return vec
 	}
 	tags, noneLen := buildTags(runlens, length)
 	if noneLen == 0 {
-		// This field is optional but everything is here in this instance.
+		// This value is optional but everything is here in this instance.
 		return vec
 	}
+	//XXX None should not take a type since its type is embedded in the dynamic
 	return &Optional{NewDynamic(tags, []Any{vec, NewNone(sctx, vec.Type(), noneLen)})}
 }
 
@@ -195,6 +178,7 @@ type Optional struct {
 }
 
 func (o *Optional) Type() super.Type {
+	//XXX explain why this is not problematic
 	return o.Dynamic.Values[0].Type()
 }
 
