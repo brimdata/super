@@ -21,7 +21,7 @@ interacts with the database via the REST API provided by
 > below.
 >
 > The full benefits of super-structured data (including improved performance)
-> is expected when there is a native Python library implementation of
+> are expected when there is a native Python library implementation of
 > [CSUP](../../formats/csup.md).  Stay tuned.
 
 ## Installation

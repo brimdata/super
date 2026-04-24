@@ -41,6 +41,7 @@ _SUP_ALL_TYPES = """\
     uint16_val: 65535::uint16,
     uint32_val: 4294967295::uint32,
     uint64_val: 9007199254740992::uint64,
+    float16_val: 1.5::float16,
     float32_val: 1.5::float32,
     float64_val: 2.718281828,
     bool_val: true,
@@ -128,6 +129,10 @@ def test_uint32(record):
 
 def test_uint64(record):
     assert record['uint64_val'] == 9007199254740992
+
+
+def test_float16(record):
+    assert record['float16_val'] == pytest.approx(1.5)
 
 
 def test_float32(record):
