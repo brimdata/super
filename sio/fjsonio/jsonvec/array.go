@@ -23,7 +23,33 @@ func (a *Array) EndArray(inner Value) {
 	a.Inner = inner
 	n := a.Inner.Len()
 	if n == 0 {
+		// This is the first element and the array is
+		// empty, so we start off with an Empty.
 		a.Inner = new(Empty)
+	}
+	// If we add a zero-length array and if Empty is not
+	// already part of an inner union, then we add Empty
+	// to the union.
+	if a.Offsets[len(a.Offsets)-1] == n {
+		switch v := a.Inner.(type) {
+		case *Empty:
+			// Inner is still empty so everything seen so
+			// far is empty.  Do nothing
+		case *Union:
+			// Inner is a union.  Make sure it has an Empty.
+			v.AddEmpty()
+		default:
+			// Inner is some other value that we need to
+			// mix with an empty.  We we turn it into a
+			// union with empty.
+			v.ToUnion(v.Innert)
+		}
+		union, ok := a.Inner.(*Union)
+		if ok {
+			union.AddEmpty()
+		} else {
+
+		}
 	}
 	a.Offsets = append(a.Offsets, n)
 }

@@ -103,18 +103,75 @@ func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixe
 func (m *materializer) array(a *Array) (vector.Any, []uint32) {
 	pretty.Println("ARRAY", a)
 	inner, ids := m.value(a.Inner)
+	n := len(a.Offsets) - 1
+	var subtypes []uint32
+	if hasEmpty(a.Offsets) {
+		// The array builder doesn't do anything special for empty arrays
+		// so we have to detect them here.  If they are present, then we
+		// need to create the subtypes (or mix them into the subtypes).
+		if ids == nil {
+			// No subtypes so create a mix of the current type
+		}
+
+	}
+	innerType := inner.Type()
+	arrayType := m.sctx.LookupTypeArray(innerType)
 	pretty.Println("INNER", inner, "IDS", ids)
 	if ids == nil {
-		if hasEmpty(a.Offsets) {
-			subtypes := m.makeArraySubtypesSingleEmpty(uint32(super.TypeID(inner.Type())), a.Offsets)
-			return m.makeArrayFusion(inner, a.Offsets, subtypes)
-		}
-		typ := m.sctx.LookupTypeArray(inner.Type())
-		return vector.NewArray(typ, a.Offsets, inner), nil
+		// There is only one type.
+		return vector.NewArray(arrayType, a.Offsets, inner), nil
 	}
-	subtypes := m.makeArraySubtypesWithEmpties(ids, a.Offsets)
-	return m.makeArrayFusion(inner, a.Offsets, subtypes)
+	// Array does not have a uniform type either because its a mix of one
+	// type and nones (in which case subtypes is nil) or there are subtypes
+	// and possibly empties.  So we definitely have a fusion type and return
+	// the subtypes here.
+	n := len(a.Offsets) - 1
+	subtypes := make([]uint32, 0, n)
+	noneArrayID := m.defs.BindTypeWrapped(super.TypeDefArray, super.IDNone)
+	off := 0
+	for k := range n {
+		if a.Offsets[k] == a.Offsets[k+1] {
+			subtypes = append(subtypes, noneArrayID)
+		} else {
+			subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, ids[off]))
+			off++
+		}
+	}
+	array := vector.NewArray(arrayType, a.Offsets, inner)
+	fusionType := m.sctx.LookupTypeFusion(arrayType)
+	loader := &subtypesLoader{
+		defs:     m.defs,
+		subtypes: subtypes,
+	}
+	return vector.NewFusionWithLoader(m.sctx, fusionType, loader, array), subtypes
 }
+
+/*
+func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
+	subtypes := make([]uint32, 0, len(offsets)-1)
+	for k := range len(offsets) - 1 {
+		if offsets[k] == offsets[k+1] {
+			subtypes = append(subtypes, noneArrayID)
+		} else {
+			subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
+		}
+	}
+	return subtypes
+}
+
+func (m *materializer) makeArraySubtypesWithNones(ids, offsets []uint32) []uint32 {
+	noneArrayID := m.defs.BindTypeWrapped(super.TypeDefArray, super.IDNone)
+	subtypes := make([]uint32, 0, len(offsets)-1)
+	for k := range len(offsets) - 1 {
+		if offsets[k] == offsets[k+1] {
+			subtypes = append(subtypes, noneArrayID)
+		} else {
+			subtypes = append(subtypes, m.defs.BindTypeWrapped(super.TypeDefArray, id))
+		}
+	}
+	return subtypes
+}
+*/
 
 func (m *materializer) makeArrayFusion(inner vector.Any, offsets, subtypes []uint32) (vector.Any, []uint32) {
 	// There are empty array elements so we need to do an array fusion
@@ -152,7 +209,7 @@ func hasEmpty(offsets []uint32) bool {
 	return false
 }
 
-func (m *materializer) makeArraySubtypes(ids []uint32) []uint32 {
+func (m *materializer) xxxmakeArraySubtypes(ids []uint32) []uint32 {
 	if ids == nil {
 		return nil
 	}

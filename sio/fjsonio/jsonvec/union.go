@@ -14,6 +14,7 @@ type Union struct {
 	String *String
 	Record *Record
 	Array  *Array
+	Empty  bool
 }
 
 func NewUnion() *Union {
