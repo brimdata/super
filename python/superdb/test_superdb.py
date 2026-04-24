@@ -29,11 +29,10 @@ except requests.exceptions.ConnectionError:
     )
 
 
-# One SUP record containing a field for each type under test.  The 'ts' field
-# satisfies the default pool sort key; all other names are descriptive.
+# One SUP record containing a field for each type under test.
 _SUP_ALL_TYPES = """\
 {
-    ts: 2024-01-02T03:04:05Z,
+    time_val: 2024-01-02T03:04:05Z,
     int8_val: -1::int8,
     int16_val: -1000::int16,
     int32_val: -1000000::int32,
@@ -51,13 +50,16 @@ _SUP_ALL_TYPES = """\
     null_val: null,
     ip_val: 192.0.2.1,
     net_val: 10.0.0.0/8,
-    nested_val: {x: 1, y: 2},
+    record_val: {x: 1, y: 2},
+    nested_record_val: {x: {y: 1}},
     array_val: [1, 2, 3],
     set_val: set[4,5,6],
     map_val: map{"a":1,"b":2},
     enum_val: "HEADS"::enum(HEADS,TAILS),
     error_val: error("something went wrong"),
-    type_val: <int64>
+    type_val: <int64>,
+    union_int_val: 42::(int64|string),
+    union_str_val: "hello"::(int64|string)
 }
 """
 
@@ -92,8 +94,8 @@ def record(client, pool):
 # ---------------------------------------------------------------------------
 
 def test_time(record):
-    assert record['ts'] == datetime.datetime(2024, 1, 2, 3, 4, 5,
-                                             tzinfo=datetime.timezone.utc)
+    assert record['time_val'] == datetime.datetime(2024, 1, 2, 3, 4, 5,
+                                                   tzinfo=datetime.timezone.utc)
 
 
 def test_int8(record):
@@ -156,8 +158,12 @@ def test_null(record):
     assert record['null_val'] is None
 
 
+def test_record(record):
+    assert record['record_val'] == {'x': 1, 'y': 2}
+
+
 def test_nested_record(record):
-    assert record['nested_val'] == {'x': 1, 'y': 2}
+    assert record['nested_record_val'] == {'x': {'y': 1}}
 
 
 def test_array(record):
@@ -174,6 +180,14 @@ def test_set(record):
 
 def test_map(record):
     assert record['map_val'] == {'a': 1, 'b': 2}
+
+
+def test_union(record):
+    # Union values arrive as the Python type of the active branch.
+    assert record['union_int_val'] == 42
+    assert isinstance(record['union_int_val'], int)
+    assert record['union_str_val'] == 'hello'
+    assert isinstance(record['union_str_val'], str)
 
 
 # ---------------------------------------------------------------------------

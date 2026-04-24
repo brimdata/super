@@ -64,7 +64,7 @@ class Client():
             # Pre-flight: verify all top-level values are records of a single
             # type.  Arrow requires top-level records and silently truncates on
             # type changes, so we detect both problems before issuing the real
-            # query.  NDJSON avoids the Arrow IPC machinery for this check.
+            # query.
             safety_r = self.query_raw(
                 query + ' | union(typeof(this)) by kind(this)',
                 headers={'Accept': 'application/x-ndjson'},

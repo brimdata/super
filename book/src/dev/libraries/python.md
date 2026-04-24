@@ -1,7 +1,7 @@
 # Python
 
 SuperDB includes preliminary support for Python-based interaction with a
-persistent database.  The Python package supports loading data into a
+persistent [database](../../command/db.md).  The Python package supports loading data into a
 database as well as querying and retrieving results.  The Python client
 interacts with the database via the REST API provided by
 [super db serve](../../command/db.md#super-db-serve).
@@ -10,14 +10,14 @@ interacts with the database via the REST API provided by
 > This package is useful for experimentation with SuperDB from Python but is
 > currently limited in its functionality and performance.
 > 
-> The use of [Apache Arrow IPC](https://arrow.apache.org/docs/index.html) for
+> The use of [Apache Arrow IPC](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) for
 > query response transport covers common data types cleanly —
 > integers, floats, timestamps, strings, booleans, nested records, arrays, and
 > maps all arrive as natural Python types — but Arrow is *schema-rigid*: every
 > record in a result must share a single type, and a handful of rich types in the
 > [super data model](../../formats/model.md) arrive as plain Python strings
 > rather than richer objects. The full picture is in
-> [Type mapping and limitations](#type-mapping-and-limitations)
+> [type mapping and limitations](#type-mapping-and-limitations)
 > below.
 >
 > The full benefits of super-structured data (including improved performance)
@@ -119,7 +119,6 @@ trip cleanly, but several do not.
 | `bytes` | `bytes` |
 | `time` | `datetime.datetime` |
 | `duration` | `datetime.timedelta` |
-| `decimal` | `decimal.Decimal` |
 | `null` | `None` |
 | record | `dict` |
 | array | `list` |
@@ -158,7 +157,7 @@ is stored in a list, and the list has an arbitrary order.
   an incompatible record. `query()` guards against this by default: it runs a
   pre-flight check and raises `MixedTypesError` (with a `type_count` attribute)
   if more than one distinct type is detected. If encountered, one possible
-  way to work around this is append the [`blend`](../../super-sql/operators/blend.md)
+  way to work around this is append the [blend](../../super-sql/operators/blend.md)
   operator to your query to merge all types into a single type:
   ```
   from mypool | ... | blend
@@ -166,17 +165,18 @@ is stored in a list, and the list has an arbitrary order.
   If you know your data is homogeneous and want to avoid the extra round trip,
   pass `safe=False` — but results will be silently truncated if mixed types are
   encountered.
-- **Non-record top-level values.** Arrow requires every top-level value in a
-  result to be a record. If a pool contains non-record values (e.g., strings
-  loaded with line format), `query()` raises `NonRecordError` (with a `kinds`
-  attribute listing the non-record kinds found). Pass `safe=False` to skip the
-  check — the result will be silently empty.
+- **Non-record top-level values.** The client's use of Arrow requires every
+  top-level value in a result to be a record. If a pool contains non-record
+  values (e.g., strings loaded with line format), `query()` raises
+  `NonRecordError` (with a `kinds` attribute listing the non-record
+  [kinds](../../super-sql/functions/types/kind.md) found). Pass `safe=False`
+  to skip the check — the result will be silently empty.
 - **Empty records** (records with no fields) are not supported by Arrow. A
   pool containing only empty records will return no results rather than an
   error.
 - **Unions with more than 255 fields** are not supported.
 
-### MIME types
+## MIME types
 
 When `load()` is called without a `mime_type`, the server auto-detects the format
 by inspecting the beginning of the uploaded stream. This works for most formats:
