@@ -92,26 +92,24 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bo
 	}
 	var b scode.Builder
 	var fields []super.Field
-	var nones []int
-	var optOff int
 	b.BeginContainer()
 	aok := true
 	for i, f := range to.Fields {
 		var val2 super.Value
-		fieldVal, ok, none := derefWithNone(fromRecType, from.Bytes(), f.Name)
-		if !ok || none {
-			if f.Opt {
-				nones = append(nones, optOff)
-				optOff++
-				continue
+		fieldVal, ok := deref(fromRecType, from.Bytes(), f.Name)
+		if !ok {
+			// This field isn't present.  If the target type is optional,
+			// code a none value.  Otherwise, code error missing.
+			if union, noneTag := super.OptionUnion(f.Type); union != nil {
+				var b scode.Builder
+				super.BuildUnion(&b, noneTag, nil)
+				val2 = super.NewValue(union, b.Bytes())
+			} else {
+				val2 = c.sctx.Missing()
 			}
-			val2 = c.sctx.Missing()
 		} else {
 			val2, ok = c.Cast(fieldVal, f.Type)
 			aok = aok && ok
-			if f.Opt {
-				optOff++
-			}
 		}
 		if t := val2.Type(); t != f.Type {
 			if fields == nil {
@@ -124,24 +122,21 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bo
 	if fields != nil {
 		to = c.sctx.MustLookupTypeRecord(fields)
 	}
-	b.EndContainerWithNones(to.Opts, nones)
+	b.EndContainer()
 	return super.NewValue(to, b.Bytes().Body()), aok
 }
 
-func derefWithNone(typ *super.TypeRecord, bytes scode.Bytes, name string) (super.Value, bool, bool) {
+// XXX this is redundant with some other function...
+func deref(typ *super.TypeRecord, bytes scode.Bytes, name string) (super.Value, bool) {
 	n, ok := typ.IndexOfField(name)
 	if !ok {
-		return super.Value{}, false, false
+		return super.Value{}, false
 	}
 	var elem scode.Bytes
-	var none bool
-	for i, it := 0, scode.NewRecordIter(bytes, typ.Opts); i <= n; i++ {
-		elem, none = it.Next(typ.Fields[i].Opt)
+	for i, it := 0, bytes.Iter(); i <= n; i++ {
+		elem = it.Next()
 	}
-	if none {
-		return super.Value{}, true, true
-	}
-	return super.NewValue(typ.Fields[n].Type, elem), true, false
+	return super.NewValue(typ.Fields[n].Type, elem), true
 }
 
 func (c *cast) toArrayOrSet(from super.Value, to super.Type) (super.Value, bool) {

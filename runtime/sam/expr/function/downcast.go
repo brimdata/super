@@ -98,7 +98,7 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 	b := scode.NewBuilder()
 	b.BeginContainer()
 	for k, toField := range to.Fields { // ranging through to fields and lookup up from
-		elemType, elemBytes, none, ok := derefWithNoneAndOk(fromType, bytes, toField.Name)
+		elemType, elemBytes, ok := derefAsBytes(fromType, bytes, toField.Name)
 		if !ok {
 			// The super value must have all the fields of the subtype cast.
 			// It's missing a field, so fail.

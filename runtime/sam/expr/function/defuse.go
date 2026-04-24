@@ -33,25 +33,15 @@ func (d *defuse) eval(in super.Value) super.Value {
 	case *super.TypeRecord:
 		var fields []super.Field
 		var b scode.Builder
-		var optOff, opts int
-		var nones []int
 		b.BeginContainer()
-		it := scode.NewRecordIter(in.Bytes(), typ.Opts)
+		it := in.Bytes().Iter()
 		for _, f := range typ.Fields {
-			bytes, none := it.Next(f.Opt)
-			if none {
-				nones = append(nones, optOff)
-				optOff++
-				continue
-			}
+			bytes := it.Next()
 			val := d.eval(super.NewValue(f.Type, bytes))
 			b.Append(val.Bytes())
-			fields = append(fields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
-			if f.Opt {
-				opts++
-			}
+			fields = append(fields, super.NewField(f.Name, val.Type()))
 		}
-		b.EndContainerWithNones(opts, nones)
+		b.EndContainer()
 		return super.NewValue(d.sctx.MustLookupTypeRecord(fields), b.Bytes().Body())
 	case *super.TypeArray:
 		elems := d.parseArrayOrSet(typ.Type, in.Bytes())
