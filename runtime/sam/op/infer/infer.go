@@ -71,12 +71,9 @@ func (i *inferString) load(typ super.Type, bytes scode.Bytes) {
 func (i *inferNode) load(typ super.Type, bytes scode.Bytes) {
 	switch typ := typ.(type) {
 	case *super.TypeRecord:
-		it := scode.NewRecordIter(bytes, typ.Opts)
+		it := bytes.Iter()
 		for k, f := range typ.Fields {
-			elem, none := it.Next(f.Opt)
-			if none {
-				continue
-			}
+			elem := it.Next()
 			if child := i.children[k]; child != nil {
 				child.load(f.Type, elem)
 			}
@@ -112,7 +109,7 @@ func (i *inferNode) typeof(sctx *super.Context, typ super.Type) super.Type {
 			if child := i.children[k]; child != nil {
 				typ = child.typeof(sctx, f.Type)
 			}
-			fields = append(fields, super.NewFieldWithOpt(f.Name, typ, f.Opt))
+			fields = append(fields, super.NewField(f.Name, typ))
 		}
 		return sctx.MustLookupTypeRecord(fields)
 	case *super.TypeArray:

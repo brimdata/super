@@ -22,10 +22,10 @@ func (u *unblend) eval(in super.Value) super.Value {
 	case *super.TypeRecord:
 		var fields []super.Field
 		var elems []super.Value
-		it := scode.NewRecordIter(in.Bytes(), typ.Opts)
+		it := in.Bytes().Iter()
 		for _, f := range typ.Fields {
-			bytes, none := it.Next(f.Opt)
-			if none {
+			bytes := it.Next()
+			if super.IsNone(f.Type, bytes) {
 				continue
 			}
 			val := u.eval(super.NewValue(f.Type, bytes))

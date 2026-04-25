@@ -727,6 +727,14 @@ func IsOptionType(typ Type) bool {
 	return u != nil
 }
 
+func IsNone(typ Type, bytes scode.Bytes) bool {
+	if union, ok := TypeUnder(typ).(*TypeUnion); ok {
+		typ, _ := union.Untag(bytes)
+		return typ == TypeNone
+	}
+	return false
+}
+
 // TypeCache wraps a TypeFetcher with an unsynchronized cache for its LookupType
 // method.  Cache hits incur none of the synchronization overhead of
 // the underlying shared type context.

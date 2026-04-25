@@ -69,7 +69,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 				i, ok := indexOfField(fields, field.Name)
 				if ok {
 					fields[i].Type = f.fuse(fields[i].Type, field.Type)
-					if super.IsOption(field.Type) {
+					if super.IsOptionType(field.Type) { //XXX this not right
 						fields[i].Type = f.sctx.Option(fields[i].Type)
 					}
 				} else {
@@ -276,7 +276,7 @@ func recChanged(a, b *super.TypeRecord) bool {
 	}
 	for k, af := range a.Fields {
 		bf := b.Fields[k]
-		if af.Name != bf.Name || super.IsOption(af.Type) != super.IsOption(bf.Type) {
+		if af.Name != bf.Name || super.IsOptionType(af.Type) != super.IsOptionType(bf.Type) {
 			return true
 		}
 	}

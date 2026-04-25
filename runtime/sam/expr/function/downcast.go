@@ -93,8 +93,6 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 	if !ok {
 		return super.Value{}, d.errMismatch(typ, bytes, to)
 	}
-	var nones []int
-	var optOff int
 	b := scode.NewBuilder()
 	b.BeginContainer()
 	for k, toField := range to.Fields { // ranging through to fields and lookup up from
@@ -104,14 +102,13 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 			// It's missing a field, so fail.
 			return super.Value{}, d.errSubtype(typ, bytes, to)
 		}
-		if none {
-			if !toField.Opt {
+		if super.IsNone(elemType, elemBytes) {
+			if !super.IsOptionType(toField.Type) {
 				// A none can't go in a non-optional field.
 				return super.Value{}, d.errSubtype(typ, bytes, to)
 			}
-			nones = append(nones, optOff)
-			optOff++
-		} else if toField.Opt && !fromType.Fields[k].Opt {
+			b.Append(elemBytes)
+		} else if super.IsOptionType(toField.Type) && !super.IsOptionType(fromType.Fields[k].Type) {
 			return super.Value{}, d.errSubtype(typ, bytes, to)
 		} else {
 			// We have the value and the to field.  Downcast recursively.
@@ -119,13 +116,10 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 			if errVal != nil {
 				return super.Value{}, errVal
 			}
-			if toField.Opt {
-				optOff++
-			}
 			b.Append(val.Bytes())
 		}
 	}
-	b.EndContainerWithNones(to.Opts, nones)
+	b.EndContainer()
 	return super.NewValue(to, b.Bytes().Body()), nil
 }
 

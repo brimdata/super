@@ -149,13 +149,14 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 			it := val.Bytes().Iter()
 			for _, f := range typ.Fields {
 				fv := get(rec, f.Name)
-				elem, none := it.Next(f.Opt)
-				if none {
-					fv.none = f.Type
+				elem := it.Next()
+				if super.IsNone(f.Type, elem) {
+					fv.none = f.Type // XXX this is the union with the none, not the underlying optional type
 					fv.opt = true
+					fv.value = super.NewValue(f.Type, nil) //XXX
 				} else {
 					fv.value = super.NewValue(f.Type, elem)
-					fv.opt = f.Opt
+					fv.opt = super.IsOptionType(f.Type)
 					fv.none = nil
 				}
 				rec[f.Name] = fv
@@ -184,20 +185,10 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 	b := r.builder
 	b.Reset()
 	b.BeginContainer()
-	var optOff int
-	var nones []int
-	for k, fv := range r.vals {
-		if fv.none != nil {
-			nones = append(nones, optOff)
-			optOff++
-			continue
-		}
+	for _, fv := range r.vals {
 		b.Append(fv.value.Bytes())
-		if r.cache.Fields[k].Opt {
-			optOff++
-		}
 	}
-	b.EndContainerWithNones(r.cache.Opts, nones)
+	b.EndContainer()
 	return super.NewValue(r.cache, b.Bytes().Body())
 }
 
@@ -214,7 +205,7 @@ func (r *recordSpreadExpr) update(rec map[string]fieldValue) {
 		if typ == nil {
 			typ = fv.value.Type()
 		}
-		if r.fields[fv.index] != super.NewFieldWithOpt(name, typ, fv.opt) {
+		if r.fields[fv.index] != super.NewField(name, typ) {
 			r.invalidate(rec)
 			return
 		}
@@ -231,7 +222,7 @@ func (r *recordSpreadExpr) invalidate(rec map[string]fieldValue) {
 		if typ == nil {
 			typ = fv.value.Type()
 		}
-		r.fields[fv.index] = super.NewFieldWithOpt(name, typ, fv.opt)
+		r.fields[fv.index] = super.NewField(name, typ)
 		r.vals[fv.index] = fv
 	}
 	r.cache = r.sctx.MustLookupTypeRecord(r.fields)

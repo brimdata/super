@@ -67,13 +67,13 @@ func (d *Dropper) drop(val vector.Any, fm fieldsMap) (vector.Any, bool) {
 					}
 					// Substitute modified field.
 					vecFields = append(vecFields, val)
-					typFields = append(typFields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
+					typFields = append(typFields, super.NewField(f.Name, val.Type()))
 					continue
 				}
 			}
 			// Keep field.
 			vecFields = append(vecFields, valField)
-			typFields = append(typFields, super.NewFieldWithOpt(f.Name, valField.Type(), f.Opt))
+			typFields = append(typFields, super.NewField(f.Name, valField.Type()))
 		}
 		if !changed {
 			return nil, false

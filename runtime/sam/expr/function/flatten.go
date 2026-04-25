@@ -50,10 +50,10 @@ func (n *Flatten) innerTypeOf(typ *super.TypeRecord, b scode.Bytes) super.Type {
 }
 
 func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, typ *super.TypeRecord) []super.Type {
-	it := scode.NewRecordIter(b, typ.Opts)
+	it := b.Iter()
 	for _, f := range typ.Fields {
-		val, none := it.Next(f.Opt)
-		if none {
+		val := it.Next()
+		if super.IsNone(f.Type, val) { //XXX seems like shouldn't drop but instead record the none
 			continue
 		}
 		if typ := super.TypeRecordOf(f.Type); typ != nil && val != nil {
@@ -74,10 +74,10 @@ func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, typ *super.Type
 }
 
 func (n *Flatten) encode(typ *super.TypeRecord, inner super.Type, base field.Path, b scode.Bytes) {
-	it := scode.NewRecordIter(b, typ.Opts)
+	it := b.Iter()
 	for _, f := range typ.Fields {
-		val, none := it.Next(f.Opt)
-		if none {
+		val := it.Next()
+		if super.IsNone(f.Type, val) { //XXX
 			continue
 		}
 		key := append(base, f.Name)

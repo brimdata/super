@@ -64,9 +64,6 @@ func (n *NestDotted) Call(args []super.Value) super.Value {
 	if rtyp == nil {
 		return n.sctx.WrapError("nest_dotted: non-record value", val)
 	}
-	if rtyp.Opts != 0 {
-		return n.sctx.WrapError("nest_dotted: does not support optional fields", val)
-	}
 	b, typ, err := n.lookupBuilderAndType(rtyp)
 	if err != nil {
 		return n.sctx.WrapError("nest_dotted: "+err.Error(), val)

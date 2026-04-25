@@ -137,7 +137,7 @@ func (u *Upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 	for i, f := range to.Fields {
 		n, ok := recVec.Typ.IndexOfField(f.Name)
 		if !ok {
-			if !f.Opt {
+			if !super.IsOptionType(f.Type) {
 				return nil
 			}
 			fieldVecs[i] = vector.NewNone(u.sctx, f.Type, vec.Len())
