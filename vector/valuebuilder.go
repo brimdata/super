@@ -149,7 +149,7 @@ func (r *recordValueBuilder) Write(bytes scode.Bytes) {
 func (r *recordValueBuilder) Build(sctx *super.Context) Any {
 	var fields []Any
 	for k := range r.fields {
-		fields = append(fields, r.fields[k].build(sctx, r.len))
+		fields = append(fields, r.fields[k].Build(sctx))
 	}
 	return NewRecord(r.typ, fields, r.len)
 }
@@ -157,10 +157,15 @@ func (r *recordValueBuilder) Build(sctx *super.Context) Any {
 type optionValueBuilder struct {
 	union *super.TypeUnion
 	val   *unionValueBuilder
+	off   uint32
 	runs  RLE
 }
 
-func (o *optionValueBuilder) write(bytes scode.Bytes, off uint32) {
+func (o *optionValueBuilder) Write(bytes scode.Bytes) {
+	//XXX this isn't right and I don't think we need it.
+	// CSUP can turn option unions into RLEs automatically
+	off := o.off
+	o.off++
 	typ, _ := o.union.Untag(bytes)
 	if typ == super.TypeNone {
 		return
@@ -169,9 +174,10 @@ func (o *optionValueBuilder) write(bytes scode.Bytes, off uint32) {
 	o.val.Write(bytes)
 }
 
-func (o *optionValueBuilder) build(sctx *super.Context, n uint32) Any {
+func (o *optionValueBuilder) Build(sctx *super.Context) Any {
 	// Strip the none type from the underlying union.
 	vec := o.val.Build(sctx)
+	n := vec.Len() //XXX
 	return NewOptionFromRLE(sctx, vec, n, o.runs.End(n))
 }
 
@@ -247,23 +253,16 @@ type unionValueBuilder struct {
 }
 
 func newUnionValueBuilder(typ *super.TypeUnion) ValueBuilder {
+
 	var values []ValueBuilder
 	for _, typ := range typ.Types {
 		values = append(values, NewValueBuilder(typ))
 	}
-	return &unionValueBuilder{typ: typ, values: values}
-}
-
-func optionTypes(u *super.TypeUnion) []super.Type {
-	//XXX arrange for type order of none to be last?
-	if u, tag := super.OptionUnion(u); u != nil {
-		if len(u.Types) == 2 {
-
-		}
-		types := make([]super.Type, 0, len(u.Types)-1)
-
+	builder := &unionValueBuilder{typ: typ, values: values}
+	if union, _ := super.OptionUnion(typ); union != nil {
+		return &optionValueBuilder{union: union, val: builder}
 	}
-	return nil
+	return builder
 }
 
 func (u *unionValueBuilder) Write(bytes scode.Bytes) {
@@ -286,13 +285,14 @@ func (u *unionValueBuilder) Build(sctx *super.Context) Any {
 	// If there is a none type in this union, then we were wrapped
 	// with an option type builder and we need to remove the none type
 	// from the union.
+	/* XXX we don't need this... just build the union
 	if unionType, tag := super.OptionUnion(u.typ); u != nil {
 		if len(unionType.Types) == 2 {
 			var valTag int
 			if tag == 0 {
 				valTag = 1
 			}
-			return u.values[valTag].Build()
+			return u.values[valTag].Build(sctx)
 		}
 		types := make([]super.Type, 0, len(unionType.Types)-1)
 		vecs := make([]Any, 0, len(unionType.Types)-1)
@@ -306,10 +306,12 @@ func (u *unionValueBuilder) Build(sctx *super.Context) Any {
 		}
 		return NewUnion(sctx.LookupTypeUnion(types), u.tags, vecs)
 	}
+	*/
 	var vecs []Any
 	for _, v := range u.values {
 		vecs = append(vecs, v.Build(sctx))
 	}
+	//XXX maybe turn this into a vector.Option after the fact?
 	return NewUnion(u.typ, u.tags, vecs)
 }
 

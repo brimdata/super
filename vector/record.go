@@ -148,6 +148,7 @@ func NewNoneWithError(typ super.Type, err *Error) *None {
 	return &None{typ: typ, Error: err}
 }
 
+// XXX
 func isNone(vec Any, slot uint32) bool {
 	if _, ok := vec.(*None); ok {
 		return true
@@ -168,7 +169,8 @@ func NewOptionFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uin
 		return vec
 	}
 	//XXX None should not take a type since its type is embedded in the dynamic
-	return &Optional{NewDynamic(tags, []Any{vec, NewNone(sctx, vec.Type(), noneLen)})}
+	//union := sctx.LookupTypeUnion(super.Flatten([]super.Type{vec.Type(),})
+	return &Optional{Dynamic: NewDynamic(tags, []Any{vec, NewNone(sctx, vec.Type(), noneLen)})}
 }
 
 // An Optional value is a special Dynamic that has two tags comprising the
