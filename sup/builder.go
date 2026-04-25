@@ -49,6 +49,15 @@ func buildValue(b *scode.Builder, val Value) error {
 	case *Null:
 		b.Append(nil)
 		return nil
+	case *None:
+		union, noneTag := super.OptionUnion(val.Type())
+		if union == nil {
+			panic(val.Type())
+		}
+		super.BeginUnion(b, noneTag)
+		b.Append(nil)
+		b.EndContainer()
+		return nil
 	}
 	return fmt.Errorf("unknown ast type: %T", val)
 }

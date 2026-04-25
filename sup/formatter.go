@@ -156,11 +156,11 @@ func (f *formatter) nameOf(typ super.Type) string {
 
 func (f *formatter) formatValueAndDecorate(typ super.Type, bytes scode.Bytes) {
 	known := f.hasName(typ)
-	f.formatValue(0, typ, bytes, known, false)
-	f.decorate(typ, false, 0)
+	f.formatValue(0, typ, bytes, known, false, false)
+	f.decorate(typ, false, false, 0)
 }
 
-func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, decorate bool) {
+func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, decorate, isOptField bool) {
 	known := parentKnown || f.hasName(typ)
 	var empty bool
 	switch t := typ.(type) {
@@ -169,7 +169,7 @@ func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		formatPrimitive(&f.builder, typ, bytes)
 		f.endColor()
 	case *super.TypeNamed:
-		f.formatValue(indent, t.Type, bytes, known, false)
+		f.formatValue(indent, t.Type, bytes, known, false, isOptField)
 	case *super.TypeRecord:
 		f.formatRecord(indent, t, bytes, known)
 	case *super.TypeArray:
@@ -189,7 +189,7 @@ func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.build("error")
 		f.endColor()
 		f.build("(")
-		f.formatValue(indent, t.Type, bytes, known, true)
+		f.formatValue(indent, t.Type, bytes, known, true, false)
 		f.build(")")
 	case *super.TypeFusion:
 		f.startColor(color.Green)
@@ -197,7 +197,7 @@ func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.endColor()
 		f.build("(")
 		it := bytes.Iter()
-		f.formatValue(indent, t.Type, it.Next(), known, true)
+		f.formatValue(indent, t.Type, it.Next(), known, true, false)
 		f.build(",")
 		f.formatTypeValue(indent, it.Next())
 		f.build(")")
@@ -210,7 +210,7 @@ func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.endColor()
 	}
 	if decorate && !parentKnown {
-		f.decorate(typ, empty, indent)
+		f.decorate(typ, empty, isOptField, indent)
 	}
 }
 
@@ -275,9 +275,20 @@ func isShortType(typ super.Type) bool {
 	return false
 }
 
-func (f *formatter) decorate(typ super.Type, empty bool, indent int) {
+func (f *formatter) decorate(typ super.Type, empty, isOptField bool, indent int) {
 	if (!empty && f.isImplied(typ)) || (empty && innerNone(typ)) {
 		return
+	}
+	if isOptField {
+		if typ := underOptionType(typ); typ != nil {
+			if _, ok := typ.(*super.TypeNamed); ok {
+				// For optional field that is a named type, we will have already
+				// decorated it with its named type so don't have to do again here.
+				return
+			}
+			f.decorate(typ, empty, false, indent)
+			return
+		}
 	}
 	f.startColor(color.Gray(200))
 	defer f.endColor()
@@ -291,6 +302,17 @@ func (f *formatter) decorate(typ super.Type, empty bool, indent int) {
 		f.build("::")
 		f.formatType(indent, typ, true)
 	}
+}
+
+func underOptionType(typ super.Type) super.Type {
+	if union, noneTag := super.OptionUnion(typ); union != nil && len(union.Types) == 2 {
+		var valTag int
+		if noneTag == 0 {
+			valTag = 1
+		}
+		return union.Types[valTag]
+	}
+	return nil
 }
 
 func innerNone(typ super.Type) bool {
@@ -340,10 +362,14 @@ func (f *formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 			f.build("_")
 			f.startColor(color.Gray(200))
 			f.build("::")
-			f.formatType(indent, field.Type, true)
+			typ := field.Type
+			if option := underOptionType(typ); option != nil {
+				typ = option
+			}
+			f.formatType(indent, typ, true)
 			f.endColor()
 		} else {
-			f.formatValue(indent, field.Type, elem, known, true)
+			f.formatValue(indent, field.Type, elem, known, true, true)
 		}
 		sep = "," + f.newline
 	}
@@ -369,7 +395,7 @@ func (f *formatter) formatElems(indent int, open, close string, inner super.Type
 		f.build(sep)
 		f.indent(indent, "")
 		typ, b := elems.add(it.Next())
-		f.formatValue(indent, typ, b, known, true)
+		f.formatValue(indent, typ, b, known, true, false)
 		sep = "," + f.newline
 	}
 	f.build(f.newline)
@@ -377,7 +403,7 @@ func (f *formatter) formatElems(indent int, open, close string, inner super.Type
 	if elems.needsDecoration() {
 		// If we haven't seen all the types in the union, print the decorator
 		// so the fullness of the union is persevered.
-		f.decorate(val.Type(), true, indent)
+		f.decorate(val.Type(), true, false, indent)
 	}
 	return false
 }
@@ -419,7 +445,7 @@ func (f *formatter) formatUnion(indent int, union *super.TypeUnion, bytes scode.
 	// In other words, just because we known the union's type doesn't mean
 	// we know the type of a particular value of that union.
 	const known = false
-	f.formatValue(indent, typ, bytes, known, true)
+	f.formatValue(indent, typ, bytes, known, true, false)
 }
 
 func (f *formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes, known bool) bool {
@@ -436,7 +462,7 @@ func (f *formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes,
 		f.indent(indent, "")
 		var keyType super.Type
 		keyType, keyBytes = keyElems.add(keyBytes)
-		f.formatValue(indent, keyType, keyBytes, known, true)
+		f.formatValue(indent, keyType, keyBytes, known, true, false)
 		if super.TypeUnder(keyType) == super.TypeIP && len(keyBytes) == 16 {
 			// To avoid ambiguity, whitespace must separate an IPv6
 			// map key from the colon that follows it.
@@ -447,13 +473,13 @@ func (f *formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes,
 			f.build(" ")
 		}
 		valType, valBytes := valElems.add(it.Next())
-		f.formatValue(indent, valType, valBytes, known, true)
+		f.formatValue(indent, valType, valBytes, known, true, false)
 		sep = "," + f.newline
 	}
 	f.build(f.newline)
 	f.indent(indent-f.tab, "}")
 	if keyElems.needsDecoration() || valElems.needsDecoration() {
-		f.decorate(typ, true, indent)
+		f.decorate(typ, true, false, indent)
 	}
 	return empty
 }

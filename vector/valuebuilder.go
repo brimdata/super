@@ -259,9 +259,9 @@ func newUnionValueBuilder(typ *super.TypeUnion) ValueBuilder {
 		values = append(values, NewValueBuilder(typ))
 	}
 	builder := &unionValueBuilder{typ: typ, values: values}
-	if union, _ := super.OptionUnion(typ); union != nil {
-		return &optionValueBuilder{union: union, val: builder}
-	}
+	//if union, _ := super.OptionUnion(typ); union != nil {
+	//	return &optionValueBuilder{union: union, val: builder}
+	//}
 	return builder
 }
 
