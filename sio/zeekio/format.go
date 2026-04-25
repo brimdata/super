@@ -108,15 +108,15 @@ func formatRecord(t *super.TypeRecord, zv scode.Bytes) string {
 	var b strings.Builder
 	separator := byte(',')
 	first := true
-	it := scode.NewRecordIter(zv, t.Opts)
+	it := zv.Iter()
 	for _, f := range t.Fields {
 		if first {
 			first = false
 		} else {
 			b.WriteByte(separator)
 		}
-		val, none := it.Next(f.Opt)
-		if none {
+		val := it.Next()
+		if super.IsNone(f.Type, val) {
 			b.WriteByte('-')
 		} else {
 			b.WriteString(formatAny(super.NewValue(f.Type, val), false))

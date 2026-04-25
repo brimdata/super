@@ -178,9 +178,11 @@ func NewOptionFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uin
 // accessed.  XXX get it working first without loader, the add loader concept
 // to load the tags dynamically.
 type Optional struct {
+	typ *super.TypeUnion //XXX
 	*Dynamic
 }
 
+// XXX this should return the option type union
 func (o *Optional) Type() super.Type {
 	//XXX explain why this is not problematic
 	return o.Dynamic.Values[0].Type()

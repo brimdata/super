@@ -281,7 +281,7 @@ func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
+		fields = append(fields, super.NewField(f.Name, val.Type()))
 		vals = append(vals, val)
 	}
 	return &Record{
@@ -715,7 +715,7 @@ func (a Analyzer) convertTypeRecord(typ *ast.TypeRecord) (*super.TypeRecord, err
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewFieldWithOpt(f.Name, typ, f.Opt))
+		fields = append(fields, super.NewField(f.Name, typ))
 	}
 	return a.sctx.LookupTypeRecord(fields)
 }

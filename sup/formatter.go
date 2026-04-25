@@ -322,12 +322,12 @@ func (f *formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 	}
 	indent += f.tab
 	sep := f.newline
-	it := scode.NewRecordIter(bytes, typ.Opts)
+	it := bytes.Iter()
 	for _, field := range typ.Fields {
 		f.build(sep)
 		f.startColor(color.Blue)
 		f.indent(indent, QuotedName(field.Name))
-		if field.Opt {
+		if super.IsOptionType(field.Type) {
 			f.build("?")
 		}
 		f.endColor()
@@ -335,8 +335,8 @@ func (f *formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 		if f.tab > 0 {
 			f.build(" ")
 		}
-		elem, none := it.Next(field.Opt)
-		if none {
+		elem := it.Next()
+		if super.IsNone(field.Type, elem) {
 			f.build("_")
 			f.startColor(color.Gray(200))
 			f.build("::")
@@ -594,7 +594,7 @@ func (f *formatterT) formatTypeRecord(indent int, typ *super.TypeRecord) {
 	for _, field := range typ.Fields {
 		f.build(sep)
 		f.indent(indent, QuotedName(field.Name))
-		if field.Opt {
+		if super.IsOptionType(field.Type) { //XXX strip none when printing union types
 			f.build("?")
 		}
 		f.build(":")

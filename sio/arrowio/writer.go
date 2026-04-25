@@ -106,10 +106,9 @@ func (w *Writer) Write(val super.Value) error {
 	} else if w.typ != recType {
 		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, sup.FormatType(w.typ), sup.FormatType(recType))
 	}
-	it := scode.NewRecordIter(val.Bytes(), recType.Opts)
+	it := val.Bytes().Iter()
 	for i, builder := range w.builder.Fields() {
-		b, none := it.Next(recType.Fields[i].Opt)
-		w.buildArrowValue(builder, recType.Fields[i].Type, b, none)
+		w.buildArrowValue(builder, recType.Fields[i].Type, it.Next())
 	}
 	return w.flush(recordBatchSize)
 }
@@ -211,7 +210,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 		return arrow.BinaryTypes.String, nil
 	case *super.TypeOfIP, *super.TypeOfNet, *super.TypeOfType:
 		return arrow.BinaryTypes.String, nil
-	case *super.TypeOfNull:
+	case *super.TypeOfNull, *super.TypeOfNone:
 		return arrow.Null, nil
 	case *super.TypeRecord:
 		if len(typ.Fields) == 0 {
@@ -233,7 +232,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 		}
 		var fields []arrow.Field
 		for _, f := range typ.Fields {
-			field, err := w.newArrowField(f.Name, f.Type, f.Opt)
+			field, err := w.newArrowField(f.Name, f.Type)
 			if err != nil {
 				return nil, err
 			}
@@ -245,7 +244,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 		if name == "arrow_decimal256" && innerType == super.TypeUint64 {
 			return &arrow.Decimal256Type{}, nil
 		}
-		field, err := w.newArrowField("", innerType, false)
+		field, err := w.newArrowField("", innerType)
 		if err != nil {
 			return nil, err
 		}
@@ -265,7 +264,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 			return nil, err
 		}
 		keyField := arrow.Field{Type: keyDT}
-		itemField, err := w.newArrowField("", typ.ValType, false)
+		itemField, err := w.newArrowField("", typ.ValType)
 		if err != nil {
 			return nil, err
 		}
@@ -278,7 +277,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 		var typeCodes []arrow.UnionTypeCode
 		var mapping []int
 		for _, typ := range typ.Types {
-			f, err := w.newArrowField("", typ, false)
+			f, err := w.newArrowField("", typ)
 			if err != nil {
 				return nil, err
 			}
@@ -300,7 +299,8 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 	}
 }
 
-func (w *Writer) newArrowField(name string, typ super.Type, opt bool) (arrow.Field, error) {
+func (w *Writer) newArrowField(name string, typ super.Type) (arrow.Field, error) {
+	opt := super.IsOptionType(typ)
 	var nullable bool
 	if u, ok := nullableUnion(typ); ok {
 		nullable = true
@@ -311,7 +311,7 @@ func (w *Writer) newArrowField(name string, typ super.Type, opt bool) (arrow.Fie
 		}
 	} else {
 		// pqarrow requires that an arrow.NULL field be nullable.
-		nullable = typ == super.TypeNull || opt
+		nullable = typ == super.TypeNull || typ == super.TypeNone || opt
 	}
 	dt, err := w.newArrowDataType(typ)
 	if err != nil {
@@ -320,8 +320,8 @@ func (w *Writer) newArrowField(name string, typ super.Type, opt bool) (arrow.Fie
 	return arrow.Field{Name: name, Type: dt, Nullable: nullable}, nil
 }
 
-func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.Bytes, none bool) {
-	if none {
+func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.Bytes) {
+	if super.IsNone(typ, bytes) {
 		// This is a None from an optional field.
 		b.AppendNull()
 		return
@@ -450,23 +450,22 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 	case *array.StructBuilder:
 		b.Append(true)
 		recType := super.TypeRecordOf(typ)
-		it := scode.NewRecordIter(bytes, recType.Opts)
+		it := bytes.Iter()
 		for i, field := range recType.Fields {
-			elem, none := it.Next(field.Opt)
-			w.buildArrowValue(b.FieldBuilder(i), field.Type, elem, none)
+			w.buildArrowValue(b.FieldBuilder(i), field.Type, it.Next())
 		}
 	case *array.DenseUnionBuilder:
 		it := bytes.Iter()
 		tag := super.DecodeUint(it.Next())
 		typeCode := w.unionTagMappings[typ][tag]
 		b.Append(arrow.UnionTypeCode(typeCode))
-		w.buildArrowValue(b.Child(typeCode), typ.(*super.TypeUnion).Types[tag], it.Next(), false)
+		w.buildArrowValue(b.Child(typeCode), typ.(*super.TypeUnion).Types[tag], it.Next())
 	case *array.MapBuilder:
 		b.Append(true)
 		typ := super.TypeUnder(typ).(*super.TypeMap)
 		for it := bytes.Iter(); !it.Done(); {
-			w.buildArrowValue(b.KeyBuilder(), typ.KeyType, it.Next(), false)
-			w.buildArrowValue(b.ItemBuilder(), typ.ValType, it.Next(), false)
+			w.buildArrowValue(b.KeyBuilder(), typ.KeyType, it.Next())
+			w.buildArrowValue(b.ItemBuilder(), typ.ValType, it.Next())
 		}
 	case *array.FixedSizeListBuilder:
 		w.buildArrowListValue(b, typ, bytes)
@@ -503,7 +502,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, bytes scode.Bytes) {
 	b.Append(true)
 	for it := bytes.Iter(); !it.Done(); {
-		w.buildArrowValue(b.ValueBuilder(), super.InnerType(typ), it.Next(), false)
+		w.buildArrowValue(b.ValueBuilder(), super.InnerType(typ), it.Next())
 	}
 }
 

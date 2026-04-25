@@ -89,10 +89,10 @@ func (w *Writer) Write(rec super.Value) error {
 	}
 	w.strings = w.strings[:0]
 	fields := recType.Fields
-	for i, it := 0, scode.NewRecordIter(rec.Bytes(), recType.Opts); i < len(fields) && !it.Done(); i++ {
+	for i, it := 0, rec.Bytes().Iter(); i < len(fields) && !it.Done(); i++ {
 		var s string
-		elem, none := it.Next(fields[i].Opt)
-		if !none {
+		elem := it.Next()
+		if !super.IsNone(fields[i].Type, elem) {
 			val := super.NewValue(fields[i].Type, elem).Under()
 			switch id := val.Type().ID(); {
 			case id == super.IDBytes && len(val.Bytes()) == 0:

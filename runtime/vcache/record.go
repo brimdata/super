@@ -31,10 +31,6 @@ type option struct {
 func newRecord(cctx *csup.Context, meta *csup.Record) *record {
 	fields := make([]shadow, len(meta.Fields))
 	len := meta.Len(cctx)
-	for k := range meta.Fields {
-		fields[k].len = len
-		fields[k].meta = &meta.Fields[k]
-	}
 	return &record{
 		meta:   meta,
 		len:    len,

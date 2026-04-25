@@ -44,13 +44,14 @@ func Walk(typ Type, body scode.Bytes, visit Visitor) error {
 }
 
 func walkRecord(typ *TypeRecord, body scode.Bytes, visit Visitor) error {
-	it := scode.NewRecordIter(body, typ.Opts)
+	it := body.Iter()
 	for _, f := range typ.Fields {
 		if it.Done() {
 			return ErrMissingField
 		}
-		elem, none := it.Next(f.Opt)
-		if none {
+		elem := it.Next()
+		// XXX why not visit nones?
+		if IsNone(f.Type, elem) {
 			continue
 		}
 		if err := Walk(f.Type, elem, visit); err != nil {

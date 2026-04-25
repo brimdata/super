@@ -146,9 +146,11 @@ func (m *materializer) record(r *Record) (vector.Any, []uint32) {
 		} else {
 			fuseHere = true
 		}
-		field := super.NewFieldWithOpt(fieldNames[i], vec.Type(), len(rle) > 0)
-		vecs = append(vecs, vector.NewFieldFromRLE(m.sctx, vec, n, rle))
-		allFields = append(allFields, field)
+		if len(rle) > 0 {
+			vec = vector.NewOptionFromRLE(m.sctx, vec, n, rle)
+		}
+		vecs = append(vecs, vec)
+		allFields = append(allFields, super.NewField(fieldNames[i], vec.Type()))
 	}
 	rtyp := m.sctx.MustLookupTypeRecord(allFields)
 	record := vector.NewRecord(rtyp, vecs, n)
