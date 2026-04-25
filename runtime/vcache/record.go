@@ -71,7 +71,7 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 		// Build the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for k := range r.fields {
-			if r.fields[k].values != nil {
+			if r.fields[k] != nil {
 				val := r.fields[k].project(loader, nil)
 				valFields = append(valFields, val)
 				types = append(types, super.NewField(r.meta.Fields[k].Name, val.Type()))
@@ -82,7 +82,7 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 	fields := make([]super.Field, 0, len(r.fields))
 	for _, node := range projection {
 		var val vector.Any
-		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k].values != nil {
+		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k] != nil {
 			val = r.fields[k].project(loader, node.Proj)
 		} else {
 			val = vector.NewMissing(loader.sctx, r.length())
@@ -104,24 +104,22 @@ func indexOfField(name string, r *csup.Record) int {
 // two types, option isn't used
 func (o *option) unmarshal(cctx *csup.Context, projection field.Projection) {
 	// protected by record mutex
-	if f.values == nil {
-		f.values = newShadow(cctx, f.meta.Values)
+	if o.values == nil {
+		o.values = newShadow(cctx, o.meta.Values)
 	}
-	f.values.unmarshal(cctx, projection)
+	o.values.unmarshal(cctx, projection)
 }
 
-func (f *field_) project(loader *loader, projection field.Projection) vector.Any {
-	if f.meta.Opt {
-		f.mu.Lock()
-		if !f.loaded {
-			nones, err := csup.ReadUint32s(f.meta.Nones, loader.r)
-			if err != nil {
-				panic(err)
-			}
-			f.nones = nones
-			f.loaded = true
+func (o *option) project(loader *loader, projection field.Projection) vector.Any {
+	o.mu.Lock()
+	if !o.loaded {
+		nones, err := csup.ReadUint32s(o.meta.Nones, loader.r)
+		if err != nil {
+			panic(err)
 		}
-		f.mu.Unlock()
+		o.nones = nones
+		o.loaded = true
 	}
-	return vector.NewFieldFromRLE(loader.sctx, f.values.project(loader, projection), f.len, f.nones)
+	o.mu.Unlock()
+	return vector.NewOptionFromRLE(loader.sctx, o.values.project(loader, projection), o.len, o.nones)
 }
