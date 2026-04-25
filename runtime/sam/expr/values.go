@@ -30,26 +30,20 @@ func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	var nones []int
 	for _, elem := range elems {
 		var name string
-		var opt bool
 		var typ super.Type
 		switch elem := elem.(type) {
-		case *NoneElem:
+		case *NoneElem: //XXX delete?
 			name = elem.Name
 			typ = elem.Type
 			exprs = append(exprs, nil)
 			nones = append(nones, optOff)
-			opt = true
 		case *FieldElem:
 			name = elem.Name
-			opt = elem.Opt
 			exprs = append(exprs, elem.Expr)
 		case *SpreadElem:
 			return nil
 		}
-		fields = append(fields, super.NewFieldWithOpt(name, typ, opt))
-		if opt {
-			optOff++
-		}
+		fields = append(fields, super.NewField(name, typ))
 	}
 	return &recordExpr{
 		sctx:    sctx,
@@ -79,7 +73,7 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 	if changed || r.typ == nil {
 		r.typ = r.sctx.MustLookupTypeRecord(r.fields)
 	}
-	b.EndContainerWithNones(r.typ.Opts, r.nones)
+	b.EndContainer()
 	return super.NewValue(r.typ, b.Bytes().Body())
 }
 
@@ -152,7 +146,7 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 				// Treat non-record spread values like missing.
 				continue
 			}
-			it := scode.NewRecordIter(val.Bytes(), typ.Opts)
+			it := val.Bytes().Iter()
 			for _, f := range typ.Fields {
 				fv := get(rec, f.Name)
 				elem, none := it.Next(f.Opt)
