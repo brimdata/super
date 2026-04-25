@@ -7,6 +7,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// XXX change to option
 type FieldEncoder struct {
 	name   string
 	values Encoder

@@ -14,11 +14,11 @@ type record struct {
 	mu     sync.Mutex
 	meta   *csup.Record
 	len    uint32
-	fields []field_
+	fields []shadow
 }
 
-type field_ struct {
-	meta *csup.Field
+type option struct {
+	meta *csup.Field // XXX change to Option
 	len  uint32
 	// values protected by record mutex
 	values shadow
@@ -29,7 +29,7 @@ type field_ struct {
 }
 
 func newRecord(cctx *csup.Context, meta *csup.Record) *record {
-	fields := make([]field_, len(meta.Fields))
+	fields := make([]shadow, len(meta.Fields))
 	len := meta.Len(cctx)
 	for k := range meta.Fields {
 		fields[k].len = len
@@ -99,7 +99,10 @@ func indexOfField(name string, r *csup.Record) int {
 	})
 }
 
-func (f *field_) unmarshal(cctx *csup.Context, projection field.Projection) {
+// XXX this needs to become option... wraps a union with a none and encodes none
+// tags using RLE when union types have length 2.  when union-none is has more than
+// two types, option isn't used
+func (o *option) unmarshal(cctx *csup.Context, projection field.Projection) {
 	// protected by record mutex
 	if f.values == nil {
 		f.values = newShadow(cctx, f.meta.Values)

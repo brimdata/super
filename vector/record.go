@@ -172,7 +172,11 @@ func NewOptionFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uin
 }
 
 // An Optional value is a special Dynamic that has two tags comprising the
-// values present and the Nones.
+// values present and the Nones. XXX the tags may be run-length encoded to
+// efficiently support a large collection of fused fields in a record without
+// blowing open the tags for every column especially when the field is not
+// accessed.  XXX get it working first without loader, the add loader concept
+// to load the tags dynamically.
 type Optional struct {
 	*Dynamic
 }
