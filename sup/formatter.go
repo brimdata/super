@@ -620,14 +620,18 @@ func (f *formatterT) formatTypeRecord(indent int, typ *super.TypeRecord) {
 	for _, field := range typ.Fields {
 		f.build(sep)
 		f.indent(indent, QuotedName(field.Name))
-		if super.IsOptionType(field.Type) { //XXX strip none when printing union types
+		typ := field.Type
+		if super.IsOptionType(typ) {
 			f.build("?")
+			if opt := underOptionType(typ); opt != nil {
+				typ = opt
+			}
 		}
 		f.build(":")
 		if f.tab > 0 {
 			f.build(" ")
 		}
-		f.formatType(indent, field.Type, false)
+		f.formatType(indent, typ, false)
 		sep = "," + f.newline
 	}
 	f.build(f.newline)

@@ -1086,8 +1086,6 @@ func (t *TypeDefs) loops(id uint32, scoreboard map[string]comp) {
 			var id uint32
 			id, b = DecodeID(b)
 			t.loops(id, scoreboard)
-			// opt
-			b = b[1:]
 		}
 	case TypeDefArray:
 		id, _ := MustDecodeID(b)
@@ -1156,8 +1154,6 @@ func (d *TypeDefs) AppendBytes(bytes []byte) bool {
 				if bytes == nil || id >= localID {
 					return false
 				}
-				// field opt
-				bytes = bytes[1:]
 			}
 		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion:
 			id, bytes = DecodeID(bytes)
@@ -1511,12 +1507,9 @@ func (t *TypeDefsMerger) LookupID(extID uint32) uint32 {
 			var name string
 			name, bytes = MustDecodeName(bytes)
 			id, bytes = MustDecodeID(bytes)
-			opt := bytes[0]
-			bytes = bytes[1:]
 			out = binary.AppendUvarint(out, uint64(len(name)))
 			out = append(out, name...)
 			out = binary.AppendUvarint(out, uint64(t.LookupID(id)))
-			out = append(out, opt)
 		}
 		at = len(t.bytes)
 		t.bytes = append(t.bytes, out...)

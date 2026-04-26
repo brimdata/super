@@ -724,6 +724,9 @@ func (a Analyzer) convertTypeRecord(typ *ast.TypeRecord) (*super.TypeRecord, err
 		if err != nil {
 			return nil, err
 		}
+		if f.Opt {
+			typ = a.sctx.Option(typ)
+		}
 		fields = append(fields, super.NewField(f.Name, typ))
 	}
 	return a.sctx.LookupTypeRecord(fields)
