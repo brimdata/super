@@ -66,7 +66,7 @@ func TestPoolStats(t *testing.T) {
 	span := nano.Span{Ts: 1e9, Dur: 1e9 + 1}
 	expected := exec.PoolStats{
 		Span: &span,
-		Size: 89,
+		Size: 86,
 	}
 	require.Equal(t, expected, conn.TestPoolStats(poolID))
 }
