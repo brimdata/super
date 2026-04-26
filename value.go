@@ -172,10 +172,6 @@ func (v Value) ContainerIter() scode.Iter {
 	return v.Bytes().Iter()
 }
 
-func (v Value) RecordIter(opts int) scode.RecordIter {
-	return scode.NewRecordIter(v.Bytes(), opts)
-}
-
 // If the passed-in element is an array, attempt to get the idx'th
 // element, and return its type and raw representation.  Returns an
 // error if the passed-in element is not an array or if idx is

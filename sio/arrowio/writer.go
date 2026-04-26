@@ -426,17 +426,17 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 	case *array.MonthIntervalBuilder:
 		b.Append(arrow.MonthInterval(super.DecodeInt(bytes)))
 	case *array.DayTimeIntervalBuilder:
-		it := scode.NewRecordIter(bytes, 0)
-		days, _ := it.Next(false)
-		ms, _ := it.Next(false)
+		it := bytes.Iter()
+		days := it.Next()
+		ms := it.Next()
 		b.Append(arrow.DayTimeInterval{
 			Days:         int32(super.DecodeInt(days)),
 			Milliseconds: int32(super.DecodeInt(ms)),
 		})
 	case *array.Decimal128Builder:
-		it := scode.NewRecordIter(bytes, 0)
-		high, _ := it.Next(false)
-		low, _ := it.Next(false)
+		it := bytes.Iter()
+		high := it.Next()
+		low := it.Next()
 		b.Append(decimal128.New(super.DecodeInt(high), super.DecodeUint(low)))
 	case *array.Decimal256Builder:
 		it := bytes.Iter()
@@ -485,10 +485,10 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 	case *array.LargeListBuilder:
 		w.buildArrowListValue(b, typ, bytes)
 	case *array.MonthDayNanoIntervalBuilder:
-		it := scode.NewRecordIter(bytes, 0)
-		months, _ := it.Next(false)
-		days, _ := it.Next(false)
-		nanos, _ := it.Next(false)
+		it := bytes.Iter()
+		months := it.Next()
+		days := it.Next()
+		nanos := it.Next()
 		b.Append(arrow.MonthDayNanoInterval{
 			Months:      int32(super.DecodeInt(months)),
 			Days:        int32(super.DecodeInt(days)),

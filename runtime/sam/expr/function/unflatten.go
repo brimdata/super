@@ -83,9 +83,9 @@ func (u *Unflatten) parseElem(inner super.Type, vb scode.Bytes) (field.Path, sup
 	if !ok {
 		return nil, nil, nil, nil
 	}
-	it := scode.NewRecordIter(vb, 0)
-	kbytes, _ := it.Next(false)
-	vbytes, _ := it.Next(false)
+	it := vb.Iter()
+	kbytes := it.Next()
+	vbytes := it.Next()
 	if nkey == 1 {
 		kbytes, vbytes = vbytes, kbytes
 	}
