@@ -49,12 +49,18 @@ func (r *record) unmarshal(cctx *csup.Context, projection field.Projection) {
 		// Unmarshal all the fields of this record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for k := range r.fields {
+			if r.fields[k] == nil {
+				r.fields[k] = newShadow(cctx, r.meta.Fields[k].Values)
+			}
 			r.fields[k].unmarshal(cctx, nil)
 		}
 		return
 	}
 	for _, node := range projection {
 		if k := indexOfField(node.Name, r.meta); k >= 0 {
+			if r.fields[k] == nil {
+				r.fields[k] = newShadow(cctx, r.meta.Fields[k].Values)
+			}
 			r.fields[k].unmarshal(cctx, node.Proj)
 		}
 	}
@@ -67,11 +73,9 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 		// Build the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for k := range r.fields {
-			if r.fields[k] != nil {
-				val := r.fields[k].project(loader, nil)
-				valFields = append(valFields, val)
-				types = append(types, super.NewField(r.meta.Fields[k].Name, val.Type()))
-			}
+			val := r.fields[k].project(loader, nil)
+			valFields = append(valFields, val)
+			types = append(types, super.NewField(r.meta.Fields[k].Name, val.Type()))
 		}
 		return vector.NewRecord(loader.sctx.MustLookupTypeRecord(types), valFields, r.length())
 	}
