@@ -71,7 +71,7 @@ func rip(vecs []Any, d *Dynamic) iter.Seq2[int, []Any] {
 			var newVecs []Any
 			if len(rev) > 0 {
 				for _, vec := range vecs {
-					if Opt(vec) == d {
+					if Deoption(nil, vec) == d {
 						newVecs = append(newVecs, d.Values[i])
 					} else {
 						newVecs = append(newVecs, Pick(vec, rev))

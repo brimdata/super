@@ -281,11 +281,11 @@ type noneBuilder struct {
 }
 
 func (n *noneBuilder) Write(vec Any) {
-	n.len += vec.(*NoneTmp).len
+	n.len += vec.(*None).len
 }
 
 func (n *noneBuilder) Build(*super.Context) Any {
-	return NewNoneTmp(n.len)
+	return NewNone(n.len)
 }
 
 type nullBuilder struct {

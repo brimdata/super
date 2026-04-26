@@ -124,32 +124,8 @@ func (r *RLE) emit(run uint32) {
 	r.runs = append(r.runs, run)
 }
 
-// A None vector arises from values not present in an optional field.
-// In a future version of the runtime, we will have operators
-// that handle noneness (?? and ?.) but for now the only
-// thing you can do with none is assign it to a optional
-// record field or express it as missing.  None wraps Error as
-// an error("missing") so it expresses this when not assigned to
-// a field.
-type None struct {
-	*Error
-	typ super.Type
-}
-
-func (*None) Kind() Kind {
-	return KindNone
-}
-
-func NewNone(sctx *super.Context, typ super.Type, length uint32) *None {
-	return NewNoneWithError(typ, NewMissing(sctx, length))
-}
-
-func NewNoneWithError(typ super.Type, err *Error) *None {
-	return &None{typ: typ, Error: err}
-}
-
 // XXX
-func isNone(vec Any, slot uint32) bool {
+func xxxisNone(vec Any, slot uint32) bool {
 	if _, ok := vec.(*None); ok {
 		return true
 	}
@@ -168,9 +144,12 @@ func NewOptionFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uin
 		// This value is optional but everything is here in this instance.
 		return vec
 	}
-	//XXX None should not take a type since its type is embedded in the dynamic
-	//union := sctx.LookupTypeUnion(super.Flatten([]super.Type{vec.Type(),})
-	return &Optional{Dynamic: NewDynamic(tags, []Any{vec, NewNone(sctx, vec.Type(), noneLen)})}
+	//XXX right now we implement the none piece of an optional as a union inside of dynamic
+	// where the none vector carries the type of value vector. I think we need this to
+	// support vector record expressions where you have a none component and need to
+	// carry the type in the union... but is there a better way where the type info
+	// can just be in the top-level dynamic?  XXX Need to dig into this more.
+	return &Optional{Dynamic: NewDynamic(tags, []Any{vec, NewNoneOption(sctx, vec.Type(), noneLen)})}
 }
 
 // An Optional value is a special Dynamic that has two tags comprising the
@@ -201,21 +180,21 @@ func (f *Optional) RLE() []uint32 {
 	return rle.End(f.Len())
 }
 
-func Opt(vec Any) Any {
+func Deoption(sctx *super.Context, vec Any) Any {
 	switch vec := vec.(type) {
 	case *Optional:
 		return vec.Dynamic
 	case *None:
-		return vec.Error
+		return NewMissing(sctx, vec.len)
 	}
 	return vec
 }
 
-// OptType returns the type of `v` preventing None values from expressing
-// themselves as missing and instead retuning the type bound to that None.
-func OptType(vec Any) super.Type {
-	if none, ok := vec.(*None); ok {
-		return none.typ
+// XXX change name, move to apply
+func DeoptionRaw(vec Any) Any {
+	switch vec := vec.(type) {
+	case *Optional:
+		return vec.Dynamic
 	}
-	return vec.Type()
+	return vec
 }

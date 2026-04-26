@@ -9,6 +9,7 @@ import (
 // These are needed to support recursive types since the invariant on union
 // values is that the Type method may be called on a zero-length element of
 // a union but zero-length values of recursel XXX
+// XXX update comment
 type Empty struct {
 	typ super.Type
 }

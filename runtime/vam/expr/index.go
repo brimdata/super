@@ -145,7 +145,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 	out := make([]vector.Any, n+1)
 	out[n] = vector.NewMissing(sctx, errcnt)
 	for i, field := range rec.Fields {
-		out[i] = vector.Opt(vector.Pick(field, viewIndexes[i]))
+		out[i] = vector.Deoption(sctx, vector.Pick(field, viewIndexes[i]))
 	}
 	return vector.NewDynamic(tags, out)
 }

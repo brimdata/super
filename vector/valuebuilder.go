@@ -513,5 +513,5 @@ func (n *noneValueBuilder) Write(scode.Bytes) {
 }
 
 func (n *noneValueBuilder) Build(*super.Context) Any {
-	return NewNoneTmp(n.len)
+	return NewNone(n.len)
 }

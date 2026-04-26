@@ -140,7 +140,15 @@ func (u *Upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 			if !super.IsOptionType(f.Type) {
 				return nil
 			}
-			fieldVecs[i] = vector.NewNone(u.sctx, f.Type, vec.Len())
+			//XXX do we make a union here or just serialize none as the right type?
+			// ANSWER: the union carries the type NOT the none vector.  This was the
+			// pain the design before.  None shouldn't be typed.  Note sup requires
+			// the none value to have a type for the field so the proper type can be
+			// carried.
+			fmt.Println("NEW NONE", sup.String(f.Type))
+			//XXX NewNoneOption is returning a union right now instead of a vector.Option
+			// need to fix
+			fieldVecs[i] = vector.NewNoneOption(u.sctx, f.Type, vec.Len())
 			continue
 		}
 		fieldVecs[i] = u.upcast(recVec.Fields[n], f.Type)

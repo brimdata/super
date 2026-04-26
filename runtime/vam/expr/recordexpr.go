@@ -56,7 +56,7 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 		var vec vector.Any
 		switch elem := elem.(type) {
 		case *NoneElem:
-			vec = vector.NewNone(r.sctx, elem.Type, this.Len())
+			vec = vector.NewNoneOption(r.sctx, elem.Type, this.Len())
 		case *FieldElem:
 			vec = elem.Expr.Eval(this)
 		case *SpreadElem:
@@ -93,25 +93,25 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 // XXX get rid of opt
 func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 	if i, ok := r.fieldIndexes[name]; ok {
-		r.fields[i].Type = vector.OptType(vec)
+		r.fields[i].Type = vec.Type()
 		r.fieldVecs[i] = vec
 		return
 	}
 	r.fieldIndexes[name] = len(r.fields)
-	r.fields = append(r.fields, super.NewField(name, vector.OptType(vec)))
+	r.fields = append(r.fields, super.NewField(name, vec.Type()))
 	r.fieldVecs = append(r.fieldVecs, vec)
 }
 
-// XXX get rid of this
+// XXX get rid of this?
 func (r *recordExpr) addOrUpdateNone(name string, typ super.Type, length uint32) {
 	if i, ok := r.fieldIndexes[name]; ok {
 		r.fields[i].Type = typ
-		r.fieldVecs[i] = vector.NewNone(r.sctx, typ, length)
+		r.fieldVecs[i] = vector.NewNoneOption(r.sctx, typ, length)
 		return
 	}
 	r.fieldIndexes[name] = len(r.fields)
 	r.fields = append(r.fields, super.NewField(name, typ))
-	r.fieldVecs = append(r.fieldVecs, vector.NewNone(r.sctx, typ, length))
+	r.fieldVecs = append(r.fieldVecs, vector.NewNoneOption(r.sctx, typ, length))
 }
 
 func (r *recordExpr) spread(vec vector.Any) {

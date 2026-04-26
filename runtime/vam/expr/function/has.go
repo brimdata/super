@@ -13,14 +13,16 @@ type Has struct {
 }
 
 func newHas(sctx *super.Context) *Has {
-	return &Has{not: expr.NewLogicalNot(sctx, &expr.This{})}
+	return &Has{missing: Missing{sctx}, not: expr.NewLogicalNot(sctx, &expr.This{})}
 }
 
 func (h *Has) Call(args ...vector.Any) vector.Any {
 	return h.not.Eval(h.missing.Call(args...))
 }
 
-type Missing struct{}
+type Missing struct {
+	sctx *super.Context
+}
 
 func (m *Missing) Call(args ...vector.Any) vector.Any {
 	for _, vec := range args {
@@ -30,7 +32,7 @@ func (m *Missing) Call(args ...vector.Any) vector.Any {
 	}
 	n := args[0].Len()
 	for _, vec := range args {
-		vec = vector.Opt(vec)
+		vec = vector.Deoption(m.sctx, vec)
 		if err, ok := vec.(*vector.Error); ok {
 			b := missingOrQuiet(err)
 			if b.IsEmpty() {
