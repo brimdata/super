@@ -298,3 +298,19 @@ def test_empty_record_returns_no_results(client):
         assert list(client.query(f'from {name}')) == []
     finally:
         client.delete_pool(name)
+
+
+def test_duplicate_pool_raises_request_error(client):
+    name = 'test_dup_' + uuid.uuid4().hex[:8]
+    client.create_pool(name)
+    try:
+        with pytest.raises(RequestError):
+            client.create_pool(name)
+    finally:
+        client.delete_pool(name)
+
+
+def test_query_nonexistent_pool_raises_request_error(client):
+    name = 'test_nopool_' + uuid.uuid4().hex[:8]
+    with pytest.raises(RequestError):
+        list(client.query(f'from {name}'))
