@@ -33,7 +33,7 @@ output: |
 ---
 
 # Test unblend on arrays.
-spq: unblend(this)
+spq: typeof(unblend(this))
 
 vector: true
 
@@ -45,11 +45,11 @@ input: |
   []::[(int64|bool|string)]
 
 output: |
-  [1,2,"string"]
-  [1,2,true]
-  [1,"foo",false]
-  ["foo","bar","baz"]
-  []
+  <[int64|string]>
+  <[int64|bool]>
+  <[int64|bool|string]>
+  <[string]>
+  <[null]>
 
 ---
 
