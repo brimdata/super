@@ -67,6 +67,8 @@ func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (s
 		return d.toMap(typ, bytes, to)
 	case *super.TypeUnion:
 		return d.toUnion(typ, bytes, to)
+	case *super.TypeEnum:
+		return d.toEnum(typ, bytes, to)
 	case *super.TypeError:
 		return d.toError(typ, bytes, to)
 	case *super.TypeNamed:
@@ -206,6 +208,23 @@ func (d *downcast) toUnion(typ super.Type, bytes scode.Bytes, to *super.TypeUnio
 	b.Append(val.Bytes())
 	b.EndContainer()
 	return super.NewValue(to, b.Bytes().Body()), nil
+}
+
+func (d *downcast) toEnum(typ super.Type, bytes scode.Bytes, to *super.TypeEnum) (super.Value, *super.Value) {
+	enumType, ok := typ.(*super.TypeEnum)
+	if !ok {
+		return super.Value{}, d.errMismatch(typ, bytes, to)
+	}
+	symbol, err := enumType.Symbol(int(super.DecodeUint(bytes)))
+	if err != nil {
+		return super.Value{}, d.errMismatch(typ, bytes, to)
+	}
+	i := to.Lookup(symbol)
+	if i < 0 {
+		return super.Value{}, d.errMismatch(typ, bytes, to)
+	}
+	return super.NewValue(to, super.EncodeUint(uint64(i))), nil
+
 }
 
 // subTypeOf finds the tag in the union array types that this value should be

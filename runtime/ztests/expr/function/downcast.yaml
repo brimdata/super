@@ -46,6 +46,20 @@ output: |
 
 ---
 
+spq: downcast(this[0], this[1])
+
+vector: true
+
+input: |
+  ["x"::enum(x,y,z),<enum(x,y)>]
+  ["x"::enum(w,x),<enum(y,z)>]
+
+output: |
+  "x"::enum(x,y)
+  error({message:"downcast: type mismatch to enum(y,z)",on:"x"::enum(w,x)})
+
+---
+
 # Test downcast on arrays.
 spq: downcast(this[0], this[1])
 
@@ -138,6 +152,8 @@ output: |
   error({message:"downcast: type mismatch to string",on:1})
 
 ---
+
+
 
 # Test downcast on named values.
 spq: downcast(this[0], this[1]) 

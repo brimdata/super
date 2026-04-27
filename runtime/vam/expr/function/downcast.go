@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"math"
 	"slices"
 
@@ -101,6 +102,8 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 		return d.toMap(vec, to)
 	case *super.TypeUnion:
 		return d.toUnion(vec, to)
+	case *super.TypeEnum:
+		return d.toEnum(vec, to)
 	case *super.TypeError:
 		return d.toError(vec, to)
 	case *super.TypeNamed:
@@ -381,6 +384,40 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 		}
 		return vector.NewUnion(to, make([]uint32, vec.Len()), []vector.Any{vec})
 	})
+}
+
+func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) vector.Any {
+	if vec.Kind() != vector.KindEnum {
+		return d.errMismatch(vec, to)
+	}
+	n := vec.Len()
+	var index []uint32
+	if view, ok := vec.(*vector.View); ok {
+		vec = view.Any
+		index = view.Index
+	}
+	enumVec, ok := vec.(*vector.Enum)
+	if !ok {
+		panic(fmt.Sprintf("%#v", vec))
+	}
+	indexes := make([]uint64, 0, n)
+	for i := range n {
+		if index != nil {
+			i = index[i]
+		}
+		fromIndex := enumVec.Uint.Values[i]
+		symbol, err := enumVec.Typ.Symbol(int(fromIndex))
+		if err != nil {
+			panic(fmt.Sprintf("bad index %d in %s value", fromIndex, sup.FormatType(enumVec.Typ)))
+		}
+		toIndex := to.Lookup(symbol)
+		if toIndex < 0 {
+			return d.errMismatch(vec, to)
+		}
+		indexes = append(indexes, uint64(toIndex))
+
+	}
+	return vector.NewEnum(to, indexes)
 }
 
 func (d *downcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
