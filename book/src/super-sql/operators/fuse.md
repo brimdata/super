@@ -50,8 +50,8 @@ fuse
 {a:1}
 {a:"foo"}
 # expected output
-fusion({a:fusion(1::(int64|string),<int64>)},<{a:int64}>)
-fusion({a:fusion("foo"::(int64|string),<string>)},<{a:string}>)
+{a:fusion(1::(int64|string),<int64>)}
+{a:fusion("foo"::(int64|string),<string>)}
 ```
 
 ---
