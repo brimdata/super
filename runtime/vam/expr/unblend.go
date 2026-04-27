@@ -100,8 +100,7 @@ func unblendArrayOrSet(sctx *super.Context, offsets []uint32, elements vector.An
 	if !ok {
 		return nil, []vector.Any{elements}, [][]uint32{offsets}
 	}
-	union := vector.NewUnionFromDynamic(sctx, dynamic)
-	slotTypes := typesOfSlotsInList(sctx, union, offsets)
+	slotTypes := typesOfSlotsInList(sctx, dynamic, offsets)
 	// Accumulate unique array types.
 	m := make(map[super.Type][]uint32)
 	for i, typ := range slotTypes {
@@ -111,7 +110,7 @@ func unblendArrayOrSet(sctx *super.Context, offsets []uint32, elements vector.An
 	var inners []vector.Any
 	var offs [][]uint32
 	for typ, index := range m {
-		inner, off := subsetOfList(sctx, union, offsets, index, typ)
+		inner, off := subsetOfList(sctx, dynamic, offsets, index, typ)
 		for _, idx := range index {
 			dtags[idx] = uint32(len(inners))
 		}
@@ -123,14 +122,10 @@ func unblendArrayOrSet(sctx *super.Context, offsets []uint32, elements vector.An
 
 func unblendMap(sctx *super.Context, vmap *vector.Map) vector.Any {
 	keys := Unblend(sctx, vmap.Keys)
-	if dynamic, ok := keys.(*vector.Dynamic); ok {
-		keys = vector.NewUnionFromDynamic(sctx, dynamic)
-	}
+	_, keysAreDynamic := keys.(*vector.Dynamic)
 	vals := Unblend(sctx, vmap.Values)
-	if dynamic, ok := vals.(*vector.Dynamic); ok {
-		vals = vector.NewUnionFromDynamic(sctx, dynamic)
-	}
-	if keys.Kind() != vector.KindUnion && vals.Kind() != vector.KindUnion {
+	_, valsAreDynamic := vals.(*vector.Dynamic)
+	if !keysAreDynamic && !valsAreDynamic {
 		mtyp := sctx.LookupTypeMap(keys.Type(), vals.Type())
 		return vector.NewMap(mtyp, vmap.Offsets, keys, vals)
 	}
@@ -170,9 +165,9 @@ func subsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index
 		return nulls, offsets
 	}
 	var allVals []vector.Any
-	union, ok := elements.(*vector.Union)
+	dynamic, ok := elements.(*vector.Dynamic)
 	if ok {
-		allVals = union.Values
+		allVals = dynamic.Values
 	} else {
 		allVals = []vector.Any{elements}
 	}
@@ -198,16 +193,16 @@ func subsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index
 	// - indexes to create view on values
 	// - tags for union (if applicable)
 	var forwardTags []uint32
-	if union != nil {
-		forwardTags = union.ForwardTagMap()
+	if dynamic != nil {
+		forwardTags = dynamic.ForwardTagMap()
 	}
 	var tags []uint32
 	indexes := make([][]uint32, len(subTypes))
 	suboffsets := []uint32{0}
 	for _, idx := range index {
 		start, end := parentOffsets[idx], parentOffsets[idx+1]
-		if union != nil {
-			for i, origTag := range union.Tags[start:end] {
+		if dynamic != nil {
+			for i, origTag := range dynamic.Tags[start:end] {
 				tag := tagMap[origTag]
 				tags = append(tags, tag)
 				indexes[tag] = append(indexes[tag], forwardTags[start+uint32(i)])
@@ -233,10 +228,10 @@ func subsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index
 }
 
 func typesOfSlotsInList(sctx *super.Context, inner vector.Any, offsets []uint32) []super.Type {
-	union, _ := inner.(*vector.Union)
+	dynamic, _ := vector.Deunion(inner).(*vector.Dynamic)
 	var alltypes []super.Type
-	if union != nil {
-		for _, val := range union.Values {
+	if dynamic != nil {
+		for _, val := range dynamic.Values {
 			alltypes = append(alltypes, val.Type())
 		}
 	} else {
@@ -245,8 +240,8 @@ func typesOfSlotsInList(sctx *super.Context, inner vector.Any, offsets []uint32)
 	n := uint32(len(offsets) - 1)
 	slotTypes := make([]super.Type, n)
 	for i := range n {
-		if union != nil {
-			slotTypes[i] = typeOfRange(sctx, union, alltypes, offsets[i], offsets[i+1])
+		if dynamic != nil {
+			slotTypes[i] = typeOfRange(sctx, dynamic, alltypes, offsets[i], offsets[i+1])
 		} else {
 			slotTypes[i] = alltypes[0]
 		}
@@ -254,8 +249,8 @@ func typesOfSlotsInList(sctx *super.Context, inner vector.Any, offsets []uint32)
 	return slotTypes
 }
 
-func typeOfRange(sctx *super.Context, union *vector.Union, alltypes []super.Type, start, end uint32) super.Type {
-	tags := slices.Clone(union.Tags[start:end])
+func typeOfRange(sctx *super.Context, dynamic *vector.Dynamic, alltypes []super.Type, start, end uint32) super.Type {
+	tags := slices.Clone(dynamic.Tags[start:end])
 	slices.Sort(tags)
 	uniq := slices.Compact(tags)
 	if len(uniq) == 0 {
@@ -263,9 +258,6 @@ func typeOfRange(sctx *super.Context, union *vector.Union, alltypes []super.Type
 	}
 	if len(uniq) == 1 {
 		return alltypes[uniq[0]]
-	}
-	if len(uniq) == len(alltypes) {
-		return union.Typ
 	}
 	var types []super.Type
 	for _, tag := range uniq {
