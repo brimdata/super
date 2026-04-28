@@ -153,8 +153,6 @@ output: |
 
 ---
 
-
-
 # Test downcast on named values.
 spq: downcast(this[0], this[1]) 
 
