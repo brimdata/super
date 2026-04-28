@@ -35,7 +35,7 @@ tidy:
 	git diff --exit-code -- go.mod go.sum
 
 bin/minio: Makefile
-	@curl -o $@ --compressed --create-dirs \
+	@curl -fLo $@ --compressed --create-dirs \
 		https://dl.min.io/server/minio/release/$$(go env GOOS)-$$(go env GOARCH)/archive/minio.RELEASE.2022-05-04T07-45-27Z
 	@chmod +x $@
 

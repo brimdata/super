@@ -77,7 +77,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 				}
 			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
-			if a != fusedRec || b != fusedRec {
+			if recChanged(a, fusedRec) || recChanged(b, fusedRec) {
 				return f.fusion(fusedRec)
 			}
 			return fusedRec
@@ -262,4 +262,22 @@ func indexOfField(fields []super.Field, name string) (int, bool) {
 		}
 	}
 	return -1, false
+}
+
+// recChanged returns true iff the two record types are different
+// enough after fusing that they need to be wrapped in a fusion type.
+// As long as all the fields names and optionality are the same, then
+// any type differences in the fused type of the child fields will be
+// captured by a fusion wrapper somewhere in the descendent type.
+func recChanged(a, b *super.TypeRecord) bool {
+	if len(a.Fields) != len(b.Fields) {
+		return true
+	}
+	for k, af := range a.Fields {
+		bf := b.Fields[k]
+		if af.Name != bf.Name || af.Opt != bf.Opt {
+			return true
+		}
+	}
+	return false
 }
