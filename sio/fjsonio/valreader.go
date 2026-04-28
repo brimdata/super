@@ -3,6 +3,7 @@ package fjsonio
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"slices"
 
@@ -16,6 +17,7 @@ type valReader struct {
 	buf    []byte
 	cursor []byte
 	EOF    bool
+	line   int
 }
 
 func newValReader(r io.Reader) *valReader {
@@ -54,9 +56,10 @@ func (r *valReader) Next() ([]byte, error) {
 					return nil, io.EOF
 				}
 			}
-			return nil, errors.New("parse error")
+			return nil, r.parseError()
 		}
 		b := r.cursor[start:end]
+		r.line += bytes.Count(b, []byte{'\n'})
 		r.cursor = r.cursor[end:]
 		return b, nil
 	}
@@ -76,4 +79,16 @@ func (r *valReader) fill() error {
 	r.cursor = r.buf
 	r.cursor = r.cursor[:cc+n]
 	return nil
+}
+
+func (r *valReader) parseError() error {
+	// The first character of a new line is often a newline which throws off
+	// line count, so count newlines before first non-whitespace character.
+	i := bytes.IndexFunc(r.cursor, func(r rune) bool {
+		return r != ' ' && r != '\t' && r != '\n' && r != '\r'
+	})
+	if i != -1 {
+		r.line += bytes.Count(r.cursor[:i], []byte{'\n'})
+	}
+	return fmt.Errorf("line %d: invalid JSON value", r.line+1)
 }

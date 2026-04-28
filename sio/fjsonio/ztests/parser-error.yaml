@@ -9,7 +9,7 @@ input: |
   {"x":1}
 
 error: |
-  parse error
+  line 2: invalid JSON value
 
 ---
 
