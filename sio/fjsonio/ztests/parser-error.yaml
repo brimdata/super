@@ -1,0 +1,25 @@
+# Test parse error on EOF.
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  {"x":1}
+  {"x":}
+  {"x":1}
+
+error: |
+  parse error
+
+---
+
+# Test that we don't get a parser error on file with whitespace at the end.
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: "{\"x\":1}\n       \n\n\n\t"
+       
+output: |
+  {"x":1}
