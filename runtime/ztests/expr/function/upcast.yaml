@@ -20,6 +20,7 @@ input: |
   [[1,"a"],<[int8|string]>]
   [[1::int8,"a"],<[int8|string]>]
   [[1]::[int64|string],<[int64|string|null]>]
+  [map{1:map{2:3},4:map{5:null}},<fusion(map{int64:fusion(map{int64:fusion(int64|null)})})>]
   ["x"::enum(x,y),<fusion(enum(x,y,z))>]
   ["x"::enum(x,y),<fusion(enum(y,z))>]
   [fusion(1::(int64|string),<int64>),<fusion(int64|string)>]
@@ -68,6 +69,7 @@ output: |
   error({message:"upcast: value not a subtype of [int8|string]",on:[1,"a"]})
   [1::int8,"a"]
   [1]::[int64|string|null]
+  fusion(map{1:fusion(map{2:fusion(3::(int64|null),<int64>)},<map{int64:int64}>),4:fusion(map{5:fusion(null::(int64|null),<null>)},<map{int64:null}>)},<map{int64:map{int64:int64}|map{int64:null}}>)
   fusion("x"::enum(x,y,z),<enum(x,y)>)
   error({message:"upcast: value not a subtype of fusion(enum(y,z))",on:"x"::enum(x,y)})
   fusion(1::(int64|string),<int64|string>)

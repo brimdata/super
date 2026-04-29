@@ -198,11 +198,11 @@ func (u *Upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
 	if !ok {
 		return nil
 	}
-	keys := u.upcast(mapVec.Keys, to.KeyType)
+	keys := u.deunionAndUpcast(mapVec.Keys, to.KeyType)
 	if keys == nil {
 		return nil
 	}
-	values := u.upcast(mapVec.Values, to.ValType)
+	values := u.deunionAndUpcast(mapVec.Values, to.ValType)
 	if values == nil {
 		return nil
 	}

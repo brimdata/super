@@ -163,10 +163,12 @@ func (u *Upcast) toMap(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *
 	}
 	b.BeginContainer()
 	for it := bytes.Iter(); !it.Done(); {
-		if ok := u.upcast(b, mapType.KeyType, it.Next(), to.KeyType); !ok {
+		keyType, keyBytes := deunion(mapType.KeyType, it.Next())
+		if ok := u.upcast(b, keyType, keyBytes, to.KeyType); !ok {
 			return false
 		}
-		if ok := u.upcast(b, mapType.ValType, it.Next(), to.ValType); !ok {
+		valType, valBytes := deunion(mapType.ValType, it.Next())
+		if ok := u.upcast(b, valType, valBytes, to.ValType); !ok {
 			return false
 		}
 	}
