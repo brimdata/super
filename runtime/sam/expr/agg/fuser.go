@@ -173,7 +173,7 @@ func (f *Fuser) fuseInternal(typ super.Type) super.Type {
 	case *super.TypeSet:
 		out = f.sctx.LookupTypeSet(f.fuseInternal(typ.Type))
 	case *super.TypeMap:
-		out = f.fusion(f.sctx.LookupTypeMap(f.fuseInternal(typ.KeyType), f.fuseInternal(typ.ValType)))
+		out = f.sctx.LookupTypeMap(f.fuseInternal(typ.KeyType), f.fuseInternal(typ.ValType))
 	case *super.TypeUnion:
 		types := f.fuseIntoUnionTypes(nil, typ)
 		if len(types) == 1 {
