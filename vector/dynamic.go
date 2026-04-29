@@ -108,3 +108,8 @@ func (d *Dynamic) newReverseTagMap() [][]uint32 {
 	}
 	return reverse
 }
+
+func IsDynamic(vec Any) bool {
+	_, ok := vec.(*Dynamic)
+	return ok
+}
