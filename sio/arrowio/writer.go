@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"math"
 	"slices"
 	"strconv"
@@ -535,7 +536,7 @@ func isRecursive(typ super.Type, seen map[string]struct{}) bool {
 		return isRecursive(typ.Type, seen)
 	case *super.TypeRecord:
 		for _, f := range typ.Fields {
-			if isRecursive(f.Type, seen) {
+			if isRecursive(f.Type, maps.Clone(seen)) {
 				return true
 			}
 		}
@@ -544,7 +545,7 @@ func isRecursive(typ super.Type, seen map[string]struct{}) bool {
 	case *super.TypeSet:
 		return isRecursive(typ.Type, seen)
 	case *super.TypeMap:
-		return isRecursive(typ.KeyType, seen) || isRecursive(typ.ValType, seen)
+		return isRecursive(typ.KeyType, maps.Clone(seen)) || isRecursive(typ.ValType, maps.Clone(seen))
 	case *super.TypeUnion:
 		for _, t := range typ.Types {
 			if isRecursive(t, seen) {

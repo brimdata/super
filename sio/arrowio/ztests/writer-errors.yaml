@@ -9,3 +9,28 @@ outputs:
         arrowio: encountered multiple types (consider 'fuse'): {a:int64} and {b:int64}
         arrowio: not a record: 1
         arrowio: unsupported type: empty record
+
+---
+
+# Test errors on recursive types.
+script: |
+  # valid
+  echo 'type n=string {a:"foo"::n,b:"bar"::n}' | super -f arrows - > /dev/null
+  echo 'type n=string {a:map{"foo"::n:"bar"::n}}' | super -f arrows - > /dev/null
+  # invalid
+  ! echo 'type Foo=string|[Bar] type Bar={x:Foo} {x:[{x:"foo"}::Bar]::Foo}::Bar' \
+  | super -f arrows - > /dev/null
+
+inputs:
+  - name: valid.sup
+    data: |
+      type named=string
+      {a:"foo"::named,b:"bar"::named}
+      {a:map{"foo"::named:"bar"::named}}
+
+outputs:
+  - name: stdout
+    data: ""
+  - name: stderr
+    data: |
+      arrowio: unsupported type: Bar
