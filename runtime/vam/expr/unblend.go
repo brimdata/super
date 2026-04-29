@@ -13,7 +13,7 @@ func Unblend(sctx *super.Context, vec vector.Any) vector.Any {
 		return unblendRecord(sctx, vec)
 	case vector.KindArray:
 		array := PushContainerViewDown(vec).(*vector.Array)
-		tags, inners, offsets := unblendArrayOrSet(sctx, array.Offsets, array.Values)
+		tags, inners, offsets := SplitListByTypes(sctx, array.Offsets, Unblend(sctx, array.Values))
 		var vals []vector.Any
 		for i, inner := range inners {
 			typ := sctx.LookupTypeArray(inner.Type())
@@ -25,7 +25,7 @@ func Unblend(sctx *super.Context, vec vector.Any) vector.Any {
 		return vals[0]
 	case vector.KindSet:
 		set := PushContainerViewDown(vec).(*vector.Set)
-		tags, inners, offsets := unblendArrayOrSet(sctx, set.Offsets, set.Values)
+		tags, inners, offsets := SplitListByTypes(sctx, set.Offsets, Unblend(sctx, set.Values))
 		var vals []vector.Any
 		for i, inner := range inners {
 			typ := sctx.LookupTypeSet(inner.Type())
@@ -94,13 +94,12 @@ func unblendRecord(sctx *super.Context, in vector.Any) vector.Any {
 	}, fields...)
 }
 
-func unblendArrayOrSet(sctx *super.Context, offsets []uint32, elements vector.Any) ([]uint32, []vector.Any, [][]uint32) {
-	elements = Unblend(sctx, elements)
+func SplitListByTypes(sctx *super.Context, offsets []uint32, elements vector.Any) ([]uint32, []vector.Any, [][]uint32) {
 	dynamic, ok := elements.(*vector.Dynamic)
 	if !ok {
 		return nil, []vector.Any{elements}, [][]uint32{offsets}
 	}
-	slotTypes := typesOfSlotsInList(sctx, dynamic, offsets)
+	slotTypes := SlotTypesInList(sctx, dynamic, offsets)
 	// Accumulate unique array types.
 	m := make(map[super.Type][]uint32)
 	for i, typ := range slotTypes {
@@ -110,7 +109,7 @@ func unblendArrayOrSet(sctx *super.Context, offsets []uint32, elements vector.An
 	var inners []vector.Any
 	var offs [][]uint32
 	for typ, index := range m {
-		inner, off := subsetOfList(sctx, dynamic, offsets, index, typ)
+		inner, off := SubsetOfList(sctx, dynamic, offsets, index, typ)
 		for _, idx := range index {
 			dtags[idx] = uint32(len(inners))
 		}
@@ -129,8 +128,8 @@ func unblendMap(sctx *super.Context, vmap *vector.Map) vector.Any {
 		mtyp := sctx.LookupTypeMap(keys.Type(), vals.Type())
 		return vector.NewMap(mtyp, vmap.Offsets, keys, vals)
 	}
-	keySlotTypes := typesOfSlotsInList(sctx, keys, vmap.Offsets)
-	valSlotTypes := typesOfSlotsInList(sctx, vals, vmap.Offsets)
+	keySlotTypes := SlotTypesInList(sctx, keys, vmap.Offsets)
+	valSlotTypes := SlotTypesInList(sctx, vals, vmap.Offsets)
 	type mapType struct {
 		key super.Type
 		val super.Type
@@ -144,8 +143,8 @@ func unblendMap(sctx *super.Context, vmap *vector.Map) vector.Any {
 	dtags := make([]uint32, len(vmap.Offsets)-1)
 	var vecs []vector.Any
 	for mtyp, index := range m {
-		keys, offsets := subsetOfList(sctx, keys, vmap.Offsets, index, mtyp.key)
-		vals, _ := subsetOfList(sctx, vals, vmap.Offsets, index, mtyp.val)
+		keys, offsets := SubsetOfList(sctx, keys, vmap.Offsets, index, mtyp.key)
+		vals, _ := SubsetOfList(sctx, vals, vmap.Offsets, index, mtyp.val)
 		for _, idx := range index {
 			dtags[idx] = uint32(len(vecs))
 		}
@@ -158,11 +157,11 @@ func unblendMap(sctx *super.Context, vmap *vector.Map) vector.Any {
 	return vector.NewDynamic(dtags, vecs)
 }
 
-func subsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index []uint32, typ super.Type) (vector.Any, []uint32) {
-	if typ == super.TypeNull {
-		nulls := vector.NewNull(uint32(len(index)))
+func SubsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index []uint32, typ super.Type) (vector.Any, []uint32) {
+	if typ == super.TypeNone {
+		nones := vector.NewNoneTmp(uint32(len(index)))
 		offsets := make([]uint32, len(index)+1)
-		return nulls, offsets
+		return nones, offsets
 	}
 	var allVals []vector.Any
 	dynamic, ok := elements.(*vector.Dynamic)
@@ -227,7 +226,7 @@ func subsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index
 	return inner, suboffsets
 }
 
-func typesOfSlotsInList(sctx *super.Context, inner vector.Any, offsets []uint32) []super.Type {
+func SlotTypesInList(sctx *super.Context, inner vector.Any, offsets []uint32) []super.Type {
 	dynamic, _ := vector.Deunion(inner).(*vector.Dynamic)
 	var alltypes []super.Type
 	if dynamic != nil {
@@ -240,8 +239,11 @@ func typesOfSlotsInList(sctx *super.Context, inner vector.Any, offsets []uint32)
 	n := uint32(len(offsets) - 1)
 	slotTypes := make([]super.Type, n)
 	for i := range n {
-		if dynamic != nil {
-			slotTypes[i] = typeOfRange(sctx, dynamic, alltypes, offsets[i], offsets[i+1])
+		start, end := offsets[i], offsets[i+1]
+		if start == end {
+			slotTypes[i] = super.TypeNone
+		} else if dynamic != nil {
+			slotTypes[i] = typeOfRange(sctx, dynamic, alltypes, start, end)
 		} else {
 			slotTypes[i] = alltypes[0]
 		}

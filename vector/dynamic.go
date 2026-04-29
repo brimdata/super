@@ -1,6 +1,7 @@
 package vector
 
 import (
+	"slices"
 	"sync/atomic"
 
 	"github.com/brimdata/super"
@@ -107,4 +108,44 @@ func (d *Dynamic) newReverseTagMap() [][]uint32 {
 		counts[tag]++
 	}
 	return reverse
+}
+
+func IsDynamic(vec Any) bool {
+	_, ok := vec.(*Dynamic)
+	return ok
+}
+
+func FlattenDynamic(d *Dynamic) *Dynamic {
+	hasDynamic := slices.ContainsFunc(d.Values, func(vec Any) bool {
+		_, ok := vec.(*Dynamic)
+		return ok
+	})
+	if !hasDynamic {
+		return d
+	}
+	bases := make([]uint32, len(d.Values))
+	dynamics := make([]*Dynamic, len(d.Values))
+	var newValues []Any
+	for i, val := range d.Values {
+		bases[i] = uint32(len(newValues))
+		if d, ok := val.(*Dynamic); ok {
+			flat := FlattenDynamic(d)
+			dynamics[i] = flat
+			newValues = append(newValues, flat.Values...)
+		} else {
+			newValues = append(newValues, val)
+		}
+	}
+	forward := d.ForwardTagMap()
+	newTags := make([]uint32, len(d.Tags))
+	for slot, oldTag := range d.Tags {
+		base := bases[oldTag]
+		if d := dynamics[oldTag]; d != nil {
+			innerSlot := forward[slot]
+			newTags[slot] = base + d.Tags[innerSlot]
+		} else {
+			newTags[slot] = base
+		}
+	}
+	return NewDynamic(newTags, newValues)
 }

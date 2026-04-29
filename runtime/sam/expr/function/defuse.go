@@ -7,26 +7,26 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-type defuse struct {
+type Defuse struct {
 	sctx     *super.Context
 	downcast *downcast
 	has      map[super.Type]bool
 }
 
-func NewDefuse(sctx *super.Context) *defuse {
-	return &defuse{
+func NewDefuse(sctx *super.Context) *Defuse {
+	return &Defuse{
 		sctx:     sctx,
 		downcast: &downcast{sctx: sctx, name: "defuse"},
 		has:      make(map[super.Type]bool),
 	}
 }
 
-func (d *defuse) Call(args []super.Value) super.Value {
+func (d *Defuse) Call(args []super.Value) super.Value {
 	return d.eval(args[0])
 }
 
-func (d *defuse) eval(in super.Value) super.Value {
-	if !d.hasFusion(in.Type()) {
+func (d *Defuse) eval(in super.Value) super.Value {
+	if !d.HasFusion(in.Type()) {
 		return in
 	}
 	switch typ := in.Type().(type) {
@@ -107,7 +107,7 @@ func (d *defuse) eval(in super.Value) super.Value {
 	}
 }
 
-func (d *defuse) parseArrayOrSet(typ super.Type, bytes scode.Bytes) []super.Value {
+func (d *Defuse) parseArrayOrSet(typ super.Type, bytes scode.Bytes) []super.Value {
 	var elems []super.Value
 	for it := bytes.Iter(); !it.Done(); {
 		elems = append(elems, d.eval(super.NewValue(typ, it.Next())))
@@ -115,7 +115,7 @@ func (d *defuse) parseArrayOrSet(typ super.Type, bytes scode.Bytes) []super.Valu
 	return elems
 }
 
-func (d *defuse) unify(elems []super.Value) (super.Type, scode.Bytes) {
+func (d *Defuse) unify(elems []super.Value) (super.Type, scode.Bytes) {
 	seen := make(map[super.Type]struct{})
 	var types []super.Type
 	for _, e := range elems {
@@ -143,7 +143,7 @@ func (d *defuse) unify(elems []super.Value) (super.Type, scode.Bytes) {
 	return union, b.Bytes()
 }
 
-func (d *defuse) unifyType(vals []super.Value) super.Type {
+func (d *Defuse) unifyType(vals []super.Value) super.Type {
 	seen := make(map[super.Type]struct{})
 	var types []super.Type
 	for _, e := range vals {
@@ -167,22 +167,22 @@ func (d *defuse) unifyType(vals []super.Value) super.Type {
 	}
 }
 
-func (d *defuse) hasFusion(typ super.Type) bool {
+func (d *Defuse) HasFusion(typ super.Type) bool {
 	if fused, ok := d.has[typ]; ok {
 		return fused
 	}
 	var has bool
 	switch typ := typ.(type) {
 	case *super.TypeRecord:
-		has = slices.ContainsFunc(typ.Fields, func(f super.Field) bool { return d.hasFusion(f.Type) })
+		has = slices.ContainsFunc(typ.Fields, func(f super.Field) bool { return d.HasFusion(f.Type) })
 	case *super.TypeArray:
-		has = d.hasFusion(typ.Type)
+		has = d.HasFusion(typ.Type)
 	case *super.TypeSet:
-		has = d.hasFusion(typ.Type)
+		has = d.HasFusion(typ.Type)
 	case *super.TypeMap:
-		has = d.hasFusion(typ.KeyType) || d.hasFusion(typ.ValType)
+		has = d.HasFusion(typ.KeyType) || d.HasFusion(typ.ValType)
 	case *super.TypeError:
-		has = d.hasFusion(typ.Type)
+		has = d.HasFusion(typ.Type)
 	case *super.TypeFusion:
 		has = true
 	}
