@@ -8,6 +8,7 @@ input: |
   {info:"Connection Example",src:{addr:10.1.1.2,port:80},dst:{addr:10.0.1.2,port:20130}}::conn
   {info:"Connection Example 2",src:{addr:10.1.1.8,port:80},dst:{addr:10.1.2.88,port:19801}}::conn
   null
+  1::(int64|string)
   type access_list={info:string,nets:[net]}
   {info:"Access List Example",nets:[10.1.1.0/24,10.1.2.0/24]}::access_list
   {metric:"A",ts:2020-11-24T16:44:09.586441Z,value:120}
@@ -21,6 +22,7 @@ output: |
   <conn>
   <conn>
   <null>
+  <int64|string>
   type access_list={info:string,nets:[net]}
   <access_list>
   <{metric:string,ts:time,value:int64}>

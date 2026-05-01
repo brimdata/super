@@ -156,6 +156,8 @@ func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	return vector.NewConstType(t.sctx, args[0].Type(), args[0].Len())
 }
 
+func (t *TypeOf) RipUnions() bool { return false }
+
 type TypeName struct {
 	sctx *super.Context
 }
