@@ -85,7 +85,7 @@ func (d *defuse) defuseRecord(vec vector.Any) vector.Any {
 			if vec.Kind() == vector.KindNone {
 				continue
 			}
-			fields = append(fields, super.NewFieldWithOpt(f.Name, vec.Type(), f.Opt))
+			fields = append(fields, super.NewField(f.Name, vec.Type()))
 		}
 		typ := d.sctx.MustLookupTypeRecord(fields)
 		return vector.NewRecord(typ, vecs, n)
