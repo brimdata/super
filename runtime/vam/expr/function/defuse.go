@@ -15,11 +15,13 @@ type defuse struct {
 }
 
 func newDefuse(sctx *super.Context) *defuse {
-	return &defuse{
+	d := &defuse{
 		sctx:      sctx,
 		downcast:  &downcast{sctx: sctx},
 		samdefuse: samfunc.NewDefuse(sctx),
 	}
+	d.downcast.defuser = d
+	return d
 }
 
 func (d *defuse) Call(args ...vector.Any) vector.Any {

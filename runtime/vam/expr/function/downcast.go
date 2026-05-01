@@ -11,7 +11,12 @@ import (
 )
 
 type downcast struct {
-	sctx *super.Context
+	sctx    *super.Context
+	defuser *defuse
+}
+
+func newDowncast(sctx *super.Context) *downcast {
+	return newDefuse(sctx).downcast
 }
 
 func (d *downcast) Call(vecs ...vector.Any) vector.Any {
@@ -121,13 +126,15 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 }
 
 func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
+	fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
+	vec := d.Call(fusion.Values, fusion.Subtypes)
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
 		if vec.Type() != to && !isErrDowncast(vec) {
 			vec = d.errSubtype(vec, to)
 		}
 		return vec
-	}, d.derefFusion(in))
+	}, vec)
 }
 
 func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
@@ -452,22 +459,17 @@ func (d *downcast) deunion(vec vector.Any, f func(vector.Any) vector.Any) vector
 }
 
 func (d *downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vector.Any) vector.Any) vector.Any {
-	if vec.Kind() == vector.KindFusion {
-		vec = d.derefFusion(vec)
-		if d, ok := vec.(*vector.Dynamic); ok {
-			var vals []vector.Any
-			for _, val := range d.Values {
-				vals = append(vals, f(slices.Index(types, val.Type()), val))
+	vec = d.defuser.eval(vec)
+	if d, ok := vec.(*vector.Dynamic); ok {
+		vals := make([]vector.Any, len(d.Values))
+		for i, val := range d.Values {
+			if val != nil {
+				vals[i] = f(slices.Index(types, val.Type()), val)
 			}
-			return vector.NewDynamic(d.Tags, vals)
 		}
+		return vector.NewDynamic(d.Tags, vals)
 	}
 	return f(slices.Index(types, vec.Type()), vec)
-}
-
-func (d *downcast) derefFusion(vec vector.Any) vector.Any {
-	fusion := expr.PushContainerViewDown(vec).(*vector.Fusion)
-	return d.Call(fusion.Values, fusion.Subtypes)
 }
 
 // pick is the same as vector.Pick but it strips errDowncast then reapplies it.

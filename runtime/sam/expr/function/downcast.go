@@ -9,12 +9,12 @@ import (
 )
 
 type downcast struct {
-	sctx *super.Context
-	name string
+	sctx    *super.Context
+	defuser *Defuse
 }
 
-func NewDowncast(sctx *super.Context, name string) Caster {
-	return &downcast{sctx, name}
+func newDowncast(sctx *super.Context) *downcast {
+	return NewDefuse(sctx).downcast
 }
 
 func (d *downcast) Call(args []super.Value) super.Value {
@@ -233,10 +233,8 @@ func (d *downcast) toEnum(typ super.Type, bytes scode.Bytes, to *super.TypeEnum)
 // definition of a fusion type, one of the union types must exactly match the
 // child type.
 func (d *downcast) subTypeOf(typ super.Type, bytes scode.Bytes, types []super.Type) (int, super.Type, []byte) {
-	if fusionType, ok := typ.(*super.TypeFusion); ok {
-		superBytes, subtype := fusionType.Deref(d.sctx, bytes)
-		return slices.Index(types, subtype), fusionType.Type, superBytes
-	}
+	val := d.defuser.eval(super.NewValue(typ, bytes))
+	typ, bytes = val.Type(), val.Bytes()
 	return slices.Index(types, typ), typ, bytes
 }
 

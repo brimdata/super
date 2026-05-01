@@ -14,11 +14,13 @@ type Defuse struct {
 }
 
 func NewDefuse(sctx *super.Context) *Defuse {
-	return &Defuse{
+	d := &Defuse{
 		sctx:     sctx,
-		downcast: &downcast{sctx: sctx, name: "defuse"},
+		downcast: &downcast{sctx: sctx},
 		has:      make(map[super.Type]bool),
 	}
+	d.downcast.defuser = d
+	return d
 }
 
 func (d *Defuse) Call(args []super.Value) super.Value {

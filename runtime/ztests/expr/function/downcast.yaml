@@ -125,12 +125,14 @@ vector: true
 
 input: |
   [fusion({x?:1,y?:_::string},<{x:int64}>),<{x:int64}>]
-  [fusion({x?:1,y?:_::string},<{x:int64}>),<{y?:string}>]
+  [{a:fusion(2::(int64|null),<int64>)},<null|{a:int64}>]
   // error cases
+  [fusion({x?:1,y?:_::string},<{x:int64}>),<{y?:string}>]
   [fusion({x?:_::int64,y?:"foo"},<{y:string}>),<{y:int64|string}>]
 
 output: |
   {x:1}
+  {a:2}::(null|{a:int64})
   error({message:"downcast: invalid subtype {y?:string}",on:{x:1}})
   error({message:"downcast: invalid subtype {y:int64|string}",on:{y:"foo"}})
 

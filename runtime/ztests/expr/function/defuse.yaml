@@ -130,3 +130,15 @@ input: &input |
 
 output: |
   [1,"foo"]::[int64|bool|string]
+
+---
+
+spq: fuse | defuse(this)
+
+vector: true
+
+input: &input |
+  {a:1::(int64|null)}
+  {a:2}::(null|{a:int64})
+
+output: *input

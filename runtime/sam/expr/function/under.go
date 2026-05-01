@@ -12,7 +12,7 @@ type Under struct {
 func NewUnder(sctx *super.Context) *Under {
 	return &Under{
 		sctx:     sctx,
-		downcast: &downcast{sctx, "under"},
+		downcast: newDowncast(sctx),
 	}
 }
 
