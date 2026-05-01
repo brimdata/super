@@ -70,7 +70,9 @@ func (d *downcast) call(from vector.Any, types []super.Type) vector.Any {
 	for typ, i := range typeToTag {
 		vals[i] = d.cast(vector.Pick(from, indexes[i]), typ)
 	}
-	return vector.FlattenDynamic(vector.NewDynamic(tags, vals))
+	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		return vecs[0]
+	}, vector.NewDynamic(tags, vals))
 }
 
 func (d *downcast) cast(vec vector.Any, typ super.Type) vector.Any {
@@ -90,11 +92,11 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 		for _, vec := range dynamic.Values {
 			vecs = append(vecs, d.downcast(vec, to))
 		}
-		if len(vecs) == 1 {
-			return vecs[0]
-		}
 		if _, ok := to.(*super.TypeUnion); ok {
 			return vector.MergeSameTypesInDynamic(d.sctx, vector.NewDynamic(dynamic.Tags, vecs))
+		}
+		if len(vecs) == 1 {
+			return vecs[0]
 		}
 		return vector.NewDynamic(dynamic.Tags, vecs)
 	}
