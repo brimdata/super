@@ -14,6 +14,9 @@ type DatePart struct {
 }
 
 func (d *DatePart) Call(args ...vector.Any) vector.Any {
+	if args[0].Kind() == vector.KindNull || args[1].Kind() == vector.KindNull {
+		return vector.NewNull(args[0].Len())
+	}
 	if args[0].Type().ID() != super.IDString {
 		return vector.NewWrappedError(d.sctx, "date_part: string value required for part argument", args[0])
 	}

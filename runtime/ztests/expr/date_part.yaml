@@ -26,3 +26,20 @@ output: |
   9
   40
   2001
+
+---
+
+spq: |
+  values date_part(a,b)
+
+vector: true
+
+input: |
+  {a:"hour",b:2001-10-09T01:46:40Z::(time|null)}
+  {a:"hour",b:null::(time|null)}
+  {a:null,b:2001-10-09T01:46:40Z::(time|null)}
+
+output: |
+  1
+  null
+  null

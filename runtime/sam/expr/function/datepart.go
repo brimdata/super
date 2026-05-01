@@ -14,17 +14,22 @@ func NewDatePart(sctx *super.Context) *DatePart {
 }
 
 func (d *DatePart) Call(args []super.Value) super.Value {
-	if args[0].Type().ID() != super.IDString {
+	args = underAll(args)
+	part, time := args[0], args[1]
+	if part.IsNull() || time.IsNull() {
+		return super.Null
+	}
+	if part.Type().ID() != super.IDString {
 		return d.sctx.WrapError("date_part: string value required for part argument", args[0])
 	}
-	if args[1].Type().ID() != super.IDTime {
+	if time.Type().ID() != super.IDTime {
 		return d.sctx.WrapError("date_part: time value required for time argument", args[1])
 	}
-	fn := lookupDatePartEval(args[0].AsString())
+	fn := lookupDatePartEval(part.AsString())
 	if fn == nil {
-		return d.sctx.WrapError("date_part: unsupported part name", args[0])
+		return d.sctx.WrapError("date_part: unsupported part name", part)
 	}
-	return super.NewInt64(fn(args[1].AsTime()))
+	return super.NewInt64(fn(time.AsTime()))
 }
 
 func lookupDatePartEval(part string) func(nano.Ts) int64 {
