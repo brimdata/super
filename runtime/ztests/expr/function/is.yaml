@@ -9,3 +9,15 @@ input: |
 output: |
   {isRecType:true,isString:false}
   {isRecType:false,isString:true}
+
+---
+
+spq: values is(a,b)
+
+vector: true
+
+input: |
+  {a:1::(int64|string),b:<int64>}
+
+output: |
+  false

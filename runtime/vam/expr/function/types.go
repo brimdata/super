@@ -112,6 +112,8 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
+func (i *Is) RipUnions() bool { return false }
+
 type IsErr struct{}
 
 func (IsErr) Call(args ...vector.Any) vector.Any {
