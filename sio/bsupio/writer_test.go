@@ -21,32 +21,26 @@ func TestWriter(t *testing.T) {
 {_path:"xyz",ts:1970-01-01T00:00:20Z,d:1.5}
 `
 	expectedHex := `
-# version 4
-84
-# types block, uncompressed, len = 1*16+3 = 19
-03 01
+# version 5
+85
+# types block, uncompressed, len = 1*16+0 = 16
+00 01
 # typedef record with 3 fields
 00 03
 # first field name is _path (len 5)
 05 5f 70 61 74 68
 # first field type is string (25)
 19
-# first field non-optional
-00
 # second field name is ts (len 2)
 02 74 73
 # second field type is time (13)
 0d
-# second field non-optional
-00
 # third field name is d (len 1)
 01 64
 # third field type is float64 (16)
 10
-# third field non-optional
-00
 # version 4
-84
+85
 # values block, uncompressed, len = 1*16+3 = 19 bytes
 13 01
 # value type id 32 (0x20), the record type defined above
@@ -67,7 +61,7 @@ func TestWriter(t *testing.T) {
 # 8 bytes of float64 data representing 1.0
 00 00 00 00 00 00 f0 3f
 # version 4
-84
+85
 # another encoded value using the same record definition as before
 15 01
 20

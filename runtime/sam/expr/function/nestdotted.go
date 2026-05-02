@@ -3,7 +3,6 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/scode"
 )
 
 type NestDotted struct {
@@ -64,9 +63,6 @@ func (n *NestDotted) Call(args []super.Value) super.Value {
 	if rtyp == nil {
 		return n.sctx.WrapError("nest_dotted: non-record value", val)
 	}
-	if rtyp.Opts != 0 {
-		return n.sctx.WrapError("nest_dotted: does not support optional fields", val)
-	}
 	b, typ, err := n.lookupBuilderAndType(rtyp)
 	if err != nil {
 		return n.sctx.WrapError("nest_dotted: "+err.Error(), val)
@@ -75,9 +71,8 @@ func (n *NestDotted) Call(args []super.Value) super.Value {
 		return val
 	}
 	b.Reset()
-	for it := scode.NewRecordIter(val.Bytes(), 0); !it.Done(); {
-		elem, _ := it.Next(false)
-		b.Append(elem)
+	for it := val.Bytes().Iter(); !it.Done(); {
+		b.Append(it.Next())
 	}
 	zbytes, err := b.Encode()
 	if err != nil {

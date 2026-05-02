@@ -49,6 +49,15 @@ func buildValue(b *scode.Builder, val Value) error {
 	case *Null:
 		b.Append(nil)
 		return nil
+	case *None:
+		union, noneTag := super.OptionUnion(val.Type())
+		if union == nil {
+			panic(val.Type())
+		}
+		super.BeginUnion(b, noneTag)
+		b.Append(nil)
+		b.EndContainer()
+		return nil
 	}
 	return fmt.Errorf("unknown ast type: %T", val)
 }
@@ -170,29 +179,7 @@ func BuildPrimitive(b *scode.Builder, val Primitive) error {
 
 func buildRecord(b *scode.Builder, val *Record) error {
 	b.BeginContainer()
-	typ := super.TypeUnder(val.typ).(*super.TypeRecord)
-	if nopts := typ.Opts; nopts != 0 {
-		// Set the none bit for each optional field.
-		// We assume the invariant that None occurs only in
-		// optional fields and panic otherwise.
-		nones := make([]byte, (nopts+7)>>3)
-		off := 0
-		for k, v := range val.fields {
-			if typ.Fields[k].Opt {
-				if _, ok := v.(*None); ok {
-					nones[off>>3] |= 1 << (off & 7)
-				}
-				off++
-			} else if _, ok := v.(*None); ok {
-				panic(v)
-			}
-		}
-		b.Append(nones)
-	}
 	for _, v := range val.fields {
-		if _, ok := v.(*None); ok {
-			continue
-		}
 		if err := buildValue(b, v); err != nil {
 			return err
 		}

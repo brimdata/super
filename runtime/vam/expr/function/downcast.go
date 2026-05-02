@@ -121,6 +121,9 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 		return d.err(vector.NewWrappedError(d.sctx, "downcast: cannot downcast to a fusion type", vec))
 	default:
 		if vec.Type() != to {
+			if vec.Type() == super.TypeNone {
+				return d.errNonOptionNone(vec, to)
+			}
 			return d.errMismatch(vec, to)
 		}
 		return vec
@@ -153,7 +156,7 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 		if !ok {
 			return d.errSubtype(vec, to)
 		}
-		if toField.Opt && !rec.Typ.Fields[i].Opt {
+		if super.IsOptionType(toField.Type) && !super.IsOptionType(rec.Typ.Fields[i].Type) {
 			return d.errSubtype(vec, to)
 		}
 		fields = append(fields, d.downcast(rec.Fields[i], toField.Type))
@@ -161,13 +164,6 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		if i := slices.IndexFunc(vecs, isErrDowncast); i != -1 {
 			return vecs[i]
-		}
-		for i, vec := range vecs {
-			_, none := vec.(*vector.None)
-			if none && !to.Fields[i].Opt {
-				out := vector.NewRecord(rec.Typ, vecs, vecs[0].Len())
-				return d.errSubtype(out, to)
-			}
 		}
 		return vector.NewRecord(to, vecs, vecs[0].Len())
 	}, fields...)
@@ -524,6 +520,11 @@ func stripErrDowncast(vec vector.Any) vector.Any {
 func isErrDowncast(vec vector.Any) bool {
 	_, ok := vec.(*errDowncast)
 	return ok
+}
+
+func (d *downcast) errNonOptionNone(vec vector.Any, to super.Type) vector.Any {
+	err := vector.NewStringError(d.sctx, "downcast: none value in non-option type: "+sup.FormatType(to), vec.Len())
+	return d.err(err)
 }
 
 func (d *downcast) errMismatch(vec vector.Any, to super.Type) vector.Any {

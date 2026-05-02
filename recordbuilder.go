@@ -190,14 +190,14 @@ func (r *RecordBuilder) Type(types []Type) *TypeRecord {
 			stack = append(stack, current)
 		}
 
-		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i], false})
+		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i]})
 
 		for range fi.containerEnds {
 			recType := r.sctx.MustLookupTypeRecord(current.fields)
 			slen := len(stack)
 			stack = stack[:slen-1]
 			cur := stack[slen-2]
-			cur.fields = append(cur.fields, Field{current.name, recType, false})
+			cur.fields = append(cur.fields, Field{current.name, recType})
 			current = cur
 		}
 	}

@@ -78,55 +78,33 @@ func (u *Upcast) toRecord(b *scode.Builder, typ super.Type, bytes scode.Bytes, t
 	if !ok {
 		return false
 	}
-	var nones []int
-	var optOff int
 	b.BeginContainer()
 	for _, f := range to.Fields {
-		elemType, elemBytes, none, ok := derefWithNoneAndOk(recType, bytes, f.Name)
+		elemType, elemBytes, ok := derefAsBytes(recType, bytes, f.Name)
 		if !ok {
-			if f.Opt {
-				nones = append(nones, optOff)
-				optOff++
-			} else {
-				// If we don't have a field that is being upcast into, then that
-				// field must be optional (because we're a subtype and we don't have it).
-				// So error in this case.
-				return false
-			}
-			continue
-		}
-		if none {
-			nones = append(nones, optOff)
-			optOff++
-			continue
+			// If this field is not present, try upcasting a pure none value to
+			// see if it fuses as an optional value.
+			elemType = super.TypeNone
+			elemBytes = nil
 		}
 		if ok := u.upcast(b, elemType, elemBytes, f.Type); !ok {
 			return false
 		}
-		if f.Opt {
-			optOff++
-		}
 	}
-	b.EndContainerWithNones(to.Opts, nones)
+	b.EndContainer()
 	return true
 }
 
-func derefWithNoneAndOk(typ *super.TypeRecord, bytes scode.Bytes, name string) (super.Type, scode.Bytes, bool, bool) {
+func derefAsBytes(typ *super.TypeRecord, bytes scode.Bytes, name string) (super.Type, scode.Bytes, bool) {
 	n, ok := typ.IndexOfField(name)
 	if !ok {
-		return nil, nil, false, false
+		return nil, nil, false
 	}
 	var elem scode.Bytes
-	var none bool
-	for i, it := 0, scode.NewRecordIter(bytes, typ.Opts); i <= n; i++ {
-		elem, none = it.Next(typ.Fields[i].Opt)
+	for i, it := 0, bytes.Iter(); i <= n; i++ {
+		elem = it.Next()
 	}
-	fieldType := typ.Fields[n].Type
-	if none {
-		return fieldType, nil, true, true
-	}
-	return fieldType, elem, false, true
-
+	return typ.Fields[n].Type, elem, true
 }
 
 func (u *Upcast) toArray(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeArray) bool {
@@ -163,10 +141,12 @@ func (u *Upcast) toMap(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *
 	}
 	b.BeginContainer()
 	for it := bytes.Iter(); !it.Done(); {
-		if ok := u.upcast(b, mapType.KeyType, it.Next(), to.KeyType); !ok {
+		keyType, keyBytes := deunion(mapType.KeyType, it.Next())
+		if ok := u.upcast(b, keyType, keyBytes, to.KeyType); !ok {
 			return false
 		}
-		if ok := u.upcast(b, mapType.ValType, it.Next(), to.ValType); !ok {
+		valType, valBytes := deunion(mapType.ValType, it.Next())
+		if ok := u.upcast(b, valType, valBytes, to.ValType); !ok {
 			return false
 		}
 	}

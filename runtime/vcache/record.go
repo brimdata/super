@@ -14,10 +14,11 @@ type record struct {
 	mu     sync.Mutex
 	meta   *csup.Record
 	len    uint32
-	fields []field_
+	fields []shadow
 }
 
-type field_ struct {
+type option struct {
+	// XXX csup.Field will be changed to csup.Option in a subsequent PR
 	meta *csup.Field
 	len  uint32
 	// values protected by record mutex
@@ -29,12 +30,8 @@ type field_ struct {
 }
 
 func newRecord(cctx *csup.Context, meta *csup.Record) *record {
-	fields := make([]field_, len(meta.Fields))
+	fields := make([]shadow, len(meta.Fields))
 	len := meta.Len(cctx)
-	for k := range meta.Fields {
-		fields[k].len = len
-		fields[k].meta = &meta.Fields[k]
-	}
 	return &record{
 		meta:   meta,
 		len:    len,
@@ -53,12 +50,18 @@ func (r *record) unmarshal(cctx *csup.Context, projection field.Projection) {
 		// Unmarshal all the fields of this record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for k := range r.fields {
+			if r.fields[k] == nil {
+				r.fields[k] = newShadow(cctx, r.meta.Fields[k].Values)
+			}
 			r.fields[k].unmarshal(cctx, nil)
 		}
 		return
 	}
 	for _, node := range projection {
 		if k := indexOfField(node.Name, r.meta); k >= 0 {
+			if r.fields[k] == nil {
+				r.fields[k] = newShadow(cctx, r.meta.Fields[k].Values)
+			}
 			r.fields[k].unmarshal(cctx, node.Proj)
 		}
 	}
@@ -71,26 +74,22 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 		// Build the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for k := range r.fields {
-			if r.fields[k].values != nil {
-				val := r.fields[k].project(loader, nil)
-				valFields = append(valFields, val)
-				types = append(types, super.NewFieldWithOpt(r.meta.Fields[k].Name, val.Type(), r.meta.Fields[k].Opt))
-			}
+			val := r.fields[k].project(loader, nil)
+			valFields = append(valFields, val)
+			types = append(types, super.NewField(r.meta.Fields[k].Name, val.Type()))
 		}
 		return vector.NewRecord(loader.sctx.MustLookupTypeRecord(types), valFields, r.length())
 	}
 	fields := make([]super.Field, 0, len(r.fields))
 	for _, node := range projection {
-		var opt bool
 		var val vector.Any
-		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k].values != nil {
+		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k] != nil {
 			val = r.fields[k].project(loader, node.Proj)
-			opt = r.meta.Fields[k].Opt
 		} else {
 			val = vector.NewMissing(loader.sctx, r.length())
 		}
 		valFields = append(valFields, val)
-		fields = append(fields, super.NewFieldWithOpt(node.Name, val.Type(), opt))
+		fields = append(fields, super.NewField(node.Name, val.Type()))
 	}
 	return vector.NewRecord(loader.sctx.MustLookupTypeRecord(fields), valFields, r.length())
 }
@@ -101,26 +100,24 @@ func indexOfField(name string, r *csup.Record) int {
 	})
 }
 
-func (f *field_) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (o *option) unmarshal(cctx *csup.Context, projection field.Projection) {
 	// protected by record mutex
-	if f.values == nil {
-		f.values = newShadow(cctx, f.meta.Values)
+	if o.values == nil {
+		o.values = newShadow(cctx, o.meta.Values)
 	}
-	f.values.unmarshal(cctx, projection)
+	o.values.unmarshal(cctx, projection)
 }
 
-func (f *field_) project(loader *loader, projection field.Projection) vector.Any {
-	if f.meta.Opt {
-		f.mu.Lock()
-		if !f.loaded {
-			nones, err := csup.ReadUint32s(f.meta.Nones, loader.r)
-			if err != nil {
-				panic(err)
-			}
-			f.nones = nones
-			f.loaded = true
+func (o *option) project(loader *loader, projection field.Projection) vector.Any {
+	o.mu.Lock()
+	if !o.loaded {
+		nones, err := csup.ReadUint32s(o.meta.Nones, loader.r)
+		if err != nil {
+			panic(err)
 		}
-		f.mu.Unlock()
+		o.nones = nones
+		o.loaded = true
 	}
-	return vector.NewFieldFromRLE(loader.sctx, f.values.project(loader, projection), f.len, f.nones)
+	o.mu.Unlock()
+	return vector.NewOptionFromRLE(loader.sctx, o.values.project(loader, projection), o.len, o.nones)
 }

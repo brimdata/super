@@ -31,9 +31,11 @@ func (v *Values) Pull(done bool) (vector.Any, error) {
 		}
 		vals := make([]vector.Any, 0, len(v.exprs))
 		for _, e := range v.exprs {
-			v := filterQuiet(e.Eval(val))
-			if v != nil {
-				vals = append(vals, vector.Opt(v))
+			vec := e.Eval(val)
+			vec = vector.DeoptionWithMissing(v.sctx, vec)
+			vec = filterQuiet(vec)
+			if vec != nil {
+				vals = append(vals, vec)
 			}
 		}
 		if len(vals) == 1 {

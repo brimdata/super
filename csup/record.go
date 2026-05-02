@@ -11,25 +11,19 @@ import (
 type RecordEncoder struct {
 	fields []*FieldEncoder
 	count  uint32
-	nopt   int
 }
 
 var _ Encoder = (*RecordEncoder)(nil)
 
 func NewRecordEncoder(cctx *Context, typ *super.TypeRecord) *RecordEncoder {
 	fields := make([]*FieldEncoder, 0, len(typ.Fields))
-	var nopt int
 	for _, f := range typ.Fields {
 		fields = append(fields, &FieldEncoder{
 			name:   f.Name,
 			values: NewEncoder(cctx, f.Type),
-			opt:    f.Opt,
 		})
-		if f.Opt {
-			nopt++
-		}
 	}
-	return &RecordEncoder{fields: fields, nopt: nopt}
+	return &RecordEncoder{fields: fields}
 }
 
 func (r *RecordEncoder) Write(vec vector.Any) {

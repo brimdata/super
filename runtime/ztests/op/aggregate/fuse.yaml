@@ -27,8 +27,7 @@ input: |
   {fixed:{x:5},var:{s:"foo",t:{x:1}}}
 
 output: |
-  <{fixed:{x:int64},var:fusion({s:string,a?:[int64],t?:fusion(int64|{x:int64})})}>
-
+  <{fixed:{x:int64},var:fusion({s:string,a?:[int64],t:fusion(int64|none|{x:int64})})}>
 ---
 
 spq: fuse(this)
@@ -42,6 +41,22 @@ input: |
 
 output: |
   <{a:fusion([fusion(int64|string|null)])}>
+
+---
+
+spq: unnest this into ( fuse(this) )
+
+vector: true
+
+input: |
+  [map{1:2}]
+  [map{1:2},map{3:4}]
+  [map{1:2},map{"3":"4"}]
+
+output: |
+  <map{int64:int64}>
+  <map{int64:int64}>
+  <fusion(map{fusion(int64|string):fusion(int64|string)})>
 
 ---
 

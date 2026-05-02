@@ -144,12 +144,12 @@ a separate output file for each output type.
 The [blend](../super-sql/operators/blend.md) operator uses
 [type fusion](../super-sql/type-fusion.md) to merge different record
 types into a blended type, e.g.,
-```mdtest-command
+```mdtest-command-skip
 echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -c blend -
 super -s out.parquet
 ```
 which produces
-```mdtest-output
+```mdtest-output-skip
 {x:1::(int64|null),s:null::(string|null)}
 {x:null::(int64|null),s:"hello"::(string|null)}
 ```

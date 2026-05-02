@@ -159,7 +159,7 @@ func unblendMap(sctx *super.Context, vmap *vector.Map) vector.Any {
 
 func SubsetOfList(sctx *super.Context, elements vector.Any, parentOffsets, index []uint32, typ super.Type) (vector.Any, []uint32) {
 	if typ == super.TypeNone {
-		nones := vector.NewNoneTmp(uint32(len(index)))
+		nones := vector.NewNone(uint32(len(index)))
 		offsets := make([]uint32, len(index)+1)
 		return nones, offsets
 	}

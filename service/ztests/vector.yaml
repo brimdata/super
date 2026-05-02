@@ -27,7 +27,7 @@ outputs:
         min: null,
         max: null,
         count: 5::uint64,
-        size: 79
+        size: 74
       }
       ===
       ===

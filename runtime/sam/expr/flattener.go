@@ -24,9 +24,6 @@ func NewFlattener(sctx *super.Context) *Flattener {
 }
 
 func recode(dst scode.Bytes, typ *super.TypeRecord, in scode.Bytes) (scode.Bytes, error) {
-	if typ.Opts != 0 {
-		panic("need to add support for optional fields in flattener")
-	}
 	if in == nil {
 		for _, f := range typ.Fields {
 			if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
@@ -41,16 +38,12 @@ func recode(dst scode.Bytes, typ *super.TypeRecord, in scode.Bytes) (scode.Bytes
 		}
 		return dst, nil
 	}
-	it := scode.NewRecordIter(in, typ.Opts)
+	it := in.Iter()
 	fieldno := 0
 	for !it.Done() {
 		f := typ.Fields[fieldno]
-		val, none := it.Next(f.Opt)
+		val := it.Next()
 		fieldno++
-		if none {
-			dst = scode.Append(dst, nil)
-			continue
-		}
 		if childType, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 			var err error
 			dst, err = recode(dst, childType, val)

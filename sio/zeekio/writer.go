@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
@@ -51,9 +50,9 @@ func (w *Writer) Write(r super.Value) error {
 	}
 	w.buf.Reset()
 	var needSeparator bool
-	it := scode.NewRecordIter(r.Bytes(), w.typ.Opts)
+	it := r.Bytes().Iter()
 	for _, f := range super.TypeRecordOf(r.Type()).Fields {
-		bytes, _ := it.Next(f.Opt)
+		bytes := it.Next()
 		if f.Name == "_path" {
 			continue
 		}

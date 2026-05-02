@@ -52,7 +52,7 @@ type Strftime struct {
 }
 
 func (s *Strftime) Call(args []super.Value) super.Value {
-	formatArg, timeArg := args[0], args[1]
+	formatArg, timeArg := args[0].Under(), args[1].Under()
 	if formatArg.IsNull() || timeArg.IsNull() {
 		return super.Null
 	}

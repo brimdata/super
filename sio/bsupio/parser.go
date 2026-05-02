@@ -21,7 +21,7 @@ type parser struct {
 	maxSize int
 }
 
-const BSUPVersion = 4
+const BSUPVersion = 5
 
 func CheckVersion(code byte) error {
 	var version int

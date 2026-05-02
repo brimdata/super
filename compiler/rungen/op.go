@@ -304,7 +304,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 			return nil, err
 		}
 		e = expr.NewDequiet(b.sctx(), e)
-		return values.New(parent, []expr.Evaluator{e}), nil
+		return values.New(parent, b.sctx(), []expr.Evaluator{e}), nil
 	case *dag.DropOp:
 		fields := make(field.List, 0, len(v.Args))
 		for _, e := range v.Args {
@@ -364,7 +364,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		}
 		e = expr.NewDequiet(b.sctx(), e)
 		putter := expr.NewPutter(b.sctx(), e)
-		return values.New(parent, []expr.Evaluator{putter}), nil
+		return values.New(parent, b.sctx(), []expr.Evaluator{putter}), nil
 	case *dag.RenameOp:
 		srcs, dsts, err := b.compileAssignmentsToLvals(v.Args)
 		if err != nil {
@@ -409,7 +409,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		t := values.New(parent, exprs)
+		t := values.New(parent, b.sctx(), exprs)
 		return t, nil
 
 	default:

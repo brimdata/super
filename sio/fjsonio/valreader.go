@@ -1,7 +1,9 @@
 package fjsonio
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"slices"
 
@@ -15,6 +17,7 @@ type valReader struct {
 	buf    []byte
 	cursor []byte
 	EOF    bool
+	line   int
 }
 
 func newValReader(r io.Reader) *valReader {
@@ -22,47 +25,52 @@ func newValReader(r io.Reader) *valReader {
 }
 
 func (r *valReader) Next() ([]byte, error) {
-	start, end := jsonskip.Skip(r.cursor)
-	if start < 0 {
-		// XXX There's an issue here if we encounter a value that is larger than
-		// the default buffer size. We should probably include functionality to
-		// increase the buffer size to an arbitrary amount and return a detailed
-		// error if a value is larger than MaxBufSize.
-	again:
-		if err := r.fill(); err != nil {
-			return nil, err
+	var hasFilled bool
+	for {
+		if r.EOF && len(r.cursor) == 0 {
+			return nil, io.EOF
 		}
-		start, end = jsonskip.Skip(r.cursor)
+		start, end := jsonskip.Skip(r.cursor)
 		if start < 0 {
-			// if cursor is full size increase to make buffer size and try
-			// again.
-			if len(r.cursor) == len(r.buf) {
-				if len(r.buf) >= maxSize {
-					return nil, errors.New("encountered value larger than max buffer size")
+			if !hasFilled && !r.EOF {
+				if err := r.fill(); err != nil {
+					return nil, err
 				}
-				r.buf = slices.Grow(r.buf, maxSize)[:maxSize]
-				goto again
+				hasFilled = true
+				continue
 			}
-			return nil, errors.New("invalid input")
+			if hasFilled && !r.EOF {
+				// Check if our buffer is at max size or not. It's unfortunate
+				// to do this on every mid-stream parser error but we need to be
+				// sure we're not failing because we've encountered a JSON value
+				// that is too large to fit in buffer.
+				if len(r.cursor) == len(r.buf) && len(r.buf) < maxSize {
+					r.buf = slices.Grow(r.buf, maxSize)[:maxSize]
+					continue
+				}
+			}
+			if r.EOF && len(r.cursor) > 0 {
+				// If we're at EOF but still have data in cursor make sure its
+				// not just whitespace at the end of the file.
+				if len(bytes.TrimSpace(r.cursor)) == 0 {
+					return nil, io.EOF
+				}
+			}
+			return nil, r.parseError()
 		}
+		b := r.cursor[start:end]
+		r.line += bytes.Count(b, []byte{'\n'})
+		r.cursor = r.cursor[end:]
+		return b, nil
 	}
-	b := r.cursor[start:end]
-	r.cursor = r.cursor[end:]
-	return b, nil
 }
 
 func (r *valReader) fill() error {
-	if r.EOF {
-		return io.EOF
-	}
 	// copy rest of cursor to buf
 	cc := copy(r.buf, r.cursor)
 	n, err := r.r.Read(r.buf[cc:])
 	if errors.Is(err, io.EOF) {
 		r.EOF = true
-		if n == 0 {
-			return err
-		}
 		err = nil
 	}
 	if err != nil {
@@ -71,4 +79,16 @@ func (r *valReader) fill() error {
 	r.cursor = r.buf
 	r.cursor = r.cursor[:cc+n]
 	return nil
+}
+
+func (r *valReader) parseError() error {
+	// The first character of a new line is often a newline which throws off
+	// line count, so count newlines before first non-whitespace character.
+	i := bytes.IndexFunc(r.cursor, func(r rune) bool {
+		return r != ' ' && r != '\t' && r != '\n' && r != '\r'
+	})
+	if i != -1 {
+		r.line += bytes.Count(r.cursor[:i], []byte{'\n'})
+	}
+	return fmt.Errorf("line %d: invalid JSON value", r.line+1)
 }

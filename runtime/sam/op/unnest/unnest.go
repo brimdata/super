@@ -75,15 +75,9 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		if len(typ.Fields) != 2 {
 			return []super.Value{sctx.WrapError("unnest: encountered record without two fields", val)}
 		}
-		it := scode.NewRecordIter(val.Bytes(), typ.Opts)
-		left, none := it.Next(typ.Fields[0].Opt)
-		if none {
-			return nil
-		}
-		right, none := it.Next(typ.Fields[1].Opt)
-		if none {
-			return nil
-		}
+		it := val.Bytes().Iter()
+		left := it.Next()
+		right := it.Next()
 		fields := slices.Clone(typ.Fields)
 		var out []super.Value
 		var b scode.Builder

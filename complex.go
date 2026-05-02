@@ -3,6 +3,7 @@ package super
 import (
 	"bytes"
 	"errors"
+	"slices"
 	"sort"
 	"sync"
 
@@ -198,22 +199,16 @@ func TypeUnder(typ Type) Type {
 type Field struct {
 	Name string
 	Type Type
-	Opt  bool
 }
 
 func NewField(name string, typ Type) Field {
-	return Field{name, typ, false}
-}
-
-func NewFieldWithOpt(name string, typ Type, opt bool) Field {
-	return Field{name, typ, opt}
+	return Field{name, typ}
 }
 
 type TypeRecord struct {
 	id     int
 	Fields []Field
 	LUT    map[string]int
-	Opts   int
 }
 
 func NewTypeRecord(id int, fields []Field) *TypeRecord {
@@ -225,11 +220,6 @@ func NewTypeRecord(id int, fields []Field) *TypeRecord {
 		Fields: fields,
 	}
 	r.createLUT()
-	for _, f := range fields {
-		if f.Opt {
-			r.Opts++
-		}
-	}
 	return r
 }
 
@@ -416,6 +406,28 @@ func BuildUnion(b *scode.Builder, tag int, val scode.Bytes) {
 func BeginUnion(b *scode.Builder, tag int) {
 	b.BeginContainer()
 	b.Append(EncodeUint(uint64(tag)))
+}
+
+func BuildSome(b *scode.Builder, optionType *TypeUnion, typ Type, bytes scode.Bytes) {
+	tag := slices.Index(optionType.Types, typ)
+	BuildUnion(b, tag, bytes)
+}
+
+func Some(optionType *TypeUnion, typ Type, bytes scode.Bytes) Value {
+	var b scode.Builder
+	BuildSome(&b, optionType, typ, bytes)
+	return NewValue(optionType, b.Bytes().Body())
+}
+
+func BuildNone(b *scode.Builder, optionType *TypeUnion) {
+	tag := slices.Index(optionType.Types, Type(TypeNone))
+	BuildUnion(b, tag, nil)
+}
+
+func None(optionType *TypeUnion) Value {
+	var b scode.Builder
+	BuildNone(&b, optionType)
+	return NewValue(optionType, b.Bytes().Body())
 }
 
 func Flatten(types []Type) []Type {

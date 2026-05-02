@@ -101,11 +101,11 @@ func (w *Writer) writeRecord(tab int, typ *super.TypeRecord, bytes scode.Bytes) 
 		w.punc('}')
 		return
 	}
-	it := scode.NewRecordIter(bytes, typ.Opts)
+	it := bytes.Iter()
 	var sep byte
 	for _, f := range typ.Fields {
-		elem, none := it.Next(f.Opt)
-		if none {
+		elem := it.Next()
+		if super.IsNone(f.Type, elem) {
 			continue
 		}
 		if sep != 0 {
