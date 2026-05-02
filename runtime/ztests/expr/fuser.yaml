@@ -59,3 +59,14 @@ input: &input |
   [{id:1,s:"foo"},{id:2,s:null}]
 
 output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  {x:1,y:{z:"foo"}}
+  {x:2,y:{z:"bar",w:true}}
+  {x:3}
+
+output: *input

@@ -60,7 +60,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 			// First change all fields to optional that are in "a" but not in "b".
 			for k, field := range fields {
 				if _, ok := indexOfField(b.Fields, field.Name); !ok {
-					fields[k].Type = f.sctx.Option(fields[k].Type)
+					fields[k].Type = f.makeOption(fields[k].Type)
 				}
 			}
 			// Now fuse all the fields in "b" that are also in "a" and add the fields
@@ -70,7 +70,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 				if ok {
 					fields[i].Type = f.fuse(fields[i].Type, field.Type)
 				} else {
-					typ := f.sctx.Option(field.Type)
+					typ := f.makeOption(field.Type)
 					fields = append(fields, super.NewField(field.Name, typ))
 				}
 			}
@@ -142,6 +142,13 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		panic("a or b can't be anonymous unions at this point")
 	}
 	return f.fusion(union)
+}
+
+func (f *Fuser) makeOption(t super.Type) super.Type {
+	if fusion, ok := t.(*super.TypeFusion); ok {
+		return f.sctx.LookupTypeFusion(f.makeOption(fusion.Type))
+	}
+	return f.sctx.Option(t)
 }
 
 func isAll(t super.Type) bool {
