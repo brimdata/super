@@ -526,36 +526,6 @@ func (r *recordBuilder) Build(sctx *super.Context) Any {
 	return NewRecord(r.typ, fields, r.len)
 }
 
-type optionalBuilder struct {
-	rle   RLE
-	value Builder
-	len   uint32
-}
-
-func (o *optionalBuilder) Write(vec Any) {
-	switch vec := vec.(type) {
-	case *Optional:
-		for i, tag := range vec.Tags {
-			if tag == 0 {
-				o.rle.Touch(o.len + uint32(i))
-			}
-		}
-		o.value.Write(vec.Dynamic.Values[0])
-	case *None: // Does nothing.
-	default:
-		for i := range vec.Len() {
-			o.rle.Touch(o.len + i)
-		}
-		o.value.Write(vec)
-	}
-	o.len += vec.Len()
-}
-
-func (o *optionalBuilder) Build(sctx *super.Context) Any {
-	rle := o.rle.End(o.len)
-	return NewOptionFromRLE(sctx, o.value.Build(sctx), o.len, rle)
-}
-
 type unionBuilder struct {
 	typ *super.TypeUnion
 
@@ -579,5 +549,5 @@ func (u *unionBuilder) Write(vec Any) {
 }
 
 func (u *unionBuilder) Build(sctx *super.Context) Any {
-	return &Union{Dynamic: u.builder.build(sctx), Typ: u.typ}
+	return &Union{dynamic: u.builder.build(sctx), Typ: u.typ}
 }

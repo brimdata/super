@@ -80,7 +80,7 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 			return vector.NewRecord(typ, vecs, vecs[0].Len())
 		}, left, right)
 	case *vector.Union:
-		return u.flatten(vec.Dynamic, slot)
+		return u.flatten(vec.Dynamic(), slot)
 	default:
 		if vec.Kind() == vector.KindNull {
 			return nil
@@ -108,7 +108,7 @@ func flattenArrayOrSet(vec vector.Any, offsets []uint32, slot uint32) vector.Any
 func deunionTypeOf(vec vector.Any, slot uint32) super.Type {
 	switch vec := vector.Under(vec).(type) {
 	case *vector.Union:
-		return deunionTypeOf(vec.Dynamic, slot)
+		return deunionTypeOf(vec.Dynamic(), slot)
 	case *vector.Dynamic:
 		return deunionTypeOf(vec.Values[vec.Tags[slot]], vec.ForwardTagMap()[slot])
 	}

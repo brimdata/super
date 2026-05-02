@@ -213,14 +213,16 @@ func (u *Upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
 
 func (u *Upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 	if unionVec, ok := vec.(*vector.Union); ok {
-		values := make([]vector.Any, len(unionVec.Values))
-		for i, vec := range unionVec.Values {
+		values := make([]vector.Any, len(unionVec.Values()))
+		for i, vec := range unionVec.Values() {
 			values[i] = u.toUnionValue(vec, to)
 			if values[i] == nil {
 				return nil
 			}
 		}
-		return vector.NewUnion(to, unionVec.Tags, values)
+		//XXX We should copy RLE instead of making tags when we can.
+		// This will be addressed in a subsequent PR.
+		return vector.NewUnion(to, unionVec.Tags(), values)
 	}
 	values := u.toUnionValue(vec, to)
 	if values == nil {

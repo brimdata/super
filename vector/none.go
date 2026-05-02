@@ -66,9 +66,11 @@ func NewOptionSome(sctx *super.Context, vec Any) Any {
 	}
 	optionType := sctx.Option(typ)
 	if union, ok := vec.(*Union); ok {
-		vecs := slices.Clone(union.Values)
+		vecs := slices.Clone(union.Values())
 		vecs = append(vecs, NewNone(0))
-		return NewUnion(optionType, union.Tags, vecs)
+		//XXX We should copy RLEs instead of making tags.
+		// We will fix this in a subsequent PR.
+		return NewUnion(optionType, union.Tags(), vecs)
 	}
 	return NewUnion(optionType, make([]uint32, vec.Len()), []Any{vec, NewNone(0)})
 }

@@ -68,7 +68,7 @@ func containsNullOrError(vec vector.Any) bool {
 	case *vector.Null:
 		return true
 	case *vector.Union:
-		return slices.ContainsFunc(vec.Values, containsNullOrError)
+		return slices.ContainsFunc(vec.Values(), containsNullOrError)
 	case *vector.Error:
 		return true
 	case *vector.Fusion:
@@ -92,7 +92,7 @@ func slotIsNullOrError(vec vector.Any, slot uint32) bool {
 	case *vector.Null:
 		return true
 	case *vector.Union:
-		return slotIsNullOrError(vec.Dynamic, slot)
+		return slotIsNullOrError(vec.Dynamic(), slot)
 	case *vector.Error:
 		return true
 	case *vector.Named:

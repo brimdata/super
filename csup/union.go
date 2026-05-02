@@ -12,8 +12,9 @@ import (
 type UnionEncoder struct {
 	typ    *super.TypeUnion
 	values []Encoder
-	tags   Uint32Encoder
 	count  uint32
+	tags   []uint32
+	tagEnc *Uint32Encoder
 }
 
 var _ Encoder = (*UnionEncoder)(nil)
@@ -43,8 +44,23 @@ func (u *UnionEncoder) Write(vec vector.Any) {
 	// subsequent incoming vector so that we don't have to rewrite
 	// the tags of the first vector, but for now, we just map
 	// everything to canonical order of the union types.
-	vecs, tags := u.reorder(u.typ, union)
-	u.tags.Append(tags)
+	var vecs []vector.Any
+	if len(union.Typ.Types) == 2 {
+		// Code tags as run lengths.
+		rle := union.TagsRLE()
+		if rle == nil {
+			// Encoder returns nil for all tag 0
+			rle = []uint32{0, vec.Len()}
+		}
+		// RLEs have the nice property that you can just concatenate them
+		// to append two vectors.
+		vecs, rle = reorderRLE(union, rle)
+		u.tags = append(u.tags, rle...)
+	} else {
+		var tags []uint32
+		vecs, tags = reorder(union)
+		u.tags = append(u.tags, tags...)
+	}
 	for k, vec := range vecs {
 		if vec != nil && vec.Len() != 0 {
 			u.values[k].Write(vec)
@@ -52,27 +68,38 @@ func (u *UnionEncoder) Write(vec vector.Any) {
 	}
 }
 
-func (u *UnionEncoder) reorder(typ *super.TypeUnion, vec *vector.Union) ([]vector.Any, []uint32) {
-	if canonOrder(typ, vec.Values) {
-		return vec.Values, vec.Tags
+func reorderRLE(union *vector.Union, rle []uint32) ([]vector.Any, []uint32) {
+	vecs := union.Values()
+	if canonOrder(union.Typ, vecs) {
+		return vecs, rle
 	}
-	tagmap := make([]uint32, len(vec.Values))
-	for inTag, vec := range vec.Values {
-		localTag := typ.TagOf(vec.Type())
+	if rle[0] == 0 {
+		rle = rle[1:]
+	} else {
+		rle = append([]uint32{0}, rle...)
+	}
+	return []vector.Any{vecs[1], vecs[0]}, rle
+}
+
+func reorder(union *vector.Union) ([]vector.Any, []uint32) {
+	vecs := union.Values()
+	if canonOrder(union.Typ, vecs) {
+		return vecs, union.Tags()
+	}
+	tagmap := make([]uint32, len(vecs))
+	for inTag, vec := range vecs {
+		localTag := union.Typ.TagOf(vec.Type())
 		if localTag < 0 {
 			panic(sup.String(vec.Type()))
 		}
 		tagmap[inTag] = uint32(localTag)
 	}
-	tags := make([]uint32, len(vec.Tags))
-	for k, intag := range vec.Tags {
+	tags := make([]uint32, len(union.Tags()))
+	for k, intag := range union.Tags() {
 		tags[k] = tagmap[intag]
 	}
-	// vec.Values will be shorter than typ.Types if it omits zero-length
-	// vectors.  In that case, the corresponding entries in vals will be nil
-	// when it is returned.
-	vals := make([]vector.Any, len(typ.Types))
-	for inTag, v := range vec.Values {
+	vals := make([]vector.Any, len(union.Typ.Types))
+	for inTag, v := range union.Values() {
 		vals[tagmap[inTag]] = v
 	}
 	return vals, tags
@@ -88,7 +115,7 @@ func canonOrder(typ *super.TypeUnion, vecs []vector.Any) bool {
 }
 
 func (u *UnionEncoder) Emit(w io.Writer) error {
-	if err := u.tags.Emit(w); err != nil {
+	if err := u.tagEnc.Emit(w); err != nil {
 		return err
 	}
 	for _, value := range u.values {
@@ -100,14 +127,15 @@ func (u *UnionEncoder) Emit(w io.Writer) error {
 }
 
 func (u *UnionEncoder) Encode(group *errgroup.Group) {
-	u.tags.Encode(group)
+	u.tagEnc = &Uint32Encoder{vals: u.tags}
+	u.tagEnc.Encode(group)
 	for _, value := range u.values {
 		value.Encode(group)
 	}
 }
 
 func (u *UnionEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
-	off, tags := u.tags.Segment(off)
+	off, tags := u.tagEnc.Segment(off)
 	values := make([]ID, 0, len(u.values))
 	for _, val := range u.values {
 		var id ID

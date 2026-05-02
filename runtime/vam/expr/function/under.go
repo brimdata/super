@@ -32,7 +32,7 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	case *vector.Error:
 		out = vec.Vals
 	case *vector.Union:
-		return vec.Dynamic
+		return vec.Dynamic()
 	case *vector.TypeValue:
 		typs := vector.NewTypeValueEmpty(u.sctx)
 		for i := range vec.Len() {

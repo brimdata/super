@@ -147,7 +147,7 @@ func (m *materializer) record(r *Record) (vector.Any, []uint32) {
 			fuseHere = true
 		}
 		if len(rle) > 0 {
-			vec = vector.NewOptionFromRLE(m.sctx, vec, n, rle)
+			vec = vector.NewUnionOptionRLE(m.sctx, vec, n, rle)
 		}
 		vecs = append(vecs, vec)
 		allFields = append(allFields, super.NewField(fieldNames[i], vec.Type()))

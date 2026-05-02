@@ -154,33 +154,6 @@ func (r *recordValueBuilder) Build(sctx *super.Context) Any {
 	return NewRecord(r.typ, fields, r.len)
 }
 
-// XXX not clear we need option builders here since they can be unraveled
-// when writing to CSUP.  This may or may not be cleaned up or deleted in
-// a subsequent PR.
-type optionValueBuilder struct {
-	union *super.TypeUnion
-	val   *unionValueBuilder
-	off   uint32
-	runs  RLE
-}
-
-func (o *optionValueBuilder) Write(bytes scode.Bytes) {
-	off := o.off
-	o.off++
-	typ, _ := o.union.Untag(bytes)
-	if typ == super.TypeNone {
-		return
-	}
-	o.runs.Touch(off)
-	o.val.Write(bytes)
-}
-
-func (o *optionValueBuilder) Build(sctx *super.Context) Any {
-	vec := o.val.Build(sctx)
-	n := vec.Len()
-	return NewOptionFromRLE(sctx, vec, n, o.runs.End(n))
-}
-
 type errorValueBuilder struct {
 	typ *super.TypeError
 	ValueBuilder

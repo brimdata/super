@@ -37,6 +37,9 @@ func (a *array) project(loader *loader, projection field.Projection) vector.Any 
 	vec := a.values.project(loader, nil)
 	typ := loader.sctx.LookupTypeArray(vec.Type())
 	offs := a.load(loader)
+	if len(offs) == 0 {
+		offs = []uint32{0}
+	}
 	return vector.NewArray(typ, offs, vec)
 }
 

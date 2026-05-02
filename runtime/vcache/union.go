@@ -68,5 +68,8 @@ func (u *union) project(loader *loader, projection field.Projection) vector.Any 
 		panic(types)
 	}
 	tags := u.load(loader)
+	if len(utyp.Types) == 2 {
+		return vector.NewUnionFromRLE(utyp, tags, vecs)
+	}
 	return vector.NewUnion(utyp, tags, vecs)
 }

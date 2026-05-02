@@ -17,18 +17,6 @@ type record struct {
 	fields []shadow
 }
 
-type option struct {
-	// XXX csup.Field will be changed to csup.Option in a subsequent PR
-	meta *csup.Field
-	len  uint32
-	// values protected by record mutex
-	values shadow
-	// mu protects nones
-	mu     sync.Mutex
-	nones  []uint32
-	loaded bool
-}
-
 func newRecord(cctx *csup.Context, meta *csup.Record) *record {
 	fields := make([]shadow, len(meta.Fields))
 	len := meta.Len(cctx)
@@ -98,26 +86,4 @@ func indexOfField(name string, r *csup.Record) int {
 	return slices.IndexFunc(r.Fields, func(f csup.Field) bool {
 		return f.Name == name
 	})
-}
-
-func (o *option) unmarshal(cctx *csup.Context, projection field.Projection) {
-	// protected by record mutex
-	if o.values == nil {
-		o.values = newShadow(cctx, o.meta.Values)
-	}
-	o.values.unmarshal(cctx, projection)
-}
-
-func (o *option) project(loader *loader, projection field.Projection) vector.Any {
-	o.mu.Lock()
-	if !o.loaded {
-		nones, err := csup.ReadUint32s(o.meta.Nones, loader.r)
-		if err != nil {
-			panic(err)
-		}
-		o.nones = nones
-		o.loaded = true
-	}
-	o.mu.Unlock()
-	return vector.NewOptionFromRLE(loader.sctx, o.values.project(loader, projection), o.len, o.nones)
 }

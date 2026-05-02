@@ -52,7 +52,6 @@ func under(cctx *Context, meta Metadata) Metadata {
 type Field struct {
 	Name   string
 	Values ID
-	Nones  Segment
 }
 
 type Array struct {

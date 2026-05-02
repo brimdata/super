@@ -41,6 +41,9 @@ func (m *map_) project(loader *loader, projection field.Projection) vector.Any {
 	vals := m.values.project(loader, nil)
 	typ := loader.sctx.LookupTypeMap(keys.Type(), vals.Type())
 	offs := m.load(loader)
+	if len(offs) == 0 {
+		offs = []uint32{0}
+	}
 	return vector.NewMap(typ, offs, keys, vals)
 }
 

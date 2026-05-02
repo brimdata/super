@@ -37,6 +37,9 @@ func (s *set) project(loader *loader, projection field.Projection) vector.Any {
 	vec := s.values.project(loader, nil)
 	typ := loader.sctx.LookupTypeSet(vec.Type())
 	offs := s.load(loader)
+	if len(offs) == 0 {
+		offs = []uint32{0}
+	}
 	return vector.NewSet(typ, offs, vec)
 }
 

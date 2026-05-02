@@ -51,6 +51,9 @@ func (b *bytes) load(loader *loader) vector.BytesTable {
 	if err != nil {
 		panic(err)
 	}
+	if len(offs) == 0 {
+		offs = []uint32{0}
+	}
 	bytes := make([]byte, b.meta.Bytes.MemLength)
 	if err := b.meta.Bytes.Read(loader.r, bytes); err != nil {
 		panic(err)
