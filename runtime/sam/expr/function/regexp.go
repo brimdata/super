@@ -63,8 +63,8 @@ func (r *RegexpReplace) Call(args []super.Value) super.Value {
 	if sVal.IsNull() || reVal.IsNull() || newVal.IsNull() {
 		return super.Null
 	}
-	for i := range args {
-		if !args[i].IsString() {
+	for i, v := range []super.Value{sVal, reVal, newVal} {
+		if !v.IsString() {
 			return r.sctx.WrapError("regexp_replace: string arg required", args[i])
 		}
 	}
