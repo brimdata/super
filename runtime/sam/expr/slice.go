@@ -28,12 +28,12 @@ func NewSlice(sctx *super.Context, elem, from, to Evaluator, base1 bool) *Slice 
 }
 
 func (s *Slice) Eval(this super.Value) super.Value {
-	elem := s.elem.Eval(this)
+	elem := s.elem.Eval(this).Under()
 	if elem.IsNull() || elem.IsError() {
 		return elem
 	}
 	var length int
-	switch super.TypeUnder(elem.Type()).(type) {
+	switch elem.Type().(type) {
 	case *super.TypeOfBytes:
 		length = len(elem.Bytes())
 	case *super.TypeOfString:

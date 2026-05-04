@@ -35,7 +35,7 @@ type Position struct {
 }
 
 func (p *Position) Call(args []super.Value) super.Value {
-	val, subVal := args[0], args[1]
+	val, subVal := args[0].Under(), args[1].Under()
 	if val.IsNull() || subVal.IsNull() {
 		return super.Null
 	}

@@ -25,3 +25,20 @@ output: |
   {a1:"ⁱ⁲",a2:"ⁱ⁲⁳",a3:"⁰",a4:"⁰ⁱ⁲",a5:"",a6:"⁳",a7:"⁲",a8:error("missing")}
   {a1:[11::int32,12::int32],a2:[11::int32,12::int32,13::int32],a3:[10::int32],a4:[10::int32,11::int32,12::int32],a5:[]::[int32],a6:[13::int32],a7:[12::int32],a8:[10::int32,11::int32]}
   {a1:set[11::int32,12::int32],a2:set[11::int32,12::int32,13::int32],a3:set[10::int32],a4:set[10::int32,11::int32,12::int32],a5:set[]::set[int32],a6:set[13::int32],a7:set[12::int32],a8:set[10::int32,11::int32]}
+
+---
+
+# Test slice on union values
+spq: this[1:]
+
+vector: true
+
+input: |
+  [1,2,3]::(null|[int64])
+  set[1,2,3]::(null|set[int64])
+  "food"::(null|string)
+
+output: |
+  [2,3]
+  set[2,3]
+  "ood"

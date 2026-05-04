@@ -4,6 +4,7 @@ vector: true
 
 input: |
   {sub:"bar",s:"foobar"}
+  {sub:"food"::(null|string),s:"seafood"::(null|string)}
   {sub:"baz",s:"foobar"}
   {sub:null,s:"friend"}
   {sub:"baz",s:null}
@@ -11,6 +12,7 @@ input: |
   {sub:"bar",s:1::int64}
 
 output: |
+  {sql:4,call:4}
   {sql:4,call:4}
   {sql:0,call:0}
   {sql:null,call:null}
