@@ -6,8 +6,9 @@ input: |
   {s:""}
   {s:"scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"}
   {s:"scheme:opaque"}
-  {s:1}
+  {s:"scheme:opaque"::(int64|string)}
   {s:null}
+  {s:1}
   {s:":no-scheme"}
   {s:"scheme://bad-port:1234567"}
 
@@ -68,15 +69,29 @@ output: |
     }
   }
   {
+    s: "scheme:opaque"::(int64|string),
+    uri: {
+      scheme: "scheme",
+      opaque: "opaque",
+      user: null,
+      password: null,
+      host: null,
+      port: null,
+      path: null,
+      query: null,
+      fragment: null
+    }
+  }
+  {
+    s: null,
+    uri: null
+  }
+  {
     s: 1,
     uri: error({
       message: "parse_uri: string arg required",
       on: 1
     })
-  }
-  {
-    s: null,
-    uri: null
   }
   {
     s: ":no-scheme",

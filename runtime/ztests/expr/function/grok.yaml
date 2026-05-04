@@ -39,6 +39,12 @@ input: |
   }
   {pattern: null,input: "foo",defs: null}
   {pattern: "%{INT:int}",input:null,defs: null}
+  // union-typed args
+  {
+    pattern: "%{INT:int}"::(string|int64),
+    input: "1"::(string|int64),
+    defs: ""::(string|int64),
+  }
   // Error cases
   {
     pattern: "%{INT:int}",
@@ -63,6 +69,7 @@ output: |
   error({message:"grok: value does not match pattern",on:"foo"})
   null
   null
+  {int:"1"}
   error({message:"grok: value does not match pattern",on:"string value"})
   error({message:"grok: the 'DOESNOTEXIST' pattern doesn't exist",on:"%{DOESNOTEXIST:dne}"})
   error({message:"grok: pattern argument must be a string",on:1})

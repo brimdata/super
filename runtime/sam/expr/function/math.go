@@ -37,7 +37,7 @@ type Ceil struct {
 }
 
 func (c *Ceil) Call(args []super.Value) super.Value {
-	val := args[0]
+	val := args[0].Under()
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id) || super.IsSigned(id):
 		return val
@@ -52,7 +52,7 @@ type Floor struct {
 }
 
 func (f *Floor) Call(args []super.Value) super.Value {
-	val := args[0]
+	val := args[0].Under()
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id) || super.IsSigned(id):
 		return val
@@ -135,7 +135,7 @@ type Round struct {
 }
 
 func (r *Round) Call(args []super.Value) super.Value {
-	val := args[0]
+	val := args[0].Under()
 	switch id := val.Type().ID(); {
 	case id == super.IDNull:
 		return val

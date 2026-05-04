@@ -8,6 +8,7 @@ input: |
   -1.5
   1::uint8
   1.5::float32
+  1.5::(float64|string)
   "foo"
 
 output: |
@@ -16,4 +17,5 @@ output: |
   -2.
   1::uint8
   1.::float32
+  1.
   error({message:"floor: not a number",on:"foo"})

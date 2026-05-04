@@ -10,6 +10,7 @@ input: |
   {in:"", re:"a(x*)b",new:""}
   {in:"foo",re:null,new:null}
   {in:null,re:"foo",new:"bar"}
+  {in:"Foo bar"::(string|int64),re:"Foo"::(string|int64),new:"foo"::(string|int64)}
   // error cases
   {in:"seafood fool",re:"foo(.?",new:"food"}
   {in:4,re:5,new:["foo"]}
@@ -22,5 +23,6 @@ output: |
   ""
   null
   null
+  "foo bar"
   error({message:"regexp_replace: invalid regular expression: missing closing )",on:"foo(.?"})
   error({message:"regexp_replace: string arg required",on:4})

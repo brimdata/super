@@ -24,9 +24,9 @@ func newGrok(sctx *super.Context) *Grok {
 }
 
 func (g *Grok) Call(args []super.Value) super.Value {
-	patternArg, inputArg, defArg := args[0], args[1], super.NewString("")
+	patternArg, inputArg, defArg := args[0].Under(), args[1].Under(), super.NewString("")
 	if len(args) == 3 {
-		defArg = args[2]
+		defArg = args[2].Under()
 	}
 	if patternArg.IsNull() || inputArg.IsNull() || defArg.IsNull() {
 		return super.Null

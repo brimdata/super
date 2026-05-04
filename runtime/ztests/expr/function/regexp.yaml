@@ -9,6 +9,7 @@ input: |
   {re:"doesnotmatch",in:"hello"}
   {re:null,in:"not null"}
   {re:"not null",in:null}
+  {re:"abc|ced"::(string|int64),in:"abcdef"::(string|int64)}
 
 output: |
   ["abc"]
@@ -17,3 +18,4 @@ output: |
   []
   null
   null
+  ["abc"]

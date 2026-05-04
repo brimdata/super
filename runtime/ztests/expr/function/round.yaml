@@ -7,12 +7,14 @@ input: |
   2::uint64
   1.5
   2.4
+  1.5::(float64|string)
   null
   "foo"
 
 output: |
   -1
   2::uint64
+  2.
   2.
   2.
   null

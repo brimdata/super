@@ -18,13 +18,14 @@ type Regexp struct {
 }
 
 func (r *Regexp) Call(args []super.Value) super.Value {
-	if args[0].IsNull() || args[1].IsNull() {
+	reVal, sVal := args[0].Under(), args[1].Under()
+	if reVal.IsNull() || sVal.IsNull() {
 		return super.Null
 	}
-	if !args[0].IsString() {
+	if !reVal.IsString() {
 		return r.sctx.WrapError("regexp: string required for first arg", args[0])
 	}
-	s := super.DecodeString(args[0].Bytes())
+	s := super.DecodeString(reVal.Bytes())
 	if r.restr != s {
 		r.restr = s
 		r.re, r.err = regexp.Compile(r.restr)
@@ -36,11 +37,11 @@ func (r *Regexp) Call(args []super.Value) super.Value {
 		}
 		return r.sctx.WrapError(msg, args[0])
 	}
-	if !args[1].IsString() {
+	if !sVal.IsString() {
 		return r.sctx.WrapError("regexp: string required for second arg", args[1])
 	}
 	r.builder.Reset()
-	for _, b := range r.re.FindSubmatch(args[1].Bytes()) {
+	for _, b := range r.re.FindSubmatch(sVal.Bytes()) {
 		r.builder.Append(b)
 	}
 	if r.typ == nil {
@@ -63,8 +64,8 @@ func (r *RegexpReplace) Call(args []super.Value) super.Value {
 	if sVal.IsNull() || reVal.IsNull() || newVal.IsNull() {
 		return super.Null
 	}
-	for i := range args {
-		if !args[i].IsString() {
+	for i, val := range []super.Value{sVal, reVal, newVal} {
+		if !val.IsString() {
 			return r.sctx.WrapError("regexp_replace: string arg required", args[i])
 		}
 	}

@@ -32,12 +32,12 @@ func (p *ParseURI) Call(args []super.Value) super.Value {
 		Query    url.Values `super:"query"`
 		Fragment *string    `super:"fragment"`
 	}
-	in := args[0]
+	in := args[0].Under()
 	if in.IsNull() {
 		return super.Null
 	}
 	if !in.IsString() {
-		return p.sctx.WrapError("parse_uri: string arg required", in)
+		return p.sctx.WrapError("parse_uri: string arg required", args[0])
 	}
 	s := super.DecodeString(in.Bytes())
 	u, err := url.Parse(s)

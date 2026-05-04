@@ -7,6 +7,7 @@ input: |
   -1.5
   1::uint8
   1.5::float32
+  1.5::(float64|string)
   "foo"
 
 output: |
@@ -14,4 +15,5 @@ output: |
   -1.
   1::uint8
   2.::float32
+  2.
   error({message:"ceil: not a number",on:"foo"})

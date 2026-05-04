@@ -6,12 +6,14 @@ input: |
   ["foo","bar",null]
   set["foo","bar",null]
   "invalid"
+  ["foo","bar"]::([string]|int64)
   null
 
 output: |
   ["FOO","BAR",null]
   set[null,"BAR","FOO"]
   error({message:"map: expected array or set value",on:"invalid"})
+  ["FOO","BAR"]
   null
   
 ---
