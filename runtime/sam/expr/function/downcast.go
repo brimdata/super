@@ -104,23 +104,28 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 	}
 	b := scode.NewBuilder()
 	b.BeginContainer()
-	for k, toField := range to.Fields { // ranging through to fields and lookup up from
+	for _, toField := range to.Fields { // ranging through to fields and lookup up from
 		elemType, elemBytes, ok := derefAsBytes(fromType, bytes, toField.Name)
 		if !ok {
 			// The super value must have all the fields of the subtype cast.
 			// It's missing a field, so fail.
 			return super.Value{}, d.errSubtype(typ, bytes, to)
 		}
-		if super.IsOptionType(toField.Type) && !super.IsOptionType(fromType.Fields[k].Type) {
-			return super.Value{}, d.errSubtype(typ, bytes, to)
-		} else {
-			// We have the value and the to field.  Downcast recursively.
-			val, errVal := d.downcast(elemType, elemBytes, toField.Type)
-			if errVal != nil {
-				return super.Value{}, errVal
+		if super.IsOptionType(toField.Type) {
+			fromFieldType := elemType
+			if f, ok := fromFieldType.(*super.TypeFusion); ok {
+				fromFieldType = f.Type
 			}
-			b.Append(val.Bytes())
+			if !super.IsOptionType(fromFieldType) {
+				return super.Value{}, d.errSubtype(typ, bytes, to)
+			}
 		}
+		// We have the value and the to field.  Downcast recursively.
+		val, errVal := d.downcast(elemType, elemBytes, toField.Type)
+		if errVal != nil {
+			return super.Value{}, errVal
+		}
+		b.Append(val.Bytes())
 	}
 	b.EndContainer()
 	return super.NewValue(to, b.Bytes().Body()), nil

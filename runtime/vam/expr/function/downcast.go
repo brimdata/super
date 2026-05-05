@@ -156,8 +156,14 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 		if !ok {
 			return d.errSubtype(vec, to)
 		}
-		if super.IsOptionType(toField.Type) && !super.IsOptionType(rec.Typ.Fields[i].Type) {
-			return d.errSubtype(vec, to)
+		if super.IsOptionType(toField.Type) {
+			fromFieldType := rec.Typ.Fields[i].Type
+			if f, ok := fromFieldType.(*super.TypeFusion); ok {
+				fromFieldType = f.Type
+			}
+			if !super.IsOptionType(fromFieldType) {
+				return d.errSubtype(vec, to)
+			}
 		}
 		fields = append(fields, d.downcast(rec.Fields[i], toField.Type))
 	}
