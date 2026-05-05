@@ -142,3 +142,14 @@ input: &input |
   {a:2}::(null|{a:int64})
 
 output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+vector: true
+
+input: &input |
+  {a:[{x:1},{x:null}]}
+
+output: *input

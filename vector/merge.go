@@ -9,6 +9,11 @@ import (
 func MergeSameTypesInDynamic(sctx *super.Context, d *Dynamic) Any {
 	m := make(map[super.Type][]uint32)
 	for i, vec := range d.Values {
+		if vec == nil {
+			// Filter out nil values in dynamic.
+			m[nil] = nil
+			continue
+		}
 		typ := vec.Type()
 		m[typ] = append(m[typ], uint32(i))
 	}
@@ -20,7 +25,10 @@ func MergeSameTypesInDynamic(sctx *super.Context, d *Dynamic) Any {
 	}
 	remapTags := make([]uint32, len(d.Values))
 	var newVecs []Any
-	for _, valIdx := range m {
+	for typ, valIdx := range m {
+		if typ == nil {
+			continue
+		}
 		if len(valIdx) > 1 {
 			vecs := make([]Any, len(valIdx))
 			tagMap := slices.Repeat([]int{-1}, len(d.Values))

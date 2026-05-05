@@ -332,7 +332,7 @@ func (d *downcast) separateValidAndErrVecs(dynamic *vector.Dynamic) ([]uint32, v
 				errTagMap[i] = uint32(len(errVecs))
 				errVecs = append(errVecs, vec)
 			}
-		} else {
+		} else if vec != nil {
 			validTagMap[i] = uint32(len(validVecs))
 			validVecs = append(validVecs, vec)
 		}
@@ -362,7 +362,7 @@ func (d *downcast) separateValidAndErrVecs(dynamic *vector.Dynamic) ([]uint32, v
 	case 1:
 		valid = validVecs[0]
 	default:
-		panic("system error: shouldn't have more than one valid vector in list")
+		valid = vector.Merge(d.sctx, validTags, validVecs)
 	}
 	return newTags, valid, errs
 }
