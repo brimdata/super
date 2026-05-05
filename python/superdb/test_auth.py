@@ -12,11 +12,21 @@ import os
 import uuid
 
 import pytest
+import requests
 
 from superdb import Client, RequestError
 
 if not os.environ.get('SUPER_DB_AUTH'):
     pytest.skip('auth not configured (SUPER_DB_AUTH not set)', allow_module_level=True)
+
+_BASE_URL = os.environ.get('SUPER_DB', 'http://localhost:9867').rstrip('/')
+try:
+    requests.get(_BASE_URL + '/status', timeout=2)
+except requests.exceptions.ConnectionError:
+    pytest.skip(
+        f'SuperDB service not reachable at {_BASE_URL}',
+        allow_module_level=True,
+    )
 
 
 def test_authenticated_client_can_query():

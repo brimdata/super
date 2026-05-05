@@ -21,7 +21,7 @@ from superdb import Client, MixedTypesError, NonRecordError, RequestError
 
 _BASE_URL = os.environ.get('SUPER_DB', 'http://localhost:9867').rstrip('/')
 try:
-    requests.get(_BASE_URL + '/pool', timeout=2)
+    requests.get(_BASE_URL + '/status', timeout=2)
 except requests.exceptions.ConnectionError:
     pytest.skip(
         f'SuperDB service not reachable at {_BASE_URL}',
