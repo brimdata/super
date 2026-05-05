@@ -360,7 +360,8 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 		}
 		//XXX TBD do what this comment says:
 		// XXX type checker should remove this check when it finds it redundant
-		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.PrimitiveExpr{Node: e.Expr, Value: "<string>"}})
+		under := sem.NewCall(e, "under", []sem.Expr{expr})
+		is := sem.NewCall(e, "is", []sem.Expr{under, &sem.PrimitiveExpr{Node: e.Expr, Value: "<string>"}})
 		indexBase := t.scope.indexBase()
 		from, fromType := t.exprNullable(e.From, inType)
 		if e.From != nil {
