@@ -1,10 +1,13 @@
 package function
 
-import "github.com/brimdata/super"
+import (
+	"github.com/brimdata/super"
+)
 
 type Has struct{}
 
 func (h *Has) Call(args []super.Value) super.Value {
+	args = underAll(args)
 	for _, val := range args {
 		if val.IsNull() {
 			return super.Null

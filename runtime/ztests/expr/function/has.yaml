@@ -8,6 +8,7 @@ input: |
   {a:1,b:2}
   {a:1,b:null}
   {a:null,b:2}
+  {a:null::(null|int64),b:null::(null|int64)}
   {a:error("other"),b:2}
   {a:1,b?:_::int64}
 
@@ -15,6 +16,7 @@ output: |
   false
   false
   true
+  null
   null
   null
   error("other")

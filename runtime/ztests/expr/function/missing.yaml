@@ -8,12 +8,14 @@ input: |
   {a:"foo",b:null}
   {b:null}
   {a:null}
+  {a:null::(null|int64),b:null::(null|int64)}
   {a:"foo",b:error("other")}
   {b:error("other")}
   {a:"foo",b?:_::string}
 
 output: |
   false
+  null
   null
   null
   null

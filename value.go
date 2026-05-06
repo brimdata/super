@@ -468,7 +468,7 @@ func (v Value) IsNone() bool {
 	if IsOptionType(v.Type()) {
 		return v.Deunion().Type() == TypeNone
 	}
-	return false
+	return v.Type() == TypeNone
 }
 
 // Under resolves named types and untags unions repeatedly, returning a value
