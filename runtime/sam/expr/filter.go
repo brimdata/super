@@ -186,23 +186,6 @@ func (s *searchString) Eval(val super.Value) super.Value {
 	return super.False
 }
 
-type filter struct {
-	expr Evaluator
-	pred Boolean
-}
-
-func NewFilter(expr Evaluator, pred Boolean) Evaluator {
-	return &filter{expr, pred}
-}
-
-func (f *filter) Eval(this super.Value) super.Value {
-	val := f.expr.Eval(this)
-	if val.IsError() {
-		return val
-	}
-	return f.pred(val)
-}
-
 type filterApplier struct {
 	sctx *super.Context
 	expr Evaluator
