@@ -46,7 +46,7 @@ func (u *UnionEncoder) Write(vec vector.Any) {
 	vecs, tags := u.reorder(u.typ, union)
 	u.tags.Append(tags)
 	for k, vec := range vecs {
-		if vec.Len() != 0 {
+		if vec != nil && vec.Len() != 0 {
 			u.values[k].Write(vec)
 		}
 	}
@@ -68,7 +68,10 @@ func (u *UnionEncoder) reorder(typ *super.TypeUnion, vec *vector.Union) ([]vecto
 	for k, intag := range vec.Tags {
 		tags[k] = tagmap[intag]
 	}
-	vals := make([]vector.Any, len(vec.Values))
+	// vec.Values will be shorter than typ.Types if it omits zero-length
+	// vectors.  In that case, the corresponding entries in vals will be nil
+	// when it is returned.
+	vals := make([]vector.Any, len(typ.Types))
 	for inTag, v := range vec.Values {
 		vals[tagmap[inTag]] = v
 	}
