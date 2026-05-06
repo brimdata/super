@@ -72,6 +72,9 @@ func (c *conditional) eval(vecs ...vector.Any) vector.Any {
 }
 
 func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap) {
+	mask = vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+		return vecs[0]
+	}, mask)
 	bools := roaring.New()
 	other := roaring.New()
 	if dynamic, ok := mask.(*vector.Dynamic); ok {

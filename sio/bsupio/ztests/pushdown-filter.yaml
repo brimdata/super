@@ -1,0 +1,17 @@
+# Test that union true values get de-unioned in filter pushdowns.
+script: |
+  super in.sup > test.bsup 
+  super -s -c 'from test.bsup | where this'
+
+vector: true
+
+inputs:
+  - name: in.sup
+    data: |
+      true::(bool|null)
+      false::(bool|null)
+
+outputs:
+  - name: stdout
+    data: |
+      true::(bool|null)

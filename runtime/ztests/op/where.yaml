@@ -6,8 +6,29 @@ input: |
   1
   null
   true
+  true::(bool|null)
   error("divide by zero")
   error("missing")
 
 output: |
   true
+  true::(bool|null)
+
+---
+
+# Tests where with op in front so it doesn't get pushed down.
+spq: 'values this | where this'
+
+vector: true
+
+input: |
+  1
+  null
+  true
+  true::(bool|null)
+  error("divide by zero")
+  error("missing")
+
+output: |
+  true
+  true::(bool|null)

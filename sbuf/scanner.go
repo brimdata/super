@@ -94,8 +94,7 @@ func (s *scanner) Read() (*super.Value, error) {
 		atomic.AddInt64(&s.progress.BytesRead, int64(len(this.Bytes())))
 		atomic.AddInt64(&s.progress.RecordsRead, 1)
 		if s.filter != nil {
-			val := s.filter.Eval(*this)
-			if !(val.Type() == super.TypeBool && val.Bool()) {
+			if !expr.IsTrue(s.filter.Eval(*this)) {
 				continue
 			}
 		}

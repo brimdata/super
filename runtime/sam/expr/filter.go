@@ -212,9 +212,12 @@ func NewFilterApplier(sctx *super.Context, e Evaluator) Evaluator {
 	return &filterApplier{sctx, e}
 }
 
+func IsTrue(val super.Value) bool {
+	return val.Deunion().Ptr().AsBool()
+}
+
 func (f *filterApplier) Eval(this super.Value) super.Value {
-	val := f.expr.Eval(this)
-	if val.Type().ID() != super.IDBool || !val.Bool() {
+	if !IsTrue(f.expr.Eval(this)) {
 		return f.sctx.Missing()
 	}
 	return this

@@ -328,15 +328,10 @@ func (w *worker) wantValue(val super.Value, progress *vio.Progress) bool {
 	// negatives because it expects a buffer of BSUP value messages, and
 	// rec.Bytes is just a BSUP value.  (A BSUP value message is a header
 	// indicating a type ID followed by a value of that type.)
-	if w.filter == nil || check(val, w.filter) {
+	if w.filter == nil || expr.IsTrue(w.filter.Eval(val)) {
 		progress.BytesMatched += int64(len(val.Bytes()))
 		progress.RecordsMatched++
 		return true
 	}
 	return false
-}
-
-func check(this super.Value, filter expr.Evaluator) bool {
-	val := filter.Eval(this)
-	return val.Type() == super.TypeBool && val.Bool()
 }
