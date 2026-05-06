@@ -5,9 +5,10 @@ vector: true
 input: |
   4::int16
   4.0
-  2.718
+  2.718::(null|float64)
   -1
   null
+  null::(null|float64)
   error("missing")
 
 output: |
@@ -15,5 +16,6 @@ output: |
   1.3862943611198906
   0.999896315728952
   error({message:"log: illegal argument",on:-1})
+  null
   null
   error("missing")

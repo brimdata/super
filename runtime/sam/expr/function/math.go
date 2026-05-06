@@ -67,13 +67,11 @@ type Log struct {
 }
 
 func (l *Log) Call(args []super.Value) super.Value {
-	if args[0].IsError() {
-		return args[0]
+	val := args[0].Under()
+	if val.IsNull() || val.IsError() {
+		return val
 	}
-	if args[0].IsNull() {
-		return super.Null
-	}
-	x, ok := coerce.ToFloat(args[0], super.TypeFloat64)
+	x, ok := coerce.ToFloat(val, super.TypeFloat64)
 	if !ok {
 		return l.sctx.WrapError("log: not a number", args[0])
 	}
