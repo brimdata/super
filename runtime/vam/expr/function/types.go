@@ -194,6 +194,8 @@ func (e *Error) Call(args ...vector.Any) vector.Any {
 	return vector.NewError(e.sctx.LookupTypeError(vec.Type()), vec)
 }
 
+func (e *Error) RipUnions() bool { return false }
+
 type Kind struct {
 	sctx *super.Context
 }

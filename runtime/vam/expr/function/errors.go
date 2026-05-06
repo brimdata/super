@@ -10,7 +10,11 @@ type Quiet struct {
 }
 
 func (q *Quiet) Call(args ...vector.Any) vector.Any {
-	arg, ok := vector.DeoptionWithMissing(q.sctx, args[0]).(*vector.Error)
+	return vector.Apply(false, q.call, vector.DeoptionWithMissing(q.sctx, args[0]))
+}
+
+func (q *Quiet) call(args ...vector.Any) vector.Any {
+	arg, ok := args[0].(*vector.Error)
 	if !ok {
 		return args[0]
 	}
@@ -35,3 +39,5 @@ func (q *Quiet) Call(args ...vector.Any) vector.Any {
 	}
 	return vector.NewError(arg.Typ, vec)
 }
+
+func (q *Quiet) RipUnions() bool { return false }

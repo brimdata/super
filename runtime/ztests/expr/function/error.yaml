@@ -7,9 +7,11 @@ input: |
   "s"
   {a:1}
   null
+  [1]::(null|[int64])
 
 output: |
   error(1)
   error("s")
   error({a:1})
   error(null)
+  error([1]::(null|[int64]))
