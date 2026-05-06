@@ -165,7 +165,7 @@ func (*Or) evalWithNullOrError(boolVec, nullOrErrorVec vector.Any) vector.Any {
 // slot and they are returned as an error.  If all of the value slots are errors,
 // then the return value is nil.
 func evalBool(sctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...vector.Any) vector.Any {
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
 		for i, vec := range vecs {
 			vec := vector.Under(vec)
 			if k := vec.Kind(); k == vector.KindBool || k == vector.KindNull || k == vector.KindError {

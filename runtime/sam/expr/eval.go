@@ -65,7 +65,7 @@ func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
 // Otherwise, EvalBool returns an error.
 func EvalBool(sctx *super.Context, this super.Value, e Evaluator) super.Value {
 	val := e.Eval(this)
-	if super.TypeUnder(val.Type()) == super.TypeBool || val.IsNull() || val.IsError() {
+	if val := val.Under(); val.Type() == super.TypeBool || val.IsNull() || val.IsError() {
 		return val
 	}
 	return sctx.WrapError("not type bool", val)

@@ -6,12 +6,16 @@ input: |
   true
   false
   null
+  true::(bool|null)
+  null::(bool|null)
   error("missing")
   error("foo")
 
 output: |
   false
   true
+  null
+  false
   null
   error("missing")
   error("foo")

@@ -37,6 +37,9 @@ input: |
   {a:"foo",b:null}
   {a:"foo"}
   {a:"foo",b:"foo"}
+  "=== UNION ==="
+  {a:true::(bool|null),b:false::(bool|null)}
+  {a:true::(bool|null),b:null::(bool|null)}
 
 output: |
   "=== TRUE ==="
@@ -69,3 +72,6 @@ output: |
   error({message:"not type bool",on:"foo"})
   error({message:"not type bool",on:"foo"})
   error({message:"not type bool",on:"foo"})
+  "=== UNION ==="
+  false
+  null
