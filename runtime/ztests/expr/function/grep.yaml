@@ -16,6 +16,8 @@ input: |
   {pattern:"z",input:{a:{b:"c"}}}
   {pattern:1,input:""}
   {pattern:null,input:"a"}
+  {pattern:"a",input:"hello"::(string|null)}
+  {pattern:"a",input:null::(string|null)}
 
 output: |
   [true,true]
@@ -26,3 +28,5 @@ output: |
   [true,false]
   [error({message:"grep: pattern argument must be a string",on:1}),error({message:"grep: pattern argument must be a string",on:1})]
   [error({message:"grep: pattern argument must be a string",on:null}),error({message:"grep: pattern argument must be a string",on:null})]
+  [true,false]
+  [true,false]

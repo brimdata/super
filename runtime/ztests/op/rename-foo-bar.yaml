@@ -9,6 +9,8 @@ input: |
   {goo:"goo3",bar:"bar3"}
   {bar:"bar4",goo:"goo4",foo:"foo4"}
   {goo:"goo5"}
+  {foo:"hello"::(string|null)}
+  {foo:null::(string|null)}
 
 output: |
   {f:"foo0"}
@@ -17,3 +19,5 @@ output: |
   {goo:"goo3",b:"bar3"}
   {b:"bar4",goo:"goo4",f:"foo4"}
   {goo:"goo5"}
+  {f:"hello"::(string|null)}
+  {f:null::(string|null)}

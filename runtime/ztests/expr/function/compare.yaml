@@ -9,6 +9,8 @@ input: |
   {a:0,b:0.}
   {a:0}
   {b:0}
+  {a:2::(int64|null),b:1::(int64|null)}
+  {a:null::(int64|null),b:1::(int64|null)}
 
 output: |
   1
@@ -17,6 +19,8 @@ output: |
   0
   error("missing")
   error("missing")
+  1
+  1
 
 ---
 
@@ -29,8 +33,16 @@ vector: true
 
 input: |
   {a:null,b:2}
+  {a:null::(int64|null),b:2}
+  {a:null::(int64|null),b:2::(int64|null)}
 
 output: |
+  1
+  -1
+  error({message:"compare: nullsMax arg is not bool",on:"error"})
+  1
+  -1
+  error({message:"compare: nullsMax arg is not bool",on:"error"})
   1
   -1
   error({message:"compare: nullsMax arg is not bool",on:"error"})

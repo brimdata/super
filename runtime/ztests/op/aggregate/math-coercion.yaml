@@ -2,7 +2,12 @@ spq: sum(this), max(this), min(this), avg(this)
 
 vector: true
 
-input: -2 2.5 2::uint32
+input: |
+  -2
+  2.5
+  2::uint32
+  1::(int64|null)
+  null::(int64|null)
 
 output: |
-  {sum:2.5,max:2.5,min:-2.,avg:0.8333333333333334}
+  {sum:3.5,max:2.5,min:-2.,avg:0.875}

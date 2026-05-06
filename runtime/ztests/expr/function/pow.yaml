@@ -10,6 +10,12 @@ input: |
   // error cases
   {a:"foo",b:2}
   {b:2,a:"bar"}
+  {a:2::(int64|null),b:3}
+  {a:null::(int64|null),b:3}
+  {a:2,b:3::(int64|null)}
+  {a:2,b:null::(int64|null)}
+  {a:2::(int64|null),b:3::(int64|null)}
+  {a:null::(int64|null),b:null::(int64|null)}
 
 output: |
   4.
@@ -18,3 +24,9 @@ output: |
   null
   error({message:"pow: not a number",on:"foo"})
   error({message:"pow: not a number",on:"bar"})
+  8.
+  null
+  8.
+  null
+  8.
+  null

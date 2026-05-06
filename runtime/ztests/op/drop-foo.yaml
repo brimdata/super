@@ -6,8 +6,12 @@ input: |
   {foo:"foo1",bar:"bar1"}
   {foo:"foo2",bar:"bar2"}
   {foo:"foo3",bar:"bar3"}
+  {foo:"a"::(string|null),bar:"b"}
+  {foo:null::(string|null),bar:"c"}
 
 output: |
   {bar:"bar1"}
   {bar:"bar2"}
   {bar:"bar3"}
+  {bar:"b"}
+  {bar:"c"}

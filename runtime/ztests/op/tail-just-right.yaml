@@ -1,4 +1,4 @@
-spq: tail 3
+spq: tail 5
 
 vector: true
 
@@ -6,5 +6,7 @@ input: &input |
   1
   2
   3
+  1::(int64|null)
+  null::(int64|null)
 
 output: *input

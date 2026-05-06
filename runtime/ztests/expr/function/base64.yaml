@@ -7,9 +7,13 @@ input: |
   0x68656c6c6f20776f726c64
   "foo"
   null
+  "aGVsbG8="::(string|null)
+  null::(string|null)
 
 output: |
   0x68656c6c6f20776f726c64
   "aGVsbG8gd29ybGQ="
   error({message:"base64: string argument is not base64",on:"foo"})
+  null
+  0x68656c6c6f
   null

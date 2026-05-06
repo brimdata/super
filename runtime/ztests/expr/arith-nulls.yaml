@@ -6,8 +6,14 @@ input: |
   {a:1,b:null}
   {a:null,b:1}
   {a:null,b:null}
+  {a:null::(int64|null),b:2::(int64|null)}
 
 output: |
+  null
+  null
+  null
+  null
+  null
   null
   null
   null

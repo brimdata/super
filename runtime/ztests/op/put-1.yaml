@@ -6,7 +6,11 @@ vector: true
 input: |
   {x:1::int32}
   {x:2::int32}
+  {x:1::(int64|null)}
+  {x:null::(int64|null)}
 
 output: |
   {x:1::int32,y:2}
   {x:2::int32,y:3}
+  {x:1::(int64|null),y:2}
+  {x:null::(int64|null),y:null}

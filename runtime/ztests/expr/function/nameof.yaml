@@ -18,6 +18,8 @@ input: |
   {x:"foo",y:1,z:2}::bar2
   <{x:string,y:int64,z:int64}>
   null
+  1::(int64|null)
+  null::(int64|null)
 
 output: |
   error("missing")
@@ -28,5 +30,7 @@ output: |
   error("missing")
   error("missing")
   "bar2"
+  error("missing")
+  error("missing")
   error("missing")
   error("missing")

@@ -9,6 +9,8 @@ input: |
   {a:1,b:null}
   null
   "foo"
+  {"a.b":1::(int64|null)}
+  {"a.b":null::(int64|null)}
 
 output: |
   {a:1,b:{a:2,b:3,c:{a:4}},c:5}
@@ -17,3 +19,5 @@ output: |
   {a:1,b:null}
   null
   error({message:"nest_dotted: non-record value",on:"foo"})
+  {a:{b:1::(int64|null)}}
+  {a:{b:null::(int64|null)}}

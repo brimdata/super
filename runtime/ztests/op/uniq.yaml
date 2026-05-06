@@ -6,7 +6,12 @@ input: |
   1
   1
   {x:1}
+  1::(int64|null)
+  1::(int64|null)
+  2::(int64|null)
 
 output: |
   {value:1,count:2}
   {value:{x:1},count:1}
+  {value:1::(int64|null),count:2}
+  {value:2::(int64|null),count:1}
