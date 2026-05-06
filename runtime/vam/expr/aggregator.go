@@ -43,7 +43,7 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 
 func (*Aggregator) apply(args ...vector.Any) vector.Any {
 	vec, where := args[0], args[1]
-	bools, _ := BoolMask(where)
+	bools, _, _ := BoolMask(where)
 	if bools.IsEmpty() {
 		// everything is filtered.
 		return vector.NewNull(vec.Len())

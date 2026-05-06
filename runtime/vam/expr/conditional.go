@@ -23,73 +23,75 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 }
 
 func (c *conditional) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, c.eval, c.predicate.Eval(this), this)
+	n := uint64(this.Len())
+	pred := c.predicate.Eval(this)
+	trues, _, other := BoolMask(pred)
+	if trues.GetCardinality() == n {
+		return c.thenExpr.Eval(this)
+	}
+	if other.GetCardinality() == n {
+		return c.errPredicateType(pred)
+	}
+	if trues.IsEmpty() && other.IsEmpty() {
+		return c.elseExpr.Eval(this)
+	}
+	falses := roaring.Flip(roaring.Or(trues, other), 0, n)
+	var vecs []vector.Any
+	tags := make([]uint32, n)
+	if !trues.IsEmpty() {
+		index := trues.ToArray()
+		for _, idx := range index {
+			tags[idx] = uint32(len(vecs))
+		}
+		vecs = append(vecs, c.thenExpr.Eval(vector.Pick(this, index)))
+	}
+	if !falses.IsEmpty() {
+		index := falses.ToArray()
+		for _, idx := range index {
+			tags[idx] = uint32(len(vecs))
+		}
+		vecs = append(vecs, c.elseExpr.Eval(vector.Pick(this, index)))
+	}
+	if !other.IsEmpty() {
+		index := other.ToArray()
+		for _, idx := range index {
+			tags[idx] = uint32(len(vecs))
+		}
+		vecs = append(vecs, c.errPredicateType(vector.Pick(pred, index)))
+	}
+	return vector.NewDynamic(tags, vecs)
 }
 
-func (c *conditional) eval(vecs ...vector.Any) vector.Any {
-	predVec, thisVec := vecs[0], vecs[1]
-	switch predVec.Kind() {
-	case vector.KindBool:
-	case vector.KindNull:
-		return c.elseExpr.Eval(thisVec)
-	case vector.KindError:
-		return predVec
-	default:
-		return vector.NewWrappedError(c.sctx, "?-operator: bool predicate required", predVec)
-	}
-	var elseIndex []uint32
-	switch predVec := vector.Under(predVec).(type) {
-	case *vector.Const:
-		if vector.BoolValue(predVec, 0) {
-			return c.thenExpr.Eval(thisVec)
+func (c *conditional) errPredicateType(pred vector.Any) vector.Any {
+	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		if vec.Kind() == vector.KindError {
+			return vec
 		}
-		return c.elseExpr.Eval(thisVec)
-	case *vector.Bool:
-		if predVec.IsZero() {
-			return c.elseExpr.Eval(thisVec)
-		}
-		for i := range predVec.Len() {
-			if !predVec.IsSet(i) {
-				elseIndex = append(elseIndex, i)
-			}
-		}
-	default:
-		for i := range predVec.Len() {
-			if !vector.BoolValue(predVec, i) {
-				elseIndex = append(elseIndex, i)
-			}
-		}
-	}
-	if len(elseIndex) == 0 {
-		return c.thenExpr.Eval(thisVec)
-	}
-	elseVec := c.elseExpr.Eval(thisVec)
-	if len(elseIndex) == int(elseVec.Len()) {
-		return elseVec
-	}
-	thenVec := c.thenExpr.Eval(thisVec)
-	return combine(thenVec, elseVec, elseIndex)
+		return vector.NewWrappedError(c.sctx, "?-operator: bool predicate required", vec)
+	}, pred)
 }
 
-func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap) {
+func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap, *roaring.Bitmap) {
 	mask = vector.Apply(true, func(vecs ...vector.Any) vector.Any {
 		return vecs[0]
 	}, mask)
 	bools := roaring.New()
+	nulls := roaring.New()
 	other := roaring.New()
 	if dynamic, ok := mask.(*vector.Dynamic); ok {
 		reverse := dynamic.ReverseTagMap()
 		for i, val := range dynamic.Values {
-			boolMaskRidx(reverse[i], bools, other, val)
+			boolMaskRidx(reverse[i], bools, nulls, other, val)
 		}
 	} else {
-		boolMaskRidx(nil, bools, other, mask)
+		boolMaskRidx(nil, bools, nulls, other, mask)
 	}
-	return bools, other
+	return bools, nulls, other
 }
 
-func boolMaskRidx(ridx []uint32, bools, other *roaring.Bitmap, vec vector.Any) {
-	switch vec := vec.(type) {
+func boolMaskRidx(ridx []uint32, bools, nulls, other *roaring.Bitmap, vec vector.Any) {
+	switch vec := vector.Under(vec).(type) {
 	case *vector.Const:
 		if vec.Type().ID() != super.IDBool {
 			if ridx != nil {
@@ -117,6 +119,12 @@ func boolMaskRidx(ridx []uint32, bools, other *roaring.Bitmap, vec vector.Any) {
 			}
 		} else {
 			bools.Or(roaring.FromDense(trues.GetBits(), true))
+		}
+	case *vector.Null:
+		if ridx != nil {
+			nulls.AddMany(ridx)
+		} else {
+			nulls.AddRange(0, uint64(vec.Len()))
 		}
 	default:
 		if ridx != nil {

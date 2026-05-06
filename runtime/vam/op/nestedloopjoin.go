@@ -108,7 +108,7 @@ func (n *nestedLoopJoin) join(yield func(vector.Any, error) bool) {
 				joinedVec := vector.Apply(false, n.makeResult, leftVec, rightVec)
 				if n.style != "cross" {
 					// Ignore condition errors.
-					hits, _ := expr.BoolMask(n.cond.Eval(joinedVec))
+					hits, _, _ := expr.BoolMask(n.cond.Eval(joinedVec))
 					if len(innerHits) > 0 {
 						innerHits[j].Or(hits)
 					} else if outerHits != nil {

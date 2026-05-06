@@ -33,7 +33,7 @@ func (f *Filter) Pull(done bool) (vector.Any, error) {
 // Boolean are considered false.
 func applyMask(vec, mask vector.Any) (vector.Any, bool) {
 	// errors are ignored for filters
-	b, _ := expr.BoolMask(mask)
+	b, _, _ := expr.BoolMask(mask)
 	if b.IsEmpty() {
 		return nil, false
 	}

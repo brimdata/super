@@ -30,7 +30,7 @@ func (s *Switch) forward(vec vector.Any) bool {
 	doneMap := roaring.New()
 	for i, c := range s.cases {
 		maskVec := c.Eval(vec)
-		boolMap, errMap := expr.BoolMask(maskVec)
+		boolMap, _, errMap := expr.BoolMask(maskVec)
 		boolMap.AndNot(doneMap)
 		errMap.AndNot(doneMap)
 		doneMap.Or(boolMap)

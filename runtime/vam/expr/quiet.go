@@ -81,7 +81,7 @@ func (d *Dequiet) dequiet(vec vector.Any) vector.Any {
 	if !ok {
 		return vec
 	}
-	b, _ := BoolMask(new(Not).eval(mask))
+	b, _, _ := BoolMask(new(Not).eval(mask))
 	if b.IsEmpty() {
 		return vec
 	}

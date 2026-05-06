@@ -66,3 +66,19 @@ output: |
   [error(1)::namedErr,error(1)::namedErr]
   type namedUnion5=int64|error(int64)
   [error(1),error(1)::namedUnion5]
+
+---
+
+# Test conditionals do not de-union root values.
+spq: |
+  values this == 1 ? this : this
+
+vector: true
+
+input: |
+  1::(int64|null)
+  2::(int64|null)
+
+output: |
+  1::(int64|null)
+  2::(int64|null)
