@@ -122,9 +122,6 @@ func write(w io.Writer, vec Any, indent, prefix string) {
 	case *Fusion:
 		fmt.Fprintf(w, " subtype=%s\n", "?" /* sup.FormatType(val.SubTypes) */)
 		write(w, vec.Values, indent, "values=")
-	case *Option:
-		fmt.Fprintln(w)
-		write(w, vec.Dynamic, indent, "option-dynamic=")
 	case *None:
 		fmt.Fprintln(w)
 	case *View:
