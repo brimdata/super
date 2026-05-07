@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
+	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
@@ -395,6 +396,7 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 			}
 			return d.errSubtype(vec, to)
 		}
+		vec = d.downcast(vec, to.Types[tag])
 		return vector.NewUnion(to, make([]uint32, vec.Len()), []vector.Any{vec})
 	})
 }
@@ -468,12 +470,12 @@ func (d *downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vec
 		vals := make([]vector.Any, len(d.Values))
 		for i, val := range d.Values {
 			if val != nil {
-				vals[i] = f(slices.Index(types, val.Type()), val)
+				vals[i] = f(samfunc.DowncastSubtypeIndex(types, val.Type()), val)
 			}
 		}
 		return vector.NewDynamic(d.Tags, vals)
 	}
-	return f(slices.Index(types, vec.Type()), vec)
+	return f(samfunc.DowncastSubtypeIndex(types, vec.Type()), vec)
 }
 
 // pick is the same as vector.Pick but it strips errDowncast then reapplies it.

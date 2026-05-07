@@ -153,3 +153,27 @@ input: &input |
   {a:[{x:1},{x:null}]}
 
 output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+vector: true
+
+input: &input |
+  {x:1}::(null|{x:int64})
+  {}
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+vector: true
+
+input: &input |
+  {x:1}::({x:int64}|{x:int64,y:string})
+  {}
+
+output: *input
