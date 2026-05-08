@@ -86,6 +86,9 @@ func (d *Defuse) eval(in super.Value) super.Value {
 		return super.NewValue(d.sctx.LookupTypeMap(keyType, valType), b.Bytes())
 	case *super.TypeUnion:
 		return d.eval(in.DeunionIntoNameds())
+	case *super.TypeError:
+		val := d.eval(super.NewValue(typ.Type, in.Bytes()))
+		return super.NewValue(d.sctx.LookupTypeError(val.Type()), val.Bytes())
 	case *super.TypeFusion:
 		out, errVal := d.downcast.defuse(typ, in.Bytes())
 		if errVal != nil {
