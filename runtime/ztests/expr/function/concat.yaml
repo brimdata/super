@@ -7,19 +7,19 @@ input: |
   {a:null,b:null,c:null}
   {a:null,b:"b",c:null}
   {a:"a",b:null,c:"c"}
-  {a:"a",b:2,c:error("quiet")}
-  {a:"a",b:error("quiet"),c:3}
   {a:"hello"::(string|null),b:" "::(string|null),c:"world"::(string|null)}
   {a:null::(string|null),b:"b"::(string|null),c:null::(string|null)}
+  {a:"a",b:2,c:error("quiet")}
+  {a:"a",b:error("quiet"),c:3}
 
 output: |
   "hello world"
   ""
   "b"
   "ac"
-  error({message:"concat: string arg required",on:2})
   "hello world"
   "b"
+  error({message:"concat: string arg required",on:2})
 
 ---
 
@@ -30,17 +30,17 @@ vector: true
 input: |
   "single"
   null
-  1
-  error("quiet")
   "hello"::(string|null)
   null::(string|null)
+  1
+  error("quiet")
 
 output: |
   "single"
   ""
-  error({message:"concat: string arg required",on:1})
   "hello"
   ""
+  error({message:"concat: string arg required",on:1})
 
 ---
 

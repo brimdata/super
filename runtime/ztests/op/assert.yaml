@@ -4,14 +4,14 @@ vector: true
 
 input: |
   {a:1}
+  {a:1::(int64|null)}
   {a:2}
   1
-  {a:1::(int64|null)}
   {a:2::(int64|null)}
 
 output: |
   {a:1}
+  {a:1::(int64|null)}
   error({message:"assertion failed",expr:"a==1",on:{a:2}})
   error("missing")
-  {a:1::(int64|null)}
   error({message:"assertion failed",expr:"a==1",on:{a:2::(int64|null)}})

@@ -5,15 +5,15 @@ vector: true
 input: |
   {foo:1,bar:"one"}
   {foo:2,bar:"two"}
-  {bar:"three"}
-  null
   {foo:1::(int64|null),bar:"x"}
   {foo:null::(int64|null),bar:"x"}
+  {bar:"three"}
+  null
 
 output: |
   {foo:1}
   {foo:2}
-  {foo:error("missing")}
-  {foo:error("missing")}
   {foo:1::(int64|null)}
   {foo:null::(int64|null)}
+  {foo:error("missing")}
+  {foo:error("missing")}

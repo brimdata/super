@@ -11,9 +11,9 @@ input: |
   -1::int8
   1::uint8
   null
-  "foo"
   2::(int64|null)
   null::(int64|null)
+  "foo"
 
 output: |
   1
@@ -24,6 +24,6 @@ output: |
   1::int8
   1::uint8
   null
-  error({message:"abs: not a number",on:"foo"})
   2
   null
+  error({message:"abs: not a number",on:"foo"})

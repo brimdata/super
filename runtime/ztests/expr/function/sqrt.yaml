@@ -8,9 +8,9 @@ input: |
   1e10
   -1
   null
-  "9"
   4.::(float64|null)
   null::(float64|null)
+  "9"
 
 output: |
   2.
@@ -18,6 +18,6 @@ output: |
   100000.
   NaN
   null
-  error({message:"sqrt: number argument required",on:"9"})
   2.
   null
+  error({message:"sqrt: number argument required",on:"9"})

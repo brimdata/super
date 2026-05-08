@@ -8,11 +8,11 @@ input: |
   {t:3s,bin:2s}
   {t:null,bin:2s}
   {t:2020-05-26T15:27:47Z,bin:null}
-  {t:"foo",bin:2s}
-  {t:1h,bin:"bar"}
   {t:2020-05-26T15:27:47Z::(time|null),bin:1h::(duration|null)}
   {t:2020-05-26T15:27:47Z::(time|null),bin:null::(duration|null)}
   {t:null::(time|null),bin:1h::(duration|null)}
+  {t:"foo",bin:2s}
+  {t:1h,bin:"bar"}
 
 output: |
   2020-05-26T15:00:00Z
@@ -20,8 +20,8 @@ output: |
   2s
   null
   null
-  error({message:"bucket: first argument is not a time or duration",on:"foo"})
-  error({message:"bucket: second argument is not a duration",on:"bar"})
   2020-05-26T15:00:00Z
   null
   null
+  error({message:"bucket: first argument is not a time or duration",on:"foo"})
+  error({message:"bucket: second argument is not a duration",on:"bar"})
