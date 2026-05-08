@@ -6,6 +6,8 @@ vector: true
 input: |
   [{x:1},<{}>]
   [{x?:1},<{x:int64}>]
+  [{x?:1},<null|{x:int64}>]
+  [{x?:2,y?:_::int64},<null|{x:int64}>]
   [{x:1::(int64|string)},<{x:int64}>]
   [{x:1,y:"foo"},<{y:string}>]
   [{x:1::(int64|bool|string)},<{x:int64|string}>]
@@ -16,6 +18,8 @@ input: |
 output: |
   {}
   {x:1}
+  {x:1}::(null|{x:int64})
+  {x:2}::(null|{x:int64})
   {x:1}
   {y:"foo"}
   {x:1::(int64|string)}

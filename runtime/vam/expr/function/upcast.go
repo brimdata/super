@@ -131,6 +131,9 @@ func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 func (u *Upcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 	recVec, ok := vec.(*vector.Record)
 	if !ok {
+		if vec.Kind() == vector.KindUnion {
+			return u.deunionAndUpcast(vec, to)
+		}
 		return nil
 	}
 	fieldVecs := make([]vector.Any, len(to.Fields))

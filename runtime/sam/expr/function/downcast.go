@@ -231,7 +231,40 @@ func (d *downcast) toEnum(typ super.Type, bytes scode.Bytes, to *super.TypeEnum)
 func (d *downcast) subTypeOf(typ super.Type, bytes scode.Bytes, types []super.Type) (int, super.Type, []byte) {
 	val := d.defuser.eval(super.NewValue(typ, bytes))
 	typ, bytes = val.Type(), val.Bytes()
-	return slices.Index(types, typ), typ, bytes
+	return DowncastSubtypeIndex(types, typ), typ, bytes
+}
+
+// DowncastSubtypeIndex returns the index of typ in types.  If typ does not
+// appear in types and typ is a record, DowncastSubtypeIndex returns the index
+// in types of the first record type having all of typ's required fields.  If
+// types contains no such record type, DowncastSubtypeIndex returns -1.
+func DowncastSubtypeIndex(types []super.Type, typ super.Type) int {
+	if i := slices.Index(types, typ); i >= 0 {
+		return i
+	}
+	if fromRec, ok := typ.(*super.TypeRecord); ok {
+		// Look for a record that has all fromRec's required fields.
+		return slices.IndexFunc(types, func(t super.Type) bool {
+			toRec, ok := t.(*super.TypeRecord)
+			return ok && hasRequiredFields(fromRec, toRec)
+		})
+	}
+	return -1
+}
+
+// hasRequiredFields returns true if every required field in from appears in to
+// with the same type.
+func hasRequiredFields(from, to *super.TypeRecord) bool {
+	for _, f := range from.Fields {
+		if !super.IsOptionType(f.Type) {
+			typ, ok := to.TypeOfField(f.Name)
+			if !ok || typ != f.Type {
+				// Required field is absent or has wrong type.
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func (d *downcast) toError(typ super.Type, bytes scode.Bytes, to *super.TypeError) (super.Value, *super.Value) {
