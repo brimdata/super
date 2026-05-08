@@ -130,31 +130,8 @@ func (u *Union) load() {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	if u.dynamic.Tags == nil {
-		u.buildTags()
+		u.dynamic.Tags, _ = buildTags(u.rle, u.Len())
 	}
-}
-
-func (u *Union) buildTags() {
-	tags := make([]uint32, u.dynamic.Len())
-	runlens := u.rle
-	off := 0
-	var oneLen uint32
-	for in := 0; in < len(runlens); {
-		oneRun := runlens[in]
-		in++
-		for k := range int(oneRun) {
-			tags[off+k] = 1
-		}
-		off += int(oneRun)
-		oneLen += oneRun
-		if in >= len(runlens) {
-			break
-		}
-		// skip over values (leaving tags 0)
-		off += int(runlens[in])
-		in++
-	}
-	u.dynamic.Tags = tags
 }
 
 func Deunion(vec Any) Any {
