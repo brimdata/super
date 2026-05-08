@@ -25,6 +25,8 @@ func Pick(val Any, index []uint32) Any {
 		return NewError(val.Typ, Pick(val.Vals, index))
 	case *None:
 		return NewNone(uint32(len(index)))
+	case *NoRip:
+		return &NoRip{Pick(val.Any, index)}
 	case *Null:
 		return NewNull(uint32(len(index)))
 	case *Union:
@@ -44,6 +46,8 @@ func Pick(val Any, index []uint32) Any {
 	case *Named:
 		// Wrapped View under Named so vector.Under still works.
 		return &Named{val.Typ, Pick(val.Any, index)}
+	case nil:
+		return nil
 	}
 	return &View{val, index}
 }

@@ -23,11 +23,11 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 }
 
 func (c *conditional) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, c.eval, c.predicate.Eval(this), this)
+	return vector.Apply(true, c.eval, c.predicate.Eval(this), &vector.NoRip{Any: this})
 }
 
 func (c *conditional) eval(vecs ...vector.Any) vector.Any {
-	predVec, thisVec := vecs[0], vecs[1]
+	predVec, thisVec := vecs[0], vecs[1].(*vector.NoRip).Any
 	switch predVec.Kind() {
 	case vector.KindBool:
 	case vector.KindNull:
