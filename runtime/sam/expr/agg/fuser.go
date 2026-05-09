@@ -180,7 +180,10 @@ func (f *Fuser) fuseInternal(typ super.Type) super.Type {
 	case *super.TypeMap:
 		out = f.sctx.LookupTypeMap(f.fuseInternal(typ.KeyType), f.fuseInternal(typ.ValType))
 	case *super.TypeUnion:
-		types := f.fuseIntoUnionTypes(nil, typ)
+		var types []super.Type
+		for _, t := range typ.Types {
+			types = f.fuseIntoUnionTypes(types, f.fuseInternal(t))
+		}
 		if len(types) == 1 {
 			out = types[0]
 		} else {
