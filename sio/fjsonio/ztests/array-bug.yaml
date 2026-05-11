@@ -36,4 +36,3 @@ input: &input |
   ["bar"]
 
 output: *input
-
