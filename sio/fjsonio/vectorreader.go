@@ -62,8 +62,7 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 		}
 	}
 	bytesTablePool.Put(table)
-	vec := jsonvec.Materialize(v.sctx, builder)
-	return vec, nil
+	return jsonvec.Materialize(v.sctx, builder), nil
 }
 
 func (v *VectorReader) newBuilder() jsonvec.Builder {
