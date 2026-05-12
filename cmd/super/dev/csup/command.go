@@ -217,7 +217,6 @@ func decodeTypeDef(slot uint32, bytes []byte) ([]byte, any) {
 		type Field struct {
 			Name string
 			ID   uint32
-			Opt  bool
 		}
 		n, bytes = super.DecodeLength(bytes)
 		if bytes == nil {
@@ -233,12 +232,7 @@ func decodeTypeDef(slot uint32, bytes []byte) ([]byte, any) {
 			if bytes == nil {
 				return nil, errInfo(slot, "TypeDefRecord", "at field ID field")
 			}
-			var opt bool
-			if bytes[0] != 0 {
-				opt = true
-			}
-			bytes = bytes[1:]
-			fields = append(fields, Field{name, id, opt})
+			fields = append(fields, Field{name, id})
 		}
 		out = &struct {
 			Kind   string
