@@ -1,7 +1,6 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector/bitvec"
 )
 
@@ -44,12 +43,6 @@ func Pick(val Any, index []uint32) Any {
 	case *Named:
 		// Wrapped View under Named so vector.Under still works.
 		return &Named{val.Typ, Pick(val.Any, index)}
-	case *Fusion:
-		subtypes := make([]super.Type, len(index))
-		for k, slot := range index {
-			subtypes[k] = val.Subtypes.Value(slot)
-		}
-		return NewFusion(val.Sctx, val.Typ, Pick(val.Values, index), subtypes)
 	case nil:
 		return nil
 	}
