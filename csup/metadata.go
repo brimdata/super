@@ -255,6 +255,8 @@ func (d *Dynamic) Len(*Context) uint32 {
 func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, projection field.Projection) super.Type {
 	m := cctx.Lookup(id)
 	switch m := under(cctx, m).(type) {
+	case *Fusion:
+		return metadataValue(cctx, sctx, b, m.Values, projection)
 	case *Dict:
 		return metadataValue(cctx, sctx, b, m.Values, projection)
 	case *Record:

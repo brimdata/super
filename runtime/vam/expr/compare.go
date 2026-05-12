@@ -34,8 +34,8 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	if vec, ok := CheckForNullThenError(vecs); ok {
 		return vec
 	}
-	lhs := vector.Under(vecs[0])
-	rhs := vector.Under(vecs[1])
+	lhs := vector.Under(vector.Super(vecs[0]))
+	rhs := vector.Under(vector.Super(vecs[1]))
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
 		// Incompatible types so return true for != and false otherwise.

@@ -46,3 +46,10 @@ func (f *Fusion) Serialize(b *scode.Builder, slot uint32) {
 	f.Subtypes.Serialize(b, slot)
 	b.EndContainer()
 }
+
+func Super(vec Any) Any {
+	if vec, ok := vec.(*Fusion); ok {
+		return vec.Values
+	}
+	return vec
+}
