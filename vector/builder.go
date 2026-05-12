@@ -431,8 +431,9 @@ func (f *fusionBuilder) Write(vec Any) {
 		fusion := view.Any.(*Fusion)
 		f.typ = fusion.Typ
 		f.vals.Write(Pick(fusion.Values, view.Index))
+		types := fusion.Subtypes.Types()
 		for _, slot := range view.Index {
-			f.subtypes = append(f.subtypes, fusion.Subtypes.Value(slot))
+			f.subtypes = append(f.subtypes, types[slot])
 		}
 		return
 	}
