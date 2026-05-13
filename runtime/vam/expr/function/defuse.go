@@ -25,17 +25,7 @@ func newDefuse(sctx *super.Context) *defuse {
 }
 
 func (d *defuse) Call(args ...vector.Any) vector.Any {
-	// XXX This should use vector.Apply but right now Apply defuses fusion
-	// values and we do not want this here.
-	vec := args[0]
-	if dynamic, ok := vec.(*vector.Dynamic); ok {
-		var vecs []vector.Any
-		for _, vec := range dynamic.Values {
-			vecs = append(vecs, d.eval(vec))
-		}
-		return vector.NewDynamic(dynamic.Tags, vecs)
-	}
-	return d.eval(vec)
+	return d.eval(args[0])
 }
 
 func (d *defuse) eval(in vector.Any) vector.Any {

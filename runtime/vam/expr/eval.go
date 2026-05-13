@@ -32,7 +32,6 @@ type Call struct {
 	exprs     []Evaluator
 	ripUnions bool
 	args      []vector.Any
-	NoRip     bool
 }
 
 func NewCall(fn Function, exprs []Evaluator) *Call {
@@ -51,9 +50,6 @@ func NewCall(fn Function, exprs []Evaluator) *Call {
 func (c *Call) Eval(this vector.Any) vector.Any {
 	for k, e := range c.exprs {
 		c.args[k] = e.Eval(this)
-	}
-	if c.NoRip {
-		return c.fn.Call(c.args...)
 	}
 	return vector.Apply(c.ripUnions, c.fn.Call, c.args...)
 }
