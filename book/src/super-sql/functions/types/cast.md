@@ -21,7 +21,9 @@ with the semantics of the [expression cast](../../expressions/cast.md).
 In the second form, the target type is a [named type](../../types/named.md)
 whose name is the `name` parameter and whose type is the type of `val`.
 
-When a cast is successful, the return value of `cast` always has the target type.
+When a cast is successful, the return value of `cast` has the target type,
+except when attempting to cast a `null` value to a non-null type, which returns
+a value with a nullable [union](../../types/union.md) type.
 
 If errors are encountered, then some or all of the resulting value
 will be embedded with structured errors and the result does not have
@@ -40,10 +42,12 @@ cast(this, <ip>)
 "10.0.0.1"
 1
 "foo"
+null
 # expected output
 10.0.0.1
 error({message:"cannot cast to ip",on:1})
 error({message:"cannot cast to ip",on:"foo"})
+null::(ip|null)
 ```
 
 ---
@@ -57,10 +61,12 @@ cast(this, <{b:string}>)
 {a:1,b:2}
 {b:4}
 {a:3}
+null
 # expected output
 {b:"2"}
 {b:"4"}
 {b:error("missing")}
+null::(null|{b:string})
 ```
 
 ---
