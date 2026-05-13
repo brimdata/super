@@ -4,7 +4,7 @@ SuperDB can read both of the common Zeek log formats. This section
 provides guidance for what to expect when reading logs of these formats using
 the [super](../../../command/super.md) command.
 
-[Zeek TSV](https://docs.zeek.org/en/current/log-formats.html#zeek-tsv-format-logs)
+[Zeek TSV](https://docs.zeek.org/en/current/log-formats.html#zeek-log-formats)
 is Zeek's default output format for logs. This format can be read automatically
 (i.e., no `-i` command line flag is necessary to indicate the input format)
 with [super](../../../command/super.md).
