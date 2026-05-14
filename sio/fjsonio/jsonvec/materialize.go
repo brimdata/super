@@ -101,6 +101,9 @@ func (m *materializer) makeUnionSubtypes(tags []uint32, dynamic [][]uint32, fixe
 
 func (m *materializer) array(a *Array) (vector.Any, []uint32) {
 	inner, ids := m.value(a.Inner)
+	// Unwrap fusion since the inner subtype IDs are redundant with
+	// the subtypes of a parent array.
+	inner = vector.Super(inner)
 	arrayType := m.sctx.LookupTypeArray(inner.Type())
 	array := vector.NewArray(arrayType, a.Offsets, inner)
 	if ids == nil {
