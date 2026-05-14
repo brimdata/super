@@ -27,7 +27,7 @@ input: |
   [{id:1,s:"foo"},{id:2,s:null}]
 
 output: |
-  <fusion([fusion(none|{id:int64,s:fusion(string|null)})])>
+  <fusion([none|{id:int64,s:fusion(string|null)}])>
 
 ---
 
@@ -38,7 +38,7 @@ input: |
   []
 
 output: |
-  <fusion([fusion(none|{id:int64,s:fusion(string|null)})])>
+  <fusion([none|{id:int64,s:fusion(string|null)}])>
 
 ---
 

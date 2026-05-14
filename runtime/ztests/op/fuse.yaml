@@ -29,11 +29,11 @@ input: |
   [{a:null,b:null}]
 
 output: |
-  fusion([fusion({a:fusion(1::(int64|null|none),<int64>),b:fusion(_::(int64|null|none),<none>)},<{a:int64}>)],<[{a:int64}]>)
-  fusion([fusion({a:fusion(_::(int64|null|none),<none>),b:fusion(2::(int64|null|none),<int64>)},<{b:int64}>)],<[{b:int64}]>)
-  fusion([fusion({a:fusion(3::(int64|null|none),<int64>),b:fusion(_::(int64|null|none),<none>)},<{a:int64}>),fusion({a:fusion(_::(int64|null|none),<none>),b:fusion(3::(int64|null|none),<int64>)},<{b:int64}>)],<[{a:int64}|{b:int64}]>)
-  fusion([fusion({a:fusion(3::(int64|null|none),<int64>),b:fusion(3::(int64|null|none),<int64>)},<{a:int64,b:int64}>)],<[{a:int64,b:int64}]>)
-  fusion([fusion({a:fusion(null::(int64|null|none),<null>),b:fusion(null::(int64|null|none),<null>)},<{a:null,b:null}>)],<[{a:null,b:null}]>)
+  fusion([{a:fusion(1::(int64|null|none),<int64>),b:fusion(_::(int64|null|none),<none>)}],<[{a:int64}]>)
+  fusion([{a:fusion(_::(int64|null|none),<none>),b:fusion(2::(int64|null|none),<int64>)}],<[{b:int64}]>)
+  fusion([{a:fusion(3::(int64|null|none),<int64>),b:fusion(_::(int64|null|none),<none>)},{a:fusion(_::(int64|null|none),<none>),b:fusion(3::(int64|null|none),<int64>)}],<[{a:int64}|{b:int64}]>)
+  fusion([{a:fusion(3::(int64|null|none),<int64>),b:fusion(3::(int64|null|none),<int64>)}],<[{a:int64,b:int64}]>)
+  fusion([{a:fusion(null::(int64|null|none),<null>),b:fusion(null::(int64|null|none),<null>)}],<[{a:null,b:null}]>)
 
 ---
 
@@ -51,12 +51,12 @@ input: |
   ["s"]
 
 output: |
-  fusion({a:fusion(1::(int64|string),<int64>)}::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<{a:int64}>)
-  fusion({a:fusion("s"::(int64|string),<string>)}::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<{a:string}>)
-  fusion(1::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<int64>)
-  fusion("s"::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<string>)
-  fusion([fusion(1::(int64|string),<int64>)]::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<[int64]>)
-  fusion([fusion("s"::(int64|string),<string>)]::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<[string]>)
+  fusion({a:fusion(1::(int64|string),<int64>)}::(int64|string|{a:fusion(int64|string)}|[int64|string]),<{a:int64}>)
+  fusion({a:fusion("s"::(int64|string),<string>)}::(int64|string|{a:fusion(int64|string)}|[int64|string]),<{a:string}>)
+  fusion(1::(int64|string|{a:fusion(int64|string)}|[int64|string]),<int64>)
+  fusion("s"::(int64|string|{a:fusion(int64|string)}|[int64|string]),<string>)
+  fusion([1]::[int64|string]::(int64|string|{a:fusion(int64|string)}|[int64|string]),<[int64]>)
+  fusion(["s"]::[int64|string]::(int64|string|{a:fusion(int64|string)}|[int64|string]),<[string]>)
 
 ---
 
@@ -99,9 +99,9 @@ input: |
   [null]
 
 output: |
-  fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
-  fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)
-  fusion([fusion(null::(int64|string|null),<null>)],<[null]>)
+  fusion([1,2]::[int64|string|null],<[int64]>)
+  fusion(["foo"]::[int64|string|null],<[string]>)
+  fusion([null]::[int64|string|null],<[null]>)
 
 ---
 
@@ -115,9 +115,9 @@ input: |
   {a:[null]}
 
 output: |
-  {a:fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)}
-  {a:fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)}
-  {a:fusion([fusion(null::(int64|string|null),<null>)],<[null]>)}
+  {a:fusion([1,2]::[int64|string|null],<[int64]>)}
+  {a:fusion(["foo"]::[int64|string|null],<[string]>)}
+  {a:fusion([null]::[int64|string|null],<[null]>)}
 
 ---
 

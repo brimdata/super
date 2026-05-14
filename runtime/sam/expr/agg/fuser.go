@@ -82,16 +82,30 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		}
 	case *super.TypeArray:
 		if b, ok := b.(*super.TypeArray); ok {
-			return f.fusion(f.sctx.LookupTypeArray(f.fuse(a.Type, b.Type)))
+			inner := f.fuse(a.Type, b.Type)
+			if fusion, ok := inner.(*super.TypeFusion); ok {
+				inner = fusion.Type
+			}
+			return f.fusion(f.sctx.LookupTypeArray(inner))
 		}
 	case *super.TypeSet:
 		if b, ok := b.(*super.TypeSet); ok {
-			return f.fusion(f.sctx.LookupTypeSet(f.fuse(a.Type, b.Type)))
+			inner := f.fuse(a.Type, b.Type)
+			if fusion, ok := inner.(*super.TypeFusion); ok {
+				inner = fusion.Type
+			}
+			return f.fusion(f.sctx.LookupTypeSet(inner))
 		}
 	case *super.TypeMap:
 		if b, ok := b.(*super.TypeMap); ok {
 			keyType := f.fuse(a.KeyType, b.KeyType)
+			if fusion, ok := keyType.(*super.TypeFusion); ok {
+				keyType = fusion.Type
+			}
 			valType := f.fuse(a.ValType, b.ValType)
+			if fusion, ok := valType.(*super.TypeFusion); ok {
+				valType = fusion.Type
+			}
 			return f.fusion(f.sctx.LookupTypeMap(keyType, valType))
 		}
 	case *super.TypeUnion:
