@@ -64,6 +64,6 @@ fuse
 {a:[1,2]}
 {a:["foo","bar"],b:10.0.0.1}
 # expected output
-fusion({a:fusion([fusion(1::(int64|string),<int64>),fusion(2::(int64|string),<int64>)],<[int64]>),b?:_::ip},<{a:[int64]}>)
-fusion({a:fusion([fusion("foo"::(int64|string),<string>),fusion("bar"::(int64|string),<string>)],<[string]>),b?:10.0.0.1},<{a:[string],b:ip}>)
+fusion({a:fusion([1,2]::[int64|string],<[int64]>),b?:_::ip},<{a:[int64]}>)
+fusion({a:fusion(["foo","bar"]::[int64|string],<[string]>),b?:10.0.0.1},<{a:[string],b:ip}>)
 ```
