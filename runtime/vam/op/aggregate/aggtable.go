@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 )
 
 // XXX use super.Value for slow path stuff, e.g., when the grouping key is
@@ -129,7 +130,7 @@ func (s *superTable) materializeKey(i int) vector.Any {
 }
 
 func (s *superTable) materializeAgg(i int) vector.Any {
-	b := vector.NewDynamicBuilder()
+	b := vbuild.NewDynamicBuilder()
 	for _, row := range s.rows {
 		if s.partialsOut {
 			b.Write(row.funcs[i].ResultAsPartial(s.sctx))

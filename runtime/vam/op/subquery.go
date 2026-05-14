@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -64,7 +65,7 @@ func (s *Subquery) Eval(this vector.Any) vector.Any {
 		}
 		return s.stack[s.tos].Eval(this)
 	}
-	db := vector.NewDynamicBuilder()
+	db := vbuild.NewDynamicBuilder()
 	index := make([]uint32, this.Len())
 	for i := range this.Len() {
 		index[i] = i

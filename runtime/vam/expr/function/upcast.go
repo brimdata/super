@@ -8,6 +8,7 @@ import (
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 )
 
 type Upcast struct {
@@ -192,7 +193,7 @@ func (u *Upcast) deunionAndUpcast(vec vector.Any, to super.Type) vector.Any {
 			return nil
 		}
 	}
-	return vector.MergeSameTypesInDynamic(u.sctx, vector.NewDynamic(d.Tags, vecs))
+	return vbuild.MergeSameTypesInDynamic(u.sctx, vector.NewDynamic(d.Tags, vecs))
 }
 
 func (u *Upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {

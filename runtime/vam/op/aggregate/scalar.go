@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -95,7 +96,7 @@ func newFuncs(aggs []*expr.Aggregator) []agg.Func {
 func (s *scalarAggregate) result() vector.Any {
 	var vecs []vector.Any
 	for _, f := range s.funcs {
-		b := vector.NewDynamicBuilder()
+		b := vbuild.NewDynamicBuilder()
 		if s.partialsOut {
 			b.Write(f.ResultAsPartial(s.sctx))
 		} else {

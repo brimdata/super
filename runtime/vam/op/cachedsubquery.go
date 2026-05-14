@@ -4,6 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -65,7 +66,7 @@ func (c *cachedSubquery) vectorConcat(vecs []vector.Any) vector.Any {
 	if len(vecs) == 1 {
 		return vecs[0]
 	}
-	db := vector.NewDynamicBuilder()
+	db := vbuild.NewDynamicBuilder()
 	for _, vec := range vecs {
 		db.Write(vec)
 	}

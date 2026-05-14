@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 )
 
 type Entry struct {
@@ -60,7 +61,7 @@ func (m *MapExpr) build(sctx *super.Context, vecs []vector.Any) vector.Any {
 	}
 	tags := slices.Repeat(repeat, int(vecs[0].Len()))
 	d := vector.FlattenUnions(vector.NewDynamic(tags, vecs))
-	out := vector.MergeSameTypesInDynamic(sctx, d)
+	out := vbuild.MergeSameTypesInDynamic(sctx, d)
 	if d, ok := out.(*vector.Dynamic); ok {
 		out = vector.NewUnionFromDynamic(m.sctx, d)
 	}

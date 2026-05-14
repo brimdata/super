@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 )
 
 type downcast struct {
@@ -94,7 +95,7 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 			vecs = append(vecs, d.downcast(vec, to))
 		}
 		if _, ok := to.(*super.TypeUnion); ok {
-			return vector.MergeSameTypesInDynamic(d.sctx, vector.NewDynamic(dynamic.Tags, vecs))
+			return vbuild.MergeSameTypesInDynamic(d.sctx, vector.NewDynamic(dynamic.Tags, vecs))
 		}
 		if len(vecs) == 1 {
 			return vecs[0]
@@ -369,7 +370,7 @@ func (d *downcast) separateValidAndErrVecs(dynamic *vector.Dynamic) ([]uint32, v
 	case 1:
 		valid = validVecs[0]
 	default:
-		valid = vector.Merge(d.sctx, validTags, validVecs)
+		valid = vbuild.Merge(d.sctx, validTags, validVecs)
 	}
 	return newTags, valid, errs
 }

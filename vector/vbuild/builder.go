@@ -1,0 +1,97 @@
+package vbuild
+
+import (
+	"net/netip"
+
+	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector"
+)
+
+type Builder interface {
+	Write(vector.Any)
+	Build(*super.Context) vector.Any
+}
+
+func New(typ super.Type) Builder {
+	switch typ := typ.(type) {
+	case *super.TypeOfUint8,
+		*super.TypeOfUint16,
+		*super.TypeOfUint32,
+		*super.TypeOfUint64:
+		return &genericBuilder[uint64]{
+			valuesOf: func(vec vector.Any) []uint64 { return vec.(*vector.Uint).Values },
+			build: func(_ *super.Context, vals []uint64) vector.Any {
+				return vector.NewUint(typ, vals)
+			},
+		}
+	case *super.TypeOfInt8,
+		*super.TypeOfInt16,
+		*super.TypeOfInt32,
+		*super.TypeOfInt64,
+		*super.TypeOfDuration,
+		*super.TypeOfTime:
+		return &genericBuilder[int64]{
+			valuesOf: func(vec vector.Any) []int64 { return vec.(*vector.Int).Values },
+			build: func(_ *super.Context, vals []int64) vector.Any {
+				return vector.NewInt(typ, vals)
+			},
+		}
+	case *super.TypeOfFloat16,
+		*super.TypeOfFloat32,
+		*super.TypeOfFloat64:
+		return &genericBuilder[float64]{
+			valuesOf: func(vec vector.Any) []float64 { return vec.(*vector.Float).Values },
+			build: func(_ *super.Context, vals []float64) vector.Any {
+				return vector.NewFloat(typ, vals)
+			},
+		}
+	case *super.TypeOfBool:
+		return &boolBuilder{}
+	case *super.TypeOfString,
+		*super.TypeOfBytes:
+		return newBytesBuilder(typ)
+	case *super.TypeOfIP:
+		return &genericBuilder[netip.Addr]{
+			valuesOf: func(vec vector.Any) []netip.Addr { return vec.(*vector.IP).Values },
+			build: func(_ *super.Context, vals []netip.Addr) vector.Any {
+				return vector.NewIP(vals)
+			},
+		}
+	case *super.TypeOfNet:
+		return &genericBuilder[netip.Prefix]{
+			valuesOf: func(vec vector.Any) []netip.Prefix { return vec.(*vector.Net).Values },
+			build: func(_ *super.Context, vals []netip.Prefix) vector.Any {
+				return vector.NewNet(vals)
+			},
+		}
+	case *super.TypeOfType:
+		return &genericBuilder[super.Type]{
+			valuesOf: func(vec vector.Any) []super.Type { return vec.(*vector.TypeValue).Types() },
+			build: func(sctx *super.Context, vals []super.Type) vector.Any {
+				return vector.NewTypeValue(sctx, vals)
+			},
+		}
+	case *super.TypeOfNull:
+		return &nullBuilder{}
+	case *super.TypeOfNone:
+		return &noneBuilder{}
+	case *super.TypeRecord:
+		return newRecordBuilder(typ)
+	case *super.TypeArray, *super.TypeSet:
+		return newArraySetBuilder(typ)
+	case *super.TypeMap:
+		return newMapBuilder(typ)
+	case *super.TypeUnion:
+		return &unionBuilder{typ: typ, builder: NewDynamicBuilder()}
+	case *super.TypeEnum:
+		return newEnumBuilder(typ)
+	case *super.TypeError:
+		return &errorBuilder{vals: New(typ.Type)}
+	case *super.TypeNamed:
+		return &namedBuilder{name: typ.Name, vals: New(typ.Type)}
+	case *super.TypeFusion:
+		return newFusionBuilder(typ)
+	default:
+		panic(typ)
+	}
+}

@@ -1,12 +1,13 @@
-package vector
+package vbuild
 
 import (
 	"slices"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector"
 )
 
-func MergeSameTypesInDynamic(sctx *super.Context, d *Dynamic) Any {
+func MergeSameTypesInDynamic(sctx *super.Context, d *vector.Dynamic) vector.Any {
 	m := make(map[super.Type][]uint32)
 	for i, vec := range d.Values {
 		if vec == nil {
@@ -24,13 +25,13 @@ func MergeSameTypesInDynamic(sctx *super.Context, d *Dynamic) Any {
 		return Merge(sctx, d.Tags, d.Values)
 	}
 	remapTags := make([]uint32, len(d.Values))
-	var newVecs []Any
+	var newVecs []vector.Any
 	for typ, valIdx := range m {
 		if typ == nil {
 			continue
 		}
 		if len(valIdx) > 1 {
-			vecs := make([]Any, len(valIdx))
+			vecs := make([]vector.Any, len(valIdx))
 			tagMap := slices.Repeat([]int{-1}, len(d.Values))
 			for i, tag := range valIdx {
 				remapTags[tag] = uint32(len(newVecs))
@@ -54,12 +55,12 @@ func MergeSameTypesInDynamic(sctx *super.Context, d *Dynamic) Any {
 	for i, tag := range d.Tags {
 		newTags[i] = remapTags[tag]
 	}
-	return NewDynamic(newTags, newVecs)
+	return vector.NewDynamic(newTags, newVecs)
 }
 
 // Merge merges the same type vectors vecs into a single vector of the same
 // type.
-func Merge(sctx *super.Context, tags []uint32, vecs []Any) Any {
+func Merge(sctx *super.Context, tags []uint32, vecs []vector.Any) vector.Any {
 	// assert vecs are same type
 	typ := vecs[0].Type()
 	for _, vec := range vecs {
@@ -68,7 +69,7 @@ func Merge(sctx *super.Context, tags []uint32, vecs []Any) Any {
 		}
 	}
 	// Concat vectors together then use a view to maintain original order.
-	b := NewBuilder(typ)
+	b := New(typ)
 	reverse := make([][]uint32, len(vecs))
 	var k uint32
 	for i, vec := range vecs {
@@ -85,5 +86,5 @@ func Merge(sctx *super.Context, tags []uint32, vecs []Any) Any {
 		index[i] = reverse[tag][counts[tag]]
 		counts[tag]++
 	}
-	return Pick(out, index)
+	return vector.Pick(out, index)
 }
