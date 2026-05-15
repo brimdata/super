@@ -1,0 +1,16 @@
+# A switch operator containing an aggregate operator cannot be parallelized.
+script: |
+  super compile -vam -C -P 2 'from /dev/null | switch default ( aggregate count() ) | sort count'
+
+outputs:
+  - name: stdout
+    data: |
+      file /dev/null unordered
+      | switch
+        case true (
+          aggregate
+              count:=count()
+          | values count
+        )
+      | sort count asc nulls last
+      | output main
