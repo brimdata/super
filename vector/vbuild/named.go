@@ -6,19 +6,30 @@ import (
 )
 
 type namedBuilder struct {
-	name string
+	typ  *super.TypeNamed
 	vals Builder
 }
 
+func newNamedBuilder(typ *super.TypeNamed) Builder {
+	return &namedBuilder{typ: typ}
+}
+
 func (n *namedBuilder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
+	if n.vals == nil {
+		n.vals = New(n.typ.Type)
+	}
 	n.vals.Write(vec.(*vector.Named).Any)
 }
 
 func (n *namedBuilder) Build(sctx *super.Context) vector.Any {
-	vals := n.vals.Build(sctx)
-	typ, err := sctx.LookupTypeNamed(n.name, vals.Type())
-	if err != nil {
-		panic(err)
+	var vec vector.Any
+	if n.vals != nil {
+		vec = n.vals.Build(sctx)
+	} else {
+		vec = vector.NewEmpty(n.typ.Type)
 	}
-	return vector.NewNamed(typ, vals)
+	return vector.NewNamed(n.typ, vec)
 }

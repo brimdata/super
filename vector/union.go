@@ -1,11 +1,13 @@
 package vector
 
 import (
+	"fmt"
 	"slices"
 	"sync"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sup"
 )
 
 type Union struct {
@@ -18,6 +20,7 @@ type Union struct {
 var _ Any = (*Union)(nil)
 
 func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any) *Union {
+	verifyUnion(typ, vals)
 	return &Union{dynamic: NewDynamic(tags, vals), Typ: typ}
 }
 
@@ -34,6 +37,7 @@ func NewUnionFromDynamic(sctx *super.Context, d *Dynamic) *Union {
 }
 
 func NewUnionFromRLE(typ *super.TypeUnion, rle []uint32, vecs []Any) *Union {
+	verifyUnion(typ, vecs)
 	return &Union{dynamic: NewDynamic(nil, vecs), rle: rle, Typ: typ}
 }
 
@@ -68,6 +72,27 @@ func NewUnionOptionRLE(sctx *super.Context, vec Any, length uint32, runlens []ui
 	//XXX we should use the RLEs only when substantially smaller than tags
 	vecs := []Any{vec, NewNone(noneLength(runlens))}
 	return NewUnionFromRLE(optionType, runlens, vecs)
+}
+
+// verifyUnion verifies that a created union:
+// 1. Has a vector for every type in the union.
+// 2. There are not multiple vectors with the same type.
+func verifyUnion(utyp *super.TypeUnion, vecs []Any) {
+	if len(utyp.Types) != len(vecs) {
+		panic("NewUnion: must have one vector for each type")
+	}
+	seen := make(map[super.Type]struct{})
+	for _, vec := range vecs {
+		typ := vec.Type()
+		if utyp.TagOf(typ) == -1 {
+			panic(fmt.Sprintf("NewUnion: type %s not a member of union %s", sup.FormatType(vec.Type()), sup.FormatType(utyp)))
+		}
+		if _, ok := seen[typ]; ok {
+			panic(fmt.Sprintf("NewUnion: multiple vectors with the same type %s", sup.FormatType(typ)))
+		}
+		seen[typ] = struct{}{}
+	}
+
 }
 
 func (*Union) Kind() Kind {
