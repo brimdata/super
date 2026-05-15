@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"math"
 	"slices"
 
@@ -17,6 +18,7 @@ type downcast struct {
 }
 
 func newDowncast(sctx *super.Context) *downcast {
+	fmt.Println("NEW DOWNCAST")
 	return newDefuse(sctx).downcast
 }
 
@@ -83,7 +85,7 @@ func (d *downcast) cast(vec vector.Any, typ super.Type) vector.Any {
 func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
-		if vec.Kind() == vector.KindFusion {
+		if _, ok := vec.(*vector.Fusion); ok {
 			return d.downcastFusion(vec, to)
 		}
 	}
@@ -178,6 +180,7 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 
 func (d *downcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
 	if vec.Kind() != vector.KindArray {
+		fmt.Println("X0", vec.Kind())
 		return d.errMismatch(vec, to)
 	}
 	array := expr.PushContainerViewDown(vec).(*vector.Array)

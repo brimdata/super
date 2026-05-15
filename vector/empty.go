@@ -31,4 +31,6 @@ func (*Empty) Len() uint32 {
 	return 0
 }
 
-func (*Empty) Serialize(*scode.Builder, uint32) {}
+func (*Empty) Serialize(*scode.Builder, uint32) {
+	panic(".")
+}

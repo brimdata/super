@@ -2,6 +2,7 @@ package fjsonio
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync/atomic"
 
@@ -41,6 +42,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 }
 
 func (v *VectorReader) Pull(done bool) (vector.Any, error) {
+	fmt.Println("FJSON PULL")
 	return v.ConcurrentPull(done, 0)
 }
 

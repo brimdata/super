@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -14,6 +15,7 @@ type downcast struct {
 }
 
 func newDowncast(sctx *super.Context) *downcast {
+	fmt.Println("NEW SAM DOWNCAST")
 	return NewDefuse(sctx).downcast
 }
 

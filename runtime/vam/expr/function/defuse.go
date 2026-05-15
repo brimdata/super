@@ -1,6 +1,8 @@
 package function
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -15,6 +17,7 @@ type defuse struct {
 }
 
 func newDefuse(sctx *super.Context) *defuse {
+	fmt.Println("NEW VAM DEFUSE")
 	d := &defuse{
 		sctx:      sctx,
 		downcast:  &downcast{sctx: sctx},
@@ -25,7 +28,16 @@ func newDefuse(sctx *super.Context) *defuse {
 }
 
 func (d *defuse) Call(args ...vector.Any) vector.Any {
-	return d.eval(args[0])
+	fmt.Println("DEFUSE IN")
+	vector.Println(args[0])
+	out := d.eval(args[0])
+	fmt.Println("DEFUSE OUT")
+	if e, ok := out.(*errDowncast); ok {
+		vector.Println(e.Any)
+	} else {
+		vector.Println(out)
+	}
+	return out
 }
 
 func (d *defuse) eval(in vector.Any) vector.Any {

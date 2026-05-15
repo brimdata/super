@@ -1,7 +1,9 @@
 spq: defuse(this)
 
-input-flags: '-i fjson'
-output-flags: '-f json -pretty=0'
+vector: true
+
+input-flags: -i fjson
+output-flags: -f json -pretty=0
 
 input: &input |
   {"b":true,"a":[{"x":1}]}
@@ -13,8 +15,10 @@ output: *input
 
 spq: defuse(this)
 
-input-flags: '-i fjson'
-output-flags: '-f json -pretty=0'
+vector: true
+
+input-flags: -i fjson
+output-flags: -f json -pretty=0
 
 input: &input |
   {"a":[]}
@@ -26,8 +30,8 @@ output: *input
 
 spq: defuse(this)
 
-input-flags: '-i fjson'
-output-flags: '-f json -pretty=0'
+input-flags: -i fjson
+output-flags: -f json -pretty=0
 
 input: &input |
   ["foo"]
@@ -36,3 +40,20 @@ input: &input |
   ["bar"]
 
 output: *input
+
+---
+
+spq: defuse(this)
+
+vector: true
+
+input-flags: -i fjson
+output-flags: -f json -pretty=0
+
+input: &input |
+  {"a":[]}
+  {"b":true,"a":[{"x":1}]}
+
+output: *input
+
+
