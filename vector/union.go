@@ -24,6 +24,85 @@ func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any) *Union {
 	return &Union{dynamic: NewDynamic(tags, vals), Typ: typ}
 }
 
+func NewUnionOfOne(typ *super.TypeUnion, vec Any) *Union {
+	if _, ok := vec.Type().(*super.TypeUnion); ok {
+		panic("can't have union in NewUnionOfOne")
+	}
+	tag := typ.TagOf(vec.Type())
+	if tag < 0 {
+		panic(fmt.Sprintf("trying to put %s inside %s", sup.String(vec.Type()), sup.String(typ)))
+	}
+	tags := make([]uint32, vec.Len())
+	for k := range tags {
+		tags[k] = uint32(tag)
+	}
+	vecs := make([]Any, len(typ.Types))
+	for k, typ := range typ.Types {
+		if k == tag {
+			vecs[k] = vec
+		} else {
+			vecs[k] = NewEmpty(typ)
+		}
+	}
+	return NewUnion(typ, tags, vecs)
+}
+
+func NewUnionFromDynamicWithin(unionType *super.TypeUnion, d *Dynamic) *Union {
+	vecs := make([]Any, len(unionType.Types))
+	tagmap := make([]uint32, len(d.Values))
+	for k, vec := range d.Values {
+		if vec != nil {
+			typ := vec.Type()
+			tag := unionType.TagOf(typ)
+			if tag < 0 {
+				panic(typ)
+			}
+			tagmap[k] = uint32(tag)
+			vecs[tag] = vec
+		}
+	}
+	for k := range vecs {
+		if vecs[k] == nil {
+			vecs[k] = NewEmpty(unionType.Types[k])
+		}
+	}
+	tags := make([]uint32, d.Len())
+	for k := range tags {
+		tags[k] = tagmap[d.Tags[k]]
+	}
+	return NewUnion(unionType, tags, vecs)
+}
+
+func NewUnionFromUnionWithin(unionType *super.TypeUnion, u *Union) *Union {
+	for _, typ := range u.Typ.Types {
+		if unionType.TagOf(typ) < 0 {
+			panic(u)
+		}
+	}
+	vecs := make([]Any, len(unionType.Types))
+	tagmap := make([]uint32, len(u.Values()))
+	for k, vec := range u.Values() {
+		typ := vec.Type()
+		tag := unionType.TagOf(typ)
+		if tag < 0 {
+			panic(typ)
+		}
+		tagmap[k] = uint32(tag)
+		vecs[tag] = vec
+	}
+	for k := range vecs {
+		if vecs[k] == nil {
+			vecs[k] = NewEmpty(unionType.Types[k])
+		}
+	}
+	tags := make([]uint32, u.Len())
+	fromTags := u.Tags()
+	for k := range tags {
+		tags[k] = tagmap[fromTags[k]]
+	}
+	return NewUnion(unionType, tags, vecs)
+}
+
 func NewUnionFromDynamic(sctx *super.Context, d *Dynamic) *Union {
 	types := make([]super.Type, 0, len(d.Values))
 	for _, vec := range d.Values {

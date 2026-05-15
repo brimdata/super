@@ -146,7 +146,7 @@ func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
 }
 
 func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
-	if vec.Kind() != vector.KindRecord {
+	if _, ok := vec.(*vector.Record); !ok {
 		return d.errMismatch(vec, to)
 	}
 	rec := expr.PushContainerViewDown(vec).(*vector.Record)
@@ -159,6 +159,7 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 		if !ok {
 			return d.errSubtype(vec, to)
 		}
+		/* XXX this doesn't seem right*/
 		if super.IsOptionType(toField.Type) {
 			fromFieldType := rec.Typ.Fields[i].Type
 			if f, ok := fromFieldType.(*super.TypeFusion); ok {
@@ -404,8 +405,13 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 			return d.errSubtype(vec, to)
 		}
 		vec = d.downcast(vec, to.Types[tag])
-		vecs := expr.AppendMissingToUnion(d.sctx, to, []vector.Any{vec})
-		return vector.NewUnion(to, make([]uint32, vec.Len()), vecs)
+		if _, ok := vec.(*errDowncast); ok {
+			return vec
+		}
+		if vec, ok := vec.(*vector.Dynamic); ok {
+			return vector.NewUnionFromDynamicWithin(to, vec)
+		}
+		return vector.NewUnionOfOne(to, vec)
 	})
 }
 
