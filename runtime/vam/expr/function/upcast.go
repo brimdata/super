@@ -6,6 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
@@ -230,7 +231,7 @@ func (u *Upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 		return nil
 	}
 	tags := make([]uint32, vec.Len())
-	return vector.NewUnion(to, tags, []vector.Any{values})
+	return vector.NewUnion(to, tags, expr.AppendMissingToUnion(u.sctx, to, []vector.Any{values}))
 }
 
 func (u *Upcast) toUnionValue(vec vector.Any, to *super.TypeUnion) vector.Any {

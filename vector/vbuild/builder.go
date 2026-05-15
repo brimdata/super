@@ -82,16 +82,20 @@ func New(typ super.Type) Builder {
 	case *super.TypeMap:
 		return newMapBuilder(typ)
 	case *super.TypeUnion:
-		return &unionBuilder{typ: typ, builder: NewDynamicBuilder()}
+		return newUnionBuilder(typ)
 	case *super.TypeEnum:
 		return newEnumBuilder(typ)
 	case *super.TypeError:
 		return &errorBuilder{vals: New(typ.Type)}
 	case *super.TypeNamed:
-		return &namedBuilder{name: typ.Name, vals: New(typ.Type)}
+		return newNamedBuilder(typ)
 	case *super.TypeFusion:
 		return newFusionBuilder(typ)
 	default:
 		panic(typ)
 	}
+}
+
+func NewEmpty(sctx *super.Context, typ super.Type) vector.Any {
+	return New(typ).Build(sctx)
 }
