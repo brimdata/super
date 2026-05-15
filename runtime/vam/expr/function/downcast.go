@@ -84,7 +84,7 @@ func (d *downcast) cast(vec vector.Any, typ super.Type) vector.Any {
 func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
-		if vec.Kind() == vector.KindFusion {
+		if _, ok := vec.Type().(*super.TypeFusion); ok {
 			return d.downcastFusion(vec, to)
 		}
 	}
@@ -398,7 +398,8 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 			return d.errSubtype(vec, to)
 		}
 		vec = d.downcast(vec, to.Types[tag])
-		return vector.NewUnion(to, make([]uint32, vec.Len()), []vector.Any{vec})
+		vecs := expr.AppendMissingToUnion(d.sctx, to, []vector.Any{vec})
+		return vector.NewUnion(to, make([]uint32, vec.Len()), vecs)
 	})
 }
 
