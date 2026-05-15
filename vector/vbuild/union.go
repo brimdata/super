@@ -36,7 +36,7 @@ func (u *unionBuilder) Write(vec vector.Any) {
 	// the tags of the first vector, but for now, we just map
 	// everything to canonical order of the union types.
 	var vecs []vector.Any
-	if len(union.Typ.Types) == 2 {
+	if len(union.Typ.Types) == 2 && false { //XXX need to debug RLE
 		// Code tags as run lengths.
 		rle := union.TagsRLE()
 		if rle == nil {
@@ -110,7 +110,7 @@ func (u *unionBuilder) Build(sctx *super.Context) vector.Any {
 	for i, b := range u.values {
 		vals[i] = b.Build(sctx)
 	}
-	if len(u.typ.Types) == 2 {
+	if len(u.typ.Types) == 2 && false { //XXX debug rle
 		return vector.NewUnionFromRLE(u.typ, u.tags, vals)
 	}
 	return vector.NewUnion(u.typ, u.tags, vals)

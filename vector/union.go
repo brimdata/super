@@ -24,6 +24,29 @@ func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any) *Union {
 	return &Union{dynamic: NewDynamic(tags, vals), Typ: typ}
 }
 
+func NewUnionOfOne(typ *super.TypeUnion, vec Any) *Union {
+	if _, ok := vec.Type().(*super.TypeUnion); ok {
+		panic("can't have union in NewUnionOfOne")
+	}
+	tag := typ.TagOf(vec.Type())
+	if tag < 0 {
+		panic(fmt.Sprintf("trying to put %s inside %s", sup.String(vec.Type()), sup.String(typ)))
+	}
+	tags := make([]uint32, vec.Len())
+	for k := range tags {
+		tags[k] = uint32(tag)
+	}
+	vecs := make([]Any, len(typ.Types))
+	for k, typ := range typ.Types {
+		if k == tag {
+			vecs[k] = vec
+		} else {
+			vecs[k] = NewEmpty(typ)
+		}
+	}
+	return NewUnion(typ, tags, vecs)
+}
+
 func NewUnionFromDynamic(sctx *super.Context, d *Dynamic) *Union {
 	types := make([]super.Type, 0, len(d.Values))
 	for _, vec := range d.Values {
@@ -314,6 +337,41 @@ func FlattenUnions(d *Dynamic) *Dynamic {
 		bases[i] = uint32(len(newValues))
 		if u, ok := val.(*Union); ok {
 			flat := FlattenUnions(u.Dynamic())
+			unions[i] = flat
+			newValues = append(newValues, flat.Values...)
+		} else {
+			newValues = append(newValues, val)
+		}
+	}
+	forward := d.ForwardTagMap()
+	newTags := make([]uint32, len(d.Tags))
+	for slot, oldTag := range d.Tags {
+		base := bases[oldTag]
+		if d := unions[oldTag]; d != nil {
+			innerSlot := forward[slot]
+			newTags[slot] = base + d.Tags[innerSlot]
+		} else {
+			newTags[slot] = base
+		}
+	}
+	return NewDynamic(newTags, newValues)
+}
+
+func FlattenDynamic(d *Dynamic) *Dynamic {
+	hasDynamic := slices.ContainsFunc(d.Values, func(vec Any) bool {
+		_, ok := vec.(*Dynamic)
+		return ok
+	})
+	if !hasDynamic {
+		return d
+	}
+	bases := make([]uint32, len(d.Values))
+	unions := make([]*Dynamic, len(d.Values))
+	var newValues []Any
+	for i, val := range d.Values {
+		bases[i] = uint32(len(newValues))
+		if d, ok := val.(*Dynamic); ok {
+			flat := FlattenDynamic(d)
 			unions[i] = flat
 			newValues = append(newValues, flat.Values...)
 		} else {
