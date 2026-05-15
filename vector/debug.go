@@ -74,6 +74,7 @@ func write(w io.Writer, vec Any, indent, prefix string) {
 		fmt.Fprintf(w, " values=%v", vec.Values)
 	case *TypeValue:
 	case *Null:
+	case *Empty:
 
 	case *Record:
 		for k, f := range vec.Fields {
@@ -128,6 +129,6 @@ func write(w io.Writer, vec Any, indent, prefix string) {
 		fmt.Fprintf(w, " index=%v\n", vec.Index)
 		write(w, vec.Any, indent, "any=")
 	default:
-		panic(fmt.Sprintf("%#v", vec))
+		fmt.Fprintf(w, " unknown %#v", vec)
 	}
 }
