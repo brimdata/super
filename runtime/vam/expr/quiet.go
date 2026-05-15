@@ -31,7 +31,7 @@ func NewDequiet(sctx *super.Context, expr Evaluator) Evaluator {
 
 func (d *Dequiet) Eval(this vector.Any) vector.Any {
 	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
-		vec := vector.Under(vecs[0])
+		vec := vecs[0]
 		if vec.Kind() == vector.KindRecord {
 			vec = d.rec(vec)
 		}
@@ -40,15 +40,17 @@ func (d *Dequiet) Eval(this vector.Any) vector.Any {
 }
 
 func (d *Dequiet) rec(vec vector.Any) vector.Any {
+	vec = vector.Under(vec)
+	origVec := vec
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		index = view.Index
 		vec = view.Any
 	}
 	var vecs []vector.Any
-	rec := vector.Under(vec).(*vector.Record)
+	rec := vec.(*vector.Record)
 	if len(rec.Fields) == 0 {
-		return vec
+		return origVec
 	}
 	for _, field := range rec.Fields {
 		vec := field
