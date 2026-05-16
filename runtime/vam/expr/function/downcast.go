@@ -1,8 +1,6 @@
 package function
 
 import (
-	"fmt"
-
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -104,23 +102,20 @@ func (d *downcast) cast(vec vector.Any, typ super.Type) vector.Any {
 	return vec
 }
 
+/*
 func (d *downcast) downcast(vec vector.Any, to super.Type) (vector.Any, vector.Any) {
-	fmt.Println("=======")
-	fmt.Println("TO", sup.String(to))
-	vector.Println(vec)
-	val, err := d.downcast0(vec, to)
+	return d.downcast0(vec, to)
 	if err != nil {
-		fmt.Println("GOT ERR")
 		vector.Println(err)
 	}
 	if val != nil {
-		fmt.Println("GOT VAL")
 		vector.Println(val)
 	}
 	return val, err
 }
+*/
 
-func (d *downcast) downcast0(vec vector.Any, to super.Type) (vector.Any, vector.Any) {
+func (d *downcast) downcast(vec vector.Any, to super.Type) (vector.Any, vector.Any) {
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
 		if _, ok := vec.(*vector.Fusion); ok {
@@ -131,8 +126,17 @@ func (d *downcast) downcast0(vec vector.Any, to super.Type) (vector.Any, vector.
 	vec = vector.Deunion(vec)
 	if dynamic, ok := vec.(*vector.Dynamic); ok {
 		var vecs []vector.Any
+		var errs int
 		for _, vec := range dynamic.Values {
-			vecs = append(vecs, d.cast(vec, to))
+			v, err := d.downcast(vec, to)
+			if err != nil {
+				errs++
+				v = err
+			}
+			vecs = append(vecs, v)
+		}
+		if errs != 0 {
+			return nil, vector.NewDynamic(dynamic.Tags, vecs)
 		}
 		if _, ok := to.(*super.TypeUnion); ok {
 			return vbuild.MergeSameTypesInDynamic(d.sctx, vector.NewDynamic(dynamic.Tags, vecs)), nil
@@ -192,12 +196,10 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) (vector.Any, v
 				fromFieldType = f.Type
 			}
 			if !super.IsOptionType(fromFieldType) {
-				fmt.Println("REC OPT ERR")
 				return nil, d.errSubtype(vec, to)
 			}
 		}
 		vec, err := d.downcast(rec.Fields[i], toField.Type)
-		fmt.Println("REC FIELD", vec != nil, err != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -227,9 +229,6 @@ func (d *downcast) toContainer(offsets []uint32, inner vector.Any, to, toElem su
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("=== [TO CONTAINER] === ")
-	vector.Println(inner)
-	fmt.Println("=== [OUT CONTAINER] === !!! ")
 	switch to := to.(type) {
 	case *super.TypeArray:
 		return vector.NewArray(to, offsets, inner), nil
@@ -262,8 +261,6 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vec
 	}
 	vec, ok := d.defuser.eval(vec)
 	if !ok {
-		fmt.Println(" !!!!!!!!!!!!!!! NOT OK!!!!")
-		vector.Println(vec)
 		return nil, vec
 	}
 	dyn, ok := vec.(*vector.Dynamic)
@@ -273,7 +270,6 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vec
 			return nil, d.errSubtype(vec, to)
 		}
 		tags := make([]uint32, vec.Len())
-		fmt.Println("UNION OK!!!")
 		return vector.NewUnion(to, tags, []vector.Any{vec}), nil
 	}
 	var vals []vector.Any
@@ -311,10 +307,8 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vec
 		if !ok {
 			panic(types)
 		}
-		fmt.Println("UNION ERR!!!")
 		return nil, vector.NewUnion(errType, tags, vals)
 	}
-	fmt.Println("UNION NO ERR!!!")
 	return vector.NewUnion(to, tags, vals), nil
 }
 
