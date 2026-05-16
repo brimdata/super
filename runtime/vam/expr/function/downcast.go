@@ -1,6 +1,8 @@
 package function
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -259,6 +261,7 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vec
 	if vec.Type() == to {
 		return vec, nil
 	}
+	fmt.Println("TO UNION", sup.String(vec.Type()), "TO", sup.String(to))
 	vec, ok := d.defuser.eval(vec)
 	if !ok {
 		return nil, vec
@@ -269,7 +272,12 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vec
 		if tag < 0 {
 			return nil, d.errSubtype(vec, to)
 		}
+		fmt.Println("DOWNCASTABLE", sup.String(vec.Type()), "TO", sup.String(to.Types[tag]))
+		if !downcastAble(vec.Type(), to.Types[tag]) {
+			return nil, d.errSubtype(vec, to)
+		}
 		tags := make([]uint32, vec.Len())
+		fmt.Println("MAKE UNION", tags)
 		return vector.NewUnion(to, tags, []vector.Any{vec}), nil
 	}
 	var vals []vector.Any
@@ -283,8 +291,15 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vec
 				// we get this working.  We`` can fix by changing the
 				// vector.Error return value to Any and mixing valid
 				// values in the error position with the errors
+				fmt.Println("BAD TAG")
 				val = d.errSubtype(val, to)
 				errs++
+			} else {
+				fmt.Println("DOWNCASTABLE", sup.String(val.Type()), "TO", sup.String(to.Types[tag]))
+				if !downcastAble(val.Type(), to.Types[tag]) {
+					val = d.errSubtype(val, to)
+					errs++
+				}
 			}
 			tagmap[i] = uint32(len(vals))
 			vals = append(vals, val)
@@ -310,6 +325,29 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vec
 		return nil, vector.NewUnion(errType, tags, vals)
 	}
 	return vector.NewUnion(to, tags, vals), nil
+}
+
+// XXX this belongs in DowncastSubtypeIndex
+func downcastAble(from, to super.Type) bool {
+	fmt.Println("IN OT", sup.String(from), "TO", sup.String(to))
+	fromRec, ok := from.(*super.TypeRecord)
+	if !ok {
+		return true
+	}
+	toRecType := to.(*super.TypeRecord)
+	for _, fromField := range fromRec.Fields {
+		fmt.Println("TRY", fromField.Name, "IS", sup.String(fromField.Type))
+		if super.IsOptionType(fromField.Type) {
+			fmt.Println("ISOPTIO TYPE")
+
+			toFieldType, ok := toRecType.TypeOfField(fromField.Name)
+			if !ok || !super.IsOptionType(toFieldType) {
+				// can't downcast from optional field to required field
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) (vector.Any, vector.Any) {
@@ -344,7 +382,7 @@ func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) (vector.Any, vecto
 }
 
 func (d *downcast) toError(vec vector.Any, to *super.TypeError) (vector.Any, vector.Any) {
-	if vec.Kind() != vector.KindMap {
+	if vec.Kind() != vector.KindError {
 		return nil, d.errMismatch(vec, to)
 	}
 	return vector.NewError(to, vec), nil

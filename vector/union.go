@@ -1,11 +1,13 @@
 package vector
 
 import (
+	"fmt"
 	"slices"
 	"sync"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sup"
 )
 
 type Union struct {
@@ -83,6 +85,7 @@ func (u *Union) Len() uint32 {
 }
 
 func (u *Union) Serialize(b *scode.Builder, slot uint32) {
+	fmt.Println("SERIALIZE", slot, sup.String(u.Typ), "OF", u.dynamic.TypeOf(slot))
 	u.load()
 	tag := u.Typ.TagOf(u.dynamic.TypeOf(slot))
 	super.BeginUnion(b, tag)
