@@ -52,7 +52,7 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 		return vector.NewDynamic(dynamic.Tags, vecs)
 	case vector.KindFusion:
 		fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
-		return d.downcast.call(fusion.Values, fusion.Subtypes.Types())
+		return d.downcast.defuse(fusion.Values, fusion.Subtypes.Types())
 	default:
 		// primitives, named types, enums
 		// BTW, named types are a barrier to defuse.

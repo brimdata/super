@@ -281,6 +281,7 @@ func (d *downcast) toError(typ super.Type, bytes scode.Bytes, to *super.TypeErro
 func (d *downcast) toNamed(typ super.Type, bytes scode.Bytes, to *super.TypeNamed) (super.Value, *super.Value) {
 	if unionType, ok := typ.(*super.TypeUnion); ok {
 		typ, bytes = deunion(typ, bytes)
+		//XXX this isn't true any more
 		// If we are casting a union type to a named, we need to look through the
 		// union for the named type in question since type fusion fuses named
 		// types by name.  Then when we find the name, we need to form the subtype
