@@ -71,8 +71,6 @@ func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (s
 		return d.toEnum(typ, bytes, to)
 	case *super.TypeError:
 		return d.toError(typ, bytes, to)
-	case *super.TypeNamed:
-		return d.toNamed(typ, bytes, to)
 	case *super.TypeFusion:
 		// Can't downcast to a super type
 		return super.Value{}, d.sctx.WrapError("downcast: cannot downcast to a fusion type", super.NewValue(typ, bytes)).Ptr()
@@ -276,38 +274,6 @@ func (d *downcast) toError(typ super.Type, bytes scode.Bytes, to *super.TypeErro
 		return super.NewValue(to, body.Bytes()), nil
 	}
 	return super.Value{}, d.errMismatch(typ, bytes, to)
-}
-
-func (d *downcast) toNamed(typ super.Type, bytes scode.Bytes, to *super.TypeNamed) (super.Value, *super.Value) {
-	if unionType, ok := typ.(*super.TypeUnion); ok {
-		typ, bytes = deunion(typ, bytes)
-		// If we are casting a union type to a named, we need to look through the
-		// union for the named type in question since type fusion fuses named
-		// types by name.  Then when we find the name, we need to form the subtype
-		// from the union options present.
-		for _, t := range unionType.Types {
-			if named, ok := t.(*super.TypeNamed); ok && named.Name == to.Name {
-				typ, bytes = deunion(typ, bytes)
-				return super.NewValue(to, bytes), nil
-			}
-		}
-		return super.Value{}, d.errMismatch(typ, bytes, to)
-	}
-	if fromType, ok := typ.(*super.TypeNamed); ok {
-		if fromType.Name != to.Name {
-			return super.Value{}, d.errMismatch(typ, bytes, to)
-		}
-		val, errVal := d.downcast(fromType.Type, bytes, to.Type)
-		if errVal != nil {
-			return super.Value{}, errVal
-		}
-		return super.NewValue(to, val.Bytes()), errVal
-	}
-	val, errVal := d.downcast(typ, bytes, to.Type)
-	if errVal != nil {
-		return super.Value{}, errVal
-	}
-	return super.NewValue(to, val.Bytes()), errVal
 }
 
 func (d *downcast) errNonOptionNone(to super.Type) *super.Value {

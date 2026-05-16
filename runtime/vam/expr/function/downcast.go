@@ -117,8 +117,6 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 		return d.toEnum(vec, to)
 	case *super.TypeError:
 		return d.toError(vec, to)
-	case *super.TypeNamed:
-		return d.toNamed(vec, to)
 	case *super.TypeFusion:
 		return d.err(vector.NewWrappedError(d.sctx, "downcast: cannot downcast to a fusion type", vec))
 	default:
@@ -443,20 +441,6 @@ func (d *downcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 		})
 	}
 	return d.errMismatch(vec, to)
-}
-
-func (d *downcast) toNamed(vec vector.Any, to *super.TypeNamed) vector.Any {
-	if fromVec, ok := vec.(*vector.Named); ok {
-		if fromVec.Typ != to {
-			return d.errMismatch(vec, to)
-		}
-		return vec
-	}
-	out := d.downcast(vec, to.Type)
-	if isErrDowncast(out) {
-		return out
-	}
-	return vector.NewNamed(to, out)
 }
 
 func (d *downcast) deunion(vec vector.Any, f func(vector.Any) vector.Any) vector.Any {

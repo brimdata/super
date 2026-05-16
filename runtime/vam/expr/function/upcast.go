@@ -120,8 +120,6 @@ func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 		return u.toEnum(vec, to)
 	case *super.TypeError:
 		return u.toError(vec, to)
-	case *super.TypeNamed:
-		return u.toNamed(vec, to)
 	case *super.TypeFusion:
 		return u.toFusion(vec, to)
 	default:
@@ -271,18 +269,6 @@ func (u *Upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 		return nil
 	}
 	return vector.NewError(to, values)
-}
-
-func (u *Upcast) toNamed(vec vector.Any, to *super.TypeNamed) vector.Any {
-	namedVec, ok := vec.(*vector.Named)
-	if !ok {
-		return nil
-	}
-	vec = u.upcast(namedVec.Any, to.Type)
-	if vec == nil {
-		return nil
-	}
-	return vector.NewNamed(to, vec)
 }
 
 func (u *Upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {

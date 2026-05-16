@@ -59,8 +59,6 @@ func (u *Upcast) upcast(b *scode.Builder, typ super.Type, bytes scode.Bytes, to 
 		return u.toEnum(b, typ, bytes, to)
 	case *super.TypeError:
 		return u.toError(b, typ, bytes, to)
-	case *super.TypeNamed:
-		return u.toNamed(b, typ, bytes, to)
 	case *super.TypeFusion:
 		return u.toFusion(b, typ, bytes, to)
 	default:
@@ -226,13 +224,6 @@ func UpcastUnionTag(types []super.Type, out super.Type) int {
 func (u *Upcast) toError(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeError) bool {
 	if errorType, ok := typ.(*super.TypeError); ok {
 		return u.upcast(b, errorType.Type, bytes, to.Type)
-	}
-	return false
-}
-
-func (u *Upcast) toNamed(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeNamed) bool {
-	if named, ok := typ.(*super.TypeNamed); ok {
-		return u.upcast(b, named.Type, bytes, to.Type)
 	}
 	return false
 }

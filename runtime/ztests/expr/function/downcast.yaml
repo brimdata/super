@@ -175,8 +175,8 @@ input: |
   ["foo"::(int64|string),<foo>]
 
 output: |
+  error({message:"downcast: type mismatch to foo",on:1})
+  error({message:"downcast: type mismatch to foo",on:1})
   type foo=int64
-  1::foo
-  1::foo
   error({message:"downcast: type mismatch to bar",on:1::foo})
-  error({message:"downcast: type mismatch to int64",on:"foo"})
+  error({message:"downcast: type mismatch to foo",on:"foo"})
