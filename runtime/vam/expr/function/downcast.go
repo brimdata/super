@@ -1,6 +1,8 @@
 package function
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -30,25 +32,36 @@ func (d *downcast) Call(vecs ...vector.Any) vector.Any {
 		for i, slot := range to.Index {
 			types[i] = allTypes[slot]
 		}
-		return d.defuse(from, types)
+		vec, _ := d.defuseWithErrors(from, types)
+		return vec
 	case *vector.Dict:
 		dictTypes := to.Any.(*vector.TypeValue).Types()
 		types := make([]super.Type, len(to.Index))
 		for i, slot := range to.Index {
 			types[i] = dictTypes[slot]
 		}
-		return d.defuse(from, types)
+		vec, _ := d.defuseWithErrors(from, types)
+		return vec
 	case *vector.Const:
 		typ := vector.TypeValueValue(to, 0)
 		return d.cast(from, typ)
 	case *vector.TypeValue:
-		return d.defuse(from, to.Types())
+		vec, _ := d.defuseWithErrors(from, to.Types())
+		return vec
 	default:
 		panic(to)
 	}
 }
 
-func (d *downcast) defuse(from vector.Any, types []super.Type) vector.Any {
+func (d *downcast) defuseWithErrors(from vector.Any, types []super.Type) (vector.Any, bool) {
+	vec, err := d.defuse(from, types)
+	if err != nil {
+		return err, false
+	}
+	return vec, true
+}
+
+func (d *downcast) defuse(from vector.Any, types []super.Type) (vector.Any, vector.Any) {
 	var indexes [][]uint32
 	typeToTag := make(map[super.Type]uint32)
 	tags := make([]uint32, len(types))
@@ -63,15 +76,24 @@ func (d *downcast) defuse(from vector.Any, types []super.Type) vector.Any {
 		indexes[tag] = append(indexes[tag], uint32(i))
 	}
 	if len(indexes) == 1 {
-		return d.cast(from, types[0])
+		return d.downcast(from, types[0])
 	}
 	vals := make([]vector.Any, len(indexes))
+	var errs int
 	for typ, i := range typeToTag {
-		vals[i] = d.cast(vector.Pick(from, indexes[i]), typ)
+		vec, err := d.downcast(vector.Pick(from, indexes[i]), typ)
+		if err != nil {
+			errs++
+			vals[i] = err
+		} else {
+			vals[i] = vec
+		}
 	}
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		return vecs[0]
-	}, vector.NewDynamic(tags, vals))
+	out := vector.NewDynamic(tags, vals)
+	if errs != 0 {
+		return nil, out
+	}
+	return out, nil
 }
 
 func (d *downcast) cast(vec vector.Any, typ super.Type) vector.Any {
@@ -82,11 +104,28 @@ func (d *downcast) cast(vec vector.Any, typ super.Type) vector.Any {
 	return vec
 }
 
-func (d *downcast) downcast(vec vector.Any, to super.Type) (vector.Any, *vector.Error) {
+func (d *downcast) downcast(vec vector.Any, to super.Type) (vector.Any, vector.Any) {
+	fmt.Println("=======")
+	fmt.Println("TO", sup.String(to))
+	vector.Println(vec)
+	val, err := d.downcast0(vec, to)
+	if err != nil {
+		fmt.Println("GOT ERR")
+		vector.Println(err)
+	}
+	if val != nil {
+		fmt.Println("GOT VAL")
+		vector.Println(val)
+	}
+	return val, err
+}
+
+func (d *downcast) downcast0(vec vector.Any, to super.Type) (vector.Any, vector.Any) {
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
-		if vec.Kind() == vector.KindFusion {
-			return d.downcastFusion(vec, to)
+		if _, ok := vec.(*vector.Fusion); ok {
+			fusion := expr.PushContainerViewDown(vec).(*vector.Fusion)
+			return d.defuse(fusion.Values, fusion.Subtypes.Types())
 		}
 	}
 	vec = vector.Deunion(vec)
@@ -133,28 +172,7 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) (vector.Any, *vector.
 	}
 }
 
-type vectorErr struct {
-	vector.Any
-	err *vector.Error
-}
-
-func (v *vectorErr) result() (vector.Any, *vector.Error) {
-	return v.Any, v.err
-}
-
-func (d *downcast) downcastFusion(in vector.Any, to super.Type) (vector.Any, *vector.Error) {
-	fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
-	vec := d.Call(fusion.Values, fusion.Subtypes)
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		vec := vecs[0]
-		if vec.Type() != to {
-			return &vectorErr{err: d.errSubtype(vec, to)}
-		}
-		return &vectorErr{Any: vec}
-	}, vec).(*vectorErr).result()
-}
-
-func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) (vector.Any, *vector.Error) {
+func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) (vector.Any, vector.Any) {
 	if vec.Kind() != vector.KindRecord {
 		return nil, d.errMismatch(vec, to)
 	}
@@ -174,10 +192,12 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) (vector.Any, *
 				fromFieldType = f.Type
 			}
 			if !super.IsOptionType(fromFieldType) {
+				fmt.Println("REC OPT ERR")
 				return nil, d.errSubtype(vec, to)
 			}
 		}
 		vec, err := d.downcast(rec.Fields[i], toField.Type)
+		fmt.Println("REC FIELD", vec != nil, err != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +206,7 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) (vector.Any, *
 	return vector.NewRecord(to, fields, fields[0].Len()), nil
 }
 
-func (d *downcast) toArray(vec vector.Any, to *super.TypeArray) (vector.Any, *vector.Error) {
+func (d *downcast) toArray(vec vector.Any, to *super.TypeArray) (vector.Any, vector.Any) {
 	if vec.Kind() != vector.KindArray {
 		return nil, d.errMismatch(vec, to)
 	}
@@ -194,7 +214,7 @@ func (d *downcast) toArray(vec vector.Any, to *super.TypeArray) (vector.Any, *ve
 	return d.toContainer(array.Offsets, array.Values, to, to.Type)
 }
 
-func (d *downcast) toSet(vec vector.Any, to *super.TypeSet) (vector.Any, *vector.Error) {
+func (d *downcast) toSet(vec vector.Any, to *super.TypeSet) (vector.Any, vector.Any) {
 	if vec.Kind() != vector.KindSet {
 		return nil, d.errMismatch(vec, to)
 	}
@@ -202,11 +222,14 @@ func (d *downcast) toSet(vec vector.Any, to *super.TypeSet) (vector.Any, *vector
 	return d.toContainer(set.Offsets, set.Values, to, to.Type)
 }
 
-func (d *downcast) toContainer(offsets []uint32, inner vector.Any, to, toElem super.Type) (vector.Any, *vector.Error) {
+func (d *downcast) toContainer(offsets []uint32, inner vector.Any, to, toElem super.Type) (vector.Any, vector.Any) {
 	inner, err := d.downcast(inner, toElem)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("=== [TO CONTAINER] === ")
+	vector.Println(inner)
+	fmt.Println("=== [OUT CONTAINER] === !!! ")
 	switch to := to.(type) {
 	case *super.TypeArray:
 		return vector.NewArray(to, offsets, inner), nil
@@ -217,7 +240,7 @@ func (d *downcast) toContainer(offsets []uint32, inner vector.Any, to, toElem su
 	}
 }
 
-func (d *downcast) toMap(vec vector.Any, to *super.TypeMap) (vector.Any, *vector.Error) {
+func (d *downcast) toMap(vec vector.Any, to *super.TypeMap) (vector.Any, vector.Any) {
 	if vec.Kind() != vector.KindMap {
 		return nil, d.errMismatch(vec, to)
 	}
@@ -233,27 +256,69 @@ func (d *downcast) toMap(vec vector.Any, to *super.TypeMap) (vector.Any, *vector
 	return vector.NewMap(to, m.Offsets, keys, vals), nil
 }
 
-func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, *vector.Error) {
+func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) (vector.Any, vector.Any) {
 	if vec.Type() == to {
 		return vec, nil
 	}
-	return d.subTypeOf(vec, to.Types, func(tag int, vec vector.Any) vector.Any {
+	vec, ok := d.defuser.eval(vec)
+	if !ok {
+		fmt.Println(" !!!!!!!!!!!!!!! NOT OK!!!!")
+		vector.Println(vec)
+		return nil, vec
+	}
+	dyn, ok := vec.(*vector.Dynamic)
+	if !ok {
+		tag := samfunc.DowncastSubtypeIndex(to.Types, vec.Type())
 		if tag < 0 {
-			if _, ok := vec.(*vector.Union); ok {
-				out, err := d.downcast(vector.Deunion(vec), to)
-				return &vectorErr{out, err}
+			return nil, d.errSubtype(vec, to)
+		}
+		tags := make([]uint32, vec.Len())
+		fmt.Println("UNION OK!!!")
+		return vector.NewUnion(to, tags, []vector.Any{vec}), nil
+	}
+	var vals []vector.Any
+	tagmap := make([]uint32, len(dyn.Values))
+	var errs int
+	for i, val := range dyn.Values {
+		if val != nil {
+			tag := samfunc.DowncastSubtypeIndex(to.Types, val.Type())
+			if tag < 0 {
+				//XXX this error isn't right but it will due until
+				// we get this working.  We`` can fix by changing the
+				// vector.Error return value to Any and mixing valid
+				// values in the error position with the errors
+				val = d.errSubtype(val, to)
+				errs++
 			}
-			return &vectorErr{err: d.errSubtype(vec, to)}
+			tagmap[i] = uint32(len(vals))
+			vals = append(vals, val)
 		}
-		vec, err := d.downcast(vec, to.Types[tag])
-		if err != nil {
-			return &vectorErr{err: d.errSubtype(vec, to)}
+	}
+	tags := make([]uint32, len(dyn.Tags))
+	for k := range tags {
+		tags[k] = tagmap[dyn.Tags[k]]
+	}
+	if errs != 0 {
+		var types []super.Type
+		for _, vec := range vals {
+			types = append(types, vec.Type())
 		}
-		return &vectorErr{Any: vector.NewUnion(to, make([]uint32, vec.Len()), []vector.Any{vec})}
-	}).(*vectorErr).result()
+		//XXX merge same types?
+		if len(types) != len(super.UniqueTypes(types)) {
+			panic(".")
+		}
+		errType, ok := d.sctx.LookupTypeUnion(types)
+		if !ok {
+			panic(types)
+		}
+		fmt.Println("UNION ERR!!!")
+		return nil, vector.NewUnion(errType, tags, vals)
+	}
+	fmt.Println("UNION NO ERR!!!")
+	return vector.NewUnion(to, tags, vals), nil
 }
 
-func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) (vector.Any, *vector.Error) {
+func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) (vector.Any, vector.Any) {
 	origVec := vec
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
@@ -284,14 +349,14 @@ func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) (vector.Any, *vect
 	return vector.NewEnum(to, indexes), nil
 }
 
-func (d *downcast) toError(vec vector.Any, to *super.TypeError) (vector.Any, *vector.Error) {
+func (d *downcast) toError(vec vector.Any, to *super.TypeError) (vector.Any, vector.Any) {
 	if vec.Kind() != vector.KindMap {
 		return nil, d.errMismatch(vec, to)
 	}
 	return vector.NewError(to, vec), nil
 }
 
-func (d *downcast) toNamed(vec vector.Any, to *super.TypeNamed) (vector.Any, *vector.Error) {
+func (d *downcast) toNamed(vec vector.Any, to *super.TypeNamed) (vector.Any, vector.Any) {
 	if fromVec, ok := vec.(*vector.Named); ok {
 		if fromVec.Typ != to {
 			return nil, d.errMismatch(vec, to)
@@ -304,20 +369,6 @@ func (d *downcast) toNamed(vec vector.Any, to *super.TypeNamed) (vector.Any, *ve
 		return nil, err
 	}
 	return vector.NewNamed(to, out), nil
-}
-
-func (d *downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vector.Any) vector.Any) vector.Any {
-	vec = d.defuser.eval(vec)
-	if d, ok := vec.(*vector.Dynamic); ok {
-		vals := make([]vector.Any, len(d.Values))
-		for i, val := range d.Values {
-			if val != nil {
-				vals[i] = f(samfunc.DowncastSubtypeIndex(types, val.Type()), val)
-			}
-		}
-		return vector.NewDynamic(d.Tags, vals)
-	}
-	return f(samfunc.DowncastSubtypeIndex(types, vec.Type()), vec)
 }
 
 func (d *downcast) errNonOptionNone(vec vector.Any, to super.Type) *vector.Error {
