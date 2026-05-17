@@ -1,0 +1,14 @@
+script: |
+  super -vam -i fjson -c "defuse(this)" -f json -pretty=0 bug.json
+
+inputs:
+  - name: bug.json
+    data: |
+      {"a":[]}
+      {"b":true,"a":[{"x":1}]}
+
+outputs:
+  - name: stdout
+    data: |
+      {"a":[]}
+      {"b":true,"a":[{"x":1}]}
