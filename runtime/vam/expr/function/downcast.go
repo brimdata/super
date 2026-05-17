@@ -405,9 +405,6 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 			return d.errSubtype(vec, to)
 		}
 		vec = d.downcast(vec, to.Types[tag])
-		if _, ok := vec.(*errDowncast); ok {
-			return vec
-		}
 		if vec, ok := vec.(*vector.Dynamic); ok {
 			return vector.NewUnionFromDynamicWithin(to, vec)
 		}
