@@ -43,7 +43,7 @@ func (d *downcast) Call(vecs ...vector.Any) vector.Any {
 		return d.call(from, types)
 	case *vector.Const:
 		typ := vector.TypeValueValue(to, 0)
-		return d.cast(from, typ)
+		return d.downcast(from, typ)
 	case *vector.TypeValue:
 		return d.call(from, to.Types())
 	default:
@@ -66,21 +66,24 @@ func (d *downcast) call(from vector.Any, types []super.Type) vector.Any {
 		indexes[tag] = append(indexes[tag], uint32(i))
 	}
 	if len(indexes) == 1 {
-		return d.cast(from, types[0])
+		return d.downcast(from, types[0])
 	}
 	vals := make([]vector.Any, len(indexes))
 	for typ, i := range typeToTag {
-		vals[i] = d.cast(vector.Pick(from, indexes[i]), typ)
+		vals[i] = d.downcast(vector.Pick(from, indexes[i]), typ)
 	}
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		return vecs[0]
 	}, vector.NewDynamic(tags, vals))
 }
 
-func (d *downcast) cast(vec vector.Any, typ super.Type) vector.Any {
-	return stripErrDowncast(d.downcast(vec, typ))
-}
-
+// downcast converts the input vector vec to the target type "to" presuming
+// vec resulted from a fusion having an input type "to".  The expected
+// return value is a vector of the same length as vec with type "to".
+// If errors are encountered, then the return value is either an error of
+// said length or a Dynamic of said length comprised of a valid component
+// of type "to" intermixed with one or more other error types.  The caller
+// can check for success by comparing the return vector's type with "to".
 func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
@@ -118,7 +121,7 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	case *super.TypeError:
 		return d.toError(vec, to)
 	case *super.TypeFusion:
-		return d.err(vector.NewWrappedError(d.sctx, "downcast: cannot downcast to a fusion type", vec))
+		return vector.NewWrappedError(d.sctx, "downcast: cannot downcast to a fusion type", vec)
 	default:
 		if vec.Type() != to {
 			if vec.Type() == super.TypeNone {
@@ -135,7 +138,7 @@ func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
 	vec := d.Call(fusion.Values, fusion.Subtypes)
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
-		if vec.Type() != to && !isErrDowncast(vec) {
+		if vec.Type() != to {
 			vec = d.errSubtype(vec, to)
 		}
 		return vec
@@ -168,8 +171,10 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 		fields = append(fields, d.downcast(rec.Fields[i], toField.Type))
 	}
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		if i := slices.IndexFunc(vecs, isErrDowncast); i != -1 {
-			return vecs[i]
+		for k, vec := range vecs {
+			if vec.Type() != to.Fields[k].Type {
+				return vec
+			}
 		}
 		return vector.NewRecord(to, vecs, vecs[0].Len())
 	}, fields...)
@@ -277,8 +282,8 @@ func (d *downcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
 		off += offlen
 		newOffsets = append(newOffsets, off)
 	}
-	keyErr = d.pick(keyErr, errIndexes[0])
-	valErr = d.pick(valErr, errIndexes[1])
+	keyErr = vector.Pick(keyErr, errIndexes[0])
+	valErr = vector.Pick(valErr, errIndexes[1])
 	keys = vector.Pick(keys, keyIndex)
 	vals = vector.Pick(vals, valIndex)
 	nm := vector.NewMap(to, newOffsets, keys, vals)
@@ -290,12 +295,12 @@ func (d *downcast) toList(offsets []uint32, vec vector.Any, to super.Type) ([]ui
 	vec = d.downcast(vec, to)
 	dynamic, ok := vec.(*vector.Dynamic)
 	if !ok {
-		if isErrDowncast(vec) {
+		if vec.Type() != to {
 			return nil, nil, vec
 		}
 		return nil, vec, nil
 	}
-	innerTags, validVec, errVec := d.separateValidAndErrVecs(dynamic)
+	innerTags, validVec, errVec := d.separateValidAndErrVecs(dynamic, to)
 	if errVec == nil {
 		return nil, validVec, nil
 	}
@@ -323,22 +328,25 @@ func (d *downcast) toList(offsets []uint32, vec vector.Any, to super.Type) ([]ui
 			indexes[0] = append(indexes[0], tmpslots...)
 		}
 	}
-	validVec = d.pick(validVec, indexes[0])
-	errVec = d.pick(errVec, indexes[1])
+	validVec = vector.Pick(validVec, indexes[0])
+	errVec = vector.Pick(errVec, indexes[1])
 	return tags, validVec, errVec
 }
 
-func (d *downcast) separateValidAndErrVecs(dynamic *vector.Dynamic) ([]uint32, vector.Any, vector.Any) {
+func (d *downcast) separateValidAndErrVecs(dynamic *vector.Dynamic, validType super.Type) ([]uint32, vector.Any, vector.Any) {
 	errTagMap := slices.Repeat([]uint32{math.MaxUint32}, len(dynamic.Values))
 	validTagMap := slices.Clone(errTagMap)
 	var validVecs, errVecs []vector.Any
 	for i, vec := range dynamic.Values {
-		if isErrDowncast(vec) {
+		if vec == nil {
+			continue
+		}
+		if vec.Type() != validType {
 			if vec.Len() > 0 {
 				errTagMap[i] = uint32(len(errVecs))
 				errVecs = append(errVecs, vec)
 			}
-		} else if vec != nil {
+		} else {
 			validTagMap[i] = uint32(len(validVecs))
 			validVecs = append(validVecs, vec)
 		}
@@ -434,7 +442,7 @@ func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) vector.Any {
 func (d *downcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 	if verr, ok := vec.(*vector.Error); ok {
 		return d.deunion(d.downcast(verr.Vals, to.Type), func(vec vector.Any) vector.Any {
-			if isErrDowncast(vec) {
+			if vec.Type() != to.Type {
 				return vec
 			}
 			return vector.NewError(to, vec)
@@ -463,73 +471,14 @@ func (d *downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vec
 	return f(samfunc.DowncastSubtypeIndex(types, vec.Type()), vec)
 }
 
-// pick is the same as vector.Pick but it strips errDowncast then reapplies it.
-func (d *downcast) pick(vec vector.Any, index []uint32) vector.Any {
-	if dynamic, ok := vec.(*vector.Dynamic); ok {
-		return d.pickDynamic(dynamic, index)
-	}
-	if derr, ok := vec.(*errDowncast); ok {
-		return &errDowncast{vector.Pick(derr.Any, index)}
-	}
-	return vector.Pick(vec, index)
-}
-
-func (d *downcast) pickDynamic(dynamic *vector.Dynamic, index []uint32) vector.Any {
-	errs := make([]bool, len(dynamic.Values))
-	vecs := slices.Clone(dynamic.Values)
-	for i, vec := range vecs {
-		if derr, ok := vec.(*errDowncast); ok {
-			vecs[i] = derr.Any
-			errs[i] = true
-		}
-	}
-	dynamic = vector.Pick(vector.NewDynamic(dynamic.Tags, vecs), index).(*vector.Dynamic)
-	for i, vec := range dynamic.Values {
-		if errs[i] {
-			dynamic.Values[i] = &errDowncast{vec}
-		}
-	}
-	return dynamic
-}
-
-type errDowncast struct {
-	vector.Any
-}
-
-func stripErrDowncast(vec vector.Any) vector.Any {
-	if dynamic, ok := vec.(*vector.Dynamic); ok {
-		vecs := slices.Clone(dynamic.Values)
-		for i, vec := range vecs {
-			vecs[i] = stripErrDowncast(vec)
-		}
-		return vector.NewDynamic(dynamic.Tags, vecs)
-	}
-	if derr, ok := vec.(*errDowncast); ok {
-		return derr.Any
-	}
-	return vec
-}
-
-func isErrDowncast(vec vector.Any) bool {
-	_, ok := vec.(*errDowncast)
-	return ok
-}
-
 func (d *downcast) errNonOptionNone(vec vector.Any, to super.Type) vector.Any {
-	err := vector.NewStringError(d.sctx, "downcast: none value in non-option type: "+sup.FormatType(to), vec.Len())
-	return d.err(err)
+	return vector.NewStringError(d.sctx, "downcast: none value in non-option type: "+sup.FormatType(to), vec.Len())
 }
 
 func (d *downcast) errMismatch(vec vector.Any, to super.Type) vector.Any {
-	err := vector.NewWrappedError(d.sctx, "downcast: type mismatch to "+sup.FormatType(to), vec)
-	return d.err(err)
+	return vector.NewWrappedError(d.sctx, "downcast: type mismatch to "+sup.FormatType(to), vec)
 }
 
 func (d *downcast) errSubtype(vec vector.Any, to super.Type) vector.Any {
-	err := vector.NewWrappedError(d.sctx, "downcast: invalid subtype "+sup.FormatType(to), vec)
-	return d.err(err)
-}
-
-func (d *downcast) err(vec vector.Any) vector.Any {
-	return &errDowncast{vec}
+	return vector.NewWrappedError(d.sctx, "downcast: invalid subtype "+sup.FormatType(to), vec)
 }
