@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"math"
 	"slices"
 
@@ -85,25 +86,17 @@ func (d *downcast) call(from vector.Any, types []super.Type) vector.Any {
 // of type "to" intermixed with one or more other error types.  The caller
 // can check for success by comparing the return vector's type with "to".
 func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
+	if vec.Type() == to {
+		return vec
+	}
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
 		if _, ok := vec.Type().(*super.TypeFusion); ok {
 			return d.downcastFusion(vec, to)
 		}
 	}
-	vec = vector.Deunion(vec)
-	if dynamic, ok := vec.(*vector.Dynamic); ok {
-		var vecs []vector.Any
-		for _, vec := range dynamic.Values {
-			vecs = append(vecs, d.downcast(vec, to))
-		}
-		if _, ok := to.(*super.TypeUnion); ok {
-			return vbuild.MergeSameTypesInDynamic(d.sctx, vector.NewDynamic(dynamic.Tags, vecs))
-		}
-		if len(vecs) == 1 {
-			return vecs[0]
-		}
-		return vector.NewDynamic(dynamic.Tags, vecs)
+	if union, ok := vec.(*vector.Union); ok {
+		return d.fromUnion(union, to)
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
@@ -123,13 +116,10 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	case *super.TypeFusion:
 		return vector.NewWrappedError(d.sctx, "downcast: cannot downcast to a fusion type", vec)
 	default:
-		if vec.Type() != to {
-			if vec.Type() == super.TypeNone {
-				return d.errNonOptionNone(vec, to)
-			}
-			return d.errMismatch(vec, to)
+		if vec.Type() == super.TypeNone {
+			return d.errNonOptionNone(vec, to)
 		}
-		return vec
+		return d.errMismatch(vec, to)
 	}
 }
 
@@ -143,6 +133,14 @@ func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
 		}
 		return vec
 	}, vec)
+}
+
+func (d *downcast) fromUnion(union *vector.Union, to super.Type) vector.Any {
+	vecs := make([]vector.Any, len(union.Values()))
+	for tag, vec := range union.Values() {
+		vecs[tag] = d.downcast(vec, to)
+	}
+	return vector.FlattenDynamic(vector.NewDynamic(union.Tags(), vecs))
 }
 
 func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
@@ -400,13 +398,19 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 	return d.subTypeOf(vec, to.Types, func(tag int, vec vector.Any) vector.Any {
 		if tag < 0 {
 			if _, ok := vec.(*vector.Union); ok {
-				return d.downcast(vector.Deunion(vec), to)
+				// Try downcasting the pieces of the union...
+				return d.downcast(vec, to)
 			}
 			return d.errSubtype(vec, to)
 		}
 		vec = d.downcast(vec, to.Types[tag])
-		if vec, ok := vec.(*vector.Dynamic); ok {
-			return vector.NewUnionFromDynamicWithin(to, vec)
+		if dynamic, ok := vec.(*vector.Dynamic); ok {
+			for k, vec := range dynamic.Values {
+				if vec.Type() == to.Types[tag] {
+					dynamic.Values[k] = vector.NewUnionOfOne(to, vec)
+				}
+			}
+			return dynamic
 		}
 		return vector.NewUnionOfOne(to, vec)
 	})
@@ -472,6 +476,8 @@ func (d *downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vec
 		}
 		return vector.NewDynamic(d.Tags, vals)
 	}
+	fmt.Println("SUBTYPE OF")
+	vector.Println(vec)
 	return f(samfunc.DowncastSubtypeIndex(types, vec.Type()), vec)
 }
 

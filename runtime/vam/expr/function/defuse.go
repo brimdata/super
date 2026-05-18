@@ -1,6 +1,8 @@
 package function
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -51,7 +53,10 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 		}
 		return vector.NewDynamic(dynamic.Tags, vecs)
 	case vector.KindFusion:
+		vector.Println(in)
 		fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
+		fmt.Println("=")
+		vector.Println(fusion)
 		return d.downcast.call(fusion.Values, fusion.Subtypes.Types())
 	default:
 		// primitives, named types, enums
