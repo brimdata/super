@@ -7,7 +7,6 @@ import (
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
@@ -95,9 +94,10 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	if vec.Type() == to {
 		return vec
 	}
-	vec = expr.PushContainerViewDown(vec)
+	vec = vector.PushView(vec)
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
+		//XXX why union check?
 		if _, ok := vec.Type().(*super.TypeFusion); ok {
 			return d.downcastFusion(vec, to)
 		}
@@ -133,7 +133,7 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 }
 
 func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
-	fusion := expr.PushContainerViewDown(in).(*vector.Fusion) //XXX
+	fusion := vector.PushView(in).(*vector.Fusion)
 	fmt.Println("DOWNCAST FUSION BEFORE CALL")
 	vector.Println(fusion)
 	vec := d.Call(fusion.Values, fusion.Subtypes)
@@ -157,13 +157,12 @@ func (d *downcast) fromDynamic(dynamic *vector.Dynamic, to super.Type) vector.An
 }
 
 func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
-	vec = expr.PushContainerViewDown(vec) //XXX
-	if _, ok := vec.(*vector.Record); !ok {
+	rec, ok := vec.(*vector.Record)
+	if !ok {
 		fmt.Println("TO RECORD")
 		vector.Println(vec)
 		return d.errMismatch(vec, to)
 	}
-	rec := expr.PushContainerViewDown(vec).(*vector.Record)
 	if len(to.Fields) == 0 {
 		return vector.NewRecord(to, nil, vec.Len())
 	}
@@ -196,18 +195,18 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 }
 
 func (d *downcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
-	if vec.Kind() != vector.KindArray {
+	array, ok := vec.(*vector.Array)
+	if !ok {
 		return d.errMismatch(vec, to)
 	}
-	array := expr.PushContainerViewDown(vec).(*vector.Array) //XXX
 	return d.toContainer(array.Offsets, array.Values, to, to.Type)
 }
 
 func (d *downcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
-	if vec.Kind() != vector.KindSet {
+	set, ok := vec.(*vector.Set)
+	if !ok {
 		return d.errMismatch(vec, to)
 	}
-	set := expr.PushContainerViewDown(vec).(*vector.Set) //XXX
 	return d.toContainer(set.Offsets, set.Values, to, to.Type)
 }
 
@@ -232,10 +231,10 @@ func (d *downcast) toContainer(offsets []uint32, inner vector.Any, to, toElem su
 }
 
 func (d *downcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
-	if vec.Kind() != vector.KindMap {
+	m, ok := vec.(*vector.Map)
+	if !ok {
 		return d.errMismatch(vec, to)
 	}
-	m := expr.PushContainerViewDown(vec).(*vector.Map) //XXX
 	keyTags, keys, keyErr := d.toList(m.Offsets, m.Keys, to.KeyType)
 	valTags, vals, valErr := d.toList(m.Offsets, m.Values, to.ValType)
 	if keyErr == nil && valErr == nil {

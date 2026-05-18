@@ -8,11 +8,12 @@ import (
 )
 
 func Unblend(sctx *super.Context, vec vector.Any) vector.Any {
+	//XXX push view up here
 	switch vec.Kind() {
 	case vector.KindRecord:
 		return unblendRecord(sctx, vec)
 	case vector.KindArray:
-		array := PushContainerViewDown(vec).(*vector.Array)
+		array := vector.PushView(vec).(*vector.Array)
 		tags, inners, offsets := SplitListByTypes(sctx, array.Offsets, Unblend(sctx, array.Values))
 		var vals []vector.Any
 		for i, inner := range inners {
@@ -24,7 +25,7 @@ func Unblend(sctx *super.Context, vec vector.Any) vector.Any {
 		}
 		return vals[0]
 	case vector.KindSet:
-		set := PushContainerViewDown(vec).(*vector.Set)
+		set := vector.PushView(vec).(*vector.Set)
 		tags, inners, offsets := SplitListByTypes(sctx, set.Offsets, Unblend(sctx, set.Values))
 		var vals []vector.Any
 		for i, inner := range inners {
@@ -36,7 +37,7 @@ func Unblend(sctx *super.Context, vec vector.Any) vector.Any {
 		}
 		return vals[0]
 	case vector.KindMap:
-		return unblendMap(sctx, PushContainerViewDown(vec).(*vector.Map))
+		return unblendMap(sctx, vector.PushView(vec).(*vector.Map))
 	case vector.KindUnion:
 		out := vector.Apply(true, func(vecs ...vector.Any) vector.Any {
 			return Unblend(sctx, vecs[0])
@@ -270,56 +271,4 @@ func typeOfRange(sctx *super.Context, dynamic *vector.Dynamic, alltypes []super.
 		panic(types)
 	}
 	return out
-}
-
-func PushContainerViewDown(val vector.Any) vector.Any {
-	view, ok := val.(*vector.View)
-	if !ok {
-		return val
-	}
-	if view.Len() == 0 { //XXX
-		return vector.NewEmpty(view.Type())
-	}
-	switch val := view.Any.(type) {
-	case *vector.Record:
-		var fields []vector.Any
-		for _, field := range val.Fields {
-			fields = append(fields, vector.Pick(field, view.Index))
-		}
-		return vector.NewRecord(val.Typ, fields, view.Len())
-	case *vector.Array:
-		inner, offsets := pickList(val.Values, view.Index, val.Offsets)
-		return vector.NewArray(val.Typ, offsets, inner)
-	case *vector.Set:
-		inner, offsets := pickList(val.Values, view.Index, val.Offsets)
-		return vector.NewSet(val.Typ, offsets, inner)
-	case *vector.Map:
-		keys, offsets := pickList(val.Keys, view.Index, val.Offsets)
-		values, _ := pickList(val.Values, view.Index, val.Offsets)
-		return vector.NewMap(val.Typ, offsets, keys, values)
-	case *vector.Fusion:
-		types := val.Subtypes.Types()
-		outTypes := make([]super.Type, len(view.Index))
-		for i, slot := range view.Index {
-			outTypes[i] = types[slot]
-		}
-		return vector.NewFusion(val.Sctx, val.Typ, vector.Pick(val.Values, view.Index), outTypes)
-	default:
-		//XXX
-		//panic(val)
-		return view
-	}
-}
-
-func pickList(inner vector.Any, index, offsets []uint32) (vector.Any, []uint32) {
-	newOffsets := []uint32{0}
-	var innerIndex []uint32
-	for _, idx := range index {
-		start, end := offsets[idx], offsets[idx+1]
-		for ; start < end; start++ {
-			innerIndex = append(innerIndex, start)
-		}
-		newOffsets = append(newOffsets, uint32(len(innerIndex)))
-	}
-	return vector.Pick(inner, innerIndex), newOffsets
 }
