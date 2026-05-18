@@ -86,9 +86,16 @@ func (d *downcast) call(from vector.Any, types []super.Type) vector.Any {
 // of type "to" intermixed with one or more other error types.  The caller
 // can check for success by comparing the return vector's type with "to".
 func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
+	//XXX this shouldn't happen but for some reason fusion vectors
+	// show up with dynamics in the fusion.Values fields so this dynamic
+	// ends up here.
+	if dynamic, ok := vec.(*vector.Dynamic); ok {
+		return d.fromDynamic(dynamic, to)
+	}
 	if vec.Type() == to {
 		return vec
 	}
+	vec = expr.PushContainerViewDown(vec)
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
 		if _, ok := vec.Type().(*super.TypeFusion); ok {
@@ -96,7 +103,7 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 		}
 	}
 	if union, ok := vec.(*vector.Union); ok {
-		return d.fromUnion(union, to)
+		return d.fromDynamic(union.Dynamic(), to)
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
@@ -108,6 +115,8 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	case *super.TypeMap:
 		return d.toMap(vec, to)
 	case *super.TypeUnion:
+		fmt.Println("TO UNION CALL")
+		vector.Println(vec)
 		return d.toUnion(vec, to)
 	case *super.TypeEnum:
 		return d.toEnum(vec, to)
@@ -124,8 +133,12 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 }
 
 func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
-	fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
+	fusion := expr.PushContainerViewDown(in).(*vector.Fusion) //XXX
+	fmt.Println("DOWNCAST FUSION BEFORE CALL")
+	vector.Println(fusion)
 	vec := d.Call(fusion.Values, fusion.Subtypes)
+	fmt.Println("DOWNCAST FUSION AFTERE CALL", vec)
+	vector.Println(vec)
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
 		if vec.Type() != to {
@@ -135,16 +148,19 @@ func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
 	}, vec)
 }
 
-func (d *downcast) fromUnion(union *vector.Union, to super.Type) vector.Any {
-	vecs := make([]vector.Any, len(union.Values()))
-	for tag, vec := range union.Values() {
+func (d *downcast) fromDynamic(dynamic *vector.Dynamic, to super.Type) vector.Any {
+	vecs := make([]vector.Any, len(dynamic.Values))
+	for tag, vec := range dynamic.Values {
 		vecs[tag] = d.downcast(vec, to)
 	}
-	return vector.FlattenDynamic(vector.NewDynamic(union.Tags(), vecs))
+	return vector.FlattenDynamic(vector.NewDynamic(dynamic.Tags, vecs))
 }
 
 func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
+	vec = expr.PushContainerViewDown(vec) //XXX
 	if _, ok := vec.(*vector.Record); !ok {
+		fmt.Println("TO RECORD")
+		vector.Println(vec)
 		return d.errMismatch(vec, to)
 	}
 	rec := expr.PushContainerViewDown(vec).(*vector.Record)
@@ -183,7 +199,7 @@ func (d *downcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
 	if vec.Kind() != vector.KindArray {
 		return d.errMismatch(vec, to)
 	}
-	array := expr.PushContainerViewDown(vec).(*vector.Array)
+	array := expr.PushContainerViewDown(vec).(*vector.Array) //XXX
 	return d.toContainer(array.Offsets, array.Values, to, to.Type)
 }
 
@@ -191,7 +207,7 @@ func (d *downcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
 	if vec.Kind() != vector.KindSet {
 		return d.errMismatch(vec, to)
 	}
-	set := expr.PushContainerViewDown(vec).(*vector.Set)
+	set := expr.PushContainerViewDown(vec).(*vector.Set) //XXX
 	return d.toContainer(set.Offsets, set.Values, to, to.Type)
 }
 
@@ -219,7 +235,7 @@ func (d *downcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
 	if vec.Kind() != vector.KindMap {
 		return d.errMismatch(vec, to)
 	}
-	m := expr.PushContainerViewDown(vec).(*vector.Map)
+	m := expr.PushContainerViewDown(vec).(*vector.Map) //XXX
 	keyTags, keys, keyErr := d.toList(m.Offsets, m.Keys, to.KeyType)
 	valTags, vals, valErr := d.toList(m.Offsets, m.Values, to.ValType)
 	if keyErr == nil && valErr == nil {
@@ -392,7 +408,7 @@ func newContainer(typ super.Type, offsets []uint32, inner vector.Any) vector.Any
 }
 
 func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
-	if vec.Type() == to {
+	if vec.Type() == to { //XXX don't need this
 		return vec
 	}
 	return d.subTypeOf(vec, to.Types, func(tag int, vec vector.Any) vector.Any {
@@ -406,12 +422,19 @@ func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 		vec = d.downcast(vec, to.Types[tag])
 		if dynamic, ok := vec.(*vector.Dynamic); ok {
 			for k, vec := range dynamic.Values {
-				if vec.Type() == to.Types[tag] {
-					dynamic.Values[k] = vector.NewUnionOfOne(to, vec)
+				if vec != nil {
+					if vec.Type() == to.Types[tag] {
+						dynamic.Values[k] = vector.NewUnionOfOne(to, vec)
+					}
 				}
 			}
 			return dynamic
 		}
+		if vec.Type() != to.Types[tag] {
+			return d.errSubtype(vec, to)
+		}
+		fmt.Println("OF ONE", sup.String(to))
+		vector.Println(vec)
 		return vector.NewUnionOfOne(to, vec)
 	})
 }
@@ -466,7 +489,11 @@ func (d *downcast) deunion(vec vector.Any, f func(vector.Any) vector.Any) vector
 }
 
 func (d *downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vector.Any) vector.Any) vector.Any {
+	fmt.Println("BEFORE DEFUSER", vec.Len())
+	vector.Println(vec)
 	vec = d.defuser.eval(vec)
+	fmt.Println("FROM DEFUSER", vec.Len())
+	vector.Println(vec)
 	if d, ok := vec.(*vector.Dynamic); ok {
 		vals := make([]vector.Any, len(d.Values))
 		for i, val := range d.Values {

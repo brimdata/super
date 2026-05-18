@@ -53,9 +53,10 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 		}
 		return vector.NewDynamic(dynamic.Tags, vecs)
 	case vector.KindFusion:
+		fmt.Println("DEFUSE FUSION")
 		vector.Println(in)
 		fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
-		fmt.Println("=")
+		fmt.Println("DEFUSE FUSION AFTER CONTAINER")
 		vector.Println(fusion)
 		return d.downcast.call(fusion.Values, fusion.Subtypes.Types())
 	default:

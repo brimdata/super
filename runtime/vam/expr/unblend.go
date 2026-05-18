@@ -277,6 +277,9 @@ func PushContainerViewDown(val vector.Any) vector.Any {
 	if !ok {
 		return val
 	}
+	if view.Len() == 0 { //XXX
+		return vector.NewEmpty(view.Type())
+	}
 	switch val := view.Any.(type) {
 	case *vector.Record:
 		var fields []vector.Any
@@ -302,7 +305,9 @@ func PushContainerViewDown(val vector.Any) vector.Any {
 		}
 		return vector.NewFusion(val.Sctx, val.Typ, vector.Pick(val.Values, view.Index), outTypes)
 	default:
-		panic(val)
+		//XXX
+		//panic(val)
+		return view
 	}
 }
 
