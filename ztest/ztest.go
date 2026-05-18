@@ -137,6 +137,7 @@ import (
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
+	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio"
@@ -488,30 +489,33 @@ func runInternal(ctx context.Context, query string, input *string, outputFlags, 
 	if err != nil {
 		return "", err
 	}
-	sctx := super.NewContext()
-	var readers []sio.Reader
-	if input != nil {
-		zrc, err := newInputReader(sctx, *input, inputFlags)
-		if err != nil {
-			return "", err
-		}
-		defer zrc.Close()
-		readers = []sio.Reader{zrc}
-	}
 	var fs flag.FlagSet
+	var inflags inputflags.Flags
 	var outflags outputflags.Flags
+	inflags.SetFlags(&fs, true)
 	outflags.SetFlags(&fs)
-	if err := fs.Parse(outputFlags); err != nil {
+	if err := fs.Parse(append(inputFlags, outputFlags...)); err != nil {
+		return "", err
+	}
+	if err := inflags.Init(); err != nil {
 		return "", err
 	}
 	if err := outflags.Init(); err != nil {
 		return "", err
 	}
-	env := exec.NewEnvironment(nil, nil)
+	eng := storage.NewInternalEngine()
+	if input != nil {
+		ast.PrependFileScan([]string{"stdio:stdin"})
+		eng.AddReader("stdio:stdin", strings.NewReader(*input))
+	}
+	env := exec.NewEnvironment(eng, nil)
+	env.Dynamic = inflags.Dynamic
+	env.ReaderOpts = inflags.ReaderOpts
+	env.SampleSize = inflags.SampleSize
 	if vector {
 		env.Runtime = exec.RuntimeVAM
 	}
-	q, err := runtime.CompileQuery(ctx, sctx, compiler.NewCompilerWithEnv(env), ast, readers)
+	q, err := runtime.CompileQuery(ctx, super.NewContext(), compiler.NewCompilerWithEnv(env), ast, nil)
 	if err != nil {
 		return "", err
 	}
@@ -526,18 +530,4 @@ func runInternal(ctx context.Context, query string, input *string, outputFlags, 
 		err = err2
 	}
 	return outbuf.String(), err
-}
-
-func newInputReader(sctx *super.Context, input string, flags []string) (sio.ReadCloser, error) {
-	var inflags inputflags.Flags
-	var fs flag.FlagSet
-	inflags.SetFlags(&fs, true)
-	if err := fs.Parse(flags); err != nil {
-		return nil, err
-	}
-	r, err := anyio.GzipReader(strings.NewReader(input))
-	if err != nil {
-		return nil, err
-	}
-	return anyio.NewReader(sctx, r, inflags.ReaderOpts)
 }
