@@ -82,7 +82,7 @@ func New(typ super.Type) Builder {
 	case *super.TypeMap:
 		return newMapBuilder(typ)
 	case *super.TypeUnion:
-		return &unionBuilder{typ: typ, builder: NewDynamicBuilder()}
+		return newUnionBuilder(typ)
 	case *super.TypeEnum:
 		return newEnumBuilder(typ)
 	case *super.TypeError:
