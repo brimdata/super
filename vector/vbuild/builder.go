@@ -88,7 +88,7 @@ func New(typ super.Type) Builder {
 	case *super.TypeError:
 		return &errorBuilder{vals: New(typ.Type)}
 	case *super.TypeNamed:
-		return &namedBuilder{name: typ.Name, vals: New(typ.Type)}
+		return newNamedBuilder(typ)
 	case *super.TypeFusion:
 		return newFusionBuilder(typ)
 	default:
