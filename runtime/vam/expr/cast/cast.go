@@ -13,15 +13,7 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 	vec = vector.Under(vec)
 	switch vec.Kind() {
 	case vector.KindNull:
-		union := sctx.Nullable(typ)
-		tag := union.TagOf(super.TypeNull)
-		tags := make([]uint32, vec.Len())
-		for i := range vec.Len() {
-			tags[i] = uint32(tag)
-		}
-		vecs := make([]vector.Any, len(union.Types))
-		vecs[tag] = vector.NewNull(vec.Len())
-		return vector.NewUnion(union, tags, vecs)
+		return vector.NewUnionOfOne(sctx.Nullable(typ), vector.NewNull(vec.Len()))
 	case vector.KindError:
 		return vec
 	}
