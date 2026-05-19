@@ -3,6 +3,7 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sup"
 )
 
 // An Empty vector represents a vector with a type of zero length.
@@ -20,7 +21,48 @@ func NewEmpty(typ super.Type) *Empty {
 }
 
 func (e *Empty) Kind() Kind {
-	panic(e)
+	switch e.typ.(type) {
+	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
+		return KindUint
+	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
+		return KindInt
+	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
+		return KindFloat
+	case *super.TypeOfBool:
+		return KindBool
+	case *super.TypeOfBytes:
+		return KindBytes
+	case *super.TypeOfString:
+		return KindString
+	case *super.TypeOfIP:
+		return KindIP
+	case *super.TypeOfNet:
+		return KindNet
+	case *super.TypeOfType:
+		return KindType
+	case *super.TypeOfNull:
+		return KindNull
+	case *super.TypeOfNone:
+		return KindNone
+	case *super.TypeRecord:
+		return KindRecord
+	case *super.TypeArray:
+		return KindArray
+	case *super.TypeSet:
+		return KindSet
+	case *super.TypeMap:
+		return KindMap
+	case *super.TypeUnion:
+		return KindUnion
+	case *super.TypeEnum:
+		return KindEnum
+	case *super.TypeError:
+		return KindError
+	case *super.TypeFusion:
+		return KindFusion
+	default:
+		panic(sup.String(e.typ))
+	}
 }
 
 func (e *Empty) Type() super.Type {

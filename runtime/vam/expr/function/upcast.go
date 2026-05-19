@@ -227,8 +227,7 @@ func (u *Upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 	if values == nil {
 		return nil
 	}
-	tags := make([]uint32, vec.Len())
-	return vector.NewUnion(to, tags, []vector.Any{values})
+	return vector.NewUnionOfOne(to, values)
 }
 
 func (u *Upcast) toUnionValue(vec vector.Any, to *super.TypeUnion) vector.Any {
