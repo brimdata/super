@@ -1,0 +1,38 @@
+spq: |
+  values least(a, b, c)
+
+input: |
+  {a:1,b:2,c:3}
+  {a:-1,b:-2,c:-3}
+  {a:1::uint64,b:2,c:3}
+  {a:1,b:2::uint64,c:3}
+  {a:1,b:2,c:3::uint64}
+  {a:1.1,b:2,c:3}
+  {a:1,b:2.2,c:3}
+  {a:1,b:2,c:3.3}
+  {a:"1",b:2,c:3}
+  {a:1,b:"2",c:3}
+  {a:1,b:2,c:"3"}
+  {a:1.1::(float64|null),b:2,c:3}
+  {a:1,b:2.2::(float64|null),c:3}
+  {a:1,b:2,c:3.3::(float64|null)}
+  {a:"1",b:error(2),c:null}
+  {a:"1",b:error(2),c:3}
+
+output: |
+  1
+  -3
+  1::uint64
+  1
+  1
+  1.1
+  1
+  1
+  error({message:"least: not a number",on:"1"})
+  error({message:"least: not a number",on:"2"})
+  error({message:"least: not a number",on:"3"})
+  1.1
+  1
+  1
+  null
+  error(2)

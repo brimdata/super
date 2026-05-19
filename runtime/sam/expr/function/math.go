@@ -88,6 +88,22 @@ type reducer struct {
 }
 
 func (r *reducer) Call(args []super.Value) super.Value {
+	args = underAll(args)
+	for _, val := range args {
+		if val.IsNull() {
+			return super.Null
+		}
+	}
+	for _, val := range args {
+		if val.IsError() {
+			return val
+		}
+	}
+	for _, val := range args {
+		if !super.IsNumber(val.Type().ID()) {
+			return r.errNotNumber(val)
+		}
+	}
 	val0 := args[0]
 	switch id := val0.Type().ID(); {
 	case super.IsUnsigned(id):
@@ -95,7 +111,7 @@ func (r *reducer) Call(args []super.Value) super.Value {
 		for _, val := range args[1:] {
 			v, ok := coerce.ToUint(val, super.TypeUint64)
 			if !ok {
-				return r.sctx.WrapError(r.name+": not a number", val)
+				return r.errNotNumber(val)
 			}
 			result = r.fn.Uint64(result, v)
 		}
@@ -107,7 +123,7 @@ func (r *reducer) Call(args []super.Value) super.Value {
 			// floats to ints if we hit a float first
 			v, ok := coerce.ToInt(val, super.TypeInt64)
 			if !ok {
-				return r.sctx.WrapError(r.name+": not a number", val)
+				return r.errNotNumber(val)
 			}
 			result = r.fn.Int64(result, v)
 		}
@@ -119,13 +135,17 @@ func (r *reducer) Call(args []super.Value) super.Value {
 		for _, val := range args[1:] {
 			v, ok := coerce.ToFloat(val, super.TypeFloat64)
 			if !ok {
-				return r.sctx.WrapError(r.name+": not a number", val)
+				return r.errNotNumber(val)
 			}
 			result = r.fn.Float64(result, v)
 		}
 		return super.NewFloat64(result)
 	}
-	return r.sctx.WrapError(r.name+": not a number", val0)
+	return r.errNotNumber(val0)
+}
+
+func (r *reducer) errNotNumber(val super.Value) super.Value {
+	return r.sctx.WrapError(r.name+": not a number", val)
 }
 
 type Round struct {
