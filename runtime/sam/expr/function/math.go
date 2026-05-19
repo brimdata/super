@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/anymath"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 )
 
@@ -85,6 +86,10 @@ type reducer struct {
 	sctx *super.Context
 	name string
 	fn   *anymath.Function
+}
+
+func NewReducer(sctx *super.Context, name string, fn *anymath.Function) expr.Function {
+	return &reducer{sctx, name, fn}
 }
 
 func (r *reducer) Call(args []super.Value) super.Value {

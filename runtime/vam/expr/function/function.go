@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/pkg/anymath"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -59,6 +60,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = newFlatten(sctx)
 	case "floor":
 		f = &Floor{sctx}
+	case "greatest":
+		argmax = -1
+		f = newSamFunc(sctx, function.NewReducer(sctx, name, anymath.Max))
 	case "grep":
 		argmin = 2
 		argmax = 2
@@ -88,6 +92,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 0
 		argmax = 1
 		f = &KSUID{sctx}
+	case "least":
+		argmax = -1
+		f = newSamFunc(sctx, function.NewReducer(sctx, name, anymath.Min))
 	case "len", "length":
 		f = &Len{sctx}
 	case "levenshtein":
