@@ -202,3 +202,15 @@ input: &input |
   error(1)::(null|error(int64))
 
 output: *input
+
+---
+
+spq: defuse(this)
+
+vector: true
+
+input: |
+  fusion({a:"foo",b?:fusion("bar"::(string|null),<string>)},<{a:string,b:string}>)
+
+output: |
+  {a:"foo",b:"bar"}
