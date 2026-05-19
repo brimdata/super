@@ -35,8 +35,9 @@ func (c *CollectMap) Consume(val super.Value) {
 	it := scode.Iter(slices.Clone(val.Bytes()))
 	for !it.Done() {
 		keyTagAndBody := it.NextTagAndBody()
-		key := valueUnder(mtyp.KeyType, keyTagAndBody.Body())
-		val := valueUnder(mtyp.ValType, it.Next())
+		keyBody := keyTagAndBody.Body()
+		key := super.NewValue(mtyp.KeyType, keyBody).DeunionIntoNameds()
+		val := super.NewValue(mtyp.ValType, it.Next()).DeunionIntoNameds()
 		c.scratch = super.AppendTypeValue(c.scratch[:0], key.Type())
 		c.scratch = append(c.scratch, keyTagAndBody...)
 		// This will squash existing values which is what we want.
@@ -96,13 +97,4 @@ func unionOf(sctx *super.Context, types []super.Type) (super.Type, int) {
 		panic(types)
 	}
 	return typ, len(types)
-}
-
-// valueUnder is like super.(*Value).Under but it preserves non-union named types.
-func valueUnder(typ super.Type, b scode.Bytes) super.Value {
-	val := super.NewValue(typ, b)
-	if _, ok := super.TypeUnder(typ).(*super.TypeUnion); !ok {
-		return val
-	}
-	return val.Under()
 }
