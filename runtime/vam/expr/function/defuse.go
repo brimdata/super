@@ -51,7 +51,7 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 		}
 		return vector.NewDynamic(dynamic.Tags, vecs)
 	case vector.KindFusion:
-		fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
+		fusion := vector.PushView(in).(*vector.Fusion)
 		return d.downcast.call(fusion.Values, fusion.Subtypes.Types())
 	default:
 		// primitives, named types, enums
@@ -61,7 +61,7 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 }
 
 func (d *defuse) defuseRecord(vec vector.Any) vector.Any {
-	rec := expr.PushContainerViewDown(vec).(*vector.Record)
+	rec := vector.PushView(vec).(*vector.Record)
 	var vecs []vector.Any
 	for _, vec := range rec.Fields {
 		vecs = append(vecs, d.eval(vec))
@@ -85,7 +85,7 @@ func (d *defuse) defuseRecord(vec vector.Any) vector.Any {
 }
 
 func (d *defuse) defuseArray(in vector.Any) vector.Any {
-	array := expr.PushContainerViewDown(in).(*vector.Array)
+	array := vector.PushView(in).(*vector.Array)
 	inner := d.eval(array.Values)
 	if !vector.IsDynamic(inner) {
 		return vector.NewArray(d.sctx.LookupTypeArray(inner.Type()), array.Offsets, inner)
@@ -103,7 +103,7 @@ func (d *defuse) defuseArray(in vector.Any) vector.Any {
 }
 
 func (d *defuse) defuseSet(in vector.Any) vector.Any {
-	set := expr.PushContainerViewDown(in).(*vector.Set)
+	set := vector.PushView(in).(*vector.Set)
 	inner := d.eval(set.Values)
 	if !vector.IsDynamic(inner) {
 		return vector.NewSet(d.sctx.LookupTypeSet(inner.Type()), set.Offsets, inner)
@@ -121,7 +121,7 @@ func (d *defuse) defuseSet(in vector.Any) vector.Any {
 }
 
 func (d *defuse) defuseMap(in vector.Any) vector.Any {
-	vmap := expr.PushContainerViewDown(in).(*vector.Map)
+	vmap := vector.PushView(in).(*vector.Map)
 	keys := d.eval(vmap.Values)
 	vals := d.eval(vmap.Values)
 	if !vector.IsDynamic(keys) && !vector.IsDynamic(vals) {

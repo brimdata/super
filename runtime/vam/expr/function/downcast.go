@@ -6,7 +6,6 @@ import (
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
@@ -85,25 +84,24 @@ func (d *downcast) call(from vector.Any, types []super.Type) vector.Any {
 // of type "to" intermixed with one or more other error types.  The caller
 // can check for success by comparing the return vector's type with "to".
 func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
+	vec = vector.PushView(vec)
+	// XXX this shouldn't happen but for some reason fusion vectors
+	// show up with dynamics in the fusion.Values fields so this dynamic
+	// ends up here.
+	if dynamic, ok := vec.(*vector.Dynamic); ok {
+		return d.downcastDynamic(dynamic, to)
+	}
+	if vec.Type() == to {
+		return vec
+	}
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
-		if vec.Kind() == vector.KindFusion {
-			return d.downcastFusion(vec, to)
+		if fusion, ok := vec.(*vector.Fusion); ok {
+			return d.downcastFusion(fusion, to)
 		}
 	}
-	vec = vector.Deunion(vec)
-	if dynamic, ok := vec.(*vector.Dynamic); ok {
-		var vecs []vector.Any
-		for _, vec := range dynamic.Values {
-			vecs = append(vecs, d.downcast(vec, to))
-		}
-		if _, ok := to.(*super.TypeUnion); ok {
-			return vbuild.MergeSameTypesInDynamic(d.sctx, vector.NewDynamic(dynamic.Tags, vecs))
-		}
-		if len(vecs) == 1 {
-			return vecs[0]
-		}
-		return vector.NewDynamic(dynamic.Tags, vecs)
+	if union, ok := vec.(*vector.Union); ok {
+		return d.downcastDynamic(union.Dynamic(), to)
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
@@ -123,18 +121,14 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	case *super.TypeFusion:
 		return vector.NewWrappedError(d.sctx, "downcast: cannot downcast to a fusion type", vec)
 	default:
-		if vec.Type() != to {
-			if vec.Type() == super.TypeNone {
-				return d.errNonOptionNone(vec, to)
-			}
-			return d.errMismatch(vec, to)
+		if vec.Type() == super.TypeNone {
+			return d.errNonOptionNone(vec, to)
 		}
-		return vec
+		return d.errMismatch(vec, to)
 	}
 }
 
-func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
-	fusion := expr.PushContainerViewDown(in).(*vector.Fusion)
+func (d *downcast) downcastFusion(fusion *vector.Fusion, to super.Type) vector.Any {
 	vec := d.Call(fusion.Values, fusion.Subtypes)
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
@@ -145,11 +139,22 @@ func (d *downcast) downcastFusion(in vector.Any, to super.Type) vector.Any {
 	}, vec)
 }
 
+func (d *downcast) downcastDynamic(dynamic *vector.Dynamic, to super.Type) vector.Any {
+	vecs := make([]vector.Any, len(dynamic.Values))
+	for tag, vec := range dynamic.Values {
+		vecs[tag] = d.downcast(vec, to)
+	}
+	// Flatten nested dynamics.
+	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		return vecs[0]
+	}, vector.NewDynamic(dynamic.Tags, vecs))
+}
+
 func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
-	if vec.Kind() != vector.KindRecord {
+	rec, ok := vec.(*vector.Record)
+	if !ok {
 		return d.errMismatch(vec, to)
 	}
-	rec := expr.PushContainerViewDown(vec).(*vector.Record)
 	if len(to.Fields) == 0 {
 		return vector.NewRecord(to, nil, vec.Len())
 	}
@@ -181,18 +186,18 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 }
 
 func (d *downcast) toArray(vec vector.Any, to *super.TypeArray) vector.Any {
-	if vec.Kind() != vector.KindArray {
+	array, ok := vec.(*vector.Array)
+	if !ok {
 		return d.errMismatch(vec, to)
 	}
-	array := expr.PushContainerViewDown(vec).(*vector.Array)
 	return d.toContainer(array.Offsets, array.Values, to, to.Type)
 }
 
 func (d *downcast) toSet(vec vector.Any, to *super.TypeSet) vector.Any {
-	if vec.Kind() != vector.KindSet {
+	set, ok := vec.(*vector.Set)
+	if !ok {
 		return d.errMismatch(vec, to)
 	}
-	set := expr.PushContainerViewDown(vec).(*vector.Set)
 	return d.toContainer(set.Offsets, set.Values, to, to.Type)
 }
 
@@ -217,10 +222,10 @@ func (d *downcast) toContainer(offsets []uint32, inner vector.Any, to, toElem su
 }
 
 func (d *downcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {
-	if vec.Kind() != vector.KindMap {
+	m, ok := vec.(*vector.Map)
+	if !ok {
 		return d.errMismatch(vec, to)
 	}
-	m := expr.PushContainerViewDown(vec).(*vector.Map)
 	keyTags, keys, keyErr := d.toList(m.Offsets, m.Keys, to.KeyType)
 	valTags, vals, valErr := d.toList(m.Offsets, m.Values, to.ValType)
 	if keyErr == nil && valErr == nil {
@@ -393,18 +398,29 @@ func newContainer(typ super.Type, offsets []uint32, inner vector.Any) vector.Any
 }
 
 func (d *downcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
-	if vec.Type() == to {
-		return vec
-	}
 	return d.subTypeOf(vec, to.Types, func(tag int, vec vector.Any) vector.Any {
 		if tag < 0 {
 			if _, ok := vec.(*vector.Union); ok {
-				return d.downcast(vector.Deunion(vec), to)
+				// Try downcasting the pieces of the union...
+				return d.downcast(vec, to)
 			}
 			return d.errSubtype(vec, to)
 		}
 		vec = d.downcast(vec, to.Types[tag])
-		return vector.NewUnion(to, make([]uint32, vec.Len()), []vector.Any{vec})
+		if dynamic, ok := vec.(*vector.Dynamic); ok {
+			for k, vec := range dynamic.Values {
+				if vec != nil {
+					if vec.Type() == to.Types[tag] {
+						dynamic.Values[k] = vector.NewUnionOfOne(to, vec)
+					}
+				}
+			}
+			return dynamic
+		}
+		if vec.Type() != to.Types[tag] {
+			return d.errSubtype(vec, to)
+		}
+		return vector.NewUnionOfOne(to, vec)
 	})
 }
 
