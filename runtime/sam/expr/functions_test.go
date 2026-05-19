@@ -36,30 +36,30 @@ func TestSqrt(t *testing.T) {
 	testSuccessful(t, "sqrt(-1)", record, "NaN")
 }
 
-func TestMinMax(t *testing.T) {
+func TestGreatestAndLeast(t *testing.T) {
 	const record = "{i:1::uint64,f:2.}"
 
 	// Simple cases
-	testSuccessful(t, "min(1, 2, 3)", record, "1")
-	testSuccessful(t, "max(1, 2, 3)", record, "3")
-	testSuccessful(t, "min(3, 2, 1)", record, "1")
-	testSuccessful(t, "max(3, 2, 1)", record, "3")
+	testSuccessful(t, "least(1, 2, 3)", record, "1")
+	testSuccessful(t, "greatest(1, 2, 3)", record, "3")
+	testSuccessful(t, "least(3, 2, 1)", record, "1")
+	testSuccessful(t, "greatest(3, 2, 1)", record, "3")
 
 	// Mixed types work
-	testSuccessful(t, "min(i, 2, 3)", record, "1::uint64")
-	testSuccessful(t, "min(2, 3, i)", record, "1")
-	testSuccessful(t, "max(i, 2, 3)", record, "3::uint64")
-	testSuccessful(t, "max(2, 3, i)", record, "3")
-	testSuccessful(t, "min(1, -2.0)", record, "-2")
-	testSuccessful(t, "min(-2.0, 1)", record, "-2.")
-	testSuccessful(t, "max(-1, 2.0)", record, "2")
-	testSuccessful(t, "max(2.0, -1)", record, "2.")
+	testSuccessful(t, "least(i, 2, 3)", record, "1::uint64")
+	testSuccessful(t, "least(2, 3, i)", record, "1")
+	testSuccessful(t, "greatest(i, 2, 3)", record, "3::uint64")
+	testSuccessful(t, "greatest(2, 3, i)", record, "3")
+	testSuccessful(t, "least(1, -2.0)", record, "-2")
+	testSuccessful(t, "least(-2.0, 1)", record, "-2.")
+	testSuccessful(t, "greatest(-1, 2.0)", record, "2")
+	testSuccessful(t, "greatest(2.0, -1)", record, "2.")
 
 	// Fails on invalid types
-	testSuccessful(t, `min("hello", 2)`, record, `error({message:"min: not a number",on:"hello"})`)
-	testSuccessful(t, `max("hello", 2)`, record, `error({message:"max: not a number",on:"hello"})`)
-	testSuccessful(t, `min(1.2.3.4, 2)`, record, `error({message:"min: not a number",on:1.2.3.4})`)
-	testSuccessful(t, `max(1.2.3.4, 2)`, record, `error({message:"max: not a number",on:1.2.3.4})`)
+	testSuccessful(t, `least("hello", 2)`, record, `error({message:"least: not a number",on:"hello"})`)
+	testSuccessful(t, `greatest("hello", 2)`, record, `error({message:"greatest: not a number",on:"hello"})`)
+	testSuccessful(t, `least(1.2.3.4, 2)`, record, `error({message:"least: not a number",on:1.2.3.4})`)
+	testSuccessful(t, `greatest(1.2.3.4, 2)`, record, `error({message:"greatest: not a number",on:1.2.3.4})`)
 }
 
 func TestCeilFloorRound(t *testing.T) {

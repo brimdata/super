@@ -71,6 +71,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 2
 		argmax = 2
 		f = newFusion(sctx)
+	case "greatest":
+		argmax = -1
+		f = &reducer{sctx: sctx, fn: anymath.Max, name: name}
 	case "grep":
 		argmin = 2
 		argmax = 2
@@ -99,6 +102,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "ksuid":
 		argmin = 0
 		f = &KSUIDToString{sctx: sctx}
+	case "least":
+		argmax = -1
+		f = &reducer{sctx: sctx, fn: anymath.Min, name: name}
 	case "len", "length":
 		f = &LenFn{sctx: sctx}
 	case "levenshtein":
@@ -109,12 +115,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &Log{sctx: sctx}
 	case "lower":
 		f = &ToLower{sctx: sctx}
-	case "max":
-		argmax = -1
-		f = &reducer{sctx: sctx, fn: anymath.Max, name: name}
-	case "min":
-		argmax = -1
-		f = &reducer{sctx: sctx, fn: anymath.Min, name: name}
 	case "missing":
 		argmax = -1
 		f = &Missing{}
