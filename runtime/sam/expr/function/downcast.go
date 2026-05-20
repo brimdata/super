@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -39,23 +40,26 @@ func (d *downcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 }
 
 func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (super.Value, *super.Value) {
-	if typ == super.TypeAll {
+	if unionType, ok := to.(*super.TypeUnion); ok {
+		return d.toUnion(typ, bytes, unionType)
+	}
+	if typ == super.TypeAll || typ == to {
 		return super.NewValue(to, bytes), nil
 	}
-	if _, ok := to.(*super.TypeUnion); !ok {
-		if fusionType, ok := typ.(*super.TypeFusion); ok {
-			superBytes, subtype := fusionType.Deref(d.sctx, bytes)
-			if subtype != to {
-				val, errVal := d.defuse(fusionType, bytes)
-				if errVal != nil {
-					panic(errVal)
-				}
-				return super.Value{}, d.errSubtype(val.Type(), val.Bytes(), to)
-			}
-			return d.downcast(fusionType.Type, superBytes, subtype)
-		}
-	}
 	typ, bytes = deunion(typ, bytes)
+	if typ == to {
+		return super.NewValue(to, bytes), nil
+	}
+	if fusionType, ok := typ.(*super.TypeFusion); ok {
+		// When we encounter a fusion type inside of downcasted value, we
+		// ignore its subtypes as they are already determined by the parent
+		// "to" type and simply recurse.
+		superBytes, superType := fusionType.Deref(d.sctx, bytes)
+		if superType != to {
+			return super.Value{}, d.errSubtype(superType, superBytes, to)
+		}
+		return d.downcast(superType, superBytes, to)
+	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return d.toRecord(typ, bytes, to)
@@ -72,26 +76,20 @@ func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (s
 	case *super.TypeError:
 		return d.toError(typ, bytes, to)
 	case *super.TypeFusion:
-		// Can't downcast to a super type
+		// Can't downcast to a fusion type
 		return super.Value{}, d.sctx.WrapError("downcast: cannot downcast to a fusion type", super.NewValue(typ, bytes)).Ptr()
 	default:
-		if typ == to {
-			return super.NewValue(typ, bytes), nil
-		} else {
-			typ, bytes := deunion(typ, bytes)
-			if typ == to {
-				return super.NewValue(typ, bytes), nil
-			}
-		}
 		if typ == super.TypeNone {
 			return super.Value{}, d.errNonOptionNone(to)
 		}
+		fmt.Println("BAD", sup.String(typ))
 		return super.Value{}, d.errMismatch(typ, bytes, to)
 	}
 }
 
 func (d *downcast) defuse(fusionType *super.TypeFusion, bytes scode.Bytes) (super.Value, *super.Value) {
 	superBytes, subtype := fusionType.Deref(d.sctx, bytes)
+	fmt.Println("SUBTYPE", sup.String(subtype))
 	return d.downcast(fusionType.Type, superBytes, subtype)
 }
 
@@ -130,6 +128,7 @@ func (d *downcast) toRecord(typ super.Type, bytes scode.Bytes, to *super.TypeRec
 }
 
 func (d *downcast) toArray(typ super.Type, bytes scode.Bytes, to *super.TypeArray) (super.Value, *super.Value) {
+	fmt.Println("========= TO ARRAY =========", sup.String(to))
 	if arrayType, ok := typ.(*super.TypeArray); ok {
 		return d.toContainer(arrayType.Type, bytes, to, to.Type)
 	}
@@ -182,9 +181,6 @@ func (d *downcast) toMap(typ super.Type, bytes scode.Bytes, to *super.TypeMap) (
 }
 
 func (d *downcast) toUnion(typ super.Type, bytes scode.Bytes, to *super.TypeUnion) (super.Value, *super.Value) {
-	if typ == to {
-		return super.NewValue(typ, bytes), nil
-	}
 	tag, typ, bytes := d.subTypeOf(typ, bytes, to.Types)
 	if tag < 0 {
 		if _, ok := typ.(*super.TypeUnion); ok {
@@ -227,7 +223,9 @@ func (d *downcast) toEnum(typ super.Type, bytes scode.Bytes, to *super.TypeEnum)
 // definition of a fusion type, one of the union types must exactly match the
 // child type.
 func (d *downcast) subTypeOf(typ super.Type, bytes scode.Bytes, types []super.Type) (int, super.Type, []byte) {
+	fmt.Println("DEFUSE", sup.String(super.NewValue(typ, bytes)))
 	val := d.defuser.eval(super.NewValue(typ, bytes))
+	fmt.Println("DEFUSE OUT", sup.String(val))
 	typ, bytes = val.Type(), val.Bytes()
 	return DowncastSubtypeIndex(types, typ), typ, bytes
 }

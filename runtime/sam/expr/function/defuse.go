@@ -1,10 +1,12 @@
 package function
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sup"
 )
 
 type Defuse struct {
@@ -29,6 +31,7 @@ func (d *Defuse) Call(args []super.Value) super.Value {
 
 func (d *Defuse) eval(in super.Value) super.Value {
 	if !d.HasFusion(in.Type()) {
+		fmt.Println("NO FUSION?!")
 		return in
 	}
 	switch typ := in.Type().(type) {
@@ -163,7 +166,9 @@ func (d *Defuse) unifyType(vals []super.Value) super.Type {
 }
 
 func (d *Defuse) HasFusion(typ super.Type) bool {
+	fmt.Println("HAS FUSION", sup.String(typ))
 	if fused, ok := d.has[typ]; ok {
+		fmt.Println("HAS FUSION OUT", fused)
 		return fused
 	}
 	var has bool
@@ -176,11 +181,14 @@ func (d *Defuse) HasFusion(typ super.Type) bool {
 		has = d.HasFusion(typ.Type)
 	case *super.TypeMap:
 		has = d.HasFusion(typ.KeyType) || d.HasFusion(typ.ValType)
+	case *super.TypeUnion:
+		has = slices.ContainsFunc(typ.Types, func(t super.Type) bool { return d.HasFusion(t) })
 	case *super.TypeError:
 		has = d.HasFusion(typ.Type)
 	case *super.TypeFusion:
 		has = true
 	}
 	d.has[typ] = has
+	fmt.Println("HAS FUSION OUT", sup.String(typ), has)
 	return has
 }

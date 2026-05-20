@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"math"
 	"slices"
 
@@ -84,6 +85,8 @@ func (d *downcast) call(from vector.Any, types []super.Type) vector.Any {
 // of type "to" intermixed with one or more other error types.  The caller
 // can check for success by comparing the return vector's type with "to".
 func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
+	fmt.Println("DOWNCAST TO", sup.String(to))
+	vector.Println(vec)
 	vec = vector.PushView(vec)
 	// XXX this shouldn't happen but for some reason fusion vectors
 	// show up with dynamics in the fusion.Values fields so this dynamic
