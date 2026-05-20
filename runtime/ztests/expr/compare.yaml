@@ -1,5 +1,7 @@
 spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
 
+vector: true
+
 input: |
   {a:false,b:false}
   {a:false,b:true}

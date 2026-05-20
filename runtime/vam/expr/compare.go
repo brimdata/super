@@ -47,6 +47,8 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		panic("vector kind mismatch after coerce")
 	}
 	switch kind {
+	case vector.KindBool:
+		return c.compareBool(lhs, rhs)
 	case vector.KindIP:
 		return c.compareIPs(lhs, rhs)
 	case vector.KindNet:
@@ -73,6 +75,40 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		return vector.NewConstBool(false, lhs.Len())
 	}
 	return f(lhs, rhs)
+}
+
+func (c *Compare) compareBool(lhs, rhs vector.Any) vector.Any {
+	if c.opCode == vector.CompLT || c.opCode == vector.CompGT {
+		return vector.NewConstBool(false, lhs.Len())
+	}
+	out := vector.NewFalse(lhs.Len())
+	if lhs, ok := lhs.(*vector.Bool); ok {
+		if rhs, ok := rhs.(*vector.Bool); ok {
+			lhsBits := lhs.GetBits()
+			rhsBits := rhs.GetBits()
+			outBits := out.GetBits()
+			for i := range outBits {
+				// XOR is bit-wise "not equal".
+				outBits[i] = lhsBits[i] ^ rhsBits[i]
+				if c.opCode != vector.CompNE {
+					outBits[i] = ^outBits[i]
+				}
+			}
+			return out
+		}
+	}
+	for i := range lhs.Len() {
+		l := vector.BoolValue(lhs, i)
+		r := vector.BoolValue(rhs, i)
+		v := l == r
+		if c.opCode == vector.CompNE {
+			v = !v
+		}
+		if v {
+			out.Set(i)
+		}
+	}
+	return out
 }
 
 func (c *Compare) compareIPs(lhs, rhs vector.Any) vector.Any {
