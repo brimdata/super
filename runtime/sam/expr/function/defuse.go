@@ -174,6 +174,8 @@ func (d *Defuse) HasFusion(typ super.Type) bool {
 		has = d.HasFusion(typ.Type)
 	case *super.TypeSet:
 		has = d.HasFusion(typ.Type)
+	case *super.TypeUnion:
+		has = slices.ContainsFunc(typ.Types, func(t super.Type) bool { return d.HasFusion(t) })
 	case *super.TypeMap:
 		has = d.HasFusion(typ.KeyType) || d.HasFusion(typ.ValType)
 	case *super.TypeError:
