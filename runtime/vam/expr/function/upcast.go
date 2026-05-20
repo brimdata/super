@@ -280,5 +280,5 @@ func (u *Upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {
 	for i := range subtypes {
 		subtypes[i] = typ
 	}
-	return vector.NewFusion(u.sctx, to, values, subtypes)
+	return vector.NewFusion(to, values, subtypes)
 }

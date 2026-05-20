@@ -6,7 +6,6 @@ import (
 )
 
 type Fusion struct {
-	Sctx   *super.Context
 	Typ    *super.TypeFusion
 	Values Any
 	// The TypeValue vectors are always created as typedefs, whether
@@ -20,12 +19,12 @@ type Fusion struct {
 
 var _ Any = (*Fusion)(nil)
 
-func NewFusion(sctx *super.Context, typ *super.TypeFusion, vals Any, subtypes []super.Type) *Fusion {
-	return &Fusion{Sctx: sctx, Typ: typ, Values: vals, Subtypes: NewTypeValue(sctx, subtypes)}
+func NewFusion(typ *super.TypeFusion, vals Any, subtypes []super.Type) *Fusion {
+	return &Fusion{Typ: typ, Values: vals, Subtypes: NewTypeValue(subtypes)}
 }
 
 func NewFusionWithLoader(sctx *super.Context, typ *super.TypeFusion, loader TypesLoader, vals Any) *Fusion {
-	return &Fusion{Sctx: sctx, Typ: typ, Values: vals, Subtypes: NewTypeValueWithLoader(sctx, loader)}
+	return &Fusion{Typ: typ, Values: vals, Subtypes: NewTypeValueWithLoader(sctx, loader)}
 }
 
 func (*Fusion) Kind() Kind {

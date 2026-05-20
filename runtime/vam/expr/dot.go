@@ -48,7 +48,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 		return val.Fields[i]
 	case *vector.TypeValue:
 		var errs []uint32
-		typvals := vector.NewTypeValueEmpty(d.sctx)
+		typvals := vector.NewTypeValueEmpty()
 		for i := range val.Len() {
 			typ := val.Value(i)
 			if typ, ok := super.TypeUnder(typ).(*super.TypeRecord); ok {

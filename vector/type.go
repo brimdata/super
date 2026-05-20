@@ -8,8 +8,9 @@ import (
 )
 
 type TypeValue struct {
-	Sctx   *super.Context
-	mu     sync.Mutex
+	mu sync.Mutex
+	// sctx is only populated/needed if values are retrieved via the loader.
+	sctx   *super.Context
 	loader TypesLoader
 	types  []super.Type
 }
@@ -26,16 +27,16 @@ type TypesLoader interface {
 
 var _ Any = (*TypeValue)(nil)
 
-func NewTypeValue(sctx *super.Context, types []super.Type) *TypeValue {
-	return &TypeValue{Sctx: sctx, types: types}
+func NewTypeValue(types []super.Type) *TypeValue {
+	return &TypeValue{types: types}
 }
 
 func NewTypeValueWithLoader(sctx *super.Context, loader TypesLoader) *TypeValue {
-	return &TypeValue{Sctx: sctx, loader: loader}
+	return &TypeValue{sctx: sctx, loader: loader}
 }
 
-func NewTypeValueEmpty(sctx *super.Context) *TypeValue {
-	return &TypeValue{Sctx: sctx}
+func NewTypeValueEmpty() *TypeValue {
+	return &TypeValue{}
 }
 
 func (t *TypeValue) Append(typ super.Type) {
@@ -99,7 +100,7 @@ func (t *TypeValue) Types() []super.Type {
 	if t.types == nil {
 		defs, ids := t.typeIDs()
 		t.types = make([]super.Type, len(ids))
-		mapper := super.NewTypeDefsMapper(t.Sctx, defs)
+		mapper := super.NewTypeDefsMapper(t.sctx, defs)
 		for i, id := range ids {
 			t.types[i] = mapper.LookupType(id)
 			if t.types[i] == nil {

@@ -55,7 +55,7 @@ func PushView(val Any) Any {
 		for i, slot := range view.Index {
 			outTypes[i] = types[slot]
 		}
-		return NewFusion(val.Sctx, val.Typ, Pick(val.Values, view.Index), outTypes)
+		return NewFusion(val.Typ, Pick(val.Values, view.Index), outTypes)
 	default:
 		return view
 	}

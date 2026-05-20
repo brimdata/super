@@ -34,7 +34,7 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	case *vector.Union:
 		return vec.Dynamic()
 	case *vector.TypeValue:
-		typs := vector.NewTypeValueEmpty(u.sctx)
+		typs := vector.NewTypeValueEmpty()
 		for i := range vec.Len() {
 			typs.Append(super.TypeUnder(vec.Value(i)))
 		}

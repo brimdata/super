@@ -68,7 +68,7 @@ func New(typ super.Type) Builder {
 		return &genericBuilder[super.Type]{
 			valuesOf: func(vec vector.Any) []super.Type { return vec.(*vector.TypeValue).Types() },
 			build: func(sctx *super.Context, vals []super.Type) vector.Any {
-				return vector.NewTypeValue(sctx, vals)
+				return vector.NewTypeValue(vals)
 			},
 		}
 	case *super.TypeOfNull:

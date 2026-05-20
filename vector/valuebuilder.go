@@ -280,7 +280,7 @@ func (f *fusionValueBuilder) Build(sctx *super.Context) Any {
 		}
 		types = append(types, t)
 	}
-	return NewFusion(sctx, f.typ, f.values.Build(sctx), types)
+	return NewFusion(f.typ, f.values.Build(sctx), types)
 }
 
 type enumValueBuilder struct {
@@ -378,7 +378,7 @@ func (t *typeValueValueBuilder) Build(sctx *super.Context) Any {
 			panic("bad type value")
 		}
 	}
-	return NewTypeValue(sctx, types)
+	return NewTypeValue(types)
 }
 
 type bytesStringValueBuilder struct {

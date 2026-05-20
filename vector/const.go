@@ -67,7 +67,7 @@ func NewConstNet(v netip.Prefix, length uint32) *Const {
 	return &Const{vec, length}
 }
 func NewConstType(sctx *super.Context, typ super.Type, length uint32) *Const {
-	vec := NewTypeValue(sctx, []super.Type{typ})
+	vec := NewTypeValue([]super.Type{typ})
 	return &Const{vec, length}
 }
 
