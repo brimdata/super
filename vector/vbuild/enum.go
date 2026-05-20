@@ -30,6 +30,6 @@ func (a *enumBuilder) Write(vec vector.Any) {
 	a.uint.Write(vals)
 }
 
-func (a *enumBuilder) Build(sctx *super.Context) vector.Any {
-	return vector.NewEnum(a.typ, a.uint.Build(sctx).(*vector.Uint).Values)
+func (a *enumBuilder) Build() vector.Any {
+	return vector.NewEnum(a.typ, a.uint.Build().(*vector.Uint).Values)
 }

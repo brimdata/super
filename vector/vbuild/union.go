@@ -131,10 +131,10 @@ func canonOrder(typ *super.TypeUnion, vecs []vector.Any) bool {
 	return true
 }
 
-func (u *unionBuilder) Build(sctx *super.Context) vector.Any {
+func (u *unionBuilder) Build() vector.Any {
 	vals := make([]vector.Any, len(u.typ.Types))
 	for i, b := range u.values {
-		vals[i] = b.Build(sctx)
+		vals[i] = b.Build()
 	}
 	if len(u.typ.Types) == 2 {
 		return vector.NewUnionFromRLE(u.typ, u.rleOrTags, vals)

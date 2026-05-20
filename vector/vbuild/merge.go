@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func MergeSameTypesInDynamic(sctx *super.Context, d *vector.Dynamic) vector.Any {
+func MergeSameTypesInDynamic(d *vector.Dynamic) vector.Any {
 	m := make(map[super.Type][]uint32)
 	for i, vec := range d.Values {
 		if vec == nil {
@@ -22,7 +22,7 @@ func MergeSameTypesInDynamic(sctx *super.Context, d *vector.Dynamic) vector.Any 
 		return d
 	}
 	if len(m) == 1 {
-		return Merge(sctx, d.Tags, d.Values)
+		return Merge(d.Tags, d.Values)
 	}
 	remapTags := make([]uint32, len(d.Values))
 	var newVecs []vector.Any
@@ -44,7 +44,7 @@ func MergeSameTypesInDynamic(sctx *super.Context, d *vector.Dynamic) vector.Any 
 					tags = append(tags, uint32(newTag))
 				}
 			}
-			newVecs = append(newVecs, Merge(sctx, tags, vecs))
+			newVecs = append(newVecs, Merge(tags, vecs))
 		} else {
 			remapTags[valIdx[0]] = uint32(len(newVecs))
 			newVecs = append(newVecs, d.Values[valIdx[0]])
@@ -60,7 +60,7 @@ func MergeSameTypesInDynamic(sctx *super.Context, d *vector.Dynamic) vector.Any 
 
 // Merge merges the same type vectors vecs into a single vector of the same
 // type.
-func Merge(sctx *super.Context, tags []uint32, vecs []vector.Any) vector.Any {
+func Merge(tags []uint32, vecs []vector.Any) vector.Any {
 	// assert vecs are same type
 	typ := vecs[0].Type()
 	for _, vec := range vecs {
@@ -79,7 +79,7 @@ func Merge(sctx *super.Context, tags []uint32, vecs []vector.Any) vector.Any {
 			k++
 		}
 	}
-	out := b.Build(sctx)
+	out := b.Build()
 	counts := make([]uint32, len(vecs))
 	index := make([]uint32, len(tags))
 	for i, tag := range tags {

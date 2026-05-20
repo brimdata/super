@@ -44,14 +44,14 @@ func (m *MapExpr) Eval(this vector.Any) vector.Any {
 
 func (m *MapExpr) eval(vecs ...vector.Any) vector.Any {
 	n := len(m.entries)
-	key := m.build(m.sctx, vecs[:n])
-	val := m.build(m.sctx, vecs[n:])
+	key := m.build(vecs[:n])
+	val := m.build(vecs[n:])
 	offsets := buildStaticOffsets(uint32(n), vecs[0].Len())
 	mtyp := m.sctx.LookupTypeMap(key.Type(), val.Type())
 	return vector.NewMap(mtyp, offsets, key, val)
 }
 
-func (m *MapExpr) build(sctx *super.Context, vecs []vector.Any) vector.Any {
+func (m *MapExpr) build(vecs []vector.Any) vector.Any {
 	if len(vecs) == 1 {
 		return vecs[0]
 	}
@@ -61,7 +61,7 @@ func (m *MapExpr) build(sctx *super.Context, vecs []vector.Any) vector.Any {
 	}
 	tags := slices.Repeat(repeat, int(vecs[0].Len()))
 	d := vector.FlattenUnions(vector.NewDynamic(tags, vecs))
-	out := vbuild.MergeSameTypesInDynamic(sctx, d)
+	out := vbuild.MergeSameTypesInDynamic(d)
 	if d, ok := out.(*vector.Dynamic); ok {
 		out = vector.NewUnionFromDynamic(m.sctx, d)
 	}

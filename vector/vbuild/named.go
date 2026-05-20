@@ -24,10 +24,10 @@ func (n *namedBuilder) Write(vec vector.Any) {
 	n.vals.Write(vec.(*vector.Named).Any)
 }
 
-func (n *namedBuilder) Build(sctx *super.Context) vector.Any {
+func (n *namedBuilder) Build() vector.Any {
 	var vec vector.Any
 	if n.vals != nil {
-		vec = n.vals.Build(sctx)
+		vec = n.vals.Build()
 	} else {
 		vec = vector.NewEmpty(n.typ.Type)
 	}

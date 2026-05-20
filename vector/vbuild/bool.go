@@ -1,7 +1,6 @@
 package vbuild
 
 import (
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
 )
@@ -26,6 +25,6 @@ func (b *boolBuilder) Write(vec vector.Any) {
 	}
 }
 
-func (b *boolBuilder) Build(*super.Context) vector.Any {
+func (b *boolBuilder) Build() vector.Any {
 	return vector.NewBool(b.bits)
 }

@@ -381,7 +381,7 @@ func (d *downcast) separateValidAndErrVecs(dynamic *vector.Dynamic, validType su
 	case 1:
 		valid = validVecs[0]
 	default:
-		valid = vbuild.Merge(d.sctx, validTags, validVecs)
+		valid = vbuild.Merge(validTags, validVecs)
 	}
 	return newTags, valid, errs
 }

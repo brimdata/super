@@ -77,7 +77,7 @@ func (s *Subquery) Eval(this vector.Any) vector.Any {
 		}
 		db.Write(s.bodyPull())
 	}
-	return db.Build(s.sctx)
+	return db.Build()
 }
 
 func (s *Subquery) bodyPull() vector.Any {

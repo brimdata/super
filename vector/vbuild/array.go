@@ -48,14 +48,12 @@ func (a *arraySetBuilder) Write(vec vector.Any) {
 	}
 }
 
-func (a *arraySetBuilder) Build(sctx *super.Context) vector.Any {
-	vec := a.inner.Build(sctx)
-	switch a.typ.(type) {
+func (a *arraySetBuilder) Build() vector.Any {
+	vec := a.inner.Build()
+	switch typ := a.typ.(type) {
 	case *super.TypeArray:
-		typ := sctx.LookupTypeArray(vec.Type())
 		return vector.NewArray(typ, a.offsets, vec)
 	case *super.TypeSet:
-		typ := sctx.LookupTypeSet(vec.Type())
 		return vector.NewSet(typ, a.offsets, vec)
 	default:
 		panic(a.typ)

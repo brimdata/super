@@ -85,7 +85,7 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 		offsets, tags = buildListOffsetsAndTags(vecs)
 	}
 	d := vector.FlattenUnions(vector.NewDynamic(tags, vecs))
-	inner := vbuild.MergeSameTypesInDynamic(sctx, d)
+	inner := vbuild.MergeSameTypesInDynamic(d)
 	if d, ok := inner.(*vector.Dynamic); ok {
 		inner = vector.NewUnionFromDynamic(sctx, d)
 	}

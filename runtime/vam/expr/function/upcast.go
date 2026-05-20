@@ -191,7 +191,7 @@ func (u *Upcast) deunionAndUpcast(vec vector.Any, to super.Type) vector.Any {
 			return nil
 		}
 	}
-	return vbuild.MergeSameTypesInDynamic(u.sctx, vector.NewDynamic(d.Tags, vecs))
+	return vbuild.MergeSameTypesInDynamic(vector.NewDynamic(d.Tags, vecs))
 }
 
 func (u *Upcast) toMap(vec vector.Any, to *super.TypeMap) vector.Any {

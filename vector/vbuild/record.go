@@ -43,10 +43,10 @@ func (r *recordBuilder) Write(in vector.Any) {
 	r.len += in.Len()
 }
 
-func (r *recordBuilder) Build(sctx *super.Context) vector.Any {
+func (r *recordBuilder) Build() vector.Any {
 	var fields []vector.Any
 	for _, b := range r.fields {
-		fields = append(fields, b.Build(sctx))
+		fields = append(fields, b.Build())
 	}
 	return vector.NewRecord(r.typ, fields, r.len)
 }

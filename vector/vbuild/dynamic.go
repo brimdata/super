@@ -48,18 +48,18 @@ func (d *DynamicBuilder) write(vec vector.Any) uint32 {
 	return i
 }
 
-func (d *DynamicBuilder) Build(sctx *super.Context) vector.Any {
-	out := d.build(sctx)
+func (d *DynamicBuilder) Build() vector.Any {
+	out := d.build()
 	if len(out.Values) == 1 {
 		return out.Values[0]
 	}
 	return out
 }
 
-func (d *DynamicBuilder) build(sctx *super.Context) *vector.Dynamic {
+func (d *DynamicBuilder) build() *vector.Dynamic {
 	var vecs []vector.Any
 	for _, b := range d.values {
-		vecs = append(vecs, b.Build(sctx))
+		vecs = append(vecs, b.Build())
 	}
 	return vector.NewDynamic(d.tags, vecs)
 }

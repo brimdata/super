@@ -70,5 +70,5 @@ func (c *cachedSubquery) vectorConcat(vecs []vector.Any) vector.Any {
 	for _, vec := range vecs {
 		db.Write(vec)
 	}
-	return db.Build(c.sctx)
+	return db.Build()
 }

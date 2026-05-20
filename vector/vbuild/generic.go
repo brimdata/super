@@ -4,14 +4,13 @@ import (
 	"math"
 	"slices"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
 
 type genericBuilder[E comparable] struct {
 	writer   genericWriter
 	valuesOf func(vector.Any) []E
-	build    func(*super.Context, []E) vector.Any
+	build    func([]E) vector.Any
 }
 
 func (b *genericBuilder[E]) Write(vec vector.Any) {
@@ -24,26 +23,26 @@ func (b *genericBuilder[E]) Write(vec vector.Any) {
 	b.writer = b.writer.Write(vec)
 }
 
-func (b *genericBuilder[E]) Build(sctx *super.Context) vector.Any {
+func (b *genericBuilder[E]) Build() vector.Any {
 	if b.writer == nil {
 		b.writer = &genericFlatWriter[E]{
 			valuesOf: b.valuesOf,
 			build:    b.build,
 		}
 	}
-	return b.writer.Build(sctx)
+	return b.writer.Build()
 }
 
 type genericWriter interface {
 	Write(vector.Any) genericWriter
-	Build(*super.Context) vector.Any
+	Build() vector.Any
 }
 
 type genericConstWriter[E comparable] struct {
 	val      E
 	len      uint32
 	valuesOf func(vector.Any) []E
-	build    func(*super.Context, []E) vector.Any
+	build    func([]E) vector.Any
 }
 
 func (c *genericConstWriter[E]) Write(vec vector.Any) genericWriter {
@@ -63,13 +62,13 @@ func (c *genericConstWriter[E]) Write(vec vector.Any) genericWriter {
 		build:    c.build,
 	})
 	if c.len > 0 {
-		w = w.Write(c.Build(nil))
+		w = w.Write(c.Build())
 	}
 	return w.Write(vec)
 }
 
-func (c *genericConstWriter[E]) Build(sctx *super.Context) vector.Any {
-	return vector.NewConst(c.build(sctx, []E{c.val}), c.len)
+func (c *genericConstWriter[E]) Build() vector.Any {
+	return vector.NewConst(c.build([]E{c.val}), c.len)
 }
 
 type genericDictWriter[E comparable] struct {
@@ -77,7 +76,7 @@ type genericDictWriter[E comparable] struct {
 	counts   []uint32
 	index    []byte
 	valuesOf func(vector.Any) []E
-	build    func(*super.Context, []E) vector.Any
+	build    func([]E) vector.Any
 }
 
 func (d *genericDictWriter[E]) Write(vec vector.Any) genericWriter {
@@ -110,7 +109,7 @@ func (d *genericDictWriter[E]) Write(vec vector.Any) genericWriter {
 		build:    d.build,
 	})
 	if len(d.index) > 0 {
-		w = w.Write(d.Build(nil))
+		w = w.Write(d.Build())
 	}
 	return w.Write(vec)
 }
@@ -129,18 +128,18 @@ func (d *genericDictWriter[E]) writeEntry(val E, count uint32) (byte, bool) {
 	return idx, true
 }
 
-func (d *genericDictWriter[E]) Build(sctx *super.Context) vector.Any {
+func (d *genericDictWriter[E]) Build() vector.Any {
 	vals := make([]E, len(d.counts))
 	for val, idx := range d.dict {
 		vals[idx] = val
 	}
-	return vector.NewDict(d.build(sctx, vals), d.index, d.counts)
+	return vector.NewDict(d.build(vals), d.index, d.counts)
 }
 
 type genericFlatWriter[E comparable] struct {
 	vals     []E
 	valuesOf func(vector.Any) []E
-	build    func(*super.Context, []E) vector.Any
+	build    func([]E) vector.Any
 }
 
 func (f *genericFlatWriter[E]) Write(vec vector.Any) genericWriter {
@@ -166,6 +165,6 @@ func (f *genericFlatWriter[E]) Write(vec vector.Any) genericWriter {
 	return f
 }
 
-func (f *genericFlatWriter[E]) Build(sctx *super.Context) vector.Any {
-	return f.build(sctx, f.vals)
+func (f *genericFlatWriter[E]) Build() vector.Any {
+	return f.build(f.vals)
 }

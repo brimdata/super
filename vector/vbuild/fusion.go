@@ -33,7 +33,6 @@ func (f *fusionBuilder) Write(vec vector.Any) {
 	f.subtypes = append(f.subtypes, fusion.Subtypes.Types()...)
 }
 
-func (f *fusionBuilder) Build(sctx *super.Context) vector.Any {
-	vals := f.vals.Build(sctx)
-	return vector.NewFusion(f.typ, vals, f.subtypes)
+func (f *fusionBuilder) Build() vector.Any {
+	return vector.NewFusion(f.typ, f.vals.Build(), f.subtypes)
 }

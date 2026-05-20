@@ -102,7 +102,7 @@ func (s *scalarAggregate) result() vector.Any {
 		} else {
 			b.Write(f.Result(s.sctx))
 		}
-		vecs = append(vecs, b.Build(s.sctx))
+		vecs = append(vecs, b.Build())
 	}
 	s.funcs = nil
 	return s.builder.New(vecs)

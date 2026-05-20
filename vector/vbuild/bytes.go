@@ -23,8 +23,8 @@ func (s *bytesBuilder) Write(vec vector.Any) {
 	s.writer = s.writer.Write(vec)
 }
 
-func (s *bytesBuilder) Build(*super.Context) vector.Any {
-	return s.writer.Build(nil)
+func (s *bytesBuilder) Build() vector.Any {
+	return s.writer.Build()
 }
 
 type bytesConstWriter struct {
@@ -49,12 +49,12 @@ func (b *bytesConstWriter) Write(vec vector.Any) genericWriter {
 		dict: make(map[string]byte),
 	})
 	if b.len > 0 {
-		writer = writer.Write(b.Build(nil))
+		writer = writer.Write(b.Build())
 	}
 	return writer.Write(vec)
 }
 
-func (b *bytesConstWriter) Build(*super.Context) vector.Any {
+func (b *bytesConstWriter) Build() vector.Any {
 	table := vector.NewBytesTableEmpty(0)
 	table.Append(b.val)
 	return vector.NewConst(newBytesOrStringVector(b.typ, table), b.len)
@@ -100,7 +100,7 @@ func (b *bytesDictWriter) Write(vec vector.Any) genericWriter {
 		table: vector.NewBytesTableEmpty(0),
 	})
 	if len(b.index) > 0 {
-		writer = writer.Write(b.Build(nil))
+		writer = writer.Write(b.Build())
 	}
 	return writer.Write(vec)
 }
@@ -119,7 +119,7 @@ func (b *bytesDictWriter) writeEntry(val []byte, count uint32) (byte, bool) {
 	return slot, true
 }
 
-func (b *bytesDictWriter) Build(*super.Context) vector.Any {
+func (b *bytesDictWriter) Build() vector.Any {
 	vals := make([][]byte, len(b.counts))
 	for s, idx := range b.dict {
 		vals[idx] = []byte(s)
@@ -164,7 +164,7 @@ func (b *bytesFlatWriter) Write(vec vector.Any) genericWriter {
 	return b
 }
 
-func (b *bytesFlatWriter) Build(*super.Context) vector.Any {
+func (b *bytesFlatWriter) Build() vector.Any {
 	return newBytesOrStringVector(b.typ, b.table)
 }
 

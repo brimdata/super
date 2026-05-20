@@ -138,7 +138,7 @@ func (s *superTable) materializeAgg(i int) vector.Any {
 			b.Write(row.funcs[i].Result(s.sctx))
 		}
 	}
-	return b.Build(s.sctx)
+	return b.Build()
 }
 
 type countByString struct {

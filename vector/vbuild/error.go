@@ -6,6 +6,7 @@ import (
 )
 
 type errorBuilder struct {
+	typ  *super.TypeError
 	vals Builder
 }
 
@@ -13,7 +14,6 @@ func (e *errorBuilder) Write(vec vector.Any) {
 	e.vals.Write(vec.(*vector.Error).Vals)
 }
 
-func (e *errorBuilder) Build(sctx *super.Context) vector.Any {
-	vals := e.vals.Build(sctx)
-	return vector.NewError(sctx.LookupTypeError(vals.Type()), vals)
+func (e *errorBuilder) Build() vector.Any {
+	return vector.NewError(e.typ, e.vals.Build())
 }

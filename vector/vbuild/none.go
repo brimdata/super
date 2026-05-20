@@ -1,7 +1,6 @@
 package vbuild
 
 import (
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
 
@@ -13,7 +12,7 @@ func (n *noneBuilder) Write(vec vector.Any) {
 	n.len += vec.(*vector.None).Len()
 }
 
-func (n *noneBuilder) Build(*super.Context) vector.Any {
+func (n *noneBuilder) Build() vector.Any {
 	return vector.NewNone(n.len)
 }
 
@@ -25,6 +24,6 @@ func (n *nullBuilder) Write(vec vector.Any) {
 	n.len += vec.(*vector.Null).Len()
 }
 
-func (n *nullBuilder) Build(*super.Context) vector.Any {
+func (n *nullBuilder) Build() vector.Any {
 	return vector.NewNull(n.len)
 }

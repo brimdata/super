@@ -9,7 +9,7 @@ import (
 
 type Builder interface {
 	Write(vector.Any)
-	Build(*super.Context) vector.Any
+	Build() vector.Any
 }
 
 func New(typ super.Type) Builder {
@@ -20,7 +20,7 @@ func New(typ super.Type) Builder {
 		*super.TypeOfUint64:
 		return &genericBuilder[uint64]{
 			valuesOf: func(vec vector.Any) []uint64 { return vec.(*vector.Uint).Values },
-			build: func(_ *super.Context, vals []uint64) vector.Any {
+			build: func(vals []uint64) vector.Any {
 				return vector.NewUint(typ, vals)
 			},
 		}
@@ -32,7 +32,7 @@ func New(typ super.Type) Builder {
 		*super.TypeOfTime:
 		return &genericBuilder[int64]{
 			valuesOf: func(vec vector.Any) []int64 { return vec.(*vector.Int).Values },
-			build: func(_ *super.Context, vals []int64) vector.Any {
+			build: func(vals []int64) vector.Any {
 				return vector.NewInt(typ, vals)
 			},
 		}
@@ -41,7 +41,7 @@ func New(typ super.Type) Builder {
 		*super.TypeOfFloat64:
 		return &genericBuilder[float64]{
 			valuesOf: func(vec vector.Any) []float64 { return vec.(*vector.Float).Values },
-			build: func(_ *super.Context, vals []float64) vector.Any {
+			build: func(vals []float64) vector.Any {
 				return vector.NewFloat(typ, vals)
 			},
 		}
@@ -53,21 +53,21 @@ func New(typ super.Type) Builder {
 	case *super.TypeOfIP:
 		return &genericBuilder[netip.Addr]{
 			valuesOf: func(vec vector.Any) []netip.Addr { return vec.(*vector.IP).Values },
-			build: func(_ *super.Context, vals []netip.Addr) vector.Any {
+			build: func(vals []netip.Addr) vector.Any {
 				return vector.NewIP(vals)
 			},
 		}
 	case *super.TypeOfNet:
 		return &genericBuilder[netip.Prefix]{
 			valuesOf: func(vec vector.Any) []netip.Prefix { return vec.(*vector.Net).Values },
-			build: func(_ *super.Context, vals []netip.Prefix) vector.Any {
+			build: func(vals []netip.Prefix) vector.Any {
 				return vector.NewNet(vals)
 			},
 		}
 	case *super.TypeOfType:
 		return &genericBuilder[super.Type]{
 			valuesOf: func(vec vector.Any) []super.Type { return vec.(*vector.TypeValue).Types() },
-			build: func(sctx *super.Context, vals []super.Type) vector.Any {
+			build: func(vals []super.Type) vector.Any {
 				return vector.NewTypeValue(vals)
 			},
 		}
@@ -86,7 +86,7 @@ func New(typ super.Type) Builder {
 	case *super.TypeEnum:
 		return newEnumBuilder(typ)
 	case *super.TypeError:
-		return &errorBuilder{vals: New(typ.Type)}
+		return &errorBuilder{typ: typ, vals: New(typ.Type)}
 	case *super.TypeNamed:
 		return newNamedBuilder(typ)
 	case *super.TypeFusion:
