@@ -1,5 +1,21 @@
 spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
 
+input: |
+  {a:false,b:false}
+  {a:false,b:true}
+  {a:true,b:false}
+  {a:true,b:true}
+
+output: |
+  [true,false,false,true,true,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [true,false,false,true,true,false]
+
+---
+
+spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
+
 vector: true
 
 input: |

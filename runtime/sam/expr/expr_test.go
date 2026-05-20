@@ -242,12 +242,6 @@ type port=uint16
 }
 `
 
-	// bool
-	testSuccessful(t, "b == true", record, "true")
-	testSuccessful(t, "b == false", record, "false")
-	testSuccessful(t, "b != true", record, "false")
-	testSuccessful(t, "b != false", record, "true")
-
 	// string
 	testSuccessful(t, `s == "hello"`, record, "true")
 	testSuccessful(t, `s != "hello"`, record, "false")

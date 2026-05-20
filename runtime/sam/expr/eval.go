@@ -323,12 +323,8 @@ func (c *Compare) Eval(this super.Value) super.Value {
 	case lid != rid:
 		return super.False
 	case lid == super.IDBool:
-		if lhs.Bool() {
-			if rhs.Bool() {
-				return c.result(0)
-			}
-
-		}
+		v := lhs.Bool() == rhs.Bool() && (c.operator == "<=" || c.operator == ">=")
+		return super.NewBool(v)
 	case lid == super.IDBytes:
 		return c.result(bytes.Compare(super.DecodeBytes(lhs.Bytes()), super.DecodeBytes(rhs.Bytes())))
 	case lid == super.IDString:
