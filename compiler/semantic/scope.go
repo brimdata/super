@@ -187,6 +187,23 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path, inType super
 	}
 	out, dyn, err := scope.resolveUnqualified(path[0])
 	if err != nil {
+		// A multi-element path that fails unqualified resolution may still
+		// be a valid qualified (table.column) reference; the leading name
+		// only looked like an unqualified column. This happens for joins
+		// over dynamic inputs, where any name resolves as a dynamic column,
+		// so a real table-qualified reference like "a.id" would otherwise
+		// be rejected with a misleading error.
+		if len(path) >= 2 {
+			q, qerr := scope.resolveQualified(path[0], path[1])
+			if qerr != nil {
+				t.error(n, qerr)
+				return badExpr, t.checker.unknown
+			}
+			if q != nil {
+				this := sem.NewThis(n, append(q, path[2:]...))
+				return this, t.checker.this(n, this, inType)
+			}
+		}
 		t.error(n, err)
 		return badExpr, t.checker.unknown
 	}

@@ -1,0 +1,18 @@
+script: |
+  super -s -dynamic -c "SELECT a.x FROM 'a.sup' AS a JOIN 'b.sup' AS b ON a.id = b.id"
+
+inputs:
+  - name: a.sup
+    data: |
+      {x:1,id:1}
+      {x:2,id:2}
+  - name: b.sup
+    data: |
+      {y:10,id:1}
+      {y:20,id:2}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}
+      {x:2}
