@@ -1,8 +1,6 @@
 spq: |
   right join (values 2,4,6) on right=left*2 | sort 
 
-vector: true
-
 input: |
   1
   3

@@ -2,7 +2,5 @@ spq: |
   let test = ( values {that:1} )
   values test.that
 
-vector: true
-
 output: |
   1

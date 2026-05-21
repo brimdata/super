@@ -1,7 +1,5 @@
 spq: base64(this)
 
-vector: true
-
 input: |
   "aGVsbG8gd29ybGQ="
   0x68656c6c6f20776f726c64

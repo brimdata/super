@@ -1,7 +1,5 @@
 spq: this::type
 
-vector: true
-
 input: |
   "<int64>"
   <ip>

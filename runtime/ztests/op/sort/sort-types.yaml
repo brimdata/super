@@ -1,7 +1,5 @@
 spq: "sort this"
 
-vector: true
-
 input: |
   <error(enum(b,c,d))>
   <error(enum(a,c,d))>

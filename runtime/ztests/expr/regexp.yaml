@@ -1,7 +1,5 @@
 spq: values this ~ '^foo.*bar$'
 
-vector: true
-
 input: |
   "foo"
   "bar"

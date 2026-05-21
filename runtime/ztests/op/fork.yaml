@@ -1,7 +1,5 @@
 spq: fork ( pass ) ( pass )
 
-vector: true
-
 input: |
   1
   1::(int64|null)

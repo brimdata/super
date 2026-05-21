@@ -1,7 +1,5 @@
 spq: sort
 
-vector: true
-
 input: |
   {a:"1",b:{c:2}}
   {a:"2",b:{c:1}}

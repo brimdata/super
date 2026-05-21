@@ -1,7 +1,5 @@
 spq: lower(this)
 
-vector: true
-
 input: |
   "fOo"
   127.0.0.1

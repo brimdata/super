@@ -1,7 +1,5 @@
 spq: where this
 
-vector: true
-
 input: |
   1
   null
@@ -18,8 +16,6 @@ output: |
 
 # Tests where with op in front so it doesn't get pushed down.
 spq: 'values this | where this'
-
-vector: true
 
 input: |
   1

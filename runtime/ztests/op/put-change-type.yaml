@@ -1,7 +1,5 @@
 spq: put x:=network_of(addr)
 
-vector: true
-
 input: |
   {addr:10.0.0.1}
   {addr:fe80::215:17ff:fe84:c13f}

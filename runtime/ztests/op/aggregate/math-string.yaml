@@ -1,7 +1,5 @@
 spq: min(this), max(this), sum(this), avg(this)
 
-vector: true
-
 input: |
   "foo"
   "aardvark"

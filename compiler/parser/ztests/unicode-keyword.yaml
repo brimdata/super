@@ -1,7 +1,5 @@
 spq: '? bjørndal'
 
-vector: true
-
 input: '"bjørndal"'
 
 output: |

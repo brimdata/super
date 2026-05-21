@@ -1,7 +1,5 @@
 spq: "uniq -c"
 
-vector: true
-
 input: |
   1
   1

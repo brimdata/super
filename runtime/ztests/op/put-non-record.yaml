@@ -1,7 +1,5 @@
 spq: put a:=1
 
-vector: true
-
 input: |
   0
   error("kaboom")

@@ -16,8 +16,6 @@ spq: |
   group by key
   order by key
 
-vector: true
-
 input: |
   {key:"a",n:1,b:true}
   {key:"a",n:2,b:false}

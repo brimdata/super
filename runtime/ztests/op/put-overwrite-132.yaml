@@ -4,8 +4,6 @@
 # and this test will need to be updated.
 spq: put c:=1,a:=3,b:=2
 
-vector: true
-
 input: |
   {a:1::int32,b:2::int32,c:3::int32}
 

@@ -1,7 +1,5 @@
 spq: any(n), sum(n), avg(n), min(n), max(n) by key1 | sort key1
 
-vector: true
-
 input: |
   {key1:"a",key2:"x",n:1::int32}
   {key1:"a",key2:"y",n:2::int32}
@@ -18,8 +16,6 @@ output: |
 
 # Issue #6799
 spq: min(this), max(this), sum(this)
-
-vector: true
 
 input: |
   1::(int64|null)

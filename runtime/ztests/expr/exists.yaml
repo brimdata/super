@@ -6,8 +6,6 @@ spq: |
     "===",
     exists(values "foo", "bar" | where this == "baz")
 
-vector: true
-
 output: |
   true
   "==="

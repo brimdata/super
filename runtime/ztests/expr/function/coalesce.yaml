@@ -1,7 +1,5 @@
 spq: coalesce(a, b, c)
 
-vector: true
-
 input: |
   {a:null, b:error("quiet"), c:"foo"::(uint64|string)}
   {a:"bar"::string, b:error("quiet"), c:1::uint64::(uint64|string)}

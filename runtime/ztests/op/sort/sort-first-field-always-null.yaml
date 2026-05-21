@@ -1,7 +1,5 @@
 spq: sort x, y
 
-vector: true
-
 input: |
   {x:null,y:2}
   {x:null,y:1}

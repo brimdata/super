@@ -1,7 +1,5 @@
 spq: this::enum(e1,e2)
 
-vector: true
-
 input: |
   "e2"
   "e3"

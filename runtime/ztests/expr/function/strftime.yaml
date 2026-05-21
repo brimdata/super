@@ -1,7 +1,5 @@
 spq: strftime(f, v)
 
-vector: true
-
 input: |
   {f:"%Y-%a",v:2024-07-30T06:15:01.062681Z}
   {f:"%Y-%a"::(string|null),v:2024-07-30T06:15:01.062681Z::(time|null)}

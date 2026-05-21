@@ -4,8 +4,6 @@ spq: |
     else a OR b
   end
 
-vector: true
-
 input: |
   "=== TRUE ==="
   {a:true,b:true}
@@ -80,8 +78,6 @@ output: |
 
 # Issue #6482
 spq: values !(null == null) or false
-
-vector: true
 
 output: |
   null

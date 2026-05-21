@@ -1,7 +1,5 @@
 spq: nameof(this)
 
-vector: true
-
 input: |
   {x:1}
   type foo1={x:int64}

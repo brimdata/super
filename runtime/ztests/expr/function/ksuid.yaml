@@ -1,7 +1,5 @@
 spq: ksuid(this)
 
-vector: true
-
 input: |
   "24eT188EIisOiwVWwmej1h9t4Ms"
   0x0e8afd4a5a0a2372e218818aa996ad96f5739dd2
@@ -21,8 +19,6 @@ output: |
 ---
 
 spq: len(ksuid())
-
-vector: true
 
 output: |
   20

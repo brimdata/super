@@ -1,7 +1,5 @@
 spq: "result.count:=count() by result.animal:=animal | sort this"
 
-vector: true
-
 input: |
   {animal:"cat",s:"a",x:1::int32}
   {animal:"dog",s:"b",x:1::int32}

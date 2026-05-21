@@ -1,7 +1,5 @@
 spq: blend
 
-vector: true
-
 input: |
   {a:"hello",b:"world"}
   {b:"goodnight",c:"gracie"}
@@ -18,8 +16,6 @@ output: |
 
 # Test blend on an array of records.
 spq: blend
-
-vector: true
 
 input: |
   [{a:1}]
@@ -39,8 +35,6 @@ output: |
 
 # Test blend on mix of complex and primitive values.
 spq: blend
-
-vector: true
 
 input: |
   {a:1}
@@ -77,8 +71,6 @@ output: |
 
 spq: blend
 
-vector: true
-
 input: |
   error(1)
   error("s")
@@ -90,8 +82,6 @@ output: |
 ---
 
 spq: blend
-
-vector: true
 
 input: |
   [1,2]
@@ -107,8 +97,6 @@ output: |
 
 spq: blend
 
-vector: true
-
 input: |
   {a:[1,2]}
   {a:["foo"]}
@@ -122,8 +110,6 @@ output: |
 ---
 
 spq: blend
-
-vector: true
 
 input: |
   type p1=int64

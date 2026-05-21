@@ -4,8 +4,6 @@ spq: |
   )
   noparams
 
-vector: true
-
 input: "null"
 
 output: |

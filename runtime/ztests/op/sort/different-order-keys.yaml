@@ -1,7 +1,5 @@
 spq: sort foo asc, bar desc, baz asc
 
-vector: true
-
 input: |
   {foo:2,bar:1,baz:2}
   {foo:1,bar:2,baz:1}

@@ -4,8 +4,6 @@ spq: |
     else a AND b
   end
 
-vector: true
-
 input: |
   "=== TRUE ==="
   {a:true,b:true}

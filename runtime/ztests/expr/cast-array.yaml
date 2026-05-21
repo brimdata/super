@@ -1,7 +1,5 @@
 spq: values cast(this, <[string]>)
 
-vector: true
-
 input: |
   null
   [null]

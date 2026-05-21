@@ -1,7 +1,5 @@
 spq: this::bytes
 
-vector: true
-
 input: |
   0x01
   "foo"

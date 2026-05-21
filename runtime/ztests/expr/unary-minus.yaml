@@ -1,7 +1,5 @@
 spq: values -this
 
-vector: true
-
 input: |
   1::int8
   -1::int8

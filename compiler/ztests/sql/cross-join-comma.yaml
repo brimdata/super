@@ -4,8 +4,6 @@ spq: |
        (values {b:4},{b:5},{b:6}) as Tb
   order by Ta.a, Tb.b
 
-vector: true
-
 output: |
   {a:1,b:4}
   {a:1,b:5}

@@ -1,7 +1,5 @@
 spq: 'put x:=this'
 
-vector: true
-
 input: |
   {a:null}
   {a:{b:null}}

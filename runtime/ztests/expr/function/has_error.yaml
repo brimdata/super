@@ -1,7 +1,5 @@
 spq: "values has_error(this)"
 
-vector: true
-
 input: |
   null
   error(0)

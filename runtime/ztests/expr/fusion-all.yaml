@@ -1,7 +1,5 @@
 spq: upcast(this,<fusion(all)>)
 
-vector: true
-
 # note: the syntax for fusion values will change from bytes to values soon
 # and this test will be updated
 
@@ -20,8 +18,6 @@ output: |
 ---
 
 spq: defuse(upcast(this,<fusion(all)>))
-
-vector: true
 
 input: &input |
   1

@@ -1,7 +1,5 @@
 spq:  values [!this, not this]
 
-vector: true
-
 input: |
   false
   true

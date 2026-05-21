@@ -1,7 +1,5 @@
 spq: ceil(this)
 
-vector: true
-
 input: |
   1.5
   -1.5

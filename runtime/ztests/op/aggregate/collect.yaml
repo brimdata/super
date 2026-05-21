@@ -1,7 +1,5 @@
 spq: aggregate collect(this)
 
-vector: true
-
 input: |
   {a:1}
   {a:2}

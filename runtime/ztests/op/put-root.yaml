@@ -1,7 +1,5 @@
 spq: values a
 
-vector: true
-
 input: |
   {"a": {"a": "a", "b": "b"}, "b": "b"}
 

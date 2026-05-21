@@ -3,8 +3,6 @@ spq: |
   | join using (a)
   | values left
 
-vector: true
-
 input: &input |
   {a:null}
 

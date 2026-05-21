@@ -4,8 +4,6 @@ spq: |
   type parr=[port]
   values cast(this, <{a:port,b:prec,c:parr}>)
 
-vector: true
-
 input: |
   type myport=int16
   {a:1::myport,b:{p:1::myport},c:[1::myport]}

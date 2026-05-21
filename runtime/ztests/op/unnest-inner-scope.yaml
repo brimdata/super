@@ -4,8 +4,6 @@ spq: |
     values addbar(this)
   )
 
-vector: true
-
 input: '["foo"]'
 
 output: |

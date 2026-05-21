@@ -5,8 +5,6 @@ spq: |
     case 3 ( ? null )
   | sort a
 
-vector: true
-
 input: |
   {a:1::int32,s:"a"}
   {a:2::int32,s:"B"}

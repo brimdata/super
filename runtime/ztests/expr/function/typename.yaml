@@ -1,7 +1,5 @@
 spq: typename(name)
 
-vector: true
-
 input: |
   type port=int16
   {name:"port",p:80::port}

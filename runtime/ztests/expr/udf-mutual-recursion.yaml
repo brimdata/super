@@ -9,8 +9,6 @@ spq: |
 
   values is_even(this), is_odd(this)
 
-vector: true
-
 input: |
   10
   11

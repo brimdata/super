@@ -1,8 +1,6 @@
 # Sort with empty input should produce no output or warning.
 spq: sort foo
 
-vector: true
-
 input: ''
 
 output: ''

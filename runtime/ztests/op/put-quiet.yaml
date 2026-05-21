@@ -1,7 +1,5 @@
 spq: x := quiet(y)
 
-vector: true
-
 input: |
   {}
   {x:1}

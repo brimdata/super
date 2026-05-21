@@ -1,7 +1,5 @@
 spq: is(a,<string>)
 
-vector: true
-
 input: |
   {a:1::int32,b:"foo"}
   {x:2::int8}

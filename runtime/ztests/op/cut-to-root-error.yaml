@@ -1,7 +1,5 @@
 spq: 'cut this:=a'
 
-vector: true
-
 input: |
   {a:1::int32}
 

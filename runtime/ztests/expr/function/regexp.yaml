@@ -1,7 +1,5 @@
 spq: regexp(re, in)
 
-vector: true
-
 input: |
   {re:"abc|ced",in: "abcdef"}
   {re:"foo(.?) (\\w+) fr.*",in: "seafood fool friend"}

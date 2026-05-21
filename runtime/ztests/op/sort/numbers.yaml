@@ -1,7 +1,5 @@
 spq: sort
 
-vector: true
-
 input: |
   16::uint16
   32::uint32

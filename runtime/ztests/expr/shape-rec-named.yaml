@@ -2,8 +2,6 @@ spq: |
   type person = {name:string,likes:string,age:int64}
   values cast(this,<person>)
 
-vector: true
-
 input: |
   {name:"steve",likes:"spicy",age:"52"}
 

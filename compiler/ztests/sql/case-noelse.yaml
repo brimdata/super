@@ -1,8 +1,6 @@
 spq: |
   select case when x==1 then 'foo' end as x from (values (1),(2)) T(x)
 
-vector: true
-
 output: |
   {x:"foo"}
   {x:null}

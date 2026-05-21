@@ -1,8 +1,6 @@
 # Tests bug where use of under in sequential runtime would cause an infinite loop
 spq: unnest this | collect(this)
 
-vector: true
-
 input: '[null,1,"a"]'
 
 output: |

@@ -1,7 +1,5 @@
 spq: 'values {yodawg:this,b:this==this}'
 
-vector: true
-
 input: |
   {a:1}
 

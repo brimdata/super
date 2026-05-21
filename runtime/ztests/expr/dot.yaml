@@ -1,7 +1,5 @@
 spq: values a.b
 
-vector: true
-
 input: |
   {a:{b:1}}
   {a:{b:1::(int64|string)}}

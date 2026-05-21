@@ -1,7 +1,5 @@
 spq: parse_sup(this)
 
-vector: true
-
 input: |
   "{a:1}"
   null

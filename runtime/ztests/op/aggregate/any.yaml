@@ -1,7 +1,5 @@
 spq: any(v) by k | sort k
 
-vector: true
-
 input: |
   {k:"k1",v:null}
   {k:"k1",v:1}

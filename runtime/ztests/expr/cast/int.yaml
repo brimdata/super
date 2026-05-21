@@ -1,8 +1,6 @@
 spq: |
   values this::int8, this::int16, this::int32, this::int64
 
-vector: true
-
 input: |
   "-1"
   "65535"
@@ -66,8 +64,6 @@ output: |
 ---
 
 spq: cast(this, <int64>)
-
-vector: true
 
 input: |
   error("bad")

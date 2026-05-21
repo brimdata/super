@@ -1,7 +1,5 @@
 spq: top
 
-vector: true
-
 input: |
   {foo:null}
   {foo:1}

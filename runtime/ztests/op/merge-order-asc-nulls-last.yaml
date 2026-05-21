@@ -1,7 +1,5 @@
 spq: fork ( pass ) ( pass ) | merge s asc nulls last
 
-vector: true
-
 input: |
   {s:"a"}
   {s:"b"}

@@ -1,7 +1,5 @@
 spq: grok(pattern, input, defs)
 
-vector: true
-
 input: |
   {
     pattern: "%{TIMESTAMP_ISO8601:event_time} %{LOGLEVEL:log_level} %{GREEDYDATA:log_message}",

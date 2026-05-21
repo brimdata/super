@@ -1,7 +1,5 @@
 spq: values {...{...r,a:1},b:2}
 
-vector: true
-
 input: |
   {r:{c:0}}
 

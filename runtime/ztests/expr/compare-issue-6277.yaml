@@ -1,8 +1,6 @@
 spq: |
   values a >= b or a <= b
 
-vector: true
-
 input: |
   {a:1,b:null}
 

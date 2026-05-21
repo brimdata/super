@@ -61,8 +61,6 @@ output: |
 script: |
   super -s -c 'collect_map(map{key:val}) with -limit 1' in.sup
 
-vector: true
-
 inputs:
   - name: in.sup
     data: |

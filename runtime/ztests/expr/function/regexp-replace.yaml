@@ -1,7 +1,5 @@
 spq: regexp_replace(in, re, new)
 
-vector: true
-
 input: |
   {in:"-ab-axxb-",re:"ax*b",new:"T"}
   {in:"-ab-axxb-",re:"a(x*)b",new:"$1"}

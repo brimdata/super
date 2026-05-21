@@ -1,7 +1,5 @@
 spq: select count() as c1, count(*) as c2, count(a) as c3
 
-vector: true
-
 input: |
   {a:"foo"}
   {b:"foo"}

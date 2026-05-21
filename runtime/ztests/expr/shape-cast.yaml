@@ -6,8 +6,6 @@ spq: |
   -- cast to type with different field order
   id2:=cast(id, <{resp_h:ip,resp_p:port,orig_h:ip,orig_p:port}>)
 
-vector: true
-
 input: |
   type port=uint16
   {id:{orig_h:ff02::fb,orig_p:5353::port,resp_p:5353::port,resp_h:"1.2.3.4"},other:123.}

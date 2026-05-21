@@ -1,7 +1,5 @@
 spq: values compare(a, b)
 
-vector: true
-
 input: |
   {a:2,b:1}
   {a:2,b:"1"}
@@ -28,8 +26,6 @@ spq: |
   values compare(a, b, true),
          compare(a, b, false),
          compare(a, b, "error")
-
-vector: true
 
 input: |
   {a:null,b:2}

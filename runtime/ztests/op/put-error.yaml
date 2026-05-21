@@ -2,8 +2,6 @@
 # for a given error.
 spq: put y := sqrt(x)
 
-vector: true
-
 input: |
   {x:-1::int32}
   {x:-2::int32}

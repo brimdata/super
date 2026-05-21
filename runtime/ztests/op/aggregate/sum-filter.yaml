@@ -1,7 +1,5 @@
 spq: lg:=sum(x) filter (x>=5), sm:=sum(x) filter (x<8)
 
-vector: true
-
 input: |
   {x:1::int32}
   {x:10::int32}

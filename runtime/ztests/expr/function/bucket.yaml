@@ -1,7 +1,5 @@
 spq: bucket(t, bin)
 
-vector: true
-
 input: |
   {t:2020-05-26T15:27:47Z,bin:1h}
   {t:2020-05-27T15:27:47Z,bin:0s}

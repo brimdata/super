@@ -1,7 +1,5 @@
 spq: dcount:=dcount(this)
 
-vector: true
-
 input: |
   null
   null::(null|{x:int64})

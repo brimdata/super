@@ -1,7 +1,5 @@
 spq: values SUBSTRING(this FROM 3 FOR 2), SUBSTRING(this FROM 3), SUBSTRING(this FOR 3)
 
-vector: true
-
 input: |
   "foobar"
   "lobster"::(null|string)

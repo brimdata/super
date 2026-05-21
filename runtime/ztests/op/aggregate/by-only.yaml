@@ -1,7 +1,5 @@
 spq: by s | sort
 
-vector: true
-
 input: |
   {x:1::int32,s:"b"}
   {x:2::int32,s:"f"}

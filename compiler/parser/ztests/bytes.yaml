@@ -1,7 +1,5 @@
 spq: '? 0x or 0x0e00924c694c98b6c11ef56f025f3255904f4e45'
 
-vector: true
-
 input: &input |
   {a:0x}
   {a:0x0e00924c694c98b6c11ef56f025f3255904f4e45}

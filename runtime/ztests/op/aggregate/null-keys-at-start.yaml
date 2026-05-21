@@ -1,7 +1,5 @@
 spq: count() by key1 | sort key1
 
-vector: true
-
 input: |
   {key1:null,key2:null,n:3::int32}
   {key1:null,key2:null,n:4::int32}

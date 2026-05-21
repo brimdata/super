@@ -1,7 +1,5 @@
 spq: replace(s, old, new)
 
-vector: true
-
 input: |
   {s:"oink oink oink", old:"oink", new: "moo"}
   {s:"oink oink oink", old:"oink"::(string|int64), new: "moo"}

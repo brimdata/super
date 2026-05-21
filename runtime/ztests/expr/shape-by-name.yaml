@@ -1,7 +1,5 @@
 spq: cast(this, s)
 
-vector: true
-
 input: |
   {s:"foo",x:1}
   {s:"bar",x:2,y:3}

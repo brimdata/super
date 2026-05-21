@@ -1,7 +1,5 @@
 spq: assert a==1
 
-vector: true
-
 input: |
   {a:1}
   {a:1::(int64|null)}

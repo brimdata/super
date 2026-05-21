@@ -1,7 +1,5 @@
 spq: avg(x), count(x), dcount(x), any(x), max(x), min(x), sum(x)
 
-vector: true
-
 input: |
   {x:null}
   {x:null::(int64|null)}

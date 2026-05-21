@@ -1,7 +1,5 @@
 spq: '{val:this, kind:kind(this)}'
 
-vector: true
-
 input: |
   null
   0x1234

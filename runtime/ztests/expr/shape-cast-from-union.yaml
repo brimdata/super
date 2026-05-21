@@ -1,8 +1,6 @@
 spq: |
   values cast(this["from"], to)
 
-vector: true
-
 input: |
   {from:null::(string|null),to:<null>}
   {from:null::(string|null),to:<string>}

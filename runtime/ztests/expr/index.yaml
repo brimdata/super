@@ -1,7 +1,5 @@
 spq: val[idx]
 
-vector: true
-
 input: |
   // array
   {val:[1,2,3,"foo"],idx:-1}
@@ -75,8 +73,6 @@ spq: |
     map{1:1}[1],
     {x:1}["x"]
 
-vector: true
-
 input: |
   null
   
@@ -92,8 +88,6 @@ output: |
 
 # Test index on named values.
 spq: values this[1],this["x"]
-
-vector: true
 
 input: |
   type foo=[int64]

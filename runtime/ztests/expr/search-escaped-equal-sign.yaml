@@ -1,7 +1,5 @@
 spq: '? A\=B'
 
-vector: true
-
 input: |
   {s:"A=B"}
   {s:"A=*"}

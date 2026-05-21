@@ -1,7 +1,5 @@
 spq: this::ip
 
-vector: true
-
 input: |
   "foo"
   "127.0.0.1"

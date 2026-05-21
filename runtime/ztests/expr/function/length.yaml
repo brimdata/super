@@ -1,7 +1,5 @@
 spq: SELECT LENGTH(s);
 
-vector: true
-
 input: |
   {s:"W3Schools.com"}
   {s:"emoji👀"}

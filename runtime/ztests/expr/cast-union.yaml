@@ -1,7 +1,5 @@
 spq: cast(this, <int64|string|null>)
 
-vector: true
-
 input: |
   null
   1

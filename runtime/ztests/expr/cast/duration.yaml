@@ -1,7 +1,5 @@
 spq: this::duration
 
-vector: true
-
 input: |
   10d
   "1d"

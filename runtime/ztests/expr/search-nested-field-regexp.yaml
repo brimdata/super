@@ -1,7 +1,5 @@
 spq: '? *ar'
 
-vector: true
-
 input: |
   {a:[{bar:"foo"}]}
   {a:[{car:"foo"}]}

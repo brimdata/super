@@ -1,8 +1,6 @@
 spq: |
   values cast(this, <{a:set[ip],b:set[{b:ip}]}>)
 
-vector: true
-
 input: |
   {a:[]::[string],b:[]::[{b:string}]}
   {a:["1.1.1.1","2.2.2.2","2.2.2.2"],b:[{b:"1.1.1.1"},{b:"2.2.2.2"},{b:"2.2.2.2"}]}

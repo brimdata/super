@@ -1,7 +1,5 @@
 spq: nullif(this[0], this[1])
 
-vector: true
-
 input: |
   [1, 1]
   [1, 1::int32]

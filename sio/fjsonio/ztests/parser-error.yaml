@@ -1,8 +1,6 @@
 # Test parse error on EOF.
 spq: pass
 
-vector: true
-
 input-flags: '-i fjson'
 
 input: |

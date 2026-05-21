@@ -1,7 +1,5 @@
 spq: trim(this)
 
-vector: true
-
 input: |
   "   cushion   "
   "foo   "::(string|int64)

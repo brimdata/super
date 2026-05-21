@@ -1,7 +1,5 @@
 spq: 'x:=upper(x), y:=lower(x)'
 
-vector: true
-
 input: |
   {x:"vAlUe1"}
 

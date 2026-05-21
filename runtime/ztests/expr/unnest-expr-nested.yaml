@@ -1,7 +1,5 @@
 spq: values (unnest a | unnest this | collect(this::string))
 
-vector: true
-
 input: |
   {a:[[1,2]]}
   {a:[[3,4]]}

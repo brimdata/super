@@ -1,8 +1,6 @@
 # Tests overwriting a record with a primitive value
 spq: put r := x
 
-vector: true
-
 input: |
   {x:1::int32,r:{s:"hello"}}
   {x:2::int32,r:{s:"world"}}

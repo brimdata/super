@@ -1,7 +1,5 @@
 spq: values [...a,...b]
 
-vector: true
-
 input: |
   {a:set[1,2],b:[0,1,null],c:"hi"}
   {a:set[1,2],b:"hi"}

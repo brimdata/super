@@ -1,7 +1,5 @@
 spq: values {}
 
-vector: true
-
 input: |
   {}
 

@@ -9,8 +9,6 @@ spq: |
     case this==0 ( pass )
     case this==3 ( values 4 )
 
-vector: true
-
 input: |
   1
 

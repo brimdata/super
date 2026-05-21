@@ -1,7 +1,5 @@
 spq: hex(this)
 
-vector: true
-
 input: |
   "68656c6c6f20776f726c64"::(string|int64)
   0x68656c6c6f20776f726c64::(bytes|int64)

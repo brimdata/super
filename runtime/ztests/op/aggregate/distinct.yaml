@@ -14,8 +14,6 @@ spq: |
     union(distinct n) by key
   | sort key
 
-vector: true
-
 input: |
   {key:"a",n:1,b:true}
   {key:"a",n:2,b:false}
@@ -34,8 +32,6 @@ output: |
 # Issue #6803
 script: |
   super -s -c 'aggregate count(distinct this)' -
-
-vector: true
 
 inputs:
   - name: stdin

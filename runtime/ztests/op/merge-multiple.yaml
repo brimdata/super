@@ -1,7 +1,5 @@
 spq: fork ( pass ) ( pass ) | merge a desc, b asc, c desc
 
-vector: true
-
 input: |
   {a:2,b:1,c:2}
   {a:2,b:1,c:1}

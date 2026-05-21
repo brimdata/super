@@ -1,7 +1,5 @@
 spq: values this::float16, this::float32, this::float64
 
-vector: true
-
 input: |
   "1.5"
   "-6.9e20"
@@ -50,8 +48,6 @@ output: |
 ---
 
 spq: cast(this, <float64>)
-
-vector: true
 
 input: |
   error("bad")

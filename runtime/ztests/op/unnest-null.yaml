@@ -1,7 +1,5 @@
 spq: unnest this
 
-vector: true
-
 input: |
   [null, 0]
   [null, ""]

@@ -1,7 +1,5 @@
 spq: 'cut x:=network_of(addr)'
 
-vector: true
-
 input: |
   {addr:fe80::215:17ff:fe84:c13f}
   {addr:10.0.0.1}

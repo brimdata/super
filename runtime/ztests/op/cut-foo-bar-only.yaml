@@ -1,7 +1,5 @@
 spq: cut foo
 
-vector: true
-
 input: |
   {bar:"bar1"}
   {bar:"bar2"}

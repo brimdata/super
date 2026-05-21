@@ -1,8 +1,6 @@
 # Test set expression as const.
 spq: const s = set[ 192.168.2.0/24, 192.168.1.0/24, 192.168.2.0/24 ] values s
 
-vector: true
-
 output: |
   set[192.168.1.0/24,192.168.2.0/24]
 
@@ -11,8 +9,6 @@ output: |
 # Test empty set expression.
 spq: |
   values set[]
-
-vector: true
 
 output: |
   set[]

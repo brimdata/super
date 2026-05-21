@@ -1,8 +1,6 @@
 # Test string first
 spq: min(this), max(this), sum(this), avg(this)
 
-vector: true
-
 input: |
   "foo"
   1
@@ -14,8 +12,6 @@ output: |
 
 # Test number first
 spq: min(this), max(this), sum(this), avg(this)
-
-vector: true
 
 input: |
   1

@@ -1,7 +1,5 @@
 spq: values not this
 
-vector: true
-
 input: |
   true
   false
@@ -25,8 +23,6 @@ output: |
 # Ensure true/null values are converted to false/null.
 spq: |
   values false or not this
-
-vector: true
 
 input: |
   true

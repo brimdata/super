@@ -1,7 +1,5 @@
 spq: fork ( pass )
 
-vector: true
-
 input: &input |
   1
   2

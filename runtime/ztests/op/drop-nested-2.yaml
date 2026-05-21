@@ -1,7 +1,5 @@
 spq: drop rec1
 
-vector: true
-
 input: |
   type rec1_named={sub1:{foo:string,bar:string},sub2:{foo:string,bar:string}}
   type rec2_named={foo:string}

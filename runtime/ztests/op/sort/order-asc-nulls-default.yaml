@@ -1,7 +1,5 @@
 spq: sort s asc
 
-vector: true
-
 input: |
   {s:"b"}
   {s:null}

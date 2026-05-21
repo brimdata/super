@@ -1,8 +1,6 @@
 spq: |
   upcast(a,b)
 
-vector: true
-
 input: |
   {a:{x:1}::({x:int64}|{x:string}),b:<{x:(int64|string)}>}
 
@@ -13,8 +11,6 @@ output: |
 
 spq: |
   upcast(this[0], this[1])
-
-vector: true
 
 input: |
   [[1,"a"],<[int8|string]>]
@@ -102,8 +98,6 @@ output: |
 
 spq: upcast(this, <{y?:int64,z?:int64}>)
 
-vector: true
-
 input: |
   {z?:_::int64}
 
@@ -113,8 +107,6 @@ output: |
 ---
 
 spq: upcast({x?:_::int64},<{x?:int64}>)
-
-vector: true
 
 output: |
   {x?:_::int64}

@@ -1,8 +1,6 @@
 spq: |
   values greatest(a, b, c)
 
-vector: true
-
 input: |
   {a:1,b:2,c:3}
   {a:-1,b:-2,c:-3}

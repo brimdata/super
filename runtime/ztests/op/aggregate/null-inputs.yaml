@@ -1,7 +1,5 @@
 spq: sum(val) by key | sort
 
-vector: true
-
 input: |
   {key:"key1",val:5}
   {key:"key2",val:null}

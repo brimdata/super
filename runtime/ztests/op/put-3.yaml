@@ -1,8 +1,6 @@
 # Tests writing a new record
 spq: put r2 := r
 
-vector: true
-
 input: |
   {r:{s:"hello"}}
   {r:{s:"world"}}

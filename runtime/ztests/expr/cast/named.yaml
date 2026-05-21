@@ -2,8 +2,6 @@ spq: |
   type named={x:int64}
   cast(this, "named")
 
-vector: true
-
 input: |
   {x:1}
   {x:2}
@@ -34,8 +32,6 @@ output: |
 spq: |
   type foo=int64
   values {str:cast(this, "foo"), named:cast(this, foo)}
-
-vector: true
 
 input: |
   1

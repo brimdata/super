@@ -1,7 +1,5 @@
 spq: put eq := (a == b), ne := (a != b), lt := (a < b), lte := (a <= b), gt := (a > b), gte := (a >= b)
 
-vector: true
-
 input: |
   {a:1,b:null}
 

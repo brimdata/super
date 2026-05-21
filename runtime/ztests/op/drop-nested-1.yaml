@@ -1,7 +1,5 @@
 spq: drop rec.bar
 
-vector: true
-
 input: |
   type rec_named1={foo:string,bar:string}
   type named1={rec:rec_named1}

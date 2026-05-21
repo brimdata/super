@@ -2,8 +2,6 @@
 # fallback to bytes.Compare.
 spq: sort this
 
-vector: true
-
 input: |
   null
   null::(int64|null)

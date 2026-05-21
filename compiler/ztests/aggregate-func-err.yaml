@@ -3,8 +3,6 @@
 spq: |
   put count := count()
 
-vector: true
-
 error: |
   call to aggregate function in non-aggregate context at line 1, column 14:
   put count := count()

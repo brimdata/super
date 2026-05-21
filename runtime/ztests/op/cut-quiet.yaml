@@ -1,7 +1,5 @@
 spq: cut foo:=quiet(foo), bar:=quiet(bar)
 
-vector: true
-
 input: |
   {foo:"foo0"}
   {foo:"foo1",goo:"goo1"}
@@ -22,8 +20,6 @@ output: |
 
 # Rename fields.
 spq: cut f:=quiet(foo), b:=quiet(bar)
-
-vector: true
 
 input: |
   {foo:"foo0"}
@@ -46,8 +42,6 @@ output: |
 # Rename nested fields.
 spq: cut ports:=id, resp_p:=quiet(id.resp_p)
 
-vector: true
-
 input: |
   type port=uint16
   {id:{orig_p:1::port,resp_p:2::port}}
@@ -62,8 +56,6 @@ output: |
 
 # Test dequiet keeps unions.
 spq: cut x,quiet(y)
-
-vector: true
 
 input: |
   {x:1::(int64|null)}

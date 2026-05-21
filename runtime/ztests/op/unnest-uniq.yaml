@@ -1,7 +1,5 @@
 spq: unnest this into ( uniq )
 
-vector: true
-
 input: |
   [1,2,2,4]
 

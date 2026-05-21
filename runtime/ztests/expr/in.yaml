@@ -1,8 +1,6 @@
 spq: |
   values [1 in this, 9 in this, null in this]
 
-vector: true
-
 input: |
   1
   {a:1}
@@ -44,8 +42,6 @@ output: |
 spq: |
   values this in [1,2::(int64|null),null,error(0)]
 
-vector: true
-
 input: |
   1::(int64|null)
   2
@@ -64,8 +60,6 @@ output: |
 
 spq: |
   values this in [{a:1},[2],set[3],map{4:4},"b"::enum(b,c)]
-
-vector: true
 
 input: |
   {a:1}
@@ -99,8 +93,6 @@ output: |
 spq: |
   const m = map{"a":1,"b":2}
   values {b1: x in m,b2: "a" in a}
-
-vector: true
 
 input: |
   {x:"a"}

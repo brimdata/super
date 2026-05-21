@@ -1,7 +1,5 @@
 spq: values this not in (41,42)
 
-vector: true
-
 input: |
   40
   41

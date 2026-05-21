@@ -1,7 +1,5 @@
 spq: flatten(this)
 
-vector: true
-
 input: |
   127.0.0.1
   {a:1,b:null}

@@ -1,8 +1,6 @@
 spq: |
   values join(this, "->")
 
-vector: true
-
 input: |
   ["foo","bar","baz"]
   ["foo"]
@@ -28,8 +26,6 @@ output: |
 spq: |
   join(this)
 
-vector: true
-
 input: |
   ["f",".bar.com"]
 
@@ -40,8 +36,6 @@ output: |
 
 # Bad separator arg
 spq: join(["foo","bar"], this)
-
-vector: true
 
 input: |
   null

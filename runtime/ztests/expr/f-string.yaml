@@ -1,7 +1,5 @@
 spq: f"{a}{b}{c}"
 
-vector: true
-
 input: |
   {a:1,b:" ",c:3.3.3.3}
   {a:null,b:null,c:null}

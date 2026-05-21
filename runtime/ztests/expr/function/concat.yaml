@@ -1,7 +1,5 @@
 spq: concat(a, b, c)
 
-vector: true
-
 input: |
   {a:"hello",b:" ",c:"world"}
   {a:null,b:null,c:null}
@@ -25,8 +23,6 @@ output: |
 
 spq: concat(this)
 
-vector: true
-
 input: |
   "single"
   null
@@ -45,8 +41,6 @@ output: |
 ---
 
 spq: concat()
-
-vector: true
 
 error: |
   too few arguments at line 1, column 1:

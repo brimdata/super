@@ -1,7 +1,5 @@
 spq: values [this IS NULL, this IS NOT NULL]
 
-vector: true
-
 input: |
   "foo"
   "foo"::(string|null)

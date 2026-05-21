@@ -4,8 +4,6 @@ spq: |
     ( head 2 )
   | head 1
 
-vector: true
-
 input: |
   1
   2

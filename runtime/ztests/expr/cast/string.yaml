@@ -1,7 +1,5 @@
 spq: this::string
 
-vector: true
-
 input: |
   1
   2

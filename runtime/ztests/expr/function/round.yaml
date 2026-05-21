@@ -1,7 +1,5 @@
 spq: round(this)
 
-vector: true
-
 input: |
   -1
   2::uint64

@@ -1,7 +1,5 @@
 spq: "values [v], set[v], map{k:v}"
 
-vector: true
-
 input: |
   {k:1,v:"foo"::(int64|string)}
 

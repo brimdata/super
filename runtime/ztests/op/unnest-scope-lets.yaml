@@ -3,8 +3,6 @@ spq: |
     values {x:that.w,y:b,z:that.v}
   )
 
-vector: true
-
 input: |
   {a:1,b:[10,11],c:"foo"}
   {a:2,b:[12,13],c:123}

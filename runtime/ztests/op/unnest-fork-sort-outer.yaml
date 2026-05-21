@@ -6,8 +6,6 @@ spq: |
   )
   | sort this
 
-vector: true
-
 input: |
   {a:[1,3,2]}
   {a:[6,9,8,7]}

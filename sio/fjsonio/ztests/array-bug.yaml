@@ -1,7 +1,5 @@
 spq: defuse(this)
 
-vector: true
-
 input-flags: '-i fjson'
 output-flags: '-f json -pretty=0'
 
@@ -15,8 +13,6 @@ output: *input
 
 spq: defuse(this)
 
-vector: true
-
 input-flags: '-i fjson'
 output-flags: '-f json -pretty=0'
 
@@ -29,8 +25,6 @@ output: *input
 ---
 
 spq: defuse(this)
-
-vector: true
 
 input-flags: '-i fjson'
 output-flags: '-f json -pretty=0'

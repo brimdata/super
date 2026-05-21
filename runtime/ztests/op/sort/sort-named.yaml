@@ -1,7 +1,5 @@
 spq: sort host
 
-vector: true
-
 input: |
   {host:127.0.0.2}
   type ipaddr=ip

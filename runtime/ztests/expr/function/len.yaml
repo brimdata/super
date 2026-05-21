@@ -1,7 +1,5 @@
 spq: len(this)
 
-vector: true
-
 input: |
   null
   0x

@@ -1,7 +1,5 @@
 spq: shapes s2 | sort
 
-vector: true
-
 input: |
   {s1:"a",s2:"b"}
   {s1:"a",s2:0}

@@ -4,8 +4,6 @@ spq: |
     default ( unnest a | values {b:this} )
   | sort this
 
-vector: true
-
 input: |
   {a:[1,2,3]}
   {a:[6,7,8,9]}

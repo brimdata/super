@@ -3,8 +3,6 @@ spq: |
     values {x:w,y:b}
   )
 
-vector: true
-
 input: |
   {a:1,b:[10,11]}
   {a:2,b:[12,13,14]}

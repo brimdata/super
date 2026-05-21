@@ -3,8 +3,6 @@ spq: |
   values t1, now()
   | values this::string ~ '[0-9TZ:\\-\\.]+'
 
-vector: true
-
 input: |
   null
 

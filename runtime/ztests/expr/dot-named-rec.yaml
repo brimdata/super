@@ -1,7 +1,5 @@
 spq: cut v:=a.f
 
-vector: true
-
 input: |
   type foo={f:int8}
   {a:{f:1::int8}::foo}

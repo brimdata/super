@@ -1,7 +1,5 @@
 spq: count() by host | sort host
 
-vector: true
-
 input: |
   type ipaddr=ip
   {host:127.0.0.1::ipaddr}

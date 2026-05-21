@@ -2,8 +2,6 @@ skip: XXX fix ztest to read input so we have types
 
 spq: is(this, <foo>)
 
-vector: true
-
 input: |
   {x:1}
   type foo={x:int64}

@@ -7,8 +7,6 @@ spq: |
   }
   values cast(this,schemas[_path])
 
-vector: true
-
 input: |
   {_path:"conn",id:{src:"192.168.1.1",dst:"192.168.1.2"},etc:"foo"}
   {_path:"dns",id:{src:"192.168.1.1",dst:"192.168.1.2"},query:"www.google.com",query_size:23}

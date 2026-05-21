@@ -1,8 +1,6 @@
 spq: |
   ? /.*/
 
-vector: true
-
 input: &input |
   "a"
 

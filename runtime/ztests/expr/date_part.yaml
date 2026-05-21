@@ -10,8 +10,6 @@ spq: |
     date_part("second", this),
     date_part("year", this)
 
-vector: true
-
 input: |
   2001-09-09T01:46:40.491021Z
 
@@ -31,8 +29,6 @@ output: |
 
 spq: |
   values date_part(a,b)
-
-vector: true
 
 input: |
   {a:"hour",b:2001-10-09T01:46:40Z::(time|null)}

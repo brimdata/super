@@ -1,7 +1,5 @@
 spq: values [1,"2"] | infer 
 
-vector: true
-
 output: |
   [1,2]
 
@@ -9,16 +7,12 @@ output: |
 
 spq: values [1,"foo"] | infer 
 
-vector: true
-
 output: |
   [1,"foo"]
 
 ---
 
 spq: infer 2 | sort this
-
-vector: true
 
 input: |
   {y:"2"}
@@ -36,8 +30,6 @@ output: |
 ---
 
 spq: infer | sort this
-
-vector: true
 
 input: |
   {x:"1"}
@@ -61,8 +53,6 @@ output: |
 
 spq: unnest this into ( infer | sort this )
 
-vector: true
-
 input: |
   ["1","2"]
   ["192.168.1.1","10.0.0.1"]
@@ -79,8 +69,6 @@ output: |
 ---
 
 spq: blend | infer | sort this
-
-vector: true
 
 input: |
   {x:"1"}
@@ -104,8 +92,6 @@ output: |
 
 spq: infer | sort this
 
-vector: true
-
 input: |
   {x:"192.168.1.1"::(string|int64|ip)}
   {x:1}
@@ -127,8 +113,6 @@ output: |
 ---
 
 spq: infer
-
-vector: true
 
 input: |
   log_time,client_ip,request,status_code,object_size

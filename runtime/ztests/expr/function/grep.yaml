@@ -5,8 +5,6 @@
 spq: |
   [grep(pattern,this),grep(pattern,input)]
 
-vector: true
-
 input: |
   {pattern:"a",input:"a"}
   {pattern:"z",input:"a"}

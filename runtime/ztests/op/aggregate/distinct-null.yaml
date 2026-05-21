@@ -1,8 +1,6 @@
 spq: |
   avg(distinct this), count(distinct this), collect(distinct this), sum(distinct this)
 
-vector: true
-
 input: |
   null
 

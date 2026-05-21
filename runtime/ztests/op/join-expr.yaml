@@ -7,8 +7,6 @@ script: |
   echo === nested loop join
   super -s -c 'left join (from B.sup) on lower(left.s)<lower(right.s) | values {...left,b:right.b } | sort' A.sup
 
-vector: true
-
 inputs:
   - name: A.sup
     data: |
@@ -49,8 +47,6 @@ spq: |
   | join (
     values {b:1,y:7},{b:2,y:4}
   ) as {l,r} on l.a=r.b and l.x > r.y
-
-vector: true
 
 output: |
   {l:{a:2,x:6},r:{b:2,y:4}}

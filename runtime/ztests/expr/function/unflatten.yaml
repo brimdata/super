@@ -1,7 +1,5 @@
 spq: unflatten(this)
 
-vector: true
-
 input: |
   [{key:["a","a"],value:1},{key:["a","b"],value:2},{key:["a","x","z"],value:"foo"},{key:["b"],value:2},{key:["c"],value:3}]
   [{key:["b","b1"],value:4},{key:["b","b2"],value:5},{key:["b","b3","c"],value:[6,7,8]},{key:["b","b4"],value:["one","two","three"]}]

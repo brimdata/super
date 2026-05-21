@@ -1,7 +1,5 @@
 spq: values TIMESTAMP '2012-10-02 12:01:01', DATE '2012-10-02 12:01:01'
 
-vector: true
-
 input: |
   null
 

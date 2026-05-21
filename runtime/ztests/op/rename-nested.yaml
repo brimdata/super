@@ -1,7 +1,5 @@
 spq: rename id.dst:=id.resp_h, id.src:=id.orig_h, net:=id
 
-vector: true
-
 input: |
   type port=uint16
   {id:{orig_h:10.164.94.120,orig_p:39681::port,resp_h:10.47.3.155,resp_p:3389::port}}
@@ -18,8 +16,6 @@ output: |
 
 # Test nested renamed records in vector runtime are deeply renamed.
 spq: rename x.x:=x.y | values x
-
-vector: true
 
 input: |
   {x:{y:1}}

@@ -1,7 +1,5 @@
 spq: values map(this,&upper)
 
-vector: true
-
 input: |
   ["foo","bar",null]
   set["foo","bar",null]
@@ -23,8 +21,6 @@ spq: |
   fn castInt(v): (v::int64)
   values map(this, &castInt)
 
-vector: true
-
 input: | 
   ["1","2","foo"]
 
@@ -35,8 +31,6 @@ output: |
 
 spq: |
   values map([1,2,3], lambda x: x=1?1:'foo'::(bool|string))
-
-vector: true
 
 output: |
   [1,"foo","foo"]::[int64|bool|string]

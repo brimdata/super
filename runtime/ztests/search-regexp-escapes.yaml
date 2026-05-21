@@ -2,8 +2,6 @@
 # (https://github.com/brimdata/super/issues/3041).
 spq: '? /\f\t\n\r\(\)\*\+\.\/\?\[\]\{\}/'
 
-vector: true
-
 input: &input |
   {a:"\f\t\n\r()*+./?[]{}"}
 

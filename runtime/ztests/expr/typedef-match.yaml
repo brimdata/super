@@ -2,8 +2,6 @@ skip: XXX spq test isn't reading the data to get the named types for type checki
 
 spq: typeof(this)==<bar>
 
-vector: true
-
 input: &input |
   type foo={a:int64}
   type bar={x:foo,y:foo}

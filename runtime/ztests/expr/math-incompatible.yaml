@@ -1,8 +1,6 @@
 spq: |
   values a+b, a-b, a*b, a/b, a%b
 
-vector: true
-
 input: |
   {a:[1,2],b:[3,4]}
   {a:set[1,2],b:set[3,4]}

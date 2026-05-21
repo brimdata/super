@@ -1,7 +1,5 @@
 spq: sort TTLs
 
-vector: true
-
 input: |
   {TTLs:[0s],count:18::uint64}
   {TTLs:[0s,0s],count:4::uint64}

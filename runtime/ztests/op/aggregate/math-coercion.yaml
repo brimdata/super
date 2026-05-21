@@ -1,7 +1,5 @@
 spq: sum(this), max(this), min(this), avg(this)
 
-vector: true
-
 input: |
   -2
   2.5

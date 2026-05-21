@@ -1,7 +1,5 @@
 spq: values (unnest a | sum(this))
 
-vector: true
-
 input: |
   {a:[1,2]}
   {a:null}

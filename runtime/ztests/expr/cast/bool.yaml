@@ -1,7 +1,5 @@
 spq: this::bool
 
-vector: true
-
 input: |
   true
   false

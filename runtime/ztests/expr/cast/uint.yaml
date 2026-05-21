@@ -1,8 +1,6 @@
 spq: |
   values this::uint8, this::uint16, this::uint32, this::uint64
 
-vector: true
-
 input: |
   false
   true
@@ -40,8 +38,6 @@ output: |
 ---
 
 spq: cast(this, <uint64>)
-
-vector: true
 
 input: |
   error("bad")

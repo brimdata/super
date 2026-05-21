@@ -1,7 +1,5 @@
 spq: values <((int64|bool)|(int64|string))>
 
-vector: true
-
 input: |
   {}
 

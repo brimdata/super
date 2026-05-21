@@ -2,8 +2,6 @@
 # longer doing this
 spq: '? x==1 inaction'
 
-vector: true
-
 input: |
   {x:1,text:"inaction"}
 

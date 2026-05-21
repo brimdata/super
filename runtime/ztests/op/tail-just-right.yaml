@@ -1,7 +1,5 @@
 spq: tail 5
 
-vector: true
-
 input: &input |
   1
   2

@@ -1,7 +1,5 @@
 spq: values a == b, a != b
 
-vector: true
-
 input: |
   {a:<string>,b:<string>}
   {a:<{x:ip}>,b:<{x:ip}>}

@@ -1,7 +1,5 @@
 spq: pow(a, b)
 
-vector: true
-
 input: |
   {a:2,b:2}
   {a:3::uint64,b:2::int16}

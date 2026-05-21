@@ -5,8 +5,6 @@ spq: |
         this::uint64,
         this::float64
 
-vector: true
-
 input: |
   2022-02-12T15:48:36.761595Z
 

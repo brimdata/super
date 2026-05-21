@@ -1,7 +1,5 @@
 spq: distinct b
 
-vector: true
-
 input: |
   {a:1,b?:"foo"}
   {a:1,b?:_::string}
@@ -15,8 +13,6 @@ output: |
 ---
 
 spq: drop a
-
-vector: true
 
 input: |
   {a:1,b?:"foo"}
@@ -32,8 +28,6 @@ output: |
 
 spq: drop b
 
-vector: true
-
 input: |
   {a:1,b?:"foo"}
   {a:1,b?:_::string}
@@ -47,8 +41,6 @@ output: |
 ---
 
 spq: rename c:=b
-
-vector: true
 
 input: |
   {a:1,b?:"foo"}

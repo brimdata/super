@@ -1,7 +1,5 @@
 spq: values {x:a+1,y:2*a}
 
-vector: true
-
 input: |
   {a:1}
   {a:2}

@@ -1,7 +1,5 @@
 spq: values {...unflatten(this),c:2}
 
-vector: true
-
 input: |
   [{key:["a","b"],value:0}]
 

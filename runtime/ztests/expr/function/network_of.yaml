@@ -10,8 +10,6 @@ spq: |
     network_of(this, ff::),
     network_of(this, "invalid")
 
-vector: true
-
 input: |
   10.1.2.129
 

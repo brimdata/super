@@ -1,7 +1,5 @@
 spq: values quiet(this)
 
-vector: true
-
 input: |
   1
   [3,2,1,0]

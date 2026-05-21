@@ -1,7 +1,5 @@
 spq: count() by newkey:=rec.i | sort newkey
 
-vector: true
-
 input: |
   {rec:{i:1::int32,s:"bleah"},val:1}
   {rec:{i:1::int32,s:"bleah"},val:2}

@@ -1,7 +1,5 @@
 spq: levenshtein(a, b)
 
-vector: true
-
 input: |
   {a: "kitten", b: "sitting"}
   {a: "kitten", b: ""::(int64|string)}

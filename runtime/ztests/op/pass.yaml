@@ -1,7 +1,5 @@
 spq: pass
 
-vector: true
-
 input: &input |
   1
 

@@ -1,7 +1,5 @@
 spq: "{...a,y:b+c}"
 
-vector: true
-
 input: |
   {a:{x:1},b:2,c:3}
 

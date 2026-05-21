@@ -1,7 +1,5 @@
 spq: abs(this)
 
-vector: true
-
 input: |
   1
   -1

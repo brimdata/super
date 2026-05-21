@@ -1,8 +1,6 @@
 spq: |
   values this::{a:int64,b:string,c:{},d:[{e:string,f:int64}]}
 
-vector: true
-
 input: |
   {}
   {a:"1",b:{}}

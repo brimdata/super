@@ -1,7 +1,5 @@
 spq: rename a := b
 
-vector: true
-
 input: |
   1
 

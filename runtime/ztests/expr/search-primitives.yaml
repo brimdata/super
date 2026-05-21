@@ -1,7 +1,5 @@
 spq: '?foo'
 
-vector: true
-
 input: |
   "foo"
   "bar"

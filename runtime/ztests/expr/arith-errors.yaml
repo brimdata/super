@@ -1,7 +1,5 @@
 spq: s/0
 
-vector: true
-
 input: |
   {}
   {s:error("other")}

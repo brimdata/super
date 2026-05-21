@@ -9,8 +9,6 @@ output: *input
 
 spq: fuse | defuse(this)
 
-vector: true
-
 input: &input |
   "foo"::(int64|string)
   type named1=string

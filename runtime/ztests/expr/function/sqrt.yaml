@@ -1,7 +1,5 @@
 spq: sqrt(this)
 
-vector: true
-
 input: |
   4
   2.

@@ -1,7 +1,5 @@
 spq: under(this)
 
-vector: true
-
 input: |
   null
   0x1234

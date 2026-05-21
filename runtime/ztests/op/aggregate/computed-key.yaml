@@ -1,7 +1,5 @@
 spq: count() by s:=lower(s), ij:=i+j
 
-vector: true
-
 input: |
   {s:"foo",i:2::uint64,j:2::uint64}
   {s:"FOO",i:2::uint64,j:2::uint64}

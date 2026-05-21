@@ -1,7 +1,5 @@
 spq: values missing(a,b)
 
-vector: true
-
 input: |
   {a:"foo",b:"bar"}
   {a:null,b:"bar"}

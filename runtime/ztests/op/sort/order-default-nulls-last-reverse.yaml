@@ -1,7 +1,5 @@
 spq: sort -r s nulls last
 
-vector: true
-
 input: |
   {s:"b"}
   {s:null}

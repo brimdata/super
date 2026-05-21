@@ -1,7 +1,5 @@
 spq: count() by typeof(this) | sort count
 
-vector: true
-
 input: |
   {x:1::int32,s:"foo"}
   {x:2::int32,s:"Bar"}

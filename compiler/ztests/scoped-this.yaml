@@ -1,8 +1,6 @@
 spq: |
   unnest this into (collect(this::string))
 
-vector: true
-
 input: |
   [1,2,3]
   [4,5]

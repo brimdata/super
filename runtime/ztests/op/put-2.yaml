@@ -1,8 +1,6 @@
 # Tests a simple expression written into an existing field
 spq: put x := x + 1
 
-vector: true
-
 input: |
   {x:1::int32}
   {x:2::int32}

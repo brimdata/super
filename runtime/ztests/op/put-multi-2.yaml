@@ -1,8 +1,6 @@
 # Test overwriting multiple fields in-order
 spq: put a:=b, b:=a
 
-vector: true
-
 input: |
   {a:1::int32,b:2::int32}
   {a:3::int32,b:4::int32}

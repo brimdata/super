@@ -1,7 +1,5 @@
 spq: blend(this)
 
-vector: true
-
 input: |
   {a:"hello",b:"world"}
   {a:"goodnight",b:123::int32}
@@ -13,8 +11,6 @@ output: |
 ---
 
 spq: blend(this)
-
-vector: true
 
 input: |
   {a:"hello",b:"world"}

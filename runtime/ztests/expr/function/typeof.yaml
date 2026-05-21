@@ -1,7 +1,5 @@
 spq: typeof(this)
 
-vector: true
-
 input: |
   type socket={addr:ip,port:uint16}
   type conn={info:string,src:socket,dst:socket}

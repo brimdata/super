@@ -5,8 +5,6 @@ spq: |
     case a % 0 ( put v:='yyy' )
   | sort this
 
-vector: true
-
 input: |
   {a:1,s:"a"}
   {a:2,s:"b"}

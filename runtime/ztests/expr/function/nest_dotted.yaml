@@ -1,7 +1,5 @@
 spq: nest_dotted(this)
 
-vector: true
-
 input: |
   {a:1,"b.a":2,"b.b":3,"b.c.a":4,c:5}
   {a:1,b:{a:2,b:3,c:{a:4}},c:5}

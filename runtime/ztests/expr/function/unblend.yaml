@@ -1,8 +1,6 @@
 # Test unblend on records.
 spq: unblend(this)
 
-vector: true
-
 input: |
   {x:{y:2::(int64|bool)},z?:"foo"}
   {x:{y:true::(int64|bool)},z?:_::string}
@@ -18,8 +16,6 @@ output: |
 # Test unblend on root unions.
 spq: unblend(this)
 
-vector: true
-
 input: |
   1::(int64|bool|{x:int64})
   true::(int64|bool|{x:int64})
@@ -34,8 +30,6 @@ output: |
 
 # Test unblend on arrays.
 spq: unblend(this)
-
-vector: true
 
 input: |
   [1::(int64|bool|string),2::(int64|bool|string),"string"::(int64|bool|string)]
@@ -56,8 +50,6 @@ output: |
 # Test unblend on elements in an array.
 spq: unblend(this)
 
-vector: true
-
 input: |
   [{x:1::(bool|int64|string)},{x:true::(bool|int64|string)},{x:"foo"::(bool|int64|string)}]
   [{x:2::(bool|int64|string)},{x:3::(bool|int64|string)},{x:"bar"::(bool|int64|string)}]
@@ -73,8 +65,6 @@ output: |
 # Test unblend on view of array.
 spq: unblend(this[0])
 
-vector: true
-
 input: |
   [[0::(int64|string),1::(int64|string)],["foo"::(int64|string),2::(int64|string)]]
 
@@ -85,8 +75,6 @@ output: |
 
 # Test unblend on sets.
 spq: unblend(this)
-
-vector: true
 
 input: |
   set[1::(int64|bool|string),2::(int64|bool|string),"string"::(int64|bool|string)]
@@ -107,8 +95,6 @@ output: |
 # Test unblend on view of set.
 spq: unblend(this[0])
 
-vector: true
-
 input: |
   set[set[0::(int64|string),1::(int64|string)],set["foo"::(int64|string),2::(int64|string)]]
 
@@ -120,8 +106,6 @@ output: |
 
 # Test unblend on maps.
 spq: unblend(this)
-
-vector: true
 
 input: |
   map{"k1"::(int64|string):"v1"::(int64|string),"k2"::(int64|string):2::(int64|string)}
@@ -141,8 +125,6 @@ output: |
 
 # Test unblend on view of map.
 spq: unblend(this[0])
-
-vector: true
 
 input: |
   map{0:map{"k1"::(int64|string):0},1:map{2::(int64|string):3}}

@@ -1,7 +1,5 @@
 spq: supertype:=fuse(this) by key | sort key
 
-vector: true
-
 input: |
   {a:"hello",r:{x:1::int32,y:2::int32},key:"a"}
   {a:"hello",r:{x:1::int32,y:2::int32},key:"b"}
@@ -32,8 +30,6 @@ output: |
 
 spq: fuse(this)
 
-vector: true
-
 input: |
   {a:[1,2]}
   {a:["foo"]}
@@ -45,8 +41,6 @@ output: |
 ---
 
 spq: unnest this into ( fuse(this) )
-
-vector: true
 
 input: |
   [map{1:2}]
@@ -62,8 +56,6 @@ output: |
 
 spq: fuse(this)
 
-vector: true
-
 input: |
   type u1=int64
   type u2=u1|string
@@ -78,8 +70,6 @@ output: |
 
 spq: fuse(this) by x:=1
 
-vector: true
-
 input: |
   type u1=int64
   type u2=u1
@@ -93,8 +83,6 @@ output: |
 ---
 
 spq: fuse(this)
-
-vector: true
 
 input: |
   type n1=[int64]

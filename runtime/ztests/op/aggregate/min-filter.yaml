@@ -1,7 +1,5 @@
 spq: a:=min(x) filter (x>=5), b:=min(x) filter (x>10)
 
-vector: true
-
 input: |
   {x:1::int32}
   {x:10::int32}

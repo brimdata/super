@@ -1,7 +1,5 @@
 spq: error(this)
 
-vector: true
-
 input: |
   1
   "s"

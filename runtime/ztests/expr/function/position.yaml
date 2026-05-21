@@ -1,7 +1,5 @@
 spq: '{sql:position(sub IN s),call:position(s, sub)}'
 
-vector: true
-
 input: |
   {sub:"bar",s:"foobar"}
   {sub:"food"::(null|string),s:"seafood"::(null|string)}

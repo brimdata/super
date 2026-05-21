@@ -1,7 +1,5 @@
 spq: sort
 
-vector: true
-
 input: |
   type named=int64
   {a:"1",b:2::named}

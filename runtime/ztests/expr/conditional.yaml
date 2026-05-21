@@ -1,8 +1,6 @@
 spq: |
   values [this ? 1 : 0, this]
 
-vector: true
-
 input: |
   false
   false::(int64|bool|null)
@@ -72,8 +70,6 @@ output: |
 # Test conditionals do not de-union root values.
 spq: |
   values this == 1 ? this : this
-
-vector: true
 
 input: |
   1::(int64|null)

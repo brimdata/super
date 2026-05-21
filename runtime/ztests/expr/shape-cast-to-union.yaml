@@ -3,8 +3,6 @@ spq: |
   type union=int64|string|string_named
   values cast(this, <{a:union}>)
 
-vector: true
-
 input: |
   {a:null}
   {a:1}

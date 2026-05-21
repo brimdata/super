@@ -1,7 +1,5 @@
 spq: rename f:=foo, b:=bar
 
-vector: true
-
 input: |
   {foo:"foo0"}
   {foo:"foo1",goo:"goo1"}

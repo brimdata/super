@@ -12,8 +12,6 @@ spq: |
     )
   | sort s
 
-vector: true
-
 input: |
   {a:[1,2,3],from:1,to:3}
   {a:set[1,2,3],from:-2,to:-1}

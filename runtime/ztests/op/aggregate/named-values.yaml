@@ -1,7 +1,5 @@
 spq: count(), sum(this), min(this), max(this), avg(this), collect(this), any(this), dcount(this)
 
-vector: true
-
 input: | 
   type named=int64
   1::named

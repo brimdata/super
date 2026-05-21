@@ -1,7 +1,5 @@
 spq: values grep('.*foo.*', this)
 
-vector: true
-
 input: |
   "foo"
   1

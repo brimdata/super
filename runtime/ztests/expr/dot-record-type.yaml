@@ -1,7 +1,5 @@
 spq: values foo, foo.bar
 
-vector: true
-
 input: |
   <{foo:{bar:int64}}>
   <int64>

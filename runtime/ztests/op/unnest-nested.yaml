@@ -6,8 +6,6 @@ spq: |
     )
   )
 
-vector: true
-
 input: |
   {outer:[{inner:[1,2,3],b:"hello"},{inner:[3,4],b:"world"}],top:888}
   {outer:[{inner:[5,6],b:"goodnight"},{inner:[7,8,9],b:"gracie"}],top:999}

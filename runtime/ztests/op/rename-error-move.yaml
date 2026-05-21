@@ -1,7 +1,5 @@
 spq: rename dst:=id.resp_h
 
-vector: true
-
 input: |
   type port=uint16
   {id:{orig_h:10.164.94.120,orig_p:39681::port,resp_h:10.47.3.155,resp_p:3389::port}}
