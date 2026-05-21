@@ -44,9 +44,13 @@ func (r *valReader) Next() ([]byte, error) {
 				// to do this on every mid-stream parser error but we need to be
 				// sure we're not failing because we've encountered a JSON value
 				// that is too large to fit in buffer.
-				if len(r.cursor) == len(r.buf) && len(r.buf) < maxSize {
-					r.buf = slices.Grow(r.buf, maxSize)[:maxSize]
-					continue
+				if len(r.cursor) == len(r.buf) {
+					if len(r.buf) < maxSize {
+						r.buf = slices.Grow(r.buf, maxSize)[:maxSize]
+						hasFilled = false
+						continue
+					}
+					return nil, fmt.Errorf("line %d: value exceeded max buffer size", r.lineNumber())
 				}
 			}
 			if r.EOF && len(r.cursor) > 0 {
@@ -81,14 +85,19 @@ func (r *valReader) fill() error {
 	return nil
 }
 
-func (r *valReader) parseError() error {
+func (r *valReader) lineNumber() int {
 	// The first character of a new line is often a newline which throws off
 	// line count, so count newlines before first non-whitespace character.
 	i := bytes.IndexFunc(r.cursor, func(r rune) bool {
 		return r != ' ' && r != '\t' && r != '\n' && r != '\r'
 	})
+	line := r.line
 	if i != -1 {
-		r.line += bytes.Count(r.cursor[:i], []byte{'\n'})
+		line += bytes.Count(r.cursor[:i], []byte{'\n'})
 	}
-	return fmt.Errorf("line %d: invalid JSON value", r.line+1)
+	return line + 1
+}
+
+func (r *valReader) parseError() error {
+	return fmt.Errorf("line %d: invalid JSON value", r.lineNumber())
 }
