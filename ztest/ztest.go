@@ -176,6 +176,9 @@ func Load(dirname string) ([]Bundle, error) {
 			continue
 		}
 		for _, zt := range zts {
+			if zt.SPQ != "" {
+				zt.Vector = true
+			}
 			bundles = append(bundles, Bundle{filename, zt, nil})
 		}
 	}
