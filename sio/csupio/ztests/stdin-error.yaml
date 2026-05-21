@@ -2,6 +2,8 @@ script: |
   super -f csup -o t.csup in.sup
   ! cat t.csup | super -i csup -
 
+vector: true
+
 inputs:
   - name: in.sup
     data: |

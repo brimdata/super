@@ -194,11 +194,36 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 	default:
 		var sbufPuller sbuf.Puller
 		sbufPuller, err = e.Open(ctx, sctx, path, format, p)
-		puller = sbuf.NewDematerializer(sctx, sbufPuller)
+		if err == nil {
+			// No errorPrefixConcurrentPuller since sbufPuller
+			// already does that.
+			return sbuf.NewDematerializer(sctx, sbufPuller), nil
+		}
 	}
 	if err != nil {
 		reader.Close()
 		return nil, err
 	}
-	return puller, nil
+	return &errorPrefixConcurrentPuller{puller, path}, nil
+}
+
+type errorPrefixConcurrentPuller struct {
+	VectorConcurrentPuller
+	prefix string
+}
+
+func (e *errorPrefixConcurrentPuller) ConcurrentPull(done bool, id int) (vector.Any, error) {
+	vec, err := e.VectorConcurrentPuller.ConcurrentPull(done, id)
+	if err != nil {
+		err = fmt.Errorf("%s: %w", e.prefix, err)
+	}
+	return vec, err
+}
+
+func (e *errorPrefixConcurrentPuller) Pull(done bool) (vector.Any, error) {
+	vec, err := e.VectorConcurrentPuller.Pull(done)
+	if err != nil {
+		err = fmt.Errorf("%s: %w", e.prefix, err)
+	}
+	return vec, err
 }

@@ -37,6 +37,10 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
 	}
+	var buf [1]byte
+	if _, err := ra.ReadAt(buf[:], 0); err != nil {
+		return nil, errors.New("Super Columnar requires a seekable input")
+	}
 	var metaFilters []*metafilter
 	if p != nil {
 		filter, _, err := p.MetaFilter()
