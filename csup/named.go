@@ -10,8 +10,21 @@ import (
 
 type NamedEncoder struct {
 	encoder Encoder
-	cctx    *Context
 	typ     *super.TypeNamed
+}
+
+func NewNamedEncoder(cctx *Context, named *vector.Named) Encoder {
+	e := &NamedEncoder{typ: named.Typ}
+	if _, ok := named.Any.(*vector.Empty); !ok {
+		e.encoder = NewEncoder(cctx, named.Any)
+	}
+	return e
+}
+
+func (n *NamedEncoder) Encode(group *errgroup.Group) {
+	if n.encoder != nil {
+		n.encoder.Encode(group)
+	}
 }
 
 func (n *NamedEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
@@ -20,22 +33,6 @@ func (n *NamedEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	}
 	off, id := n.encoder.Metadata(cctx, off)
 	return off, cctx.enter(&Named{n.typ.Name, id})
-}
-
-func (n *NamedEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	if n.encoder == nil {
-		n.encoder = NewEncoder(n.cctx, n.typ.Type)
-	}
-	n.encoder.Write(vec.(*vector.Named).Any)
-}
-
-func (n *NamedEncoder) Encode(group *errgroup.Group) {
-	if n.encoder != nil {
-		n.encoder.Encode(group)
-	}
 }
 
 func (n *NamedEncoder) Emit(w io.Writer) error {

@@ -1,46 +1,30 @@
 package csup
 
 import (
+	"cmp"
 	"io"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/vector"
 	"github.com/ronanh/intcomp"
 	"golang.org/x/sync/errgroup"
 )
 
 type IntEncoder struct {
-	typ      super.Type
-	vals     []int64
-	min, max int64
-	out      []byte
+	typ  super.Type
+	vals []int64
+
+	// computed after encode is called.
+	out []byte
+	min int64
+	max int64
 }
 
-func NewIntEncoder(typ super.Type) *IntEncoder {
+func NewIntEncoder(typ super.Type, vals []int64) *IntEncoder {
 	return &IntEncoder{
-		typ: typ,
+		typ:  typ,
+		vals: vals,
 	}
-}
-
-func (i *IntEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	iv := vec.(*vector.Int)
-	if len(i.vals) == 0 {
-		i.min = iv.Values[0]
-		i.max = iv.Values[0]
-	}
-	for _, v := range iv.Values {
-		if v < i.min {
-			i.min = v
-		}
-		if v > i.max {
-			i.max = v
-		}
-	}
-	i.vals = append(i.vals, iv.Values...)
 }
 
 func (i *IntEncoder) Encode(group *errgroup.Group) {
@@ -49,6 +33,12 @@ func (i *IntEncoder) Encode(group *errgroup.Group) {
 		i.out = byteconv.ReinterpretSlice[byte](compressed)
 		return nil
 	})
+	if len(i.vals) > 0 {
+		group.Go(func() error {
+			i.min, i.max = minMax(i.vals)
+			return nil
+		})
+	}
 }
 
 func (i *IntEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
@@ -76,52 +66,11 @@ func (i *IntEncoder) Emit(w io.Writer) error {
 	return err
 }
 
-func (i *IntEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
-	entries, index, counts := comparableDict(i.vals)
-	if entries == nil {
-		return nil, nil, nil
-	}
-	return &IntEncoder{
-		typ:  i.typ,
-		vals: entries,
-		min:  i.min,
-		max:  i.max,
-	}, index, counts
-}
-
-func (i *IntEncoder) ConstValue() super.Value {
-	return super.NewInt(i.typ, i.vals[0])
-}
-
 type UintEncoder struct {
 	typ      super.Type
 	vals     []uint64
 	min, max uint64
 	out      []byte
-}
-
-func NewUintEncoder(typ super.Type) *UintEncoder {
-	return &UintEncoder{typ: typ}
-}
-
-func (u *UintEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	uv := vec.(*vector.Uint)
-	if len(u.vals) == 0 {
-		u.min = uv.Values[0]
-		u.max = uv.Values[0]
-	}
-	for _, v := range uv.Values {
-		if v < u.min {
-			u.min = v
-		}
-		if v > u.max {
-			u.max = v
-		}
-	}
-	u.vals = append(u.vals, uv.Values...)
 }
 
 func (u *UintEncoder) Encode(group *errgroup.Group) {
@@ -130,16 +79,35 @@ func (u *UintEncoder) Encode(group *errgroup.Group) {
 		u.out = byteconv.ReinterpretSlice[byte](compressed)
 		return nil
 	})
+	if len(u.vals) > 0 {
+		group.Go(func() error {
+			u.min, u.max = minMax(u.vals)
+			return nil
+		})
+	}
 }
 
-func (u *UintEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+func minMax[T cmp.Ordered](vals []T) (T, T) {
+	minVal, maxVal := vals[0], vals[0]
+	for _, v := range vals {
+		minVal = min(minVal, v)
+		maxVal = max(maxVal, v)
+	}
+	return minVal, maxVal
+}
+
+func (u *UintEncoder) Segment(off uint64) (uint64, Segment) {
 	loc := Segment{
 		Offset:            off,
 		MemLength:         uint64(len(u.out)),
 		Length:            uint64(len(u.vals)) * 8,
 		CompressionFormat: CompressionFormatNone,
 	}
-	off += loc.MemLength
+	return off + loc.MemLength, loc
+}
+
+func (u *UintEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+	off, loc := u.Segment(off)
 	return off, cctx.enter(&Uint{
 		Typ:      u.typ,
 		Location: loc,
@@ -157,27 +125,14 @@ func (u *UintEncoder) Emit(w io.Writer) error {
 	return err
 }
 
-func (u *UintEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
-	entries, index, counts := comparableDict(u.vals)
-	if entries == nil {
-		return nil, nil, nil
-	}
-	return &UintEncoder{
-		typ:  u.typ,
-		vals: entries,
-		min:  u.min,
-		max:  u.max,
-	}, index, counts
-}
-
-func (u *UintEncoder) ConstValue() super.Value {
-	return super.NewUint(u.typ, u.vals[0])
-}
-
 type Uint32Encoder struct {
 	vals     []uint32
 	out      []byte
 	bytesLen uint64
+}
+
+func NewUint32Encoder(vals []uint32) *Uint32Encoder {
+	return &Uint32Encoder{vals: vals}
 }
 
 func (u *Uint32Encoder) Write(v uint32) {
@@ -214,25 +169,6 @@ func (u *Uint32Encoder) Segment(off uint64) (uint64, Segment) {
 		MemLength:         len,
 		Length:            u.bytesLen,
 		CompressionFormat: CompressionFormatNone,
-	}
-}
-
-type offsetsEncoder struct {
-	Uint32Encoder
-}
-
-func newOffsetsEncoder() *offsetsEncoder {
-	return &offsetsEncoder{}
-}
-
-func (o *offsetsEncoder) write(offsets []uint32) {
-	if len(o.vals) == 0 {
-		o.vals = offsets
-	} else {
-		base := o.vals[len(o.vals)-1]
-		for _, off := range offsets[1:] {
-			o.vals = append(o.vals, base+off)
-		}
 	}
 }
 

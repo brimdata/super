@@ -11,35 +11,16 @@ import (
 type ArrayEncoder struct {
 	typ     super.Type
 	values  Encoder
-	offsets *offsetsEncoder
+	offsets *Uint32Encoder
 	count   uint32
 }
 
 var _ Encoder = (*ArrayEncoder)(nil)
 
-func NewArrayEncoder(cctx *Context, typ *super.TypeArray) *ArrayEncoder {
+func NewArrayEncoder(cctx *Context, vec *vector.Array) *ArrayEncoder {
 	return &ArrayEncoder{
-		typ:     typ.Type,
-		values:  NewEncoder(cctx, typ.Type),
-		offsets: newOffsetsEncoder(),
-	}
-}
-
-func (a *ArrayEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	switch vec := vec.(type) {
-	case *vector.Array:
-		a.count += vec.Len()
-		a.values.Write(vec.Values)
-		a.offsets.write(vec.Offsets)
-	case *vector.Set:
-		a.count += vec.Len()
-		a.values.Write(vec.Values)
-		a.offsets.write(vec.Offsets)
-	default:
-		panic(vec)
+		values:  NewEncoder(cctx, vec.Values),
+		offsets: NewUint32Encoder(vec.Offsets),
 	}
 }
 
@@ -69,12 +50,11 @@ type SetEncoder struct {
 	ArrayEncoder
 }
 
-func NewSetEncoder(cctx *Context, typ *super.TypeSet) *SetEncoder {
+func NewSetEncoder(cctx *Context, vec *vector.Set) *SetEncoder {
 	return &SetEncoder{
 		ArrayEncoder{
-			typ:     typ.Type,
-			values:  NewEncoder(cctx, typ.Type),
-			offsets: newOffsetsEncoder(),
+			values:  NewEncoder(cctx, vec.Values),
+			offsets: &Uint32Encoder{vals: vec.Offsets},
 		},
 	}
 }

@@ -3,7 +3,6 @@ package csup
 import (
 	"io"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
@@ -11,27 +10,16 @@ import (
 type MapEncoder struct {
 	keys    Encoder
 	values  Encoder
-	offsets *offsetsEncoder
+	offsets *Uint32Encoder
 	count   uint32
 }
 
-func NewMapEncoder(cctx *Context, typ *super.TypeMap) *MapEncoder {
+func NewMapEncoder(cctx *Context, vec *vector.Map) *MapEncoder {
 	return &MapEncoder{
-		keys:    NewEncoder(cctx, typ.KeyType),
-		values:  NewEncoder(cctx, typ.ValType),
-		offsets: newOffsetsEncoder(),
+		keys:    NewEncoder(cctx, vec.Keys),
+		values:  NewEncoder(cctx, vec.Values),
+		offsets: NewUint32Encoder(vec.Offsets),
 	}
-}
-
-func (m *MapEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	mapVec := vec.(*vector.Map)
-	m.count += vec.Len()
-	m.keys.Write(mapVec.Keys)
-	m.values.Write(mapVec.Values)
-	m.offsets.write(mapVec.Offsets)
 }
 
 func (m *MapEncoder) Emit(w io.Writer) error {

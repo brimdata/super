@@ -48,15 +48,19 @@ func (d *DynamicBuilder) write(vec vector.Any) uint32 {
 	return i
 }
 
+func (d *DynamicBuilder) Len() uint32 {
+	return uint32(len(d.tags))
+}
+
 func (d *DynamicBuilder) Build() vector.Any {
-	out := d.build()
+	out := d.BuildDynamic()
 	if len(out.Values) == 1 {
 		return out.Values[0]
 	}
 	return out
 }
 
-func (d *DynamicBuilder) build() *vector.Dynamic {
+func (d *DynamicBuilder) BuildDynamic() *vector.Dynamic {
 	var vecs []vector.Any
 	for _, b := range d.values {
 		vecs = append(vecs, b.Build())

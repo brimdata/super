@@ -1,6 +1,7 @@
 package csup
 
 import (
+	"net/netip"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -91,6 +92,15 @@ func (u *Union) Len(*Context) uint32 {
 	return u.Length
 }
 
+type Enum struct {
+	Symbols []string
+	Values  ID
+}
+
+func (e *Enum) Len(cctx *Context) uint32 {
+	return cctx.Lookup(e.Values).Len(cctx)
+}
+
 type Named struct {
 	Name   string
 	Values ID
@@ -165,6 +175,15 @@ func (f *Float) Len(*Context) uint32 {
 	return f.Count
 }
 
+type Bool struct {
+	Location Segment
+	Count    uint32
+}
+
+func (b *Bool) Len(*Context) uint32 {
+	return b.Count
+}
+
 type Bytes struct {
 	Typ     super.Type `super:"Type"`
 	Bytes   Segment
@@ -191,21 +210,44 @@ func (t *TypeValue) Len(*Context) uint32 {
 	return t.Length
 }
 
-type Primitive struct {
-	Typ      super.Type `super:"Type"`
-	Location Segment
-	MinMax   bool
-	Min      super.Value
-	Max      super.Value
-	Count    uint32
+type IP struct {
+	Bytes   Segment
+	Offsets Segment
+	Min     netip.Addr
+	Max     netip.Addr
+	Count   uint32
 }
 
-func (p *Primitive) Type(*Context, *super.Context) super.Type {
-	return p.Typ
+func (n *IP) Len(*Context) uint32 {
+	return n.Count
 }
 
-func (p *Primitive) Len(*Context) uint32 {
-	return p.Count
+type Net struct {
+	Bytes   Segment
+	Offsets Segment
+	Min     netip.Prefix
+	Max     netip.Prefix
+	Count   uint32
+}
+
+func (n *Net) Len(*Context) uint32 {
+	return n.Count
+}
+
+type Null struct {
+	Count uint32
+}
+
+func (n *Null) Len(*Context) uint32 {
+	return n.Count
+}
+
+type None struct {
+	Count uint32
+}
+
+func (n *None) Len(*Context) uint32 {
+	return n.Count
 }
 
 type Const struct {
@@ -277,8 +319,6 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		}
 		b.EndContainer()
 		return sctx.MustLookupTypeRecord(fields)
-	case *Primitive:
-		return metadataLeaf(sctx, b, m.Min, m.Max)
 	case *Int:
 		return metadataLeaf(sctx, b, super.NewInt(m.Typ, m.Min), super.NewInt(m.Typ, m.Max))
 	case *Uint:
@@ -287,6 +327,10 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		return metadataLeaf(sctx, b, super.NewFloat(m.Typ, m.Min), super.NewFloat(m.Typ, m.Max))
 	case *Bytes:
 		return metadataLeaf(sctx, b, super.NewValue(m.Typ, m.Min), super.NewValue(m.Typ, m.Max))
+	case *IP:
+		return metadataLeaf(sctx, b, super.NewIP(m.Min), super.NewIP(m.Max))
+	case *Net:
+		return metadataLeaf(sctx, b, super.NewNet(m.Min), super.NewNet(m.Max))
 	case *Const:
 		return metadataLeaf(sctx, b, m.Value, m.Value)
 	default:
@@ -322,7 +366,6 @@ var Template = []any{
 	Uint{},
 	Float{},
 	Bytes{},
-	Primitive{},
 	TypeValue{},
 	Named{},
 	Error{},
@@ -331,4 +374,10 @@ var Template = []any{
 	Dynamic{},
 	Fusion{},
 	Empty{},
+	Enum{},
+	Bool{},
+	IP{},
+	Net{},
+	Null{},
+	None{},
 }

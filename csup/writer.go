@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -19,7 +20,7 @@ var maxObjectSize uint32 = 120_000
 // CSUP object from a stream of vector.Any.
 type Serializer struct {
 	writer  io.WriteCloser
-	dynamic *DynamicEncoder
+	dynamic *vbuild.DynamicBuilder
 }
 
 var _ vio.Pusher = (*Serializer)(nil)
@@ -27,7 +28,7 @@ var _ vio.Pusher = (*Serializer)(nil)
 func NewSerializer(w io.WriteCloser) *Serializer {
 	return &Serializer{
 		writer:  w,
-		dynamic: NewDynamicEncoder(),
+		dynamic: vbuild.NewDynamicBuilder(),
 	}
 }
 
@@ -42,7 +43,7 @@ func (w *Serializer) Close() error {
 func (w *Serializer) Push(vec vector.Any) error {
 	if vec.Len() != 0 {
 		w.dynamic.Write(vec)
-		if w.dynamic.len >= maxObjectSize {
+		if w.dynamic.Len() >= maxObjectSize {
 			return w.finalizeObject()
 		}
 	}
@@ -50,7 +51,8 @@ func (w *Serializer) Push(vec vector.Any) error {
 }
 
 func (w *Serializer) finalizeObject() error {
-	root, dataSize, err := w.dynamic.Encode()
+	enc := NewDynamicEncoder(w.dynamic.BuildDynamic())
+	root, dataSize, err := enc.Encode()
 	if err != nil {
 		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
 	}
@@ -59,7 +61,7 @@ func (w *Serializer) finalizeObject() error {
 	var metaBuf bytes.Buffer
 	zw := bsupio.NewWriter(sio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
-	cctx := w.dynamic.cctx
+	cctx := enc.cctx
 	m := sup.NewBSUPMarshalerWithContext(cctx.local)
 	m.Decorate(sup.StyleSimple)
 	for id := range len(cctx.metas) {
@@ -88,11 +90,11 @@ func (w *Serializer) finalizeObject() error {
 		return fmt.Errorf("system error: could not write CSUP metadata section: %w", err)
 	}
 	// Data section
-	if err := w.dynamic.Emit(w.writer); err != nil {
+	if err := enc.Emit(w.writer); err != nil {
 		return fmt.Errorf("system error: could not write CSUP data section: %w", err)
 	}
 	// Set new dynamic so we can write the next object.
-	w.dynamic = NewDynamicEncoder()
+	w.dynamic = vbuild.NewDynamicBuilder()
 	return nil
 }
 

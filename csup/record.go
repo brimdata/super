@@ -3,7 +3,6 @@ package csup
 import (
 	"io"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
@@ -15,26 +14,15 @@ type RecordEncoder struct {
 
 var _ Encoder = (*RecordEncoder)(nil)
 
-func NewRecordEncoder(cctx *Context, typ *super.TypeRecord) *RecordEncoder {
-	fields := make([]*FieldEncoder, 0, len(typ.Fields))
-	for _, f := range typ.Fields {
+func NewRecordEncoder(cctx *Context, vec *vector.Record) *RecordEncoder {
+	fields := make([]*FieldEncoder, 0, len(vec.Fields))
+	for i, f := range vec.Fields {
 		fields = append(fields, &FieldEncoder{
-			name:   f.Name,
-			values: NewEncoder(cctx, f.Type),
+			name:   vec.Typ.Fields[i].Name,
+			values: NewEncoder(cctx, f),
 		})
 	}
-	return &RecordEncoder{fields: fields}
-}
-
-func (r *RecordEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	rec := vec.(*vector.Record)
-	r.count += rec.Len()
-	for k, f := range r.fields {
-		f.write(rec.Fields[k])
-	}
+	return &RecordEncoder{fields: fields, count: vec.Len()}
 }
 
 func (r *RecordEncoder) Encode(group *errgroup.Group) {

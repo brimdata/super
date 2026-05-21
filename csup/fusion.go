@@ -3,36 +3,24 @@ package csup
 import (
 	"io"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
 type FusionEncoder struct {
-	typ      *super.TypeFusion
 	values   Encoder
 	subtypes Encoder
 }
 
 var _ Encoder = (*FusionEncoder)(nil)
 
-func NewFusionEncoder(cctx *Context, typ *super.TypeFusion) *FusionEncoder {
+func NewFusionEncoder(cctx *Context, vec *vector.Fusion) *FusionEncoder {
 	return &FusionEncoder{
-		typ:    typ,
-		values: NewEncoder(cctx, typ.Type),
+		values: NewEncoder(cctx, vec.Values),
 		// Call NewTypeValueEncoder directly because we do not want subtypes
 		// wrapped in a dict / const.
-		subtypes: NewTypeValueEncoder(cctx),
+		subtypes: NewTypeValueEncoder(cctx, vec.Subtypes),
 	}
-}
-
-func (f *FusionEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	fusion := vec.(*vector.Fusion)
-	f.values.Write(fusion.Values)
-	f.subtypes.Write(fusion.Subtypes)
 }
 
 func (f *FusionEncoder) Emit(w io.Writer) error {

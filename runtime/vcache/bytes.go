@@ -47,18 +47,22 @@ func (b *bytes) load(loader *loader) vector.BytesTable {
 	if b.table != nil {
 		return *b.table
 	}
-	offs, err := csup.ReadUint32s(b.meta.Offsets, loader.r)
+	table := loadBytesTable(loader, b.meta.Offsets, b.meta.Bytes)
+	b.table = &table
+	return table
+}
+
+func loadBytesTable(loader *loader, offsets, bytes csup.Segment) vector.BytesTable {
+	offs, err := csup.ReadUint32s(offsets, loader.r)
 	if err != nil {
 		panic(err)
 	}
 	if len(offs) == 0 {
 		offs = []uint32{0}
 	}
-	bytes := make([]byte, b.meta.Bytes.MemLength)
-	if err := b.meta.Bytes.Read(loader.r, bytes); err != nil {
+	b := make([]byte, bytes.MemLength)
+	if err := bytes.Read(loader.r, b); err != nil {
 		panic(err)
 	}
-	table := vector.NewBytesTable(offs, bytes)
-	b.table = &table
-	return table
+	return vector.NewBytesTable(offs, b)
 }

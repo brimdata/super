@@ -61,6 +61,8 @@ func newShadow(cctx *csup.Context, id csup.ID) shadow {
 		return newMap(cctx, meta)
 	case *csup.Union:
 		return newUnion(cctx, meta)
+	case *csup.Enum:
+		return newEnum(meta, newShadow(cctx, meta.Values))
 	case *csup.Fusion:
 		return newFusion(cctx, meta)
 	case *csup.Dict:
@@ -71,10 +73,18 @@ func newShadow(cctx *csup.Context, id csup.ID) shadow {
 		return newUint(cctx, meta)
 	case *csup.Float:
 		return newFloat(cctx, meta)
+	case *csup.Bool:
+		return newBool(meta)
 	case *csup.Bytes:
 		return newBytes(cctx, meta)
-	case *csup.Primitive:
-		return newPrimitive(cctx, meta)
+	case *csup.IP:
+		return newIP(meta)
+	case *csup.Net:
+		return newNet(meta)
+	case *csup.Null:
+		return newNull(meta)
+	case *csup.None:
+		return newNone(meta)
 	case *csup.TypeValue:
 		return newTypeValue(cctx, meta)
 	case *csup.Const:

@@ -12,72 +12,121 @@ import (
 
 type BytesEncoder struct {
 	typ      super.Type
+	bytes    *BytesTableEncoder
 	min, max []byte
-	bytes    []byte
-	offsets  *offsetsEncoder
+}
+
+func NewBytesEncoder(typ super.Type, table vector.BytesTable) *BytesEncoder {
+	return &BytesEncoder{
+		typ:   typ,
+		bytes: &BytesTableEncoder{table: table},
+	}
+}
+
+func (b *BytesEncoder) Encode(group *errgroup.Group) {
+	b.bytes.Encode(group)
+	group.Go(func() error {
+		table := b.bytes.table
+		if table.Len() == 0 {
+			return nil
+		}
+		b.min, b.max = table.Bytes(0), table.Bytes(0)
+		for i := range table.Len() {
+			v := table.Bytes(i)
+			if bytes.Compare(v, b.min) < 0 {
+				b.min = v
+			}
+			if bytes.Compare(v, b.max) > 0 {
+				b.max = v
+			}
+		}
+		return nil
+	})
+}
+
+func (b *BytesEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+	off, bytesLoc, offsLoc := b.bytes.Segment(off)
+	return off, cctx.enter(&Bytes{
+		Typ:     b.typ,
+		Bytes:   bytesLoc,
+		Offsets: offsLoc,
+		Min:     b.min,
+		Max:     b.max,
+		Count:   b.bytes.table.Len(),
+	})
+}
+
+func (b *BytesEncoder) Emit(w io.Writer) error {
+	return b.bytes.Emit(w)
+}
+
+func maybeStringBytesDict(typ super.Type, table vector.BytesTable) vector.Any {
+	flat := func(table vector.BytesTable) vector.Any {
+		if typ.ID() == super.IDString {
+			return vector.NewString(table)
+		}
+		return vector.NewBytes(table)
+	}
+	var counts []uint32
+	m := make(map[string]byte)
+	index := make([]byte, table.Len())
+	out := vector.NewBytesTableEmpty(0)
+	for i := range table.Len() {
+		tag, ok := m[string(table.Bytes(i))]
+		if !ok {
+			if len(counts) > math.MaxUint8 {
+				return flat(table)
+			}
+			tag = byte(len(counts))
+			b := table.Bytes(i)
+			m[string(b)] = tag
+			counts = append(counts, 0)
+			out.Append(b)
+		}
+		index[i] = tag
+		counts[tag]++
+	}
+	if !isValidDict(int(table.Len()), int(out.Len())) {
+		return flat(table)
+	}
+	vec := flat(out)
+	if vec.Len() == 1 {
+		return vector.NewConst(vec, table.Len())
+	}
+	return vector.NewDict(vec, index, counts)
+}
+
+type BytesTableEncoder struct {
+	table vector.BytesTable
 
 	// These values are used for the Encode pass.
 	bytesFmt uint8
 	bytesOut []byte
 	bytesLen uint64
+	offsets  *Uint32Encoder
 }
 
-func NewBytesEncoder(typ super.Type) *BytesEncoder {
-	return &BytesEncoder{
-		typ:     typ,
-		offsets: newOffsetsEncoder(),
-	}
+func NewBytesTableEncoder(table vector.BytesTable) *BytesTableEncoder {
+	return &BytesTableEncoder{table: table}
 }
 
-func (b *BytesEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
-	switch vec := vec.(type) {
-	case *vector.Bytes:
-		b.writeTable(vec.Table())
-	case *vector.String:
-		b.writeTable(vec.Table())
-	default:
-		panic(vec)
-	}
-}
-
-func (b *BytesEncoder) writeTable(table vector.BytesTable) {
-	if len(b.bytes) == 0 {
-		val := table.Bytes(0)
-		b.min = append(b.min[:0], val...)
-		b.max = append(b.max[:0], val...)
-	}
-	for slot := range table.Len() {
-		val := table.Bytes(slot)
-		if bytes.Compare(val, b.min) < 0 {
-			b.min = append(b.min[:0], val...)
-		}
-		if bytes.Compare(val, b.max) > 0 {
-			b.max = append(b.max[:0], val...)
-		}
-	}
-	b.bytes = append(b.bytes, table.RawBytes()...)
-	b.offsets.write(table.RawOffsets())
-}
-
-func (b *BytesEncoder) Encode(group *errgroup.Group) {
+func (b *BytesTableEncoder) Encode(group *errgroup.Group) {
 	group.Go(func() error {
-		fmt, out, err := compressBuffer(b.bytes)
+		bytes := b.table.RawBytes()
+		fmt, out, err := compressBuffer(bytes)
 		if err != nil {
 			return err
 		}
 		b.bytesFmt = fmt
 		b.bytesOut = out
-		b.bytesLen = uint64(len(b.bytes))
-		b.bytes = nil // send to GC
+		b.bytesLen = uint64(len(bytes))
 		return nil
 	})
+	b.offsets = NewUint32Encoder(b.table.RawOffsets())
 	b.offsets.Encode(group)
 }
 
-func (b *BytesEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+func (b *BytesTableEncoder) Segment(off uint64) (uint64, Segment, Segment) {
 	bytesLoc := Segment{
 		Offset:            off,
 		Length:            uint64(len(b.bytesOut)),
@@ -85,57 +134,14 @@ func (b *BytesEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 		CompressionFormat: b.bytesFmt,
 	}
 	off, offsLoc := b.offsets.Segment(off + bytesLoc.Length)
-	return off, cctx.enter(&Bytes{
-		Typ:     b.typ,
-		Bytes:   bytesLoc,
-		Offsets: offsLoc,
-		Min:     b.min,
-		Max:     b.max,
-		Count:   uint32(len(b.offsets.vals) - 1),
-	})
+	return off, bytesLoc, offsLoc
 }
 
-func (b *BytesEncoder) Emit(w io.Writer) error {
+func (b *BytesTableEncoder) Emit(w io.Writer) error {
 	if len(b.bytesOut) > 0 {
 		if _, err := w.Write(b.bytesOut); err != nil {
 			return err
 		}
 	}
 	return b.offsets.Emit(w)
-}
-
-func (b *BytesEncoder) value(slot uint32) []byte {
-	return b.bytes[b.offsets.vals[slot]:b.offsets.vals[slot+1]]
-}
-
-func (b *BytesEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
-	if len(b.bytes) == 0 {
-		return nil, nil, nil
-	}
-	m := make(map[string]byte)
-	var counts []uint32
-	index := make([]byte, len(b.offsets.vals)-1)
-	table := vector.NewBytesTableEmpty(256)
-	for k := range uint32(len(index)) {
-		tag, ok := m[string(b.value(k))]
-		if !ok {
-			tag = byte(len(counts))
-			v := b.value(k)
-			m[string(v)] = tag
-			table.Append(v)
-			counts = append(counts, 0)
-			if len(counts) > math.MaxUint8 {
-				return nil, nil, nil
-			}
-		}
-		index[k] = tag
-		counts[tag]++
-	}
-	encoder := NewBytesEncoder(b.typ)
-	encoder.Write(vector.NewBytes(table))
-	return encoder, index, counts
-}
-
-func (b *BytesEncoder) ConstValue() super.Value {
-	return super.NewValue(b.typ, b.value(0))
 }

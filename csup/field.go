@@ -3,18 +3,12 @@ package csup
 import (
 	"io"
 
-	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
-// XXX in a forthcoming PR, we will change this to OptionEncoder
 type FieldEncoder struct {
 	name   string
 	values Encoder
-}
-
-func (f *FieldEncoder) write(vec vector.Any) {
-	f.values.Write(vec)
 }
 
 func (f *FieldEncoder) Metadata(cctx *Context, off uint64) (uint64, Field) {
