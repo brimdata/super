@@ -271,14 +271,19 @@ func (u *Upcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 }
 
 func (u *Upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {
-	values := u.upcast(vec, to.Type)
-	if values == nil {
-		return nil
-	}
 	typ := vec.Type()
 	subtypes := make([]super.Type, vec.Len())
 	for i := range subtypes {
 		subtypes[i] = typ
+	}
+	var values vector.Any
+	if to.Type == super.TypeAll {
+		values = vec
+	} else {
+		values = u.upcast(vec, to.Type)
+		if values == nil {
+			return nil
+		}
 	}
 	return vector.NewFusion(to, values, subtypes)
 }
