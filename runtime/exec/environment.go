@@ -172,6 +172,13 @@ func (c *closePuller) Pull(done bool) (sbuf.Batch, error) {
 }
 
 func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, p sbuf.Pushdown, concurrentReaders int) (VectorConcurrentPuller, error) {
+	if format != "csup" && format != "fjson" && format != "parquet" {
+		sbufPuller, err := e.Open(ctx, sctx, path, format, p)
+		if err != nil {
+			return nil, err
+		}
+		return sbuf.NewDematerializer(sctx, sbufPuller), nil
+	}
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -192,17 +199,11 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 	case "fjson":
 		puller = fjsonio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
 	default:
-		var sbufPuller sbuf.Puller
-		sbufPuller, err = e.Open(ctx, sctx, path, format, p)
-		if err == nil {
-			// No errorPrefixConcurrentPuller since sbufPuller
-			// already does that.
-			return sbuf.NewDematerializer(sctx, sbufPuller), nil
-		}
+		panic(format)
 	}
 	if err != nil {
 		reader.Close()
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", path, err)
 	}
 	return &errorPrefixConcurrentPuller{puller, path}, nil
 }
