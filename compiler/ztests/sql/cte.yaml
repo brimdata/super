@@ -4,8 +4,6 @@ script: |
   super -s -c 'with x as ( select 1 as y ) select z.y from x as z'
   ! super -c 'with x as ( select 1 as y ), x as ( select 2 as y ) select * from x'
 
-vector: true
-
 inputs:
   - name: sales.spq
     data: |

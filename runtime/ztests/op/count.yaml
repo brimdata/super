@@ -16,8 +16,6 @@ script: |
   >&2 echo // ===
   ! super -s -c 'count {foo:"foo",1}'
 
-vector: true
-
 outputs:
   - name: stdout
     data: |

@@ -1,7 +1,5 @@
 script: super -s -I query.spq
 
-vector: true
-
 inputs:
   - name: query.spq
     data: |

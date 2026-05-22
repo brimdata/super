@@ -1,8 +1,6 @@
 script: |
   super -s -c 'join (from B.sup) on left.a=right.b | values {...left,b:right.b}' -
 
-vector: true
-
 inputs:
   - name: stdin
     data: |

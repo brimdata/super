@@ -8,8 +8,6 @@ script: |
       sum(distinct n) by key
     | sort key'
 
-vector: true
-
 inputs:
   - name: test.sup
     data: |

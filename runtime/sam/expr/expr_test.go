@@ -15,9 +15,10 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 		input = "{}"
 	}
 	zt := ztest.ZTest{
-		SPQ:    fmt.Sprintf("values %s", e),
-		Input:  &input,
-		Output: expected + "\n",
+		Runtime: new("sam"),
+		SPQ:     fmt.Sprintf("values %s", e),
+		Input:   &input,
+		Output:  expected + "\n",
 	}
 	if err := zt.RunInternal(t.Context()); err != nil {
 		t.Fatal(err)

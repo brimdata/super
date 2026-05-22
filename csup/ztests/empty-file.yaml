@@ -1,3 +1,5 @@
+runtime: sam
+
 script: |
   ! super -i csup /dev/null
 

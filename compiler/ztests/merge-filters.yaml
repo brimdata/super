@@ -1,3 +1,5 @@
+runtime: sam
+
 script: |
   super compile -C -O 'from /dev/null | where a | where b'
   echo ===

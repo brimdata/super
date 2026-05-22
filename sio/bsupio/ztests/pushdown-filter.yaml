@@ -3,8 +3,6 @@ script: |
   super in.sup > test.bsup 
   super -s -c 'from test.bsup | where this'
 
-vector: true
-
 inputs:
   - name: in.sup
     data: |

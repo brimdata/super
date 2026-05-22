@@ -4,8 +4,6 @@ script: |
   ! super -s -c "cut rec1.rec2.sub1,other,rec1.rec2.sub2" in.sup
   ! super -s -c "cut t.rec.sub1,t.other,t.rec.sub2" in.sup
 
-vector: true
-
 inputs:
   - name: in.sup
     data: |

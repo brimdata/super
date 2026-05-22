@@ -2,8 +2,6 @@
 script: |
   super -s -fusemem 13B -c blend in.sup
 
-vector: true
-
 inputs:
   - name: in.sup
     data: |

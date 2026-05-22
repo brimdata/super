@@ -5,8 +5,6 @@ script: |
   echo ===
   super -s -c 'from "3.sup" | unnest this into (distinct this | count())'
 
-vector: true
-
 inputs:
   - name: 1.sup
     data: |

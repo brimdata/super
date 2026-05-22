@@ -1,3 +1,5 @@
+runtime: sam
+
 script: |
   echo '{target:"foo",src:"bar"} {target:"fool",src:"baz"}' | super -s -c 'rename this[target] := src' -
   echo '// ==='

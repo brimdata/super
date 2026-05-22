@@ -3,8 +3,6 @@
 script: |
   super -s -c 'from "test.sup" | collect(a) by b | sort b'
 
-vector: true
-
 inputs:
   - name: test.sup
     data: |

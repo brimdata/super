@@ -1,3 +1,5 @@
+runtime: sam
+
 script: |
   super compile -C -O -dynamic 'from f | values {a:b,c:d} | where a==1 and c==2'
   echo ===

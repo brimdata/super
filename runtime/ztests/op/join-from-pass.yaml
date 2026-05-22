@@ -1,7 +1,5 @@
 script: super -s -I join.spq left.sup
 
-vector: true
-
 inputs:
   - name: join.spq
     data: |

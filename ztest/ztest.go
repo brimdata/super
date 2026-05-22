@@ -176,9 +176,6 @@ func Load(dirname string) ([]Bundle, error) {
 			continue
 		}
 		for _, zt := range zts {
-			if zt.SPQ != "" {
-				zt.Vector = true
-			}
 			bundles = append(bundles, Bundle{filename, zt, nil})
 		}
 	}
@@ -266,9 +263,10 @@ func (f *File) load(dir string) ([]byte, *regexp.Regexp, error) {
 
 // ZTest defines a ztest.
 type ZTest struct {
-	Line int    `yaml:"-"`
-	Skip string `yaml:"skip,omitempty"`
-	Tag  string `yaml:"tag,omitempty"`
+	Line    int     `yaml:"-"`
+	Runtime *string `yaml:"runtime,omitempty"`
+	Skip    string  `yaml:"skip,omitempty"`
+	Tag     string  `yaml:"tag,omitempty"`
 
 	// For SPQ-style tests.
 	SPQ         string  `yaml:"spq,omitempty"`
@@ -287,6 +285,9 @@ type ZTest struct {
 }
 
 func (z *ZTest) check() error {
+	if r := z.Runtime; r != nil && *r != "sam" && *r != "vam" {
+		return fmt.Errorf(`unknown runtime %q: must be "sam" or "vam"`, *r)
+	}
 	if z.Script != "" {
 		if z.Outputs == nil {
 			return errors.New("outputs field missing in a sh test")
@@ -363,18 +364,19 @@ func (z *ZTest) run(fn func(exec.Runtime) error) error {
 	if err := z.check(); err != nil {
 		return fmt.Errorf("bad yaml format: %w", err)
 	}
-	serr := fn(exec.RuntimeSAM)
-	if !z.Vector {
-		return serr
+	r := z.Runtime
+	var samErr, vamErr error
+	if r == nil || *r == "sam" {
+		if err := fn(exec.RuntimeSAM); err != nil {
+			samErr = fmt.Errorf("=== sam ===\n%w", err)
+		}
 	}
-	if serr != nil {
-		serr = fmt.Errorf("=== sequence ===\n%w", serr)
+	if r == nil || *r == "vam" {
+		if err := fn(exec.RuntimeVAM); err != nil {
+			vamErr = fmt.Errorf("=== vam ===\n%w", err)
+		}
 	}
-	verr := fn(exec.RuntimeVAM)
-	if verr != nil {
-		verr = fmt.Errorf("=== vector ===\n%w", verr)
-	}
-	return errors.Join(serr, verr)
+	return errors.Join(samErr, vamErr)
 }
 
 func (z *ZTest) diffInternal(out string, err error) error {

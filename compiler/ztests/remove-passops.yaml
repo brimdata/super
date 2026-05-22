@@ -1,3 +1,5 @@
+runtime: sam
+
 script: super compile -O -C 'from /dev/null | x>1 | pass | pass | x>2 | pass'
 
 outputs:

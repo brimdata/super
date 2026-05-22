@@ -16,8 +16,6 @@ script: |
   # pass errors through unmodified, i.e., do not turn into missing
   super -s -c "select (values error('foo')) as e"
 
-vector: true
-
 outputs:
   - name: stdout
     data: |

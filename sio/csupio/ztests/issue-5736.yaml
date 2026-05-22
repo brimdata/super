@@ -12,8 +12,6 @@ script: |
         by event
     | sort -r count"
 
-vector: true
-
 inputs:
   - name: stdin
     data: |

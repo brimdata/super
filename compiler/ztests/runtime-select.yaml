@@ -1,3 +1,5 @@
+runtime: sam
+
 script: |
   # Check the environment variable works.
   SUPER_RUNTIME=vam super compile -dag -C -runtime 'values "foo"'

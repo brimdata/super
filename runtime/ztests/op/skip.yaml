@@ -3,8 +3,6 @@ script: |
   seq 1000 | super -s -c 'skip 900 | head 1' -
   ! super -c 'skip "hello"'
 
-vector: true
-
 outputs:
   - name: stdout
     data: |

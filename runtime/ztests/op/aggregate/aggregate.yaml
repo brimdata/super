@@ -20,8 +20,6 @@ script: |
   echo === reverse-sorted-null ===
   super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in-rev.sup
 
-vector: true
-
 inputs:
   - name: in.sup
     data: |

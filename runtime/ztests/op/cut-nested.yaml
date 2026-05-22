@@ -5,8 +5,6 @@ script: |
   echo ===
   super -s -c "cut rec1.sub1.foo,rec1['sub2']['bar'],rec2.foo,foo" nested2.sup
 
-vector: true
-
 inputs:
   - name: nested1.sup
     data: |

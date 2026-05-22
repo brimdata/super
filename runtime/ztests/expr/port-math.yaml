@@ -5,8 +5,6 @@ script: |
   echo ===
   super -s -c "put x:=a+p1+p2" in.sup
 
-vector: true
-
 inputs:
   - name: in.sup
     data: |

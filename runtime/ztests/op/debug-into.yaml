@@ -3,8 +3,6 @@ script: |
   echo ===
   super -s -I q2.spq 2>&1 | super -s -c "sort this" -
 
-vector: true
-
 inputs:
   # from issue #6681
   - name: q1.spq

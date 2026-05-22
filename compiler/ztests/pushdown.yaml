@@ -1,3 +1,5 @@
+runtime: sam
+
 script: |
   echo === debug
   super compile -C -O 'from /dev/null | debug a | values b'

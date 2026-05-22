@@ -18,8 +18,6 @@ script: |
   echo === cross
   super -s -c 'cross join (from C.sup) | values {...left,...right} | sort b, sb, c' B.sup
 
-vector: true
-
 inputs:
   - name: A.sup
     data: |
