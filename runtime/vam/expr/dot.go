@@ -66,6 +66,8 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Map:
 		keyVec := vector.NewConstString(d.field, val.Len())
 		return indexMap(d.sctx, val, keyVec)
+	case *vector.Union:
+		return vector.Apply(false, d.eval, val.Dynamic())
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:
