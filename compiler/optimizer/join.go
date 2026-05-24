@@ -160,16 +160,20 @@ func equiJoinKeyExprs(e dag.Expr, leftAlias, rightAlias string) (left, right dag
 // firstThisPathComponent returns the first component common to every dag.This.Path
 // in e and a Boolean indicating whether such a common first component exists.
 func firstThisPathComponent(e dag.Expr) (prefix string, ok bool) {
+	first, valid := true, true
 	walkT(reflect.ValueOf(e), func(t dag.ThisExpr) dag.ThisExpr {
-		if prefix == "" {
+		// A bare this reference has no first component, so no common prefix can exist.
+		if len(t.Path) == 0 {
+			valid = false
+		} else if first {
 			prefix = t.Path[0]
-			ok = true
+			first = false
 		} else if prefix != t.Path[0] {
-			ok = false
+			valid = false
 		}
 		return t
 	})
-	return prefix, ok
+	return prefix, valid && !first
 }
 
 // stripFirstThisPathComponent removes the first component of every dag.This.Path in e.
