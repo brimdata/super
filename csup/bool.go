@@ -39,8 +39,8 @@ func (b *BoolEncoder) Encode(group *errgroup.Group) {
 func (b *BoolEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
 		Offset:            off,
-		MemLength:         uint64(len(b.out)),
-		Length:            b.bytesLen,
+		Length:            uint64(len(b.out)),
+		MemLength:         b.bytesLen,
 		CompressionFormat: b.fmt,
 	}
 	off += loc.Length
