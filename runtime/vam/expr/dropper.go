@@ -24,7 +24,7 @@ func NewDropper(sctx *super.Context, fields field.List) *Dropper {
 }
 
 func (d *Dropper) Eval(vec vector.Any) vector.Any {
-	return vector.Apply(false, d.eval, vec)
+	return vector.Apply(vector.ApplyNone, d.eval, vec)
 }
 
 func (d *Dropper) eval(vecs ...vector.Any) vector.Any {

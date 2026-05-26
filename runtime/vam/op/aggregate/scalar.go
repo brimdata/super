@@ -66,7 +66,7 @@ func (s *scalarAggregate) Pull(done bool) (vector.Any, error) {
 				vals = append(vals, v)
 			}
 		}
-		vector.Apply(true, s.consume, vals...)
+		vector.Apply(vector.ApplyRipUnions, s.consume, vals...)
 	}
 }
 

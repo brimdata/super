@@ -21,7 +21,7 @@ func NewIndexExpr(sctx *super.Context, container, index Evaluator, base1 bool) E
 }
 
 func (i *Index) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, i.eval, this)
+	return vector.Apply(vector.ApplyRipUnions, i.eval, this)
 }
 
 func (i *Index) eval(args ...vector.Any) vector.Any {
@@ -45,7 +45,7 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any, base1 bool) 
 		return indexVec
 	}
 	if id := indexVec.Type().ID(); super.IsUnsigned(id) {
-		return vector.Apply(true, func(args ...vector.Any) vector.Any {
+		return vector.Apply(vector.ApplyRipUnions, func(args ...vector.Any) vector.Any {
 			return indexArrayOrSet(sctx, args[0], args[1], base1)
 		}, vec, cast.To(sctx, indexVec, super.TypeInt64))
 	} else if !super.IsInteger(id) {
@@ -88,7 +88,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 	var isint bool
 	switch id := indexVec.Type().ID(); {
 	case super.IsUnsigned(id):
-		return vector.Apply(true, func(args ...vector.Any) vector.Any {
+		return vector.Apply(vector.ApplyRipUnions, func(args ...vector.Any) vector.Any {
 			return indexRecord(sctx, args[0], args[1], base1)
 		}, vec, cast.To(sctx, indexVec, super.TypeInt64))
 	case super.IsSigned(id):
@@ -174,7 +174,7 @@ func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	}
 	var valIndexes, errs []uint32
 	cmp := NewCompare(sctx, "==", nil, nil).eval
-	hits := vector.Apply(true, cmp, vector.Pick(indexVec, pick), m.Keys)
+	hits := vector.Apply(vector.ApplyRipUnions, cmp, vector.Pick(indexVec, pick), m.Keys)
 	bits := FlattenBool(hits).Bits
 	for idx := range n {
 		i := idx

@@ -4,16 +4,28 @@ import (
 	"iter"
 )
 
+type ApplyOpt uint
+
+const (
+	ApplyNone      ApplyOpt = 0
+	ApplyRipUnions ApplyOpt = 1 << iota
+	ApplyRipFusions
+)
+
 type NoRip struct {
 	Any
 }
 
 // Apply applies eval to vecs. If any element of vecs is a Dynamic, Apply rips
 // vecs accordingly, applies eval to the ripped vectors, and stitches the
-// results together into a Dynamic. If ripUnions is true, Apply also rips
-// Unions.
-func Apply(ripUnions bool, eval func(...Any) Any, vecs ...Any) Any {
-	if ripUnions {
+// results together into a Dynamic.
+func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
+	if opt&ApplyRipFusions != 0 {
+		for k, vec := range vecs {
+			vecs[k] = Super(vec)
+		}
+	}
+	if opt&ApplyRipUnions != 0 {
 		for k, vec := range vecs {
 			if vec, ok := Under(vec).(*Union); ok {
 				vecs[k] = vec.Dynamic()
@@ -27,7 +39,7 @@ func Apply(ripUnions bool, eval func(...Any) Any, vecs ...Any) Any {
 	results := make([]Any, len(d.Values))
 	for i, ripped := range rip(vecs, d) {
 		if len(ripped) > 0 {
-			results[i] = Apply(ripUnions, eval, ripped...)
+			results[i] = Apply(opt, eval, ripped...)
 		}
 	}
 	return stitch(d.Tags, results)

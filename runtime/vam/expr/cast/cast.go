@@ -86,7 +86,7 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 }
 
 func castNamed(sctx *super.Context, vec vector.Any, named *super.TypeNamed) vector.Any {
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
 		if vec.Kind() == vector.KindError {
 			return vec

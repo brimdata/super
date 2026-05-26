@@ -70,7 +70,7 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 		}
 		r.elemVecs = append(r.elemVecs, vec)
 	}
-	return vector.Apply(false, r.eval, r.elemVecs...)
+	return vector.Apply(vector.ApplyNone, r.eval, r.elemVecs...)
 }
 
 func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {

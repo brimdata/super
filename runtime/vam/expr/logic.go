@@ -165,7 +165,7 @@ func (*Or) evalWithNullOrError(boolVec, nullOrErrorVec vector.Any) vector.Any {
 // slot and they are returned as an error.  If all of the value slots are errors,
 // then the return value is nil.
 func evalBool(sctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...vector.Any) vector.Any {
-	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		for i, vec := range vecs {
 			vec := vector.Under(vec)
 			if k := vec.Kind(); k == vector.KindBool || k == vector.KindNull || k == vector.KindError {
@@ -211,7 +211,7 @@ func NewIn(sctx *super.Context, lhs, rhs Evaluator) *In {
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, i.eval, i.lhs.Eval(this), i.rhs.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions, i.eval, i.lhs.Eval(this), i.rhs.Eval(this))
 }
 
 func (i *In) eval(vecs ...vector.Any) vector.Any {
@@ -231,7 +231,7 @@ func NewPredicateWalk(sctx *super.Context, pred func(...vector.Any) vector.Any) 
 }
 
 func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
-	return vector.Apply(true, p.eval, vecs...)
+	return vector.Apply(vector.ApplyRipUnions, p.eval, vecs...)
 }
 
 func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
@@ -263,7 +263,7 @@ func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 		if index != nil {
 			panic("vector.Union unexpected in vector.View")
 		}
-		return EvalOr(p.sctx, out, vector.Apply(true, p.Eval, lhs, rhs))
+		return EvalOr(p.sctx, out, vector.Apply(vector.ApplyRipUnions, p.Eval, lhs, rhs))
 	case *vector.Error:
 		if index != nil {
 			panic("vector.Error unexpected in vector.View")
@@ -311,7 +311,7 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 
 func hasNull(vec vector.Any) bool {
 	var hasNull bool
-	vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		hasNull = hasNull || vecs[0].Kind() == vector.KindNull
 		return vecs[0]
 	}, vec)
@@ -320,7 +320,7 @@ func hasNull(vec vector.Any) bool {
 
 func hasTrue(vec vector.Any) bool {
 	var hasTrue bool
-	vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
 		if !hasTrue && vec.Kind() == vector.KindBool {
 			for i := range vec.Len() {

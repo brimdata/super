@@ -64,7 +64,7 @@ func (f *Fuse) Pull(done bool) (vector.Any, error) {
 	vec := f.vecs[0]
 	f.vecs[0] = nil
 	f.vecs = f.vecs[1:]
-	return vector.Apply(false, f.upcast, vec), nil
+	return vector.Apply(vector.ApplyNone, f.upcast, vec), nil
 }
 
 func (f *Fuse) upcast(vecs ...vector.Any) vector.Any {

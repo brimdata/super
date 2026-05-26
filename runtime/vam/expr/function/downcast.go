@@ -71,7 +71,7 @@ func (d *downcast) call(from vector.Any, types []super.Type) vector.Any {
 	for typ, i := range typeToTag {
 		vals[i] = d.downcast(vector.Pick(from, indexes[i]), typ)
 	}
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		return vecs[0]
 	}, vector.NewDynamic(tags, vals))
 }
@@ -130,7 +130,7 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 
 func (d *downcast) downcastFusion(fusion *vector.Fusion, to super.Type) vector.Any {
 	vec := d.Call(fusion.Values, fusion.Subtypes)
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
 		if vec.Type() != to {
 			vec = d.errSubtype(vec, to)
@@ -145,7 +145,7 @@ func (d *downcast) downcastDynamic(dynamic *vector.Dynamic, to super.Type) vecto
 		vecs[tag] = d.downcast(vec, to)
 	}
 	// Flatten nested dynamics.
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		return vecs[0]
 	}, vector.NewDynamic(dynamic.Tags, vecs))
 }
@@ -175,7 +175,7 @@ func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 		}
 		fields = append(fields, d.downcast(rec.Fields[i], toField.Type))
 	}
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		for k, vec := range vecs {
 			if vec.Type() != to.Fields[k].Type {
 				return vec
@@ -468,7 +468,7 @@ func (d *downcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 }
 
 func (d *downcast) deunion(vec vector.Any, f func(vector.Any) vector.Any) vector.Any {
-	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		return f(vecs[0])
 	}, vec)
 }
