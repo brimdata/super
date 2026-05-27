@@ -173,6 +173,16 @@ spq: fuse | defuse(this)
 
 input: &input |
   error(0)
+  error(1::(int64|string))
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  error(0)
   error(1)::(null|error(int64))
 
 output: *input

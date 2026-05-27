@@ -456,21 +456,18 @@ func (d *downcast) toEnum(vec vector.Any, to *super.TypeEnum) vector.Any {
 }
 
 func (d *downcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
-	if verr, ok := vec.(*vector.Error); ok {
-		return d.deunion(d.downcast(verr.Vals, to.Type), func(vec vector.Any) vector.Any {
-			if vec.Type() != to.Type {
-				return vec
-			}
-			return vector.NewError(to, vec)
-		})
+	errVec, ok := vec.(*vector.Error)
+	if !ok {
+		return d.errMismatch(vec, to)
 	}
-	return d.errMismatch(vec, to)
-}
-
-func (d *downcast) deunion(vec vector.Any, f func(vector.Any) vector.Any) vector.Any {
-	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
-		return f(vecs[0])
-	}, vec)
+	valsVec := d.downcast(errVec.Vals, to.Type)
+	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		if vec.Type() != to.Type {
+			return vec
+		}
+		return vector.NewError(to, vec)
+	}, valsVec)
 }
 
 func (d *downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vector.Any) vector.Any) vector.Any {
