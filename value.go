@@ -438,6 +438,11 @@ func (v Value) DeunionIntoNameds() Value {
 		if named, ok := typ.(*TypeNamed); ok {
 			typ = named.Type
 		}
+		if fusion, ok := typ.(*TypeFusion); ok {
+			var bytes scode.Bytes
+			typ, bytes = fusion.DerefFusion(v.Bytes())
+			v = NewValue(typ, bytes)
+		}
 		union, ok := typ.(*TypeUnion)
 		if !ok {
 			return v

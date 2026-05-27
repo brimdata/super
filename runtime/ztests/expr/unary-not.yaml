@@ -3,7 +3,9 @@ spq:  values [!this, not this]
 input: |
   false
   true
+  fusion(false::(bool|null),<bool)
 
 output: |
   [true,true]
   [false,false]
+  [true,true]
