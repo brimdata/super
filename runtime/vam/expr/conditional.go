@@ -23,7 +23,7 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 }
 
 func (c *conditional) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, c.eval, c.predicate.Eval(this), &vector.NoRip{Any: this})
+	return vector.Apply(vector.ApplyRipUnions, c.eval, c.predicate.Eval(this), &vector.NoRip{Any: this})
 }
 
 func (c *conditional) eval(vecs ...vector.Any) vector.Any {
@@ -72,7 +72,7 @@ func (c *conditional) eval(vecs ...vector.Any) vector.Any {
 }
 
 func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap) {
-	mask = vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	mask = vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		return vecs[0]
 	}, mask)
 	bools := roaring.New()

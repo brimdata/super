@@ -38,7 +38,7 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 	if a.Where == nil {
 		return vec
 	}
-	return vector.Apply(true, a.apply, vec, a.Where.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions, a.apply, vec, a.Where.Eval(this))
 }
 
 func (*Aggregator) apply(args ...vector.Any) vector.Any {

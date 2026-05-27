@@ -51,5 +51,9 @@ func (c *Call) Eval(this vector.Any) vector.Any {
 	for k, e := range c.exprs {
 		c.args[k] = e.Eval(this)
 	}
-	return vector.Apply(c.ripUnions, c.fn.Call, c.args...)
+	var opts vector.ApplyOpt
+	if c.ripUnions {
+		opts = vector.ApplyRipUnions
+	}
+	return vector.Apply(opts, c.fn.Call, c.args...)
 }

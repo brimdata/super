@@ -10,7 +10,7 @@ type Quiet struct {
 }
 
 func (q *Quiet) Call(args ...vector.Any) vector.Any {
-	return vector.Apply(false, q.call, vector.DeoptionWithMissing(q.sctx, args[0]))
+	return vector.Apply(vector.ApplyNone, q.call, vector.DeoptionWithMissing(q.sctx, args[0]))
 }
 
 func (q *Quiet) call(args ...vector.Any) vector.Any {

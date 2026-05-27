@@ -161,6 +161,17 @@ output: *input
 spq: fuse | defuse(this)
 
 input: &input |
+  {a:{b:null}}
+  {a:{b:1}}
+  {a:2::(int64|null)}
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
   [1,[[2],[null]]]
   set[1,set[set[2],set[null]]]
   map{1:2,map{3:4}:map{5:map{6:7},null:map{null:null}}}
@@ -184,5 +195,14 @@ spq: fuse | defuse(this)
 input: &input |
   error(0)
   error(1)::(null|error(int64))
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  1::(int64|null)
 
 output: *input

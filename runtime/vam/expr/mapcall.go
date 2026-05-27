@@ -16,7 +16,7 @@ func NewMapCall(sctx *super.Context, e, lambda Evaluator) Evaluator {
 }
 
 func (m *mapCall) Eval(in vector.Any) vector.Any {
-	return vector.Apply(true, m.eval, m.expr.Eval(in))
+	return vector.Apply(vector.ApplyRipUnions, m.eval, m.expr.Eval(in))
 }
 
 func (m *mapCall) eval(vecs ...vector.Any) vector.Any {

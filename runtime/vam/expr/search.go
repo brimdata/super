@@ -58,7 +58,7 @@ func NewSearchString(sctx *super.Context, s string, e Evaluator) Evaluator {
 }
 
 func (s *search) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, s.eval, s.e.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions, s.eval, s.e.Eval(this))
 }
 
 func (s *search) eval(vecs ...vector.Any) vector.Any {
@@ -96,7 +96,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 		return vector.Or(s.evalForList(vec.Keys, vec.Offsets, index, n),
 			s.evalForList(vec.Values, vec.Offsets, index, n))
 	case *vector.Union:
-		return vector.Apply(true, s.eval, vec)
+		return vector.Apply(vector.ApplyRipUnions, s.eval, vec)
 	case *vector.Error:
 		return s.eval(vec.Vals)
 	}
@@ -157,7 +157,7 @@ func NewRegexpMatch(re *regexp.Regexp, e Evaluator) Evaluator {
 }
 
 func (r *regexpMatch) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, r.eval, r.e.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions, r.eval, r.e.Eval(this))
 }
 
 func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {

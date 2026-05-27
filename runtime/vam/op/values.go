@@ -64,7 +64,7 @@ func interleave(vals []vector.Any) vector.Any {
 
 func filterQuiet(vec vector.Any) vector.Any {
 	var filtered bool
-	mask := vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	mask := vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		mask, hasfiltered := expr.QuietMask(vecs[0])
 		filtered = filtered || hasfiltered
 		return mask

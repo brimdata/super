@@ -27,7 +27,7 @@ func (c *Compare) Compare(vec0, vec1 vector.Any) vector.Any {
 }
 
 func (c *Compare) Eval(val vector.Any) vector.Any {
-	return vector.Apply(true, c.eval, c.lhs.Eval(val), c.rhs.Eval(val))
+	return vector.Apply(vector.ApplyRipUnions, c.eval, c.lhs.Eval(val), c.rhs.Eval(val))
 }
 
 func (c *Compare) eval(vecs ...vector.Any) vector.Any {
@@ -210,7 +210,7 @@ func NewIsNull(e Evaluator) Evaluator {
 }
 
 func (i *isNull) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, i.eval, i.expr.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions, i.eval, i.expr.Eval(this))
 }
 
 func (i *isNull) eval(vecs ...vector.Any) vector.Any {

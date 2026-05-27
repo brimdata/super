@@ -24,6 +24,8 @@ func newDefuse(sctx *super.Context) *defuse {
 	return d
 }
 
+func (*defuse) RipUnions() bool { return false }
+
 func (d *defuse) Call(args ...vector.Any) vector.Any {
 	return d.eval(args[0])
 }
@@ -68,7 +70,7 @@ func (d *defuse) defuseRecord(vec vector.Any) vector.Any {
 	}
 	// Append length so this still works with empty records.
 	vecs = append(vecs, vector.NewNull(rec.Len()))
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		n := vecs[len(vecs)-1].Len()
 		vecs = vecs[:len(vecs)-1]
 		var fields []super.Field

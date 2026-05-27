@@ -105,7 +105,7 @@ func (n *nestedLoopJoin) join(yield func(vector.Any, error) bool) {
 					leftVec, rightVec = rightVec, leftVec
 				}
 				leftVec, rightVec = vector.Deunion(leftVec), vector.Deunion(rightVec)
-				joinedVec := vector.Apply(false, n.makeResult, leftVec, rightVec)
+				joinedVec := vector.Apply(vector.ApplyNone, n.makeResult, leftVec, rightVec)
 				if n.style != "cross" {
 					// Ignore condition errors.
 					hits, _ := expr.BoolMask(n.cond.Eval(joinedVec))
@@ -181,7 +181,7 @@ func (n *nestedLoopJoin) makeHitsResult(vec vector.Any, hits *roaring.Bitmap) (v
 	if n.style == "right" {
 		fieldName = n.rightAlias
 	}
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		typ := n.rctx.Sctx.MustLookupTypeRecord([]super.Field{
 			super.NewField(fieldName, vecs[0].Type()),
 		})

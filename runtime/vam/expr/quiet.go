@@ -30,7 +30,7 @@ func NewDequiet(sctx *super.Context, expr Evaluator) Evaluator {
 }
 
 func (d *Dequiet) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
 		if vec.Kind() == vector.KindRecord {
 			vec = d.rec(vec)
@@ -59,7 +59,7 @@ func (d *Dequiet) rec(vec vector.Any) vector.Any {
 		}
 		vecs = append(vecs, d.dequiet(vec))
 	}
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		var fields []super.Field
 		var vals []vector.Any
 		for i, vec := range vecs {

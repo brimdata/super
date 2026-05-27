@@ -27,7 +27,7 @@ func (b *Bucket) Call(args ...vector.Any) vector.Any {
 	if binID != super.IDDuration {
 		return vector.NewWrappedError(b.sctx, b.name+": second argument is not a duration", binArg)
 	}
-	return vector.Apply(false, b.call, tsArg, binArg)
+	return vector.Apply(vector.ApplyNone, b.call, tsArg, binArg)
 }
 
 func (b *Bucket) call(args ...vector.Any) vector.Any {

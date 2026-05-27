@@ -39,7 +39,7 @@ func (m *MapExpr) Eval(this vector.Any) vector.Any {
 	for _, entry := range m.entries {
 		vecs = append(vecs, entry.Val.Eval(this))
 	}
-	return vector.Apply(false, m.eval, vecs...)
+	return vector.Apply(vector.ApplyNone, m.eval, vecs...)
 }
 
 func (m *MapExpr) eval(vecs ...vector.Any) vector.Any {

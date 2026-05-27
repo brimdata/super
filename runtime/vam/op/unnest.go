@@ -73,7 +73,7 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 			lindex[i] = slot
 		}
 		left := vector.Pick(fields[0], lindex)
-		return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 			fields := slices.Clone(vec.Typ.Fields)
 			fields[1].Type = vecs[1].Type()
 			typ := u.sctx.MustLookupTypeRecord(fields)
@@ -99,7 +99,7 @@ func flattenArrayOrSet(vec vector.Any, offsets []uint32, slot uint32) vector.Any
 		return nil
 	}
 	// Deunion deeply.
-	vec = vector.Apply(true, func(vecs ...vector.Any) vector.Any { return vecs[0] }, vec)
+	vec = vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any { return vecs[0] }, vec)
 	return vector.Pick(vec, index)
 }
 

@@ -49,7 +49,7 @@ func (h HasError) hasError(in vector.Any) vector.Any {
 		vals := listHasError(h.hasError(vec.Values), index, vec.Offsets)
 		return expr.EvalOr(nil, keys, vals)
 	default:
-		return vector.Apply(true, IsErr{}.Call, in)
+		return vector.Apply(vector.ApplyRipUnions, IsErr{}.Call, in)
 	}
 }
 

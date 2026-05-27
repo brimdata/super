@@ -18,7 +18,7 @@ func NewRenamer(sctx *super.Context, srcs, dsts []*expr.Lval) *Renamer {
 }
 
 func (r *Renamer) Eval(vec vector.Any) vector.Any {
-	return vector.Apply(false, r.eval, vec)
+	return vector.Apply(vector.ApplyNone, r.eval, vec)
 }
 
 func (r *Renamer) eval(vecs ...vector.Any) vector.Any {

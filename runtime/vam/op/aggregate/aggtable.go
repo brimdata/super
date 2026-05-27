@@ -116,7 +116,7 @@ func (s *superTable) materialize() vector.Any {
 		vecs = append(vecs, s.materializeAgg(i))
 	}
 	// Since aggs can return dynamic values need to do apply to create record.
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		return s.builder.New(vecs)
 	}, vecs...)
 }

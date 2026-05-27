@@ -30,7 +30,7 @@ func (s *setExpr) Eval(this vector.Any) vector.Any {
 			vecs = append(vecs, e.Value.Eval(this))
 		}
 	}
-	return vector.Apply(false, s.eval, vecs...)
+	return vector.Apply(vector.ApplyNone, s.eval, vecs...)
 }
 
 func (a *setExpr) eval(in ...vector.Any) vector.Any {

@@ -18,7 +18,7 @@ func NewUnaryMinus(sctx *super.Context, eval Evaluator) Evaluator {
 }
 
 func (u *unaryMinus) Eval(this vector.Any) vector.Any {
-	return vector.Apply(true, u.eval, u.expr.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions, u.eval, u.expr.Eval(this))
 }
 
 func (u *unaryMinus) eval(vecs ...vector.Any) vector.Any {

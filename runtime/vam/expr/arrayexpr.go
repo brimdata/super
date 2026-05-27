@@ -40,7 +40,7 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 			vecs = append(vecs, e.Value.Eval(this))
 		}
 	}
-	return vector.Apply(false, a.eval, vecs...)
+	return vector.Apply(vector.ApplyNone, a.eval, vecs...)
 }
 
 func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {

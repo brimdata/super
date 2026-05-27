@@ -38,7 +38,7 @@ func Unblend(sctx *super.Context, vec vector.Any) vector.Any {
 	case vector.KindMap:
 		return unblendMap(sctx, vector.PushView(vec).(*vector.Map))
 	case vector.KindUnion:
-		out := vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+		out := vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 			return Unblend(sctx, vecs[0])
 		}, vec)
 		if dynamic, ok := out.(*vector.Dynamic); ok {
@@ -79,7 +79,7 @@ func unblendRecord(sctx *super.Context, in vector.Any) vector.Any {
 	for i, field := range fields {
 		fields[i] = Unblend(sctx, field)
 	}
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		var fields []super.Field
 		var fvecs []vector.Any
 		for i, vec := range vecs {
