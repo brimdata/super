@@ -99,6 +99,8 @@ func (f *FieldNameMatcher) Match(typ super.Type) bool {
 		}
 	case *super.TypeError:
 		match = f.Match(typ.Type)
+	case *super.TypeFusion:
+		match = f.Match(typ.Type)
 	}
 	f.checkedIDs[id] = match
 	return match

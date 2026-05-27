@@ -5,8 +5,10 @@ input: |
   {a:"foox",b:"there"}
   {a:"hello",b:"foox"}
   {a:"",b:"foo"}
+  fusion({a?:_::string,b?:"fool"},<{b:string}>)
 
 output: |
   {a:"foox",b:"there"}
   {a:"hello",b:"foox"}
   {a:"",b:"foo"}
+  fusion({a?:_::string,b?:"fool"},<{b:string}>)

@@ -4,6 +4,8 @@ input: |
   {a:[{b:"foo"}]}
   {a:[{c:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
+  fusion({a:1,b?:_::string},<{a:int64}>)
+  fusion({a:2,b?:"foo"},<{a:int64,b:string}>)
   null
   {a:[]::[{b:null}]}
   {a:[]::[{c:null}]}
@@ -11,4 +13,6 @@ input: |
 output: |
   {a:[{b:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
+  fusion({a:1,b?:_::string},<{a:int64}>)
+  fusion({a:2,b?:"foo"},<{a:int64,b:string}>)
   {a:[]::[{b:null}]}

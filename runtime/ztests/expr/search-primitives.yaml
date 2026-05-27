@@ -4,7 +4,9 @@ input: |
   "foo"
   "bar"
   "foo"
+  fusion("foo"::(int64|string),<string>)
 
 output: |
   "foo"
   "foo"
+  fusion("foo"::(int64|string),<string>)
