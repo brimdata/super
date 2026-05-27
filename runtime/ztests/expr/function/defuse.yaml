@@ -206,3 +206,46 @@ input: &input |
   1::(int64|null)
 
 output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  [{a:1}]
+  [{a:3},{b:3}]
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  [1]
+  [[2],["a"]]
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  [1]
+  [map{2:3},map{4:"a"}]
+
+output: *input
+
+---
+
+# Panics in vam.
+runtime: sam
+
+spq: fuse | defuse(this)
+
+input: &input |
+  [1]
+  [map{2:3},map{4:"a"}::map{int64|string:int64|string}]
+
+output: *input
