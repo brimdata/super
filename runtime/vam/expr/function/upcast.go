@@ -2,7 +2,6 @@ package function
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
@@ -82,6 +81,9 @@ func (u *Upcast) Cast(vec vector.Any, to super.Type) (vector.Any, bool) {
 func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 	if vec.Type() == to && vec.Kind() != vector.KindFusion {
 		return vec
+	}
+	if vec.Len() == 0 {
+		return vector.NewEmpty(to)
 	}
 	switch vec := vec.(type) {
 	case *vector.Fusion:
@@ -181,16 +183,15 @@ func (u *Upcast) deunionAndUpcast(vec vector.Any, to super.Type) vector.Any {
 	if !ok {
 		return u.upcast(vec, to)
 	}
-	vecs := slices.Clone(d.Values)
-	for i, vec := range vecs {
-		if vec == nil || vec.Len() == 0 {
-			continue
-		}
-		vecs[i] = u.upcast(vecs[i], to)
+	vecs := make([]vector.Any, len(d.Values))
+	for i, vec := range d.Values {
+		vecs[i] = u.upcast(vec, to)
 		if vecs[i] == nil {
 			return nil
 		}
 	}
+	// All elements of vecs have type to so this should always return a
+	// vector with type to (and never a dynamic).
 	return vbuild.MergeSameTypesInDynamic(vector.NewDynamic(d.Tags, vecs))
 }
 

@@ -239,9 +239,6 @@ output: *input
 
 ---
 
-# Panics in vam.
-runtime: sam
-
 spq: fuse | defuse(this)
 
 input: &input |

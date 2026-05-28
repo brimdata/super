@@ -73,6 +73,9 @@ func Merge(tags []uint32, vecs []vector.Any) vector.Any {
 	reverse := make([][]uint32, len(vecs))
 	var k uint32
 	for i, vec := range vecs {
+		if vec.Len() == 0 {
+			continue
+		}
 		b.Write(vec)
 		for range vec.Len() {
 			reverse[i] = append(reverse[i], k)
