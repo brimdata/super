@@ -94,17 +94,17 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	if vec.Type() == to {
 		return vec
 	}
+	if vec.Len() == 0 {
+		return vector.NewEmpty(to)
+	}
 	// XXX Handle vec type All.
 	if _, ok := to.(*super.TypeUnion); !ok {
 		if fusion, ok := vec.(*vector.Fusion); ok {
 			return d.downcastFusion(fusion, to)
 		}
 	}
-	switch vec := vec.(type) {
-	case *vector.Union:
-		return d.downcastDynamic(vec.Dynamic(), to)
-	case *vector.Empty:
-		return vector.NewEmpty(to)
+	if u, ok := vec.(*vector.Union); ok {
+		return d.downcastDynamic(u.Dynamic(), to)
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:

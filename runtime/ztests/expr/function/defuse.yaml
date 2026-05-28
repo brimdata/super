@@ -249,3 +249,13 @@ input: &input |
   [map{2:3},map{4:"a"}::map{int64|string:int64|string}]
 
 output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  null::(null|set[string])
+  set[null]::set[string|null]
+
+output: *input
