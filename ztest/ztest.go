@@ -275,7 +275,6 @@ type ZTest struct {
 	Output      string  `yaml:"output,omitempty"`
 	OutputFlags string  `yaml:"output-flags,omitempty"`
 	Error       string  `yaml:"error,omitempty"`
-	Vector      bool    `yaml:"vector"`
 
 	// For script-style tests.
 	Script  string   `yaml:"script,omitempty"`
