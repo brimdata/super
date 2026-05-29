@@ -38,9 +38,7 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	results := make([]Any, len(d.Values))
 	for i, ripped := range rip(vecs, d) {
-		if len(ripped) > 0 {
-			results[i] = Apply(opt, eval, ripped...)
-		}
+		results[i] = Apply(opt, eval, ripped...)
 	}
 	// stitch removes nils and replaces Dynamics with their values.
 	return stitch(d.Tags, results)
@@ -58,17 +56,18 @@ func findDynamic(vecs []Any) (*Dynamic, bool) {
 func rip(vecs []Any, d *Dynamic) iter.Seq2[int, []Any] {
 	return func(yield func(int, []Any) bool) {
 		for i, rev := range d.ReverseTagMap() {
-			var newVecs []Any
-			if len(rev) > 0 {
-				for _, vec := range vecs {
-					if vec == d {
-						newVecs = append(newVecs, d.Values[i])
-					} else {
-						newVecs = append(newVecs, Pick(vec, rev))
-					}
+			if len(rev) == 0 {
+				continue
+			}
+			ripped := make([]Any, len(vecs))
+			for j, vec := range vecs {
+				if vec == d {
+					ripped[j] = d.Values[i]
+				} else {
+					ripped[j] = Pick(vec, rev)
 				}
 			}
-			if !yield(i, newVecs) {
+			if !yield(i, ripped) {
 				return
 			}
 		}
