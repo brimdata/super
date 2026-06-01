@@ -231,9 +231,7 @@ func SlotTypesInList(sctx *super.Context, inner vector.Any, offsets []uint32) []
 	var alltypes []super.Type
 	if dynamic != nil {
 		for _, val := range dynamic.Values {
-			if val != nil {
-				alltypes = append(alltypes, val.Type())
-			}
+			alltypes = append(alltypes, val.Type())
 		}
 	} else {
 		alltypes = []super.Type{inner.Type()}
