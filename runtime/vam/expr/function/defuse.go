@@ -52,6 +52,8 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 			vecs = append(vecs, d.eval(vec))
 		}
 		return vector.NewDynamic(dynamic.Tags, vecs)
+	case vector.KindError:
+		return d.defuseError(in)
 	case vector.KindFusion:
 		fusion := vector.PushView(in).(*vector.Fusion)
 		return d.downcast.call(fusion.Values, fusion.Subtypes.Types())
@@ -156,4 +158,14 @@ func (d *defuse) defuseMap(in vector.Any) vector.Any {
 		return vecs[0]
 	}
 	return vector.NewDynamic(tags, vecs)
+}
+
+func (d *defuse) defuseError(in vector.Any) vector.Any {
+	errVec := vector.PushView(in).(*vector.Error)
+	valsVec := d.eval(errVec.Vals)
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		typ := d.sctx.LookupTypeError(vec.Type())
+		return vector.NewError(typ, vec)
+	}, valsVec)
 }
