@@ -19,6 +19,9 @@ func newFusionBuilder(typ *super.TypeFusion) *fusionBuilder {
 }
 
 func (f *fusionBuilder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	if view, ok := vec.(*vector.View); ok {
 		fusion := view.Any.(*vector.Fusion)
 		f.vals.Write(vector.Pick(fusion.Values, view.Index))

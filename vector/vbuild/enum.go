@@ -18,6 +18,9 @@ func newEnumBuilder(typ *super.TypeEnum) Builder {
 }
 
 func (a *enumBuilder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		index = view.Index

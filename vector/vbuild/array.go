@@ -22,6 +22,9 @@ func newArraySetBuilder(typ super.Type) *arraySetBuilder {
 
 func (a *arraySetBuilder) Write(vec vector.Any) {
 	n := vec.Len()
+	if n == 0 {
+		return
+	}
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		vec = view.Any

@@ -34,6 +34,9 @@ type bytesConstWriter struct {
 }
 
 func (b *bytesConstWriter) Write(vec vector.Any) genericWriter {
+	if vec.Len() == 0 {
+		return b
+	}
 	if c, ok := vec.(*vector.Const); ok {
 		v := bytesTableOf(c.Any).Bytes(0)
 		if b.val == nil {
@@ -68,6 +71,9 @@ type bytesDictWriter struct {
 }
 
 func (b *bytesDictWriter) Write(vec vector.Any) genericWriter {
+	if vec.Len() == 0 {
+		return b
+	}
 	switch vec := vec.(type) {
 	case *vector.Const:
 		t := bytesTableOf(vec.Any)
@@ -137,6 +143,9 @@ type bytesFlatWriter struct {
 }
 
 func (b *bytesFlatWriter) Write(vec vector.Any) genericWriter {
+	if vec.Len() == 0 {
+		return b
+	}
 	switch vec := vec.(type) {
 	case *vector.View:
 		table := bytesTableOf(vec.Any)
