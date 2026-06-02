@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/sup"
 )
 
@@ -86,13 +85,10 @@ func (p *ParseURI) Call(args []super.Value) super.Value {
 
 type ParseSUP struct {
 	sctx *super.Context
-	sr   *strings.Reader
-	zr   *supio.Reader
 }
 
 func newParseSUP(sctx *super.Context) *ParseSUP {
-	var sr strings.Reader
-	return &ParseSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
+	return &ParseSUP{sctx}
 }
 
 func (p *ParseSUP) Call(args []super.Value) super.Value {
@@ -103,13 +99,9 @@ func (p *ParseSUP) Call(args []super.Value) super.Value {
 	if !in.IsString() {
 		return p.sctx.WrapError("parse_sup: string arg required", args[0])
 	}
-	p.sr.Reset(super.DecodeString(in.Bytes()))
-	val, err := p.zr.Read()
+	val, err := sup.ParseValue(p.sctx, byteconv.UnsafeString(in.Bytes()))
 	if err != nil {
 		return p.sctx.WrapError("parse_sup: "+err.Error(), args[0])
 	}
-	if val == nil {
-		return super.Null
-	}
-	return *val
+	return val
 }

@@ -12,6 +12,8 @@ output: |
 spq: |
   upcast(this[0], this[1])
 
+input-flags: -fusion
+
 input: |
   [[1,"a"],<[int8|string]>]
   [[1::int8,"a"],<[int8|string]>]

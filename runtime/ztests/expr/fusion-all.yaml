@@ -1,5 +1,7 @@
 spq: upcast(this,<fusion(all)>)
 
+input-flags: -fusion
+
 # note: the syntax for fusion values will change from bytes to values soon
 # and this test will be updated
 

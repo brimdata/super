@@ -29,7 +29,7 @@ Because all values of the input must be read to compute the fused type,
 ---
 
 _Fuse two records_
-```mdtest-spq
+```mdtest-spq fusion
 # spq
 fuse
 # input
@@ -43,7 +43,7 @@ fusion({a?:_::int64,b?:2},<{b:int64}>)
 ---
 
 _Fuse records with type variation_
-```mdtest-spq
+```mdtest-spq fusion
 # spq
 fuse
 # input
@@ -57,7 +57,7 @@ fuse
 ---
 
 _Fuse records with complex type variation_
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq fusion {data-layout="stacked"}
 # spq
 fuse
 # input
