@@ -58,7 +58,11 @@ func NewSearchString(sctx *super.Context, s string, e Evaluator) Evaluator {
 }
 
 func (s *search) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, s.eval, s.e.Eval(this))
+	return s.applyEval(s.e.Eval(this))
+}
+
+func (s *search) applyEval(vec vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, s.eval, vec)
 }
 
 func (s *search) eval(vecs ...vector.Any) vector.Any {
@@ -83,7 +87,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 			if index != nil {
 				f = vector.Pick(f, index)
 			}
-			if vec2 := s.eval(f); vec2.Kind() != vector.KindNull {
+			if vec2 := s.applyEval(f); vec2.Kind() != vector.KindNull {
 				out = vector.Or(out, FlattenBool(vec2))
 			}
 		}
@@ -95,8 +99,6 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Map:
 		return vector.Or(s.evalForList(vec.Keys, vec.Offsets, index, n),
 			s.evalForList(vec.Values, vec.Offsets, index, n))
-	case *vector.Union:
-		return vector.Apply(vector.ApplyRipUnions, s.eval, vec)
 	case *vector.Error:
 		return s.eval(vec.Vals)
 	}
@@ -119,8 +121,8 @@ func (s *search) evalForList(vec vector.Any, offsets, index []uint32, length uin
 		for k := range n {
 			index2[k] = k + start
 		}
-		view := vector.Pick(vec, index2)
-		if FlattenBool(s.eval(view)).Bits.TrueCount() > 0 {
+		vec := s.applyEval(vector.Pick(vec, index2))
+		if FlattenBool(vec).Bits.TrueCount() > 0 {
 			out.Set(j)
 		}
 	}
@@ -157,7 +159,7 @@ func NewRegexpMatch(re *regexp.Regexp, e Evaluator) Evaluator {
 }
 
 func (r *regexpMatch) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, r.eval, r.e.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, r.eval, r.e.Eval(this))
 }
 
 func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {

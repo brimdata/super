@@ -215,13 +215,29 @@ func (u *Upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 	if unionVec, ok := vec.(*vector.Union); ok {
 		types := map[super.Type]struct{}{}
 		values := make([]vector.Any, 0, len(to.Types))
+		var needMerge bool
 		for _, vec := range unionVec.Values() {
 			vec = u.toUnionValue(vec, to)
 			if vec == nil {
 				return nil
 			}
-			types[vec.Type()] = struct{}{}
+			typ := vec.Type()
+			if _, ok := types[typ]; !ok {
+				needMerge = true
+			}
+			types[typ] = struct{}{}
 			values = append(values, vec)
+		}
+		tags := unionVec.Tags()
+		if needMerge {
+			mergedVec := vbuild.MergeSameTypesInDynamic(vector.NewDynamic(tags, values))
+			if d, ok := mergedVec.(*vector.Dynamic); ok {
+				tags, values = d.Tags, d.Values
+			} else {
+				tags = make([]uint32, mergedVec.Len())
+				values = values[:1]
+				values[0] = mergedVec
+			}
 		}
 		for _, typ := range to.Types {
 			if _, ok := types[typ]; !ok {
@@ -230,7 +246,7 @@ func (u *Upcast) toUnion(vec vector.Any, to *super.TypeUnion) vector.Any {
 		}
 		//XXX We should copy RLE instead of making tags when we can.
 		// This will be addressed in a subsequent PR.
-		return vector.NewUnion(to, unionVec.Tags(), values)
+		return vector.NewUnion(to, tags, values)
 	}
 	values := u.toUnionValue(vec, to)
 	if values == nil {

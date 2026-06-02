@@ -213,7 +213,7 @@ func NewRegexpMatch(re *regexp.Regexp, e Evaluator) *RegexpMatch {
 }
 
 func (r *RegexpMatch) Eval(this super.Value) super.Value {
-	val := r.expr.Eval(this)
+	val := r.expr.Eval(this).Under()
 	switch id := val.Type().ID(); id {
 	case super.IDString:
 		if val.IsNull() {

@@ -212,6 +212,16 @@ output: *input
 spq: fuse | defuse(this)
 
 input: &input |
+  1::(int64|[int64]|[string])
+  [2]::(int64|[int64]|[string])
+
+output: *input
+
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
   [{a:1}]
   [{a:3},{b:3}]
 
