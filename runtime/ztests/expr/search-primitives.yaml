@@ -9,4 +9,4 @@ input: |
 output: |
   "foo"
   "foo"
-  fusion("foo"::(int64|string),<string>)
+  "foo"

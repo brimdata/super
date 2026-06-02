@@ -13,6 +13,6 @@ input: |
 output: |
   {a:[{b:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
-  fusion({a:1,b?:_::string},<{a:int64}>)
-  fusion({a:2,b?:"foo"},<{a:int64,b:string}>)
+  {a:1}
+  {a:2,b:"foo"}
   {a:[]::[{b:null}]}

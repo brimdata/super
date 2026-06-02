@@ -9,6 +9,8 @@ input: |
   {x:1}
   <string>
 
+output-flags: -fusion
+
 output: |
   fusion(0x02::all,<int64>)
   fusion(0x666f6f::all,<string>)
