@@ -117,3 +117,19 @@ inputs:
 outputs:
   - name: stdout
     data: *stdin
+
+---
+
+script: |
+  super -f arrows - | super -i arrows -s -
+
+inputs:
+  - name: stdin
+    data: |
+      type named = int64
+      {a:1::named,b:2::named}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1,b:2}

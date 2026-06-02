@@ -531,6 +531,7 @@ func isRecursive(typ super.Type, seen map[string]struct{}) bool {
 			return true
 		}
 		seen[typ.Name] = struct{}{}
+		defer delete(seen, typ.Name)
 		return isRecursive(typ.Type, seen)
 	case *super.TypeRecord:
 		for _, f := range typ.Fields {

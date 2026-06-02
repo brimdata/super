@@ -73,3 +73,21 @@ outputs:
           2: null
         }
       }
+
+
+---
+
+script: |
+  super -f parquet -o f.parquet -
+  super -s f.parquet
+
+inputs:
+  - name: stdin
+    data: |
+      type named = int64
+      {a:1::named,b:2::named}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1,b:2}
