@@ -14,6 +14,9 @@ type genericBuilder[E comparable] struct {
 }
 
 func (b *genericBuilder[E]) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	if b.writer == nil {
 		b.writer = &genericConstWriter[E]{
 			valuesOf: b.valuesOf,
@@ -46,6 +49,9 @@ type genericConstWriter[E comparable] struct {
 }
 
 func (c *genericConstWriter[E]) Write(vec vector.Any) genericWriter {
+	if vec.Len() == 0 {
+		return c
+	}
 	if const_, ok := vec.(*vector.Const); ok {
 		vals := c.valuesOf(const_.Any)
 		if c.len == 0 {
@@ -80,6 +86,9 @@ type genericDictWriter[E comparable] struct {
 }
 
 func (d *genericDictWriter[E]) Write(vec vector.Any) genericWriter {
+	if vec.Len() == 0 {
+		return d
+	}
 	switch vec := vec.(type) {
 	case *vector.Const:
 		vals := d.valuesOf(vec.Any)
@@ -143,6 +152,9 @@ type genericFlatWriter[E comparable] struct {
 }
 
 func (f *genericFlatWriter[E]) Write(vec vector.Any) genericWriter {
+	if vec.Len() == 0 {
+		return f
+	}
 	switch vec := vec.(type) {
 	case *vector.Const:
 		vals := f.valuesOf(vec.Any)

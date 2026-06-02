@@ -9,7 +9,7 @@ type noneBuilder struct {
 }
 
 func (n *noneBuilder) Write(vec vector.Any) {
-	n.len += vec.(*vector.None).Len()
+	n.len += vec.Len()
 }
 
 func (n *noneBuilder) Build() vector.Any {
@@ -21,7 +21,7 @@ type nullBuilder struct {
 }
 
 func (n *nullBuilder) Write(vec vector.Any) {
-	n.len += vec.(*vector.Null).Len()
+	n.len += vec.Len()
 }
 
 func (n *nullBuilder) Build() vector.Any {

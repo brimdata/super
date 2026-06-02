@@ -25,8 +25,11 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 	}
 }
 
-func (r *recordBuilder) Write(in vector.Any) {
-	vec := in
+func (r *recordBuilder) Write(vec vector.Any) {
+	n := vec.Len()
+	if n == 0 {
+		return
+	}
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		vec = view.Any
@@ -40,7 +43,7 @@ func (r *recordBuilder) Write(in vector.Any) {
 		}
 		r.fields[i].Write(vec)
 	}
-	r.len += in.Len()
+	r.len += n
 }
 
 func (r *recordBuilder) Build() vector.Any {

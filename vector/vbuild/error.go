@@ -11,6 +11,9 @@ type errorBuilder struct {
 }
 
 func (e *errorBuilder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	e.vals.Write(vec.(*vector.Error).Vals)
 }
 

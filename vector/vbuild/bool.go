@@ -10,6 +10,9 @@ type boolBuilder struct {
 }
 
 func (b *boolBuilder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	switch vec := vec.(type) {
 	case *vector.Const:
 		v := vec.Any.(*vector.Bool).IsSet(0)

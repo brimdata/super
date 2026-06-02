@@ -24,6 +24,9 @@ func newMapBuilder(typ *super.TypeMap) Builder {
 
 func (m *mapBuilder) Write(vec vector.Any) {
 	n := vec.Len()
+	if n == 0 {
+		return
+	}
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		index = view.Index
