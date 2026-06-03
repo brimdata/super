@@ -62,6 +62,7 @@ func (w *Writer) Push(vec vector.Any) error {
 }
 
 func (w *Writer) Write(rec super.Value) error {
+	rec = rec.Under()
 	if rec.Type().Kind() != super.RecordKind {
 		return fmt.Errorf("CSV output encountered non-record value: %s", sup.FormatValue(rec))
 	}
