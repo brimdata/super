@@ -247,7 +247,7 @@ func (a *ArrayExpr) Eval(this super.Value) super.Value {
 			a.collection.append(e.Value.Eval(this))
 			continue
 		}
-		val := e.Spread.Eval(this)
+		val := e.Spread.Eval(this).Under()
 		inner := super.InnerType(val.Type())
 		if inner == nil {
 			// Treat non-list spread values values like missing.
@@ -287,7 +287,7 @@ func (a *SetExpr) Eval(this super.Value) super.Value {
 			a.collection.append(e.Value.Eval(this))
 			continue
 		}
-		val := e.Spread.Eval(this)
+		val := e.Spread.Eval(this).Under()
 		inner := super.InnerType(val.Type())
 		if inner == nil {
 			// Treat non-list spread values values like missing.

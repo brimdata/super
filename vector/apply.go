@@ -122,3 +122,22 @@ func stitch(tags []uint32, vecs []Any) Any {
 	}
 	return NewDynamic(newTags, newVecs)
 }
+
+func AddNoRip(vec Any) Any {
+	if dynamic, ok := vec.(*Dynamic); ok {
+		vals := make([]Any, len(dynamic.Values))
+		for i, vec := range dynamic.Values {
+			vals[i] = AddNoRip(vec)
+		}
+		return NewDynamic(dynamic.Tags, vals)
+	}
+	return &NoRip{vec}
+}
+
+func ClearNoRips(vecs []Any) {
+	for i, vec := range vecs {
+		if norip, ok := vec.(*NoRip); ok {
+			vecs[i] = norip.Any
+		}
+	}
+}

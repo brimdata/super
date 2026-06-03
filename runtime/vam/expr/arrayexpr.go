@@ -37,13 +37,14 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 		if e.Spread != nil {
 			vecs = append(vecs, e.Spread.Eval(this))
 		} else {
-			vecs = append(vecs, e.Value.Eval(this))
+			vecs = append(vecs, vector.AddNoRip(e.Value.Eval(this)))
 		}
 	}
-	return vector.Apply(vector.ApplyNone, a.eval, vecs...)
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, a.eval, vecs...)
 }
 
 func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
+	vector.ClearNoRips(in)
 	offsets, inner := buildList(a.sctx, a.elems, in)
 	return vector.NewArray(a.sctx.LookupTypeArray(inner.Type()), offsets, inner)
 }

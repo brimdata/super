@@ -11,3 +11,20 @@ output: |
   [1,2]
   [{x:"foo"},null,{x:"bar"}]
   []
+
+---
+
+# Test spreads on union and fusion values.
+spq: values [...this]
+
+input: |
+  [1,2]::(null|[int64])
+  null::(null|[int64])
+  fusion([1,2]::(null|[int64]),<[int64]>)
+  fusion(null::(null|[int64]),<null>)
+
+output: |
+  [1,2]
+  []
+  [1,2]
+  []
