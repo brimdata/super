@@ -9,7 +9,7 @@ import (
 
 type Coalesce struct{}
 
-func (*Coalesce) RipUnions() bool { return false }
+func (*Coalesce) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 	for i, vec := range vecs {

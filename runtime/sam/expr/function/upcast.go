@@ -17,7 +17,7 @@ func NewUpcast(sctx *super.Context) *Upcast {
 }
 
 func (u *Upcast) Call(args []super.Value) super.Value {
-	from, to := args[0], args[1]
+	from, to := args[0].SuperDeunion(), args[1]
 	if _, ok := to.Type().(*super.TypeOfType); !ok {
 		return u.sctx.WrapError("upcast: type argument not a type", to)
 	}

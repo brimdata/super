@@ -66,7 +66,7 @@ output: |
   fusion(map{1:fusion(map{2:fusion(3::(int64|null),<int64>)},<map{int64:int64}>),4:fusion(map{5:fusion(null::(int64|null),<null>)},<map{int64:null}>)},<map{int64:map{int64:int64}|map{int64:null}}>)
   fusion("x"::enum(x,y,z),<enum(x,y)>)
   error({message:"upcast: value not a subtype of fusion(enum(y,z))",on:"x"::enum(x,y)})
-  fusion(1::(int64|string),<int64|string>)
+  fusion(1::(int64|string),<int64>)
   type n31=int64
   1::n31
   type n46=int64

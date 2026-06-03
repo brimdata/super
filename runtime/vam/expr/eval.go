@@ -28,22 +28,22 @@ func CheckForNullThenError(vecs []vector.Any) (vector.Any, bool) {
 }
 
 type Call struct {
-	fn        Function
-	exprs     []Evaluator
-	ripUnions bool
-	args      []vector.Any
+	fn       Function
+	exprs    []Evaluator
+	applyOpt vector.ApplyOpt
+	args     []vector.Any
 }
 
 func NewCall(fn Function, exprs []Evaluator) *Call {
-	ripUnions := true
-	if fn, ok := fn.(interface{ RipUnions() bool }); ok {
-		ripUnions = fn.RipUnions()
+	opt := vector.ApplyRipUnions | vector.ApplyRipFusions
+	if fn, ok := fn.(interface{ ApplyOpt() vector.ApplyOpt }); ok {
+		opt = fn.ApplyOpt()
 	}
 	return &Call{
-		fn:        fn,
-		exprs:     exprs,
-		ripUnions: ripUnions,
-		args:      make([]vector.Any, len(exprs)),
+		fn:       fn,
+		exprs:    exprs,
+		applyOpt: opt,
+		args:     make([]vector.Any, len(exprs)),
 	}
 }
 
@@ -51,9 +51,5 @@ func (c *Call) Eval(this vector.Any) vector.Any {
 	for k, e := range c.exprs {
 		c.args[k] = e.Eval(this)
 	}
-	var opts vector.ApplyOpt
-	if c.ripUnions {
-		opts = vector.ApplyRipUnions
-	}
-	return vector.Apply(opts, c.fn.Call, c.args...)
+	return vector.Apply(c.applyOpt, c.fn.Call, c.args...)
 }

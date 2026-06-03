@@ -419,6 +419,21 @@ func (v *Value) MissingAsNull() Value {
 	return *v
 }
 
+// SuperDeunion deunions and returns the super value of arbitrarily nested
+// union and fusion values.
+func (v Value) SuperDeunion() Value {
+	for {
+		switch typ := v.Type().(type) {
+		case *TypeUnion:
+			v = NewValue(typ.Untag(v.bytes()))
+		case *TypeFusion:
+			v = NewValue(typ.DerefFusion(v.bytes()))
+		default:
+			return v
+		}
+	}
+}
+
 // Deunion returns v if it is not an anonymous union and otherwise detags v
 // to its underlying value.  It does not Deunion union values that are named types.
 func (v Value) Deunion() Value {

@@ -24,7 +24,7 @@ func newDefuse(sctx *super.Context) *defuse {
 	return d
 }
 
-func (*defuse) RipUnions() bool { return false }
+func (*defuse) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 func (d *defuse) Call(args ...vector.Any) vector.Any {
 	return d.eval(args[0])

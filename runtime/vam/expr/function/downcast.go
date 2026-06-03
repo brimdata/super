@@ -20,6 +20,8 @@ func newDowncast(sctx *super.Context) *downcast {
 	return newDefuse(sctx).downcast
 }
 
+func (d *downcast) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipUnions }
+
 func (d *downcast) Call(vecs ...vector.Any) vector.Any {
 	from, to := vecs[0], vecs[1]
 	if to.Kind() != vector.KindType {

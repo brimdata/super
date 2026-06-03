@@ -112,7 +112,7 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-func (i *Is) RipUnions() bool { return false }
+func (i *Is) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 type IsErr struct{}
 
@@ -158,7 +158,7 @@ func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	return vector.NewConstType(t.sctx, args[0].Type(), args[0].Len())
 }
 
-func (t *TypeOf) RipUnions() bool { return false }
+func (t *TypeOf) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 type TypeName struct {
 	sctx *super.Context
@@ -194,7 +194,7 @@ func (e *Error) Call(args ...vector.Any) vector.Any {
 	return vector.NewError(e.sctx.LookupTypeError(vec.Type()), vec)
 }
 
-func (e *Error) RipUnions() bool { return false }
+func (e *Error) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 type Kind struct {
 	sctx *super.Context
@@ -218,9 +218,7 @@ func (k *Kind) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-func (*Kind) RipUnions() bool {
-	return false
-}
+func (*Kind) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 type Unblend struct {
 	sctx *super.Context

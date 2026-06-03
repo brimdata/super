@@ -40,4 +40,4 @@ func (q *Quiet) call(args ...vector.Any) vector.Any {
 	return vector.NewError(arg.Typ, vec)
 }
 
-func (q *Quiet) RipUnions() bool { return false }
+func (q *Quiet) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
