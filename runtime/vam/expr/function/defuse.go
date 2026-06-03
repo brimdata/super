@@ -44,8 +44,14 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 	case vector.KindMap:
 		return d.defuseMap(in)
 	case vector.KindUnion:
-		u := in.(*vector.Union)
-		return vector.Apply(vector.ApplyNone, d.Call, u.Dynamic().Values...)
+		// XXX This should use vector.Apply but right now Apply defuses fusion
+		// values and we do not want this here.
+		dynamic := vector.Deunion(in).(*vector.Dynamic)
+		var vecs []vector.Any
+		for _, vec := range dynamic.Values {
+			vecs = append(vecs, d.eval(vec))
+		}
+		return vector.NewDynamic(dynamic.Tags, vecs)
 	case vector.KindError:
 		return d.defuseError(in)
 	case vector.KindFusion:
