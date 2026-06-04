@@ -1,9 +1,6 @@
 /bin/
 /dist/
 node_modules/
-__pycache__/
-*.pyc
-*.egg-info
 
 .idea
 .DS_Store

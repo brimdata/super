@@ -1,6 +1,7 @@
 # Python
 
-SuperDB includes preliminary support for Python-based interaction with a
+The [`superdb` Python package](https://github.com/brimdata/superdb-python)
+provides support for Python-based interaction with a
 persistent [database](../../command/db.md).  The Python package supports loading data into a
 database as well as querying and retrieving results.  The Python client
 interacts with the database via the REST API provided by
@@ -26,16 +27,8 @@ interacts with the database via the REST API provided by
 
 ## Installation
 
-To install the version from the most recent tagged GA release:
-
 ```
-pip3 install "git+https://github.com/brimdata/super#subdirectory=python/superdb"
-```
-
-To install the version compatible with a development build of SuperDB that's in your `$PATH`:
-
-```
-pip3 install "git+https://github.com/brimdata/super@$(super -version | sed 's/.*-g//')#subdirectory=python/superdb"
+pip3 install "git+https://github.com/brimdata/superdb-python"
 ```
 
 ## Example
