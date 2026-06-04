@@ -45,7 +45,7 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 		return d.defuseMap(in)
 	case vector.KindUnion:
 		u := in.(*vector.Union)
-		return vector.Apply(vector.ApplyNone, d.Call, u.Dynamic().Values...)
+		return vector.Apply(vector.ApplyNone, d.Call, u.Dynamic())
 	case vector.KindError:
 		return d.defuseError(in)
 	case vector.KindFusion:
