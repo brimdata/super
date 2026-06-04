@@ -105,7 +105,7 @@ func unnestArrayOrSet(sctx *super.Context, val super.Value) []super.Value {
 	}
 	var vals []super.Value
 	for it := val.Bytes().Iter(); !it.Done(); {
-		val := super.NewValue(elemType, it.Next()).Under()
+		val := super.NewValue(elemType, it.Next()).Deunion()
 		vals = append(vals, val.Copy())
 	}
 	return vals
