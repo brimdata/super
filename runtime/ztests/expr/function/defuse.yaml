@@ -276,3 +276,20 @@ input: &input |
   set[null]::set[string|null]
 
 output: *input
+
+---
+
+# Defuse on a fusion value inside an array/set.
+spq: defuse(this)
+
+input: |
+  [fusion(1::(int64|null),<int64>),2]
+  [fusion(1::(int64|null),<int64>),2,"foo"]
+  set[fusion(1::(int64|null),<int64>),2]
+  set[fusion(1::(int64|null),<int64>),2,"foo"]
+
+output: |
+  [1,2]
+  [1,2,"foo"]
+  set[1,2]
+  set[1,2,"foo"]

@@ -5,6 +5,7 @@ import (
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 )
 
 type defuse struct {
@@ -84,7 +85,7 @@ func (d *defuse) defuseRecord(vec vector.Any) vector.Any {
 
 func (d *defuse) defuseArray(in vector.Any) vector.Any {
 	array := vector.PushView(in).(*vector.Array)
-	inner := d.eval(array.Values)
+	inner := mergeSameTypes(d.eval(array.Values))
 	if !vector.IsDynamic(inner) {
 		return vector.NewArray(d.sctx.LookupTypeArray(inner.Type()), array.Offsets, inner)
 	}
@@ -102,7 +103,7 @@ func (d *defuse) defuseArray(in vector.Any) vector.Any {
 
 func (d *defuse) defuseSet(in vector.Any) vector.Any {
 	set := vector.PushView(in).(*vector.Set)
-	inner := d.eval(set.Values)
+	inner := mergeSameTypes(d.eval(set.Values))
 	if !vector.IsDynamic(inner) {
 		return vector.NewSet(d.sctx.LookupTypeSet(inner.Type()), set.Offsets, inner)
 	}
@@ -152,6 +153,13 @@ func (d *defuse) defuseMap(in vector.Any) vector.Any {
 		return vecs[0]
 	}
 	return vector.NewDynamic(tags, vecs)
+}
+
+func mergeSameTypes(vec vector.Any) vector.Any {
+	if dynamic, ok := vec.(*vector.Dynamic); ok {
+		return vbuild.MergeSameTypesInDynamic(dynamic)
+	}
+	return vec
 }
 
 func (d *defuse) defuseError(in vector.Any) vector.Any {
