@@ -1,7 +1,10 @@
 script: |
+
   ! echo '{a:1} {b:2}' | super -f arrows -
   ! echo 1 | super -f arrows -
   ! echo {} | super -f arrows -
+  ! echo 'type T={a:T|int64} {a:1}::T' | super -f arrows -
+
 
 outputs:
   - name: stderr
@@ -9,3 +12,4 @@ outputs:
         arrowio: encountered multiple types (consider 'fuse'): {a:int64} and {b:int64}
         arrowio: not a record: 1
         arrowio: unsupported type: empty record
+        arrowio: unsupported type: T

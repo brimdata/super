@@ -2,7 +2,9 @@ script: |
   ! echo '{a:1} {b:2}' | super -f parquet -
   ! echo 1 | super -f parquet -
   ! echo {} | super -f parquet -
+  ! echo 'type T={a:T|int64} {a:1}::T' | super -f parquet -
   ! echo {a:1s} | super -f parquet -
+
 
 outputs:
   - name: stderr
@@ -10,4 +12,5 @@ outputs:
         parquetio: encountered multiple types (consider 'fuse'): {a:int64} and {b:int64}
         parquetio: not a record: 1
         parquetio: unsupported type: empty record
+        parquetio: unsupported type: T
         parquetio: unsupported type: not implemented: support for DURATION
