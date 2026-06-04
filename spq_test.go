@@ -1,7 +1,6 @@
 package super_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -155,26 +154,16 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	require.NoError(t, err)
 	defer dataReadCloser.Close()
 
-	dataReader := sio.Reader(dataReadCloser)
+	dataPuller := vio.Puller(sbuf.NewDematerializer(sctx, sbuf.NewPuller(dataReadCloser)))
 	if format == "parquet" {
-		// Fuse for formats that require uniform values.
-		ast, err := parser.ParseText("fuse")
-		require.NoError(t, err)
-		rctx := runtime.NewContext(t.Context(), sctx)
-		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{dataReadCloser}, 0)
+		// Fuse data for formats that require uniform values.
+		q, err := newQuery(t.Context(), sctx, exec.RuntimeSAM, "fuse", dataReadCloser)
 		require.NoError(t, err)
 		defer q.Pull(true)
-		dataReader = sbuf.PullerReader(sbuf.NewMaterializer(q))
+		dataPuller = q
 	}
 
-	// Copy from dataReader to baseline as format.
-	var baseline bytes.Buffer
-	writerOpts := anyio.WriterOpts{Format: format}
-	baselineWriter, err := anyio.NewWriter(sio.NopCloser(&baseline), writerOpts)
-	if err == nil {
-		err = vio.Copy(baselineWriter, sbuf.NewDematerializer(sctx, sbuf.NewPuller(dataReader)))
-		require.NoError(t, baselineWriter.Close())
-	}
+	baseline, err := serialize(dataPuller, format)
 	if err != nil {
 		if errors.Is(err, arrowio.ErrMultipleTypes) ||
 			errors.Is(err, arrowio.ErrNotRecord) ||
@@ -184,8 +173,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		t.Fatalf("unexpected error writing %s baseline: %s", format, err)
 	}
 
-	// Create a reader for baseline.
-	baselineReader, err := anyio.NewReader(super.NewContext(), bytes.NewReader(baseline.Bytes()), anyio.ReaderOpts{
+	baselineReader, err := anyio.NewReader(super.NewContext(), strings.NewReader(baseline), anyio.ReaderOpts{
 		Format: format,
 		BSUP: bsupio.ReaderOpts{
 			Validate: true,
@@ -194,14 +182,10 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	require.NoError(t, err)
 	defer baselineReader.Close()
 
-	// Copy from baselineReader to boomerang as format.
-	var boomerang bytes.Buffer
-	boomerangWriter, err := anyio.NewWriter(sio.NopCloser(&boomerang), writerOpts)
+	boomerang, err := serialize(sbuf.NewDematerializer(sctx, sbuf.NewPuller(baselineReader)), format)
 	require.NoError(t, err)
-	assert.NoError(t, vio.Copy(boomerangWriter, sbuf.NewDematerializer(sctx, sbuf.NewPuller(baselineReader))))
-	require.NoError(t, boomerangWriter.Close())
 
-	require.Equal(t, baseline.String(), boomerang.String(), "baseline and boomerang differ")
+	require.Equal(t, baseline, boomerang, "baseline and boomerang differ")
 }
 
 func runAllFusionBoomerangs(t *testing.T, data map[string]string) {
