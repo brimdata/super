@@ -7,6 +7,10 @@ input: |
   {b:1.5}
   error("missing")
   error("quiet")
+  type foo=int64
+  1::foo
+  fusion(1::(int64|string),<int64>)
 
 output: |
-  [{a:1},{a:2},{b:1.5},error("missing")]
+  type foo=int64
+  [{a:1},{a:2},{b:1.5},error("missing"),1::foo,fusion(1::(int64|string),<int64>)]

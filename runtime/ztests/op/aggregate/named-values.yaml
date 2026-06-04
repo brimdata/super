@@ -16,8 +16,8 @@ output: |
       max: 2,
       avg: 1.5,
       collect: [
-          1,
-          2
+          1::named,
+          2::named
       ],
       any: 1::named,
       dcount: 2

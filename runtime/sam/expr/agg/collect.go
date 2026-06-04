@@ -19,7 +19,7 @@ func (c *Collect) Consume(val super.Value) {
 	if val.IsNull() {
 		return
 	}
-	c.values = append(c.values, val.Under().Copy())
+	c.values = append(c.values, val.Deunion().Copy())
 	c.size += len(val.Bytes())
 	for c.size > MaxValueSize {
 		// XXX See issue #1813.  For now we silently discard entries
