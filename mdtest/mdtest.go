@@ -233,11 +233,14 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 			})
 		case "mdtest-spq":
 			var fails bool
+			var fusion bool
 			var runtime string
 			for _, word := range fcbInfoWords(fcb, source)[1:] {
 				switch {
 				case word == "fails":
 					fails = true
+				case word == "fusion":
+					fusion = true
 				case strings.HasPrefix(word, "runtime="):
 					runtime = strings.TrimPrefix(word, "runtime=")
 					if runtime != "vam" && runtime != "sam" {
@@ -263,6 +266,7 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 				Input:    sections[2],
 				SPQ:      sections[1],
 				Runtime:  runtime,
+				Fusion:   fusion,
 			})
 		}
 		return ast.WalkContinue, nil

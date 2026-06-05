@@ -7,6 +7,8 @@ input: |
 output-flags: -f csv
 
 output: |
-  x,y
-  1,
-  ,foo
+  x
+  1
+
+error: |
+  CSV output requires uniform records but multiple types encountered (consider 'blend')

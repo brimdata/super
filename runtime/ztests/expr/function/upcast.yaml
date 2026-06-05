@@ -59,6 +59,8 @@ input: |
   type n101=int64
   [1::n101,<fusion(n101|string)>]
 
+output-flags: -fusion
+
 output: |
   error({message:"upcast: value not a subtype of [int8|string]",on:[1,"a"]})
   [1::int8,"a"]

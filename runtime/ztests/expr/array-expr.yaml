@@ -12,6 +12,8 @@ input: |
   {a:0,b:"1"::(int64|string),c:null::(int64|string|null)}
   {a:0,b:1,c:fusion([2]::(null|[int64]),<[int64]>)}
 
+output-flags: -fusion
+
 output: |
   [error("missing"),error("quiet"),null]
   [[1,2],null,[3,4]]

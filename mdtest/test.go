@@ -23,8 +23,9 @@ type Test struct {
 	Runtime   string // "sam", "vam", or "" for both
 
 	// For SPQ tests
-	Input string
-	SPQ   string
+	Input  string
+	SPQ    string
+	Fusion bool // If true do not defuse output
 }
 
 // Run runs the test, returning nil on success.
@@ -52,6 +53,9 @@ func (t *Test) run(runtime string) error {
 	var c *exec.Cmd
 	if t.SPQ != "" {
 		c = exec.Command("super", "-s", "-c", t.SPQ)
+		if t.Fusion {
+			c.Args = append(c.Args, "-fusion")
+		}
 		if s := t.Input; strings.TrimSpace(s) != "" {
 			c.Args = append(c.Args, "-")
 			c.Stdin = strings.NewReader(s)

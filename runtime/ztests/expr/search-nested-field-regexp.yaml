@@ -12,5 +12,5 @@ input: |
 output: |
   {a:[{bar:"foo"}]}
   {a:[{car:"foo"}]}
-  fusion({car:"foo"}::(null|{car:string}),<{car:string}>)
+  {car:"foo"}
   {a:[]::[{bar:null}]}

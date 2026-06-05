@@ -9,6 +9,8 @@ input: |
   [fusion(12::(int64|string),<int64>),"13"]
   null
 
+output-flags: -fusion
+
 output: |
   1
   2

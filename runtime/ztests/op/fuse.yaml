@@ -6,6 +6,8 @@ input: |
   {a:"goodnight",b:123::int32}
   {a:null,b:null,c:null}
 
+output-flags: -fusion
+
 output: |
   fusion({a:fusion("hello"::(string|null|none),<string>),b:fusion("world"::(int32|string|null),<string>),c:fusion(_::(string|null|none),<none>)},<{a:string,b:string}>)
   fusion({a:fusion(_::(string|null|none),<none>),b:fusion("goodnight"::(int32|string|null),<string>),c:fusion("gracie"::(string|null|none),<string>)},<{b:string,c:string}>)
@@ -23,6 +25,8 @@ input: |
   [{a:3},{b:3}]
   [{a:3,b:3}]
   [{a:null,b:null}]
+
+output-flags: -fusion
 
 output: |
   fusion([fusion({a:fusion(1::(int64|null|none),<int64>),b:fusion(_::(int64|null|none),<none>)},<{a:int64}>)],<[{a:int64}]>)
@@ -44,6 +48,8 @@ input: |
   [1]
   ["s"]
 
+output-flags: -fusion
+
 output: |
   fusion({a:fusion(1::(int64|string),<int64>)}::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<{a:int64}>)
   fusion({a:fusion("s"::(int64|string),<string>)}::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<{a:string}>)
@@ -62,6 +68,8 @@ input: |
   {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
   {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
 
+output-flags: -fusion
+
 output: |
   fusion({a:fusion("hello"::(string|null|none),<string>),r:fusion({x:fusion(1::int32::(int32|null|none),<int32>),y:fusion(2::int32::(int32|null),<int32>),z:fusion(_::(int32|null|none),<none>)},<{x:int32,y:int32}>),s:fusion(_::(string|null|none),<none>),r2:fusion(_::(null|none|{x:int32}),<none>)},<{a:string,r:{x:int32,y:int32}}>)
   fusion({a:fusion(_::(string|null|none),<none>),r:fusion({x:fusion(_::(int32|null|none),<none>),y:fusion(4::int32::(int32|null),<int32>),z:fusion(5::int32::(int32|null|none),<int32>)},<{y:int32,z:int32}>),s:fusion("world"::(string|null|none),<string>),r2:fusion({x:6::int32}::(null|none|{x:int32}),<{x:int32}>)},<{r:{y:int32,z:int32},s:string,r2:{x:int32}}>)
@@ -74,6 +82,8 @@ spq: fuse
 input: |
   error(1)
   error("s")
+
+output-flags: -fusion
 
 output: |
   fusion(error(fusion(1::(int64|string),<int64>)),<error(int64)>)
@@ -88,6 +98,8 @@ input: |
   ["foo"]
   [null]
 
+output-flags: -fusion
+
 output: |
   fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
   fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)
@@ -101,6 +113,8 @@ input: |
   {a:[1,2]}
   {a:["foo"]}
   {a:[null]}
+
+output-flags: -fusion
 
 output: |
   {a:fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)}
@@ -136,6 +150,8 @@ input: |
   type er1=int64
   type er2=error(er1)
   error(1)::er2
+
+output-flags: -fusion
 
 output: |
   type a1=int64
@@ -174,6 +190,8 @@ input: |
   [fusion({x?:1,y?:_::int64},<{x:int64}>)]
   [fusion({x?:1,y?:_::int64},<{x:int64}>),fusion({x?:_::int64,y?:2},<{y:int64}>)]
   [1,fusion(2::(int64|null),<int64>)]
+
+output-flags: -fusion
 
 output: |
   {x:1}

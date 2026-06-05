@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-var ErrNotDataFrame = errors.New("CSV output requires uniform records but multiple types encountered (consider 'fuse')")
+var ErrNotDataFrame = errors.New("CSV output requires uniform records but multiple types encountered (consider 'blend')")
 
 type Writer struct {
 	writer    io.WriteCloser

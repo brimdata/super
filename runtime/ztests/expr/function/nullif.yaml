@@ -17,6 +17,8 @@ input: |
   [error(0), null]
   [error(0), error(1)]
 
+output-flags: -fusion
+
 output: |
   null
   null
