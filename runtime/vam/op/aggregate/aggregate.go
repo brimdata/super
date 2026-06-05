@@ -85,7 +85,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 				vals = append(vals, v)
 			}
 		}
-		vector.Apply(vector.ApplyRipUnions, func(args ...vector.Any) vector.Any {
+		vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, func(args ...vector.Any) vector.Any {
 			a.consume(args[:len(keys)], args[len(keys):])
 			// XXX Perhaps there should be a "consume" version of Apply where
 			// no return value is expected.

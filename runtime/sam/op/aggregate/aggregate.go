@@ -319,7 +319,7 @@ func (a *Aggregator) Consume(batch sbuf.Batch, this super.Value) error {
 	keyBytes := a.keyCache[:0]
 	var prim super.Value
 	for i, keyExpr := range a.keyExprs {
-		key := keyExpr.Eval(this)
+		key := keyExpr.Eval(this).SuperDeunion()
 		if key.IsQuiet() {
 			return nil
 		}
