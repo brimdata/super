@@ -17,6 +17,7 @@ type Fuse struct {
 	fuser    *samagg.Fuser
 	vecs     []vector.Any
 	upcaster *function.Upcast
+	defuser  *function.Defuse
 }
 
 func NewFuse(sctx *super.Context, parent vio.Puller, complete bool) *Fuse {
@@ -25,6 +26,7 @@ func NewFuse(sctx *super.Context, parent vio.Puller, complete bool) *Fuse {
 		parent:   parent,
 		complete: complete,
 		upcaster: function.NewUpcast(sctx),
+		defuser:  function.NewDefuse(sctx),
 	}
 }
 
@@ -44,16 +46,7 @@ func (f *Fuse) Pull(done bool) (vector.Any, error) {
 			if vec == nil {
 				break
 			}
-			if d, ok := vec.(*vector.Dynamic); ok {
-				for _, vec := range d.Values {
-					if vec != nil {
-						f.fuser.Fuse(vec.Type())
-					}
-				}
-			} else {
-				f.fuser.Fuse(vec.Type())
-			}
-			f.vecs = append(f.vecs, vec)
+			f.vecs = append(f.vecs, vector.Apply(vector.ApplyNone, f.fuse, vec))
 		}
 	}
 	if len(f.vecs) == 0 {
@@ -65,6 +58,15 @@ func (f *Fuse) Pull(done bool) (vector.Any, error) {
 	f.vecs[0] = nil
 	f.vecs = f.vecs[1:]
 	return vector.Apply(vector.ApplyNone, f.upcast, vec), nil
+}
+
+func (f *Fuse) fuse(vecs ...vector.Any) vector.Any {
+	vec := f.defuser.Call(vecs[0])
+	vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
+		f.fuser.Fuse(vecs[0].Type())
+		return nil
+	}, vec)
+	return vec
 }
 
 func (f *Fuse) upcast(vecs ...vector.Any) vector.Any {

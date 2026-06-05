@@ -8,15 +8,15 @@ import (
 	"github.com/brimdata/super/vector/vbuild"
 )
 
-type defuse struct {
+type Defuse struct {
 	sctx     *super.Context
 	downcast *downcast
 	// This is used only for HasFusion func.
 	samdefuse *samfunc.Defuse
 }
 
-func newDefuse(sctx *super.Context) *defuse {
-	d := &defuse{
+func NewDefuse(sctx *super.Context) *Defuse {
+	d := &Defuse{
 		sctx:      sctx,
 		downcast:  &downcast{sctx: sctx},
 		samdefuse: samfunc.NewDefuse(sctx),
@@ -25,13 +25,13 @@ func newDefuse(sctx *super.Context) *defuse {
 	return d
 }
 
-func (*defuse) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+func (*Defuse) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
-func (d *defuse) Call(args ...vector.Any) vector.Any {
+func (d *Defuse) Call(args ...vector.Any) vector.Any {
 	return d.eval(args[0])
 }
 
-func (d *defuse) eval(in vector.Any) vector.Any {
+func (d *Defuse) eval(in vector.Any) vector.Any {
 	if !d.samdefuse.HasFusion(in.Type()) {
 		return in
 	}
@@ -59,7 +59,7 @@ func (d *defuse) eval(in vector.Any) vector.Any {
 	}
 }
 
-func (d *defuse) defuseRecord(vec vector.Any) vector.Any {
+func (d *Defuse) defuseRecord(vec vector.Any) vector.Any {
 	rec := vector.PushView(vec).(*vector.Record)
 	var vecs []vector.Any
 	for _, vec := range rec.Fields {
@@ -83,7 +83,7 @@ func (d *defuse) defuseRecord(vec vector.Any) vector.Any {
 	}, vecs...)
 }
 
-func (d *defuse) defuseArray(in vector.Any) vector.Any {
+func (d *Defuse) defuseArray(in vector.Any) vector.Any {
 	array := vector.PushView(in).(*vector.Array)
 	inner := mergeSameTypes(d.eval(array.Values))
 	if !vector.IsDynamic(inner) {
@@ -101,7 +101,7 @@ func (d *defuse) defuseArray(in vector.Any) vector.Any {
 	return vals[0]
 }
 
-func (d *defuse) defuseSet(in vector.Any) vector.Any {
+func (d *Defuse) defuseSet(in vector.Any) vector.Any {
 	set := vector.PushView(in).(*vector.Set)
 	inner := mergeSameTypes(d.eval(set.Values))
 	if !vector.IsDynamic(inner) {
@@ -119,7 +119,7 @@ func (d *defuse) defuseSet(in vector.Any) vector.Any {
 	return vals[0]
 }
 
-func (d *defuse) defuseMap(in vector.Any) vector.Any {
+func (d *Defuse) defuseMap(in vector.Any) vector.Any {
 	vmap := vector.PushView(in).(*vector.Map)
 	keys := d.eval(vmap.Values)
 	vals := d.eval(vmap.Values)
@@ -162,7 +162,7 @@ func mergeSameTypes(vec vector.Any) vector.Any {
 	return vec
 }
 
-func (d *defuse) defuseError(in vector.Any) vector.Any {
+func (d *Defuse) defuseError(in vector.Any) vector.Any {
 	errVec := vector.PushView(in).(*vector.Error)
 	valsVec := d.eval(errVec.Vals)
 	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {

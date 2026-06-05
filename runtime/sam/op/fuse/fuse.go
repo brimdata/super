@@ -108,9 +108,10 @@ type valueFuser struct {
 	vals    []super.Value
 	spiller *spill.File
 
-	fuser  *agg.Fuser
-	caster function.Caster
-	typ    super.Type
+	fuser   *agg.Fuser
+	caster  function.Caster
+	defuser *function.Defuse
+	typ     super.Type
 }
 
 // newValueFuser returns a new valueFuser that buffers values in memory until
@@ -122,6 +123,7 @@ func newValueFuser(sctx *super.Context, memMaxBytes int, complete bool) *valueFu
 		memMaxBytes: memMaxBytes,
 		fuser:       agg.NewFuser(sctx, complete),
 		caster:      function.NewUpcast(sctx),
+		defuser:     function.NewDefuse(sctx),
 	}
 }
 
@@ -138,6 +140,7 @@ func (v *valueFuser) Write(val super.Value) error {
 	if v.typ != nil {
 		panic("fuser: write after read")
 	}
+	val = v.defuser.Call([]super.Value{val})
 	v.fuser.Fuse(val.Type())
 	if v.spiller != nil {
 		return v.spiller.Write(val)

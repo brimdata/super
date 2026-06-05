@@ -13,11 +13,11 @@ import (
 
 type downcast struct {
 	sctx    *super.Context
-	defuser *defuse
+	defuser *Defuse
 }
 
 func newDowncast(sctx *super.Context) *downcast {
-	return newDefuse(sctx).downcast
+	return NewDefuse(sctx).downcast
 }
 
 func (d *downcast) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipUnions }

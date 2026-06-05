@@ -162,3 +162,22 @@ output: |
   fusion(1::u1::u2::(a2|en1|er2|m3|p1|r2|s2|u2),<u2>)
   fusion("a"::en1::(a2|en1|er2|m3|p1|r2|s2|u2),<en1>)
   fusion(error(1)::er2::(a2|en1|er2|m3|p1|r2|s2|u2),<er2>)
+
+---
+
+# Test fuse on fusion values
+spq: unnest this into ( fuse )
+
+runtime: vam
+
+input: |
+  [fusion({x?:1,y?:_::int64},<{x:int64}>)]
+  [fusion({x?:1,y?:_::int64},<{x:int64}>),fusion({x?:_::int64,y?:2},<{y:int64}>)]
+  [1,fusion(2::(int64|null),<int64>)]
+
+output: |
+  {x:1}
+  fusion({x?:1,y?:_::int64},<{x:int64}>)
+  fusion({x?:_::int64,y?:2},<{y:int64}>)
+  1
+  2
