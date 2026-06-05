@@ -210,7 +210,7 @@ func NewIsNull(e Evaluator) Evaluator {
 }
 
 func (i *isNull) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, i.eval, i.expr.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, i.eval, i.expr.Eval(this))
 }
 
 func (i *isNull) eval(vecs ...vector.Any) vector.Any {

@@ -378,7 +378,7 @@ func NewIsNullExpr(e Evaluator) Evaluator {
 }
 
 func (i *isNullExpr) Eval(this super.Value) super.Value {
-	val := i.eval.Eval(this).DeunionIntoNameds()
+	val := i.eval.Eval(this).Under()
 	if val.IsError() {
 		return val
 	}

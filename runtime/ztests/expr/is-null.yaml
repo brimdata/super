@@ -3,14 +3,18 @@ spq: values [this IS NULL, this IS NOT NULL]
 input: |
   "foo"
   "foo"::(string|null)
+  fusion("foo"::(string|null),<string>)
   null
   null::(int64|null)
+  fusion(null::(int64|null),<string>)
   error("missing")
   error("foo")
 
 output: |
   [false,true]
   [false,true]
+  [false,true]
+  [true,false]
   [true,false]
   [true,false]
   [error("missing"),error("missing")]
