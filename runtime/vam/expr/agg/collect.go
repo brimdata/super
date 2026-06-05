@@ -2,63 +2,45 @@ package agg
 
 import (
 	"github.com/brimdata/super"
-	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vbuild"
 )
 
 type collect struct {
-	samcollect samagg.Collect
+	builder *vbuild.DynamicBuilder
 }
 
 func (c *collect) Consume(vec vector.Any) {
-	typ := vec.Type()
-	var b scode.Builder
-	for i := range vec.Len() {
-		b.Truncate()
-		vec.Serialize(&b, i)
-		val := super.NewValue(typ, b.Bytes().Body())
-		if !val.IsNone() {
-			c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))
-		}
+	if vec.Len() == 0 || vec.Kind() == vector.KindNull {
+		return
 	}
+	if c.builder == nil {
+		c.builder = vbuild.NewDynamicBuilder()
+	}
+	c.builder.Write(vec)
 }
 
 func (c *collect) Result(sctx *super.Context) vector.Any {
-	val := c.samcollect.Result(sctx)
-	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
+	if c.builder == nil {
+		return vector.NewNull(1)
+	}
+	vec := c.builder.Build()
+	if dynamic, ok := vec.(*vector.Dynamic); ok {
+		vec = vector.NewUnionFromDynamic(sctx, dynamic)
+	}
+	atyp := sctx.LookupTypeArray(vec.Type())
+	return vector.NewArray(atyp, []uint32{0, vec.Len()}, vec)
 }
 
 func (c *collect) ConsumeAsPartial(partial vector.Any) {
-	if partial.Kind() == vector.KindNull {
-		return
-	}
-	n := partial.Len()
-	var index []uint32
-	if view, ok := partial.(*vector.View); ok {
-		partial, index = view.Any, view.Index
-	}
-	array, ok := partial.(*vector.Array)
-	if !ok {
-		panic("collection: partial not an array type")
-	}
-	var b scode.Builder
-	typ := array.Values.Type()
-	for i := range n {
-		idx := i
-		if index != nil {
-			idx = index[i]
-		}
-		for k := array.Offsets[idx]; k < array.Offsets[idx+1]; k++ {
-			b.Truncate()
-			array.Values.Serialize(&b, k)
-			c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))
-		}
-	}
+	inner := vector.PushView(partial).(*vector.Array).Values
+	c.Consume(vector.Deunion(inner))
 }
 
 func (c *collect) ResultAsPartial(sctx *super.Context) vector.Any {
-	val := c.samcollect.ResultAsPartial(sctx)
-	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
+	if c.builder == nil {
+		atyp := sctx.LookupTypeArray(super.TypeNone)
+		return vector.NewArray(atyp, []uint32{0, 0}, vector.NewNone(0))
+	}
+	return c.Result(sctx)
 }
