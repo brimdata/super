@@ -22,7 +22,9 @@ type NoRip struct {
 func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	if opt&ApplyRipFusions != 0 {
 		for k, vec := range vecs {
-			vecs[k] = Super(vec)
+			if _, ok := vec.(*NoRip); !ok {
+				vecs[k] = Super(vec)
+			}
 		}
 	}
 	if opt&ApplyRipUnions != 0 {
