@@ -96,7 +96,7 @@ func HasSource(seq sem.Seq) bool {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *sem.FileScan, *sem.HTTPScan, *sem.PoolScan, *sem.DBMetaScan, *sem.PoolMetaScan, *sem.CommitMetaScan, *sem.DeleteScan, *sem.NullScan, *sem.DefaultScan:
+	case *sem.FileScan, *sem.HTTPScan, *sem.PoolScan, *sem.DBMetaScan, *sem.PoolMetaScan, *sem.CommitMetaScan, *sem.DeleteScan, *sem.NullScan:
 		return true
 	case *sem.ForkOp:
 		for _, path := range op.Paths {

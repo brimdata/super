@@ -190,20 +190,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		return meta.NewCommitMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.Pool, v.Commit, v.Meta, pruner)
 	case *dag.DBMetaScan:
 		return meta.NewDBMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.Meta)
-	case *dag.DefaultScan:
-		pushdown := b.newPushdown(v.Filter, nil)
-		if len(b.readers) == 1 {
-			return sbuf.NewScanner(b.rctx.Context, b.readers[0], pushdown)
-		}
-		scanners := make([]sbuf.Scanner, 0, len(b.readers))
-		for _, r := range b.readers {
-			scanner, err := sbuf.NewScanner(b.rctx.Context, r, pushdown)
-			if err != nil {
-				return nil, err
-			}
-			scanners = append(scanners, scanner)
-		}
-		return sbuf.MultiScanner(scanners...), nil
 	case *dag.DeleterScan:
 		pool, err := b.lookupPool(v.Pool)
 		if err != nil {
@@ -690,7 +676,7 @@ func isEntry(seq dag.Seq) bool {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *dag.ListerScan, *dag.DefaultScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
+	case *dag.ListerScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
 		return true
 	case *dag.ForkOp:
 		return len(op.Paths) > 0 && !slices.ContainsFunc(op.Paths, func(seq dag.Seq) bool {

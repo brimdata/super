@@ -114,7 +114,7 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		}
 		return d
 
-	case *dag.CommitMetaScan, *dag.DefaultScan, *dag.DeleterScan, *dag.DeleteScan, *dag.DBMetaScan:
+	case *dag.CommitMetaScan, *dag.DeleterScan, *dag.DeleteScan, *dag.DBMetaScan:
 		return demand.None()
 	case *dag.FileScan:
 		if mf := op.Pushdown.MetaFilter; mf != nil {

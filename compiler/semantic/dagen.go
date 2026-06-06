@@ -73,10 +73,6 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Kind: "DBMetaScan",
 			Meta: op.Meta,
 		}
-	case *sem.DefaultScan:
-		return &dag.DefaultScan{
-			Kind: "DefaultScan",
-		}
 	case *sem.DeleteScan:
 		return &dag.DeleteScan{
 			Kind:   "DeleteScan",

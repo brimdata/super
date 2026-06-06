@@ -22,8 +22,6 @@ func clrOp(op sem.Op) {
 	//
 	// Scanners first
 	//
-	case *sem.DefaultScan:
-		op.Node = nil
 	case *sem.FileScan:
 		op.Node = nil
 	case *sem.HTTPScan:

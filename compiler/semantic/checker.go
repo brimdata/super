@@ -56,8 +56,6 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 	//
 	// Scanners first
 	//
-	case *sem.DefaultScan:
-		return c.unknown
 	case *sem.FileScan:
 		if op.Type == nil {
 			return c.unknown

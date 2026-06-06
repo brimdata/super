@@ -12,7 +12,6 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/segmentio/ksuid"
 )
@@ -251,11 +250,6 @@ type (
 		Kind string `json:"kind" unpack:""`
 		Meta string `json:"meta"`
 	}
-	DefaultScan struct {
-		Kind     string         `json:"kind" unpack:""`
-		Filter   Expr           `json:"filter"`
-		SortKeys order.SortKeys `json:"sort_keys"`
-	}
 	DeleterScan struct {
 		Kind      string      `json:"kind" unpack:""`
 		Pool      ksuid.KSUID `json:"pool"`
@@ -349,7 +343,6 @@ var CommitMetas = map[string]struct{}{
 
 func (*CommitMetaScan) opNode() {}
 func (*DBMetaScan) opNode()     {}
-func (*DefaultScan) opNode()    {}
 func (*DeleterScan) opNode()    {}
 func (*DeleteScan) opNode()     {}
 func (*FileScan) opNode()       {}

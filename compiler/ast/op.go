@@ -239,9 +239,6 @@ type (
 		Meta *Text  `json:"meta"`
 		Loc  `json:"loc"`
 	}
-	DefaultScan struct {
-		Kind string `json:"kind" unpack:""`
-	}
 	Delete struct {
 		Kind   string       `json:"kind" unpack:""`
 		Pool   string       `json:"pool"`
@@ -283,9 +280,6 @@ type FromItem struct {
 	Args   []OpArg    `json:"args"`
 	Loc    `json:"loc"`
 }
-
-func (d *DefaultScan) Pos() int { return -1 }
-func (d *DefaultScan) End() int { return -1 }
 
 type ArgExpr struct {
 	Kind  string `json:"kind" unpack:""`
@@ -374,5 +368,3 @@ func (*UniqOp) opNode()       {}
 func (*UnnestOp) opNode()     {}
 func (*ValuesOp) opNode()     {}
 func (*WhereOp) opNode()      {}
-
-func (*DefaultScan) opNode() {}

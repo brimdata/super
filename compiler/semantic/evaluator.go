@@ -84,8 +84,6 @@ func (e *evaluator) op(op sem.Op) bool {
 	//
 	// Scanners first
 	//
-	case *sem.DefaultScan:
-		return false
 	case *sem.FileScan,
 		*sem.HTTPScan,
 		*sem.PoolScan,

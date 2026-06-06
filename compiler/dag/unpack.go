@@ -20,7 +20,6 @@ var unpacker = unpack.New(
 	CountOp{},
 	CutOp{},
 	DebugOp{},
-	DefaultScan{},
 	DeleterScan{},
 	DeleteScan{},
 	DistinctOp{},

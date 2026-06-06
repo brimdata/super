@@ -217,12 +217,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		}
 		d := vamop.NewDebug(b.rctx, e, filter, b.debugs, parent)
 		return d, nil
-	case *dag.DefaultScan:
-		sbufPuller, err := b.compileLeaf(o, nil)
-		if err != nil {
-			return nil, err
-		}
-		return sbuf.NewDematerializer(b.sctx(), sbufPuller), nil
 	case *dag.DistinctOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {

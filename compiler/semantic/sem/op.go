@@ -36,9 +36,6 @@ type (
 		ast.Node
 		Meta string
 	}
-	DefaultScan struct {
-		ast.Node
-	}
 	DeleteScan struct {
 		ast.Node
 		ID     ksuid.KSUID
@@ -80,7 +77,6 @@ type (
 
 func (*CommitMetaScan) opNode() {}
 func (*DBMetaScan) opNode()     {}
-func (*DefaultScan) opNode()    {}
 func (*DeleteScan) opNode()     {}
 func (*FileScan) opNode()       {}
 func (*HTTPScan) opNode()       {}
@@ -302,10 +298,6 @@ func CopyOp(op Op) Op {
 		return &DBMetaScan{
 			Node: op.Node,
 			Meta: op.Meta,
-		}
-	case *DefaultScan:
-		return &DefaultScan{
-			Node: op.Node,
 		}
 	case *DeleteScan:
 		return &DeleteScan{

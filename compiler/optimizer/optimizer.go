@@ -281,10 +281,6 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 				}
 				seq = dag.Seq{op, o}
 			}
-		case *dag.DefaultScan:
-			o.nent++
-			op.Filter = filter
-			seq = append(dag.Seq{op}, chain...)
 		}
 		return seq, nil
 	})
@@ -363,7 +359,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 			sortKeys = nil
 		}
 		return []order.SortKeys{sortKeys}, nil
-	case *dag.PoolScan, *dag.ListerScan, *dag.SeqScan, *dag.DefaultScan:
+	case *dag.PoolScan, *dag.ListerScan, *dag.SeqScan:
 		out, err := o.sortKeysOfSource(op)
 		return []order.SortKeys{out}, err
 	default:
@@ -374,8 +370,6 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 
 func (o *Optimizer) sortKeysOfSource(op dag.Op) (order.SortKeys, error) {
 	switch op := op.(type) {
-	case *dag.DefaultScan:
-		return op.SortKeys, nil
 	case *dag.FileScan:
 		return nil, nil
 	case *dag.HTTPScan:
@@ -845,7 +839,7 @@ func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
 	for i := len(seq) - 1; i >= 0; i-- {
 		switch op := seq[i].(type) {
 		case *dag.AggregateOp, *dag.CombineOp, *dag.DistinctOp, *dag.HashJoinOp, *dag.JoinOp, *dag.SortOp, *dag.TopOp,
-			*dag.DefaultScan, *dag.HTTPScan, *dag.PoolScan,
+			*dag.HTTPScan, *dag.PoolScan,
 			*dag.CommitMetaScan, *dag.DBMetaScan, *dag.PoolMetaScan:
 			unordered = true
 		case *dag.FileScan:

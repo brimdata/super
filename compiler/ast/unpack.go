@@ -29,7 +29,6 @@ var unpacker = unpack.New(
 	DebugOp{},
 	DeclsValue{},
 	Decorated{},
-	DefaultScan{},
 	Delete{},
 	DoubleQuoteExpr{},
 	DropOp{},

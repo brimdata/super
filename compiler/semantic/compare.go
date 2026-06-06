@@ -37,9 +37,6 @@ func eqOp(aop, bop sem.Op) bool {
 	case *sem.DBMetaScan:
 		b, ok := bop.(*sem.DBMetaScan)
 		return ok && a.Meta == b.Meta
-	case *sem.DefaultScan:
-		_, ok := bop.(*sem.DefaultScan)
-		return ok
 	case *sem.FileScan:
 		b, ok := bop.(*sem.FileScan)
 		return ok && slices.Equal(a.Paths, b.Paths) && a.Format == b.Format

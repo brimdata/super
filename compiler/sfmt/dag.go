@@ -298,14 +298,6 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.DBMetaScan:
 		c.next()
 		c.write(":%s", p.Meta)
-	case *dag.DefaultScan:
-		c.next()
-		c.write("reader")
-		if p.Filter != nil {
-			c.write(" filter (")
-			c.expr(p.Filter, "")
-			c.write(")")
-		}
 	case *dag.FileScan:
 		c.next()
 		c.write("file %s", strings.Join(p.Paths, ","))

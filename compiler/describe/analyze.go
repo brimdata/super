@@ -112,8 +112,6 @@ func describeSources(ctx context.Context, root *db.Root, o dag.Op) ([]Source, er
 			s = append(s, out...)
 		}
 		return s, nil
-	case *dag.DefaultScan:
-		return []Source{&Path{Kind: "Path", URI: "stdio://stdin"}}, nil
 	case *dag.NullScan:
 		return []Source{&Null{Kind: "Null"}}, nil
 	case *dag.FileScan:
