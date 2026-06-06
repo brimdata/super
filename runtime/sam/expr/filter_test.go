@@ -65,9 +65,9 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			require.NoError(t, err, "filter: %q", c.filter)
 			_, _, builder, err := compiler.BuildWithBuilder(rctx, main, env, nil)
 			require.NoError(t, err, "filter: %q", c.filter)
-			scan, ok := main.Body[0].(*dag.DefaultScan)
+			scan, ok := main.Body[0].(*dag.FileScan)
 			require.True(t, ok)
-			filterMaker := rungen.NewPushdown(builder, scan.Filter)
+			filterMaker := rungen.NewPushdown(builder, scan.Pushdown.DataFilter.Expr)
 			f, err := filterMaker.DataFilter()
 			assert.NoError(t, err, "filter: %q", c.filter)
 			if f != nil {

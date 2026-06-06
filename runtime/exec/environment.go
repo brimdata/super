@@ -14,6 +14,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/fjsonio"
@@ -56,6 +57,7 @@ type Environment struct {
 	ReaderOpts       anyio.ReaderOpts
 	Runtime          Runtime
 	SampleSize       int
+	Stdin            sio.Reader
 }
 
 func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
@@ -113,6 +115,9 @@ func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, forma
 		if proj := pushdown.Projection(); proj != nil {
 			fields = proj.Paths()
 		}
+	}
+	if path == "stdio:stdin" && e.Stdin != nil {
+		return sbuf.NewScanner(ctx, e.Stdin, pushdown)
 	}
 	file, err := anyio.Open(ctx, sctx, e.engine, path, e.readerOpts(fields, format))
 	if err != nil {

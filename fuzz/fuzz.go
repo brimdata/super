@@ -19,7 +19,6 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/pkg/storage/mock"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
@@ -30,7 +29,6 @@ import (
 	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
-	"go.uber.org/mock/gomock"
 )
 
 func ReadBSUP(bs []byte) ([]super.Value, error) {
@@ -91,8 +89,7 @@ func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.V
 
 func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
 	// Compile query
-	engine := mock.NewMockEngine(gomock.NewController(t))
-	comp := compiler.NewCompiler(engine)
+	comp := compiler.NewCompiler(nil)
 	ast, err := parser.ParseText(querySource)
 	if err != nil {
 		t.Skipf("%v", err)
@@ -105,7 +102,7 @@ func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySour
 
 	// Infer demand
 	// TODO This is a hack and should be replaced by a cleaner interface in CompileQuery.
-	env := exec.NewEnvironment(engine, nil)
+	env := exec.NewEnvironment(nil, nil)
 	main, err := semantic.Analyze(t.Context(), ast, env, true)
 	if err != nil {
 		t.Skipf("%v", err)

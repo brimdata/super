@@ -19,13 +19,12 @@ import (
 // to DAG form, resolving syntax ambiguities, and performing constant propagation.
 // After semantic analysis, the DAG is ready for either optimization or compilation.
 func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput bool) (*dag.Main, error) {
-	t := newTranslator(ctx, reporter{p.Files()}, env)
-	astseq := p.Parsed()
 	if extInput {
-		astseq.Prepend(&ast.DefaultScan{Kind: "DefaultScan"})
+		p.PrependFileScan([]string{"stdio:stdin"})
 	}
+	t := newTranslator(ctx, reporter{p.Files()}, env)
 	t.checker.pushErrs()
-	seq, _ := t.seq(astseq, super.TypeNull)
+	seq, _ := t.seq(p.Parsed(), super.TypeNull)
 	errs := t.checker.popErrs()
 	errs.flushErrs(t.reporter)
 	if err := t.Error(); err != nil {

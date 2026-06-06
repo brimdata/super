@@ -62,6 +62,10 @@ func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environme
 }
 
 func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader) (*exec.Query, error) {
+	if len(readers) > 0 {
+		env = new(*env)
+		env.Stdin = sio.ConcatReader(readers...)
+	}
 	main, err := Analyze(rctx, ast, env, len(readers) > 0)
 	if err != nil {
 		return nil, err
@@ -72,7 +76,7 @@ func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environmen
 			return nil, err
 		}
 	}
-	outputs, debugs, meter, err := Build(rctx, main, env, readers)
+	outputs, debugs, meter, err := Build(rctx, main, env, nil)
 	if err != nil {
 		return nil, err
 	}
