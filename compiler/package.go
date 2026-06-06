@@ -43,18 +43,18 @@ func Optimize(ctx context.Context, main *dag.Main, env *exec.Environment, parall
 	return nil
 }
 
-func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vio.Puller, *op.DebugChans, vio.Meter, error) {
+func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment) (map[string]vio.Puller, *op.DebugChans, vio.Meter, error) {
 	b := rungen.NewBuilder(rctx, env)
-	outputs, debugs, err := b.Build(main, readers...)
+	outputs, debugs, err := b.Build(main)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	return outputs, debugs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vio.Puller, *op.DebugChans, *rungen.Builder, error) {
+func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment) (map[string]vio.Puller, *op.DebugChans, *rungen.Builder, error) {
 	b := rungen.NewBuilder(rctx, env)
-	outputs, debugs, err := b.Build(main, readers...)
+	outputs, debugs, err := b.Build(main)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -76,7 +76,7 @@ func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environmen
 			return nil, err
 		}
 	}
-	outputs, debugs, meter, err := Build(rctx, main, env, nil)
+	outputs, debugs, meter, err := Build(rctx, main, env)
 	if err != nil {
 		return nil, err
 	}

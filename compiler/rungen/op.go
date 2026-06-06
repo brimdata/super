@@ -42,7 +42,6 @@ import (
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
@@ -54,7 +53,6 @@ type Builder struct {
 	mctx            *super.Context
 	mapper          *super.TypeDefsMapper
 	env             *exec.Environment
-	readers         []sio.Reader
 	progress        *vio.Progress
 	debugs          *vamop.DebugChans
 	channels        map[string][]vio.Puller
@@ -83,13 +81,11 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 	}
 }
 
-// Build builds a flowgraph for main.  If main contains a dag.DefaultSource, it
-// will read from readers.
-func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vio.Puller, *vamop.DebugChans, error) {
+// Build builds a flowgraph for main.
+func (b *Builder) Build(main *dag.Main) (map[string]vio.Puller, *vamop.DebugChans, error) {
 	if !isEntry(main.Body) {
 		return nil, nil, errors.New("internal error: DAG entry point is not a data source")
 	}
-	b.readers = readers
 	if len(main.Types) != 0 {
 		defs, ok := super.NewTypeDefsFromBytes(main.Types)
 		if !ok {
