@@ -550,7 +550,7 @@ func NewUnaryMinus(sctx *super.Context, e Evaluator) *UnaryMinus {
 }
 
 func (u *UnaryMinus) Eval(this super.Value) super.Value {
-	val := u.expr.Eval(this).DeunionIntoNameds()
+	val := u.expr.Eval(this).Under()
 	if val.IsNull() || val.IsError() {
 		return val
 	}
