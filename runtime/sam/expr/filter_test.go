@@ -3,6 +3,7 @@ package expr_test
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"slices"
 	"testing"
 
 	"github.com/brimdata/super"
@@ -10,6 +11,7 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/rungen"
+	"github.com/brimdata/super/compiler/sfmt"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
@@ -65,8 +67,12 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			require.NoError(t, err, "filter: %q", c.filter)
 			_, _, builder, err := compiler.BuildWithBuilder(rctx, main, env)
 			require.NoError(t, err, "filter: %q", c.filter)
-			filterOp, ok := main.Body[1].(*dag.FilterOp)
-			require.True(t, ok)
+			i := slices.IndexFunc(main.Body, func(o dag.Op) bool {
+				_, ok := o.(*dag.FilterOp)
+				return ok
+			})
+			require.Greater(t, i, -1, "DAG:\n%s", sfmt.DAG(main))
+			filterOp := main.Body[i].(*dag.FilterOp)
 			filterMaker := rungen.NewPushdown(builder, filterOp.Expr)
 			f, err := filterMaker.DataFilter()
 			assert.NoError(t, err, "filter: %q", c.filter)

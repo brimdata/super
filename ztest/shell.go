@@ -21,8 +21,8 @@ func RunShell(ctx context.Context, dir, bindir, script string, stdin io.Reader, 
 		"PATH=" + bindir + string(os.PathListSeparator) + os.Getenv("PATH"),
 		"USERPROFILE=" + dir, // For os.UserHomeDir on Windows.
 	}
-	// Forward TMPDIR, TMP, and TEMP for os.TempDir.
-	for _, env := range append(useenvs, "TMPDIR", "TMP", "TEMP") {
+	// Forward  TMPDIR, TMP, and TEMP for os.TempDir as well as SUPER_FUSE.
+	for _, env := range append(useenvs, "SUPER_FUSE", "TMPDIR", "TMP", "TEMP") {
 		if v, ok := os.LookupEnv(env); ok {
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", env, v))
 		}
