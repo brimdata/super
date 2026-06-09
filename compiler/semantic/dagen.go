@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"errors"
+	"os"
 	"slices"
 	"strings"
 
@@ -51,6 +52,15 @@ func (d *dagen) seq(seq sem.Seq) dag.Seq {
 	var out dag.Seq
 	for _, op := range seq {
 		out = append(out, d.op(op))
+		if os.Getenv("SUPER_FUSE") != "" {
+			switch op.(type) {
+			case *sem.FileScan, *sem.HTTPScan, *sem.PoolScan, *sem.RobotScan:
+				out = append(out, &dag.FuseOp{
+					Kind:     "FuseOp",
+					Complete: true,
+				})
+			}
+		}
 	}
 	return out
 }
