@@ -8,6 +8,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestContextLookupByValueAndLookupTypeValue(t *testing.T) {
+	sctx := super.NewContext()
+	recType := sctx.MustLookupTypeRecord(nil)
+
+	tv := super.EncodeTypeValue(recType)
+	typ, err := sctx.LookupByValue(tv)
+	require.NoError(t, err)
+	assert.Equal(t, recType, typ)
+
+	// Overwriting tv should not affect sctx's cached type value for recType.
+	super.AppendTypeValue(tv[:0], super.TypeNull)
+	val := sctx.LookupTypeValue(recType)
+	assert.Exactly(t, super.EncodeTypeValue(recType), val.Bytes())
+}
+
 func TestContextLookupTypeNamedErrors(t *testing.T) {
 	sctx := super.NewContext()
 

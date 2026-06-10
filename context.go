@@ -386,7 +386,7 @@ func (c *Context) LookupByValue(tv scode.Bytes) (Type, error) {
 	if rest == nil {
 		return nil, errors.New("bad type value encoding")
 	}
-	c.toValue[typ] = tv
+	c.toValue[typ] = slices.Clone(tv)
 	c.toType[string(tv)] = typ
 	return typ, nil
 }
