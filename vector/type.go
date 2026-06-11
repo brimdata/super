@@ -59,6 +59,10 @@ func (t *TypeValue) Value(slot uint32) super.Type {
 	return t.Types()[slot]
 }
 
+func (t *TypeValue) Sctx() *super.Context {
+	return t.sctx
+}
+
 func (t *TypeValue) TypeIDs() (*super.TypeDefs, []uint32) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
