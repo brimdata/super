@@ -145,14 +145,9 @@ func (d *downcast) downcastFusion(fusion *vector.Fusion, to super.Type) vector.A
 }
 
 func (d *downcast) downcastDynamic(dynamic *vector.Dynamic, to super.Type) vector.Any {
-	vecs := make([]vector.Any, len(dynamic.Values))
-	for tag, vec := range dynamic.Values {
-		vecs[tag] = d.downcast(vec, to)
-	}
-	// Flatten nested dynamics.
 	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
-		return vecs[0]
-	}, vector.NewDynamic(dynamic.Tags, vecs))
+		return d.downcast(vecs[0], to)
+	}, dynamic)
 }
 
 func (d *downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
