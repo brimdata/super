@@ -70,9 +70,11 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 		return nil, err
 	}
 	defer r.Close()
-	var b [1]byte
-	if _, err := r.ReadAt(b[:], 0); err != nil {
-		// r can't seek so it's a fifo or pipe.
+	rs, ok := r.(io.ReadSeekCloser)
+	if !ok {
+		return nil, nil
+	}
+	if _, err := rs.Seek(0, io.SeekCurrent); err != nil {
 		return nil, nil
 	}
 	f, err := NewFile(sctx, r, path, opts)
@@ -80,6 +82,10 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 		return nil, err
 	}
 	defer f.Close()
+	// On BSD/macOS, open("/dev/stdin") dups fd 0 rather than re-opening the
+	// file, so it shares stdin's file offset. Reset to 0 so a re-open reads
+	// from the start instead of resuming where the last read left off.
+	defer rs.Seek(0, io.SeekStart)
 	switch r := f.Reader.(type) {
 	case *arrowio.Reader:
 		return r.Type(), nil

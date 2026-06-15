@@ -74,9 +74,6 @@ func (s *stream) close() error {
 	// drain channel
 	for range s.ch {
 	}
-	if closer, ok := s.r.(io.Closer); ok {
-		return closer.Close()
-	}
 	return nil
 }
 
