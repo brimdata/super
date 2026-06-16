@@ -14,6 +14,7 @@ input: |
   "true"
   "F"
   "false"
+  fusion("false"::(string|null),<string>)
   "blah"
   null
   null::({}|null)
@@ -36,6 +37,7 @@ output: |
   false
   true
   true
+  false
   false
   false
   error({message:"cannot cast to bool",on:"blah"})

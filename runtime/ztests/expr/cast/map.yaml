@@ -3,6 +3,7 @@ spq: |
 
 input: |
   map{}
+  fusion(map{1:map{2:3}}::(null|map{int64:map{int64:int64}}),<map{int64:map{int64:int64}}>)
   map{1:map{"2":3,4:"5"},"7":8,"9":map{10:[],[]:11,null:null}}
   null
   null::({}|null)
@@ -12,6 +13,7 @@ input: |
 
 output: |
   map{}
+  map{1:map{"2":3}}
   map{1:map{"2":3,"4":5},7:error({message:"cannot cast to map{string:int64}",on:8}),9:map{null:null,"10":error({message:"cannot cast to int64",on:[]}),"[]":11}}
   null::(null|map{int64:map{string:int64}})
   null::(null|map{int64:map{string:int64}})

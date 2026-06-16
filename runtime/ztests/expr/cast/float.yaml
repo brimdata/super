@@ -10,6 +10,7 @@ input: |
   2::named
   false
   true
+  fusion("2"::(string|null),<string>)
   null
   null::({}|null)
 
@@ -38,6 +39,9 @@ output: |
   1.::float16
   1.::float32
   1.
+  2.::float16
+  2.::float32
+  2.
   null::(float16|null)
   null::(float32|null)
   null::(float64|null)

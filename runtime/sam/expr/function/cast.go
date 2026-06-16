@@ -24,6 +24,7 @@ func NewCaster(sctx *super.Context) Caster {
 
 func (c *cast) Call(args []super.Value) super.Value {
 	from, to := args[0], args[1]
+	from = from.SuperDeunion()
 	if from.IsError() {
 		return from
 	}

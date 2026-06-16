@@ -6,6 +6,7 @@ input: |
   type named=string
   "bar"::named
   ""
+  fusion("a"::(string|null),<string>)
   null
   null::({}|null)
   {x:"foo"}
@@ -17,6 +18,7 @@ output: |
   0x666f6f
   0x626172
   0x
+  0x61
   null::(bytes|null)
   null::(bytes|null)
   error({message:"cannot cast to bytes",on:{x:"foo"}})

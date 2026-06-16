@@ -5,6 +5,7 @@ spq: |
 input: |
   {x:1}
   {x:2}
+  fusion({x:3}::(null|{x:int64}),<{x:int64}>)
   "foo"
   "bar"
   type a=string
@@ -18,6 +19,7 @@ output: |
   type named={x:int64}
   {x:1}::named
   {x:2}::named
+  {x:3}::named
   error("type \"named\" redefined")
   error("type \"named\" redefined")
   error("type \"named\" redefined")
@@ -41,3 +43,4 @@ output: |
   type foo=int64
   {str:1::foo,named:1::foo}
   {str:2::foo,named:2::foo}
+

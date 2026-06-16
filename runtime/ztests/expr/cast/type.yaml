@@ -4,6 +4,7 @@ input: |
   "<int64>"
   <ip>
   "<{x:string}>"
+  fusion("<{x:string}>"::(string|null),<string>)
   "{x:\"foo\"}"
   "<int>"
   1
@@ -11,10 +12,12 @@ input: |
   null
   null::({}|null)
   error("bad")
+  fusion(error(1)::(error(int64)|int64),<error(int64)>)
 
 output: |
   <int64>
   <ip>
+  <{x:string}>
   <{x:string}>
   error({message:"cannot cast to type",on:"{x:\"foo\"}"})
   error({message:"cannot cast to type",on:"<int>"})
@@ -23,3 +26,4 @@ output: |
   null::(type|null)
   null::(type|null)
   error("bad")
+  error(1)

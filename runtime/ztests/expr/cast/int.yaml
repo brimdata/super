@@ -12,6 +12,7 @@ input: |
   1e8
   false
   true
+  fusion("2"::(string|null),<string>)
   null
   null::({}|null)
 
@@ -52,6 +53,10 @@ output: |
   1::int16
   1::int32
   1
+  2::int8
+  2::int16
+  2::int32
+  2
   null::(int8|null)
   null::(int16|null)
   null::(int32|null)

@@ -39,7 +39,7 @@ type casterPrimitive struct {
 }
 
 func (c *casterPrimitive) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		return cast.To(c.sctx, vecs[0], c.typ)
 	}, c.expr.Eval(this))
 }
@@ -51,7 +51,7 @@ type casterNamedType struct {
 }
 
 func (c *casterNamedType) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyNone, c.eval, c.expr.Eval(this))
+	return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, c.eval, c.expr.Eval(this))
 }
 
 func (c *casterNamedType) eval(vecs ...vector.Any) vector.Any {

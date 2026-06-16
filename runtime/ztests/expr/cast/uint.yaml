@@ -4,6 +4,7 @@ spq: |
 input: |
   false
   true
+  fusion(true::(bool|null),<bool>)
   -1
   null
   null::({}|null)
@@ -14,6 +15,10 @@ output: |
   0::uint16
   0::uint32
   0::uint64
+  1::uint8
+  1::uint16
+  1::uint32
+  1::uint64
   1::uint8
   1::uint16
   1::uint32
