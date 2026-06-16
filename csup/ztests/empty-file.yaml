@@ -1,9 +1,19 @@
 runtime: sam
 
 script: |
-  ! super -i csup /dev/null
+  super -i csup /dev/null
 
 outputs:
+  - name: stdout
+    data: ""
   - name: stderr
-    data: |
-      /dev/null: EOF
+    data: ""
+
+---
+
+script: |
+  super -f csup -o test.csup -c 'values false | where this'
+
+outputs:
+  - name: test.csup
+    data: ""

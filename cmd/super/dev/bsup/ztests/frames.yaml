@@ -1,6 +1,6 @@
 script: |
-  super a.sup > c.bsup
-  super b.sup >> c.bsup
+  super -f bsup a.sup > c.bsup
+  super -f bsup b.sup >> c.bsup
   super dev bsup frames -s c.bsup
 
 inputs:

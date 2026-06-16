@@ -1,6 +1,6 @@
 # Test that union true values get de-unioned in filter pushdowns.
 script: |
-  super in.sup > test.bsup 
+  super -f bsup in.sup > test.bsup 
   super -s -c 'from test.bsup | where this'
 
 inputs:
