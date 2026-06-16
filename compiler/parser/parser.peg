@@ -1460,6 +1460,17 @@ EasyType
           Loc: loc(c),
       }, nil
     }
+  / ANY {
+      return &ast.TypeFusion{
+          Kind: "TypeFusion",
+          Type: &ast.TypePrimitive{
+            Kind: "TypePrimitive",
+            Name: "all",
+            Loc: loc(c),
+          },
+          Loc: loc(c),
+      }, nil
+    }
   / FUSION __ "(" __ t:Type __ ")" {
       return &ast.TypeFusion{
           Kind: "TypeFusion",
@@ -2436,6 +2447,7 @@ AGGREGATE  = "AGGREGATE"i       !IdentifierRest
 ALL        = "ALL"i             !IdentifierRest
 AND        = "AND"i             !IdentifierRest { return "and", nil }
 ANTI       = "ANTI"i            !IdentifierRest
+ANY        = "ANY"i             !IdentifierRest
 AS         = "AS"i              !IdentifierRest
 ASC        = "ASC"i             !IdentifierRest { return "asc", nil }
 ASSERT     = "ASSERT"i          !IdentifierRest

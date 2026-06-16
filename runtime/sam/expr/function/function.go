@@ -31,7 +31,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "cast":
 		argmin = 2
 		argmax = 2
-		f = &cast{sctx}
+		f = &cast{sctx: sctx}
 	case "ceil":
 		f = &Ceil{sctx: sctx}
 	case "cidr_match":

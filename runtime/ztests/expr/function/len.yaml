@@ -28,8 +28,8 @@ input: |
   <int64|string>
   <[int64]>
   <[int64|string]>
-  type any=int64|string
-  <any>
+  type Any=int64|string
+  <Any>
   error(null)
   error("")
   error("error")

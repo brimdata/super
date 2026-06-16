@@ -238,8 +238,8 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 	if !utf8.ValidString(name) {
 		return nil, fmt.Errorf("bad type name %q: invalid UTF-8", name)
 	}
-	if LookupPrimitive(name) != nil {
-		return nil, fmt.Errorf("named type collides with primitive type: %s", name)
+	if err := CheckTypeName(name); err != nil {
+		return nil, err
 	}
 	c.mu.Lock()
 	if c.named == nil {
@@ -255,7 +255,7 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 
 	}
 	c.mu.Unlock()
-	named, patch := c.DeclareTypeNamed(name)
+	named, patch, _ := c.DeclareTypeNamed(name)
 	if patch < 0 {
 		return named, nil
 	}
@@ -263,7 +263,20 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 	return named, nil
 }
 
-func (c *Context) DeclareTypeNamed(name string) (*TypeNamed, int) {
+func CheckTypeName(name string) error {
+	if LookupPrimitive(name) != nil {
+		return fmt.Errorf("named type collides with primitive type: %s", name)
+	}
+	if name == "any" {
+		return fmt.Errorf("named type cannot be any")
+	}
+	return nil
+}
+
+func (c *Context) DeclareTypeNamed(name string) (*TypeNamed, int, error) {
+	if err := CheckTypeName(name); err != nil {
+		return nil, 0, err
+	}
 	c.mu.Lock()
 	if c.named == nil {
 		c.named = make(map[string]*TypeNamed)
@@ -275,7 +288,7 @@ func (c *Context) DeclareTypeNamed(name string) (*TypeNamed, int) {
 	if typ, ok := c.named[name]; ok {
 		c.mu.Unlock()
 		typ.Wait()
-		return typ, -1
+		return typ, -1, nil
 	}
 	// The name doesn't exist at all, so let's create an unresolved TypeNamed
 	// that can be looked up and referenced but the inner Type cannot be used
@@ -291,7 +304,7 @@ func (c *Context) DeclareTypeNamed(name string) (*TypeNamed, int) {
 	typ := NewTypeNamed(int(id), name, nil)
 	c.byID[id] = typ
 	c.named[name] = typ
-	return typ, patch
+	return typ, patch, nil
 }
 
 func (c *Context) declareBlock(compIDs []compID) []patch {
@@ -440,7 +453,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			}
 			return named, tv
 		}
-		named, patch := c.DeclareTypeNamed(name)
+		named, patch, _ := c.DeclareTypeNamed(name)
 		var inner Type
 		inner, tv = c.DecodeTypeValue(tv)
 		if tv == nil {

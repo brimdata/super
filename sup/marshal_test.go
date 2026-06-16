@@ -284,8 +284,8 @@ func TestBSUPValueField(t *testing.T) {
 	m.Decorate(sup.StyleSimple)
 	zv, err := m.Marshal(bsupValueField)
 	require.NoError(t, err)
-	assert.Equal(t, `type BSUPValueField={Name:string,field:fusion(all)}
-{Name:"test1",field:fusion(0xf6,<int64>)}::BSUPValueField`, sup.FormatValueWithTypes(zv))
+	assert.Equal(t, `type BSUPValueField={Name:string,field:any}
+{Name:"test1",field:123::any}::BSUPValueField`, sup.FormatValueWithTypes(zv))
 	u := sup.NewBSUPUnmarshaler()
 	var out BSUPValueField
 	err = u.Unmarshal(zv, &out)
@@ -303,8 +303,8 @@ func TestBSUPValueField(t *testing.T) {
 	m2.Decorate(sup.StyleSimple)
 	zv3, err := m2.Marshal(bsupValueField2)
 	require.NoError(t, err)
-	assert.Equal(t, `type BSUPValueField={Name:string,field:fusion(all)}
-{Name:"test2",field:fusion(0x04666f6f07020202040206,<{s:string,a:[int64]}>)}::BSUPValueField`, sup.FormatValueWithTypes(zv3))
+	assert.Equal(t, `type BSUPValueField={Name:string,field:any}
+{Name:"test2",field:{s:"foo",a:[1,2,3]}::any}::BSUPValueField`, sup.FormatValueWithTypes(zv3))
 	u2 := sup.NewBSUPUnmarshaler()
 	var out2 BSUPValueField
 	err = u2.Unmarshal(zv3, &out2)

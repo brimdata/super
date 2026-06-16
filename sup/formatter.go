@@ -192,11 +192,21 @@ func (f *formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.formatValue(indent, t.Type, bytes, known, true, false)
 		f.build(")")
 	case *super.TypeFusion:
+		it := bytes.Iter()
+		if super.IsTypeAny(t) {
+			bytes := it.Next()
+			typ, err := f.sctx().LookupByValue(it.Next())
+			if err != nil {
+				panic(err)
+			}
+			f.formatValue(indent, typ, bytes, false, true, isOptField)
+			f.build("::any")
+			return
+		}
 		f.startColor(color.Green)
 		f.build("fusion")
 		f.endColor()
 		f.build("(")
-		it := bytes.Iter()
 		f.formatValue(indent, t.Type, it.Next(), known, true, false)
 		f.build(",")
 		f.formatTypeValue(indent, it.Next())
@@ -605,9 +615,13 @@ func (f *formatterT) formatType(indent int, typ super.Type, parens bool) {
 		f.formatType(indent, typ.Type, false)
 		f.build(")")
 	case *super.TypeFusion:
-		f.build("fusion(")
-		f.formatType(indent, typ.Type, false)
-		f.build(")")
+		if super.IsTypeAny(typ) {
+			f.build("any")
+		} else {
+			f.build("fusion(")
+			f.formatType(indent, typ.Type, false)
+			f.build(")")
+		}
 	default:
 		panic("unknown case in formatTypeBody: " + FormatType(typ))
 	}

@@ -99,7 +99,9 @@ func (d *downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	if vec.Len() == 0 {
 		return vector.NewEmpty(to)
 	}
-	// XXX Handle vec type All.
+	if super.IsTypeAny(vec.Type()) {
+		return vector.DefuseAny(vec.(*vector.Fusion))
+	}
 	if _, ok := to.(*super.TypeUnion); !ok {
 		if fusion, ok := vec.(*vector.Fusion); ok {
 			return d.downcastFusion(fusion, to)

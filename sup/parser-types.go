@@ -84,6 +84,12 @@ func (p *Parser) matchTypeName() (ast.Type, error) {
 	if name == "enum" {
 		return p.matchTypeEnumBody()
 	}
+	if name == "any" {
+		return &ast.TypeFusion{
+			Kind: "TypeFusion",
+			Type: &ast.TypePrimitive{Kind: "TypePrimitive", Name: "all"},
+		}, nil
+	}
 	if t := super.LookupPrimitive(name); t != nil {
 		return &ast.TypePrimitive{Kind: "TypePrimitive", Name: name}, nil
 	}

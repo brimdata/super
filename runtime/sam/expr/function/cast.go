@@ -15,7 +15,8 @@ type Caster interface {
 }
 
 type cast struct {
-	sctx *super.Context
+	sctx   *super.Context
+	upcast *Upcast
 }
 
 func NewCaster(sctx *super.Context) Caster {
@@ -104,6 +105,18 @@ func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 		return c.toError(from, to)
 	case *super.TypeNamed:
 		return c.toNamed(from, to)
+	case *super.TypeFusion:
+		if to.Type != super.TypeAll {
+			return c.error(from, to)
+		}
+		if c.upcast == nil {
+			c.upcast = NewUpcast(c.sctx)
+		}
+		val, ok := c.upcast.Cast(from, to)
+		if !ok {
+			return c.error(from, to)
+		}
+		return val, true
 	default:
 		caster := expr.LookupPrimitiveCaster(c.sctx, to)
 		if caster == nil {

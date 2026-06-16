@@ -51,6 +51,9 @@ func (d *Defuse) eval(in vector.Any) vector.Any {
 		return d.defuseError(in)
 	case vector.KindFusion:
 		fusion := vector.PushView(in).(*vector.Fusion)
+		if super.IsTypeAny(fusion.Type()) {
+			return vector.DefuseAny(fusion)
+		}
 		return d.downcast.call(fusion.Values, fusion.Subtypes.Types())
 	default:
 		// primitives, named types, enums

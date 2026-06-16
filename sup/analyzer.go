@@ -117,14 +117,18 @@ func (a *Analyzer) ConvertValue(val ast.Value) (Value, error) {
 func (a *Analyzer) BindTypeScope(decls []*ast.TypeDecl) ([]int, []error) {
 	patches := make([]int, len(decls))
 	nameds := make([]*super.TypeNamed, len(decls))
+	errors := make([]error, len(decls))
+	var haveErr bool
 	for k, d := range decls {
-		named, patch := a.sctx.DeclareTypeNamed(d.Name.Name)
+		named, patch, err := a.sctx.DeclareTypeNamed(d.Name.Name)
+		if err != nil {
+			haveErr = true
+			errors[k] = err
+		}
 		patches[k] = patch
 		nameds[k] = named
 	}
 	var ids []int
-	var haveErr bool
-	errors := make([]error, len(decls))
 	for k, d := range decls {
 		if errors[k] == nil {
 			inner, err := a.convertType(d.Type)
@@ -212,7 +216,10 @@ func (a *Analyzer) bindTypeDecls(decls []ast.TypeDecl) error {
 	var patches []int
 	var nameds []*super.TypeNamed
 	for _, decl := range decls {
-		named, patch := a.sctx.DeclareTypeNamed(decl.Name.Name)
+		named, patch, err := a.sctx.DeclareTypeNamed(decl.Name.Name)
+		if err != nil {
+			return err
+		}
 		patches = append(patches, patch)
 		nameds = append(nameds, named)
 	}
@@ -433,6 +440,9 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	if _, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
 		return a.createUnion(val, typ)
 	}
+	if super.IsTypeAny(typ) {
+		return a.createAny(val)
+	}
 	switch val := val.(type) {
 	case *None:
 		// None value carries the type for an optional field and
@@ -492,6 +502,17 @@ func (a *Analyzer) createUnion(val Value, decorator super.Type) (Value, error) {
 		}
 	}
 	return nil, fmt.Errorf("%q is not in union type %q", FormatType(typ), FormatType(unionType))
+}
+
+func (a *Analyzer) createAny(val Value) (Value, error) {
+	if !super.IsTypeAny(val.Type()) {
+		val = &Fusion{
+			value:   val,
+			typ:     a.sctx.LookupTypeFusion(super.TypeAll),
+			subtype: a.sctx.LookupTypeValue(val.Type()).Bytes(),
+		}
+	}
+	return val, nil
 }
 
 func (a *Analyzer) decoratePrimitive(val *Primitive, decorator super.Type) (Value, error) {

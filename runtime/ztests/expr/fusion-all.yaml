@@ -1,4 +1,4 @@
-spq: upcast(this,<fusion(all)>)
+spq: upcast(this,<any>)
 
 # note: the syntax for fusion values will change from bytes to values soon
 # and this test will be updated
@@ -12,14 +12,14 @@ input: |
 output-flags: -fusion
 
 output: |
-  fusion(0x02::all,<int64>)
-  fusion(0x666f6f::all,<string>)
-  fusion(0x0202::all,<{x:int64}>)
-  fusion(0x19::all,<type>)
+  1::any
+  "foo"::any
+  {x:1}::any
+  <string>::any
 
 ---
 
-spq: defuse(upcast(this,<fusion(all)>))
+spq: defuse(this::any)
 
 input: &input |
   1

@@ -60,8 +60,8 @@ outputs:
       ===
       {
         nameof: "data.Object",
-        min: fusion(0x02::all,<int64>),
-        max: fusion(0x04::all,<int64>),
+        min: 1::any,
+        max: 2::any,
         count: 2::uint64,
         size: 20
       }

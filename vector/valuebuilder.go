@@ -455,3 +455,15 @@ func (n *noneValueBuilder) Write(scode.Bytes) {
 func (n *noneValueBuilder) Build(*super.Context) Any {
 	return NewNone(n.len)
 }
+
+func DefuseAny(vec *Fusion) Any {
+	builder := NewDynamicValueBuilder()
+	bytesVec := vec.Values.(*Bytes)
+	typesVec := vec.Subtypes
+	for slot := range bytesVec.Len() {
+		typ := typesVec.Value(slot)
+		bytes := bytesVec.Value(slot)
+		builder.Write(super.NewValue(typ, bytes))
+	}
+	return builder.Build(typesVec.sctx)
+}
