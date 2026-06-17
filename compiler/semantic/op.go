@@ -233,8 +233,8 @@ func (t *translator) fromConst(val super.Value, entity *ast.FromEval, args []ast
 		op, name := t.fromName(entity, val.AsString(), args)
 		return sem.Seq{op}, name
 	}
-	vals, err := val.Elements()
-	if err != nil {
+	vals, ok := val.Elements()
+	if !ok {
 		t.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", sup.String(val)))
 		return sem.Seq{badOp}, ""
 	}

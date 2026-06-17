@@ -39,9 +39,9 @@ func (s *Slice) Eval(this super.Value) super.Value {
 	case *super.TypeOfString:
 		length = utf8.RuneCount(elem.Bytes())
 	case *super.TypeArray, *super.TypeSet:
-		n, err := elem.ContainerLength()
-		if err != nil {
-			panic(err)
+		n, ok := elem.ContainerLength()
+		if !ok {
+			panic(elem.Type())
 		}
 		length = n
 	default:

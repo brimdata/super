@@ -26,8 +26,8 @@ func (a *mapCall) Eval(in super.Value) super.Value {
 	if val.IsNull() || val.IsError() {
 		return val
 	}
-	elems, err := val.Elements()
-	if err != nil {
+	elems, ok := val.Elements()
+	if !ok {
 		return a.sctx.WrapError("map: expected array or set value", in)
 	}
 	if len(elems) == 0 {

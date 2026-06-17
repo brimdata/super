@@ -16,7 +16,6 @@ import (
 
 var (
 	ErrMissingField = errors.New("record missing a field")
-	ErrNotContainer = errors.New("expected container type, got primitive")
 )
 
 var (
@@ -195,33 +194,33 @@ func (v Value) ArrayIndex(idx int64) (Value, error) {
 
 // Elements returns an array of Values for the given container type.
 // Returns an error if the element is not an array or set.
-func (v Value) Elements() ([]Value, error) {
+func (v Value) Elements() ([]Value, bool) {
 	innerType := InnerType(v.Type())
 	if innerType == nil {
-		return nil, ErrNotContainer
+		return nil, false
 	}
 	var elements []Value
 	for it := v.ContainerIter(); !it.Done(); {
 		elements = append(elements, NewValue(innerType, it.Next()))
 	}
-	return elements, nil
+	return elements, true
 }
 
-func (v Value) ContainerLength() (int, error) {
+func (v Value) ContainerLength() (int, bool) {
 	switch v.Type().(type) {
 	case *TypeSet, *TypeArray:
 		if v.IsNull() {
-			return 0, nil
+			return 0, true
 		}
 		var n int
 		for it := v.ContainerIter(); !it.Done(); {
 			it.Next()
 			n++
 		}
-		return n, nil
+		return n, true
 	case *TypeMap:
 		if v.IsNull() {
-			return 0, nil
+			return 0, true
 		}
 		var n int
 		for it := v.ContainerIter(); !it.Done(); {
@@ -229,9 +228,9 @@ func (v Value) ContainerLength() (int, error) {
 			it.Next()
 			n++
 		}
-		return n, nil
+		return n, true
 	default:
-		return -1, ErrNotContainer
+		return -1, false
 	}
 }
 

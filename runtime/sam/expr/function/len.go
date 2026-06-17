@@ -18,11 +18,11 @@ func (l *LenFn) Call(args []super.Value) super.Value {
 	case *super.TypeRecord:
 		length = len(typ.Fields)
 	case *super.TypeArray, *super.TypeSet, *super.TypeMap:
-		var err error
-		length, err = val.ContainerLength()
-		if err != nil {
-			panic(err)
+		n, ok := val.ContainerLength()
+		if !ok {
+			panic(val.Type())
 		}
+		length = n
 	case *super.TypeOfString:
 		length = utf8.RuneCount(val.Bytes())
 	case *super.TypeOfBytes, *super.TypeOfIP, *super.TypeOfNet:

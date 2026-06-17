@@ -379,9 +379,9 @@ func (f *formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 
 func (f *formatter) formatElems(indent int, open, close string, inner super.Type, val super.Value, known bool) bool {
 	f.build(open)
-	n, err := val.ContainerLength()
-	if err != nil {
-		panic(err)
+	n, ok := val.ContainerLength()
+	if !ok {
+		panic(val.Type())
 	}
 	if n == 0 {
 		f.build(close)
