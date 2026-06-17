@@ -15,7 +15,6 @@ import (
 )
 
 var (
-	ErrMissingField = errors.New("record missing a field")
 	ErrNotContainer = errors.New("expected container type, got primitive")
 )
 
