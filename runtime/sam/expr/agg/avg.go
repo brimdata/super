@@ -41,14 +41,14 @@ const (
 
 func (a *Avg) ConsumeAsPartial(partial super.Value) {
 	sumVal := partial.Deref(sumName)
-	if sumVal == nil {
+	if sumVal.IsMissing() {
 		panic(errors.New("avg: partial sum is missing"))
 	}
 	if sumVal.Type() != super.TypeFloat64 {
 		panic(fmt.Errorf("avg: partial sum has bad type: %s", sup.FormatValue(*sumVal)))
 	}
 	countVal := partial.Deref(countName)
-	if countVal == nil {
+	if countVal.IsMissing() {
 		panic("avg: partial count is missing")
 	}
 	if countVal.Type() != super.TypeUint64 {

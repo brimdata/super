@@ -745,7 +745,7 @@ func indexRecordByName(sctx *super.Context, typ *super.TypeRecord, record scode.
 	}
 	field := super.DecodeString(index.Bytes())
 	val := super.NewValue(typ, record).Ptr().Deref(field)
-	if val == nil {
+	if val.IsMissing() {
 		return sctx.Missing()
 	}
 	return *val

@@ -130,7 +130,7 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bo
 	for i, f := range to.Fields {
 		var val2 super.Value
 		fieldVal := from.Deref(f.Name) // deref(fromRecType, from.Bytes(), f.Name)
-		if fieldVal == nil {
+		if fieldVal.IsMissing() {
 			// This field isn't present.  If the target type is optional,
 			// code a none value.  Otherwise, code error missing.
 			if optionType, _ := super.OptionUnion(f.Type); optionType != nil {

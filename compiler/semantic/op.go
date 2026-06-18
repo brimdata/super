@@ -372,7 +372,7 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 	headers := map[string][]string{}
 	for i, f := range val.Fields() {
 		fieldVal, _ := val.DerefByColumn(i)
-		if fieldVal == nil {
+		if fieldVal.IsMissing() {
 			continue
 		}
 		headerStrings, err := decodeStrings(fieldVal)
