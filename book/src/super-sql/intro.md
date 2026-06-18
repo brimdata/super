@@ -1,6 +1,6 @@
-# SuperSQL
+# SuperSQL<span class="tm">®</span>
 
-SuperSQL is a
+SuperSQL<span class="tm">®</span> is a
 [Pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
 adapted for
 [super-structured data](../formats/model.md).

@@ -1,0 +1,18 @@
+/* Trademark / registered-trademark marks rendered small and raised, per the
+   common typographic convention, so they aren't visually disruptive. */
+
+.tm {
+  font-size: 0.6em;
+  vertical-align: super;
+  line-height: 0;
+}
+
+/* The book title in the top menu bar comes from book.toml as plain text, so the
+   registered-trademark mark is injected and styled here rather than inline. */
+.menu-title::after {
+  content: "\00AE"; /* ® (registered trademark) */
+  font-size: 0.6em;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: 0.05em;
+}

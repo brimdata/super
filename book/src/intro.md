@@ -1,6 +1,6 @@
 # Introduction
 
-SuperDB is a new type of analytics database that promises an easier approach
+SuperDB<span class="tm">®</span> is a new type of analytics database that promises an easier approach
 to modern data because it unifies relational tables and eclectic JSON in a
 powerful, new data model called [_super-structured data_](formats/model.md).
 SuperDB's query language is a
