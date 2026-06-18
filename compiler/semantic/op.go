@@ -371,7 +371,7 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 	}
 	headers := map[string][]string{}
 	for i, f := range val.Fields() {
-		fieldVal, _ := val.DerefByColumn(i)
+		fieldVal := val.DerefByColumn(i)
 		if fieldVal == nil {
 			continue
 		}
