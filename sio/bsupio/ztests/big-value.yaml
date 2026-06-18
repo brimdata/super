@@ -1,10 +1,10 @@
 script: |
-  super -o out.bsup in.sup
+  super -f bsup -o out.bsup in.sup
   for i in {1..7}; do
     cat out.bsup out.bsup out.bsup out.bsup > out2.bsup
     mv out2.bsup out.bsup
   done
-  super -bsup.compress=false -o bigrow.bsup -c "collect:=collect(s)" out.bsup
+  super -f bsup -bsup.compress=false -o bigrow.bsup -c "collect:=collect(s)" out.bsup
   ! super  -i bsup -o /dev/null -bsup.readmax 10KB -c "count:=count()" bigrow.bsup
 
 inputs:

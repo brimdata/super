@@ -31,10 +31,6 @@ func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (sio.Reade
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
 	}
-	// CSUP autodetection requires that we return error on open if invalid format.
-	if _, err := csup.ReadHeader(ra); err != nil {
-		return nil, err
-	}
 	ctx, cancel := context.WithCancel(context.Background())
 	return &reader{
 		sctx:       sctx,

@@ -64,8 +64,7 @@ func (w *Writer) Write(r super.Value) error {
 	var out []string
 	for k, f := range r.Fields() {
 		var v string
-		valPtr, _ := r.DerefByColumn(k)
-		value := valPtr.MissingAsNull()
+		value := r.DerefByColumn(k).MissingAsNull()
 		if f.Type == super.TypeTime {
 			if !value.IsNull() {
 				v = super.DecodeTime(value.Bytes()).Time().Format(time.RFC3339Nano)

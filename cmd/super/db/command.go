@@ -47,6 +47,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 }
 
 func (c *Command) SetLeafFlags(f *flag.FlagSet) {
+	c.outputFlags.DefaultFormat = "bsup"
 	c.outputFlags.SetFlags(f)
 	c.queryFlags.SetFlags(f)
 	c.runtimeFlags.SetFlags(f)

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
@@ -34,37 +35,25 @@ func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadClose
 		return lookupReader(sctx, r, opts)
 	}
 
-	var parquetErr, csupErr error
-	if rs, ok := r.(io.ReadSeeker); ok {
-		if n, err := rs.Seek(0, io.SeekCurrent); err == nil {
-			var rc sio.ReadCloser
-			rc, parquetErr = parquetio.NewReader(sctx, rs, opts.Fields)
-			if parquetErr == nil {
-				return rc, nil
-			}
-			if _, err := rs.Seek(n, io.SeekStart); err != nil {
-				return nil, err
-			}
-			var zr sio.Reader
-			zr, csupErr = csupio.NewReader(sctx, rs, opts.Fields)
-			if csupErr == nil {
-				return sio.NopReadCloser(zr), nil
-			}
-			if _, err := rs.Seek(n, io.SeekStart); err != nil {
-				return nil, err
-			}
-		} else {
-			parquetErr = err
-			csupErr = err
-		}
-		parquetErr = fmt.Errorf("parquet: %w", parquetErr)
-		csupErr = fmt.Errorf("csup: %w", csupErr)
-	} else {
-		parquetErr = errors.New("parquet: auto-detection requires seekable input")
-		csupErr = errors.New("csup: auto-detection requires seekable input")
-	}
-
 	track := NewTrack(r)
+
+	csupErr := isCSUPStream(track)
+	if csupErr == nil {
+		cr, err := csupio.NewReader(sctx, track.Reader(), opts.Fields)
+		if err != nil {
+			return nil, err
+		}
+		return sio.NopReadCloser(cr), nil
+	}
+	csupErr = fmt.Errorf("csup: %w", csupErr)
+	track.Reset()
+
+	parquetErr := isParquetStream(track)
+	if parquetErr == nil {
+		return parquetio.NewReader(sctx, track.Reader(), opts.Fields)
+	}
+	parquetErr = fmt.Errorf("parquet: %w", parquetErr)
+	track.Reset()
 
 	arrowsErr := isArrowStream(track)
 	if arrowsErr == nil {
@@ -165,6 +154,28 @@ func isArrowStream(track *Track) error {
 	return err
 }
 
+func isCSUPStream(track *Track) error {
+	var buf [csup.HeaderSize]byte
+	if _, err := io.ReadFull(track, buf[:]); err != nil {
+		if errors.Is(err, io.ErrUnexpectedEOF) {
+			return errors.New("file size too small")
+		}
+		return err
+	}
+	if err := new(csup.Header{}).Deserialize(buf[:]); err != nil {
+		return err
+	}
+	if track.recorder != nil {
+		track.Reset()
+		b, err := io.ReadAll(track)
+		if err != nil {
+			return err
+		}
+		*track = *NewTrack(bytes.NewReader(b))
+	}
+	return nil
+}
+
 func isCSVStream(track *Track, delim rune, name string) error {
 	if line, err := bufio.NewReader(track).ReadSlice('\n'); err != nil {
 		return fmt.Errorf("%s: line 1: %w", name, err)
@@ -173,6 +184,29 @@ func isCSVStream(track *Track, delim rune, name string) error {
 	}
 	track.Reset()
 	return match(csvio.NewReader(super.NewContext(), track, csvio.ReaderOpts{Delim: delim}), name, 1)
+}
+
+func isParquetStream(track *Track) error {
+	// a parquet stream starts with a 4-byte magic: PAR1 or PARE. If we find
+	// this we probably have a parquet but to be sure we'll have to read the
+	// entire stream till EOF and then check the footer.
+	var buf [4]byte
+	if _, err := io.ReadFull(track, buf[:]); err != nil {
+		return err
+	}
+	if s := string(buf[:]); s != "PAR1" && s != "PARE" {
+		return errors.New("invalid header")
+	}
+	if track.recorder != nil {
+		track.Reset()
+		b, err := io.ReadAll(track)
+		if err != nil {
+			return err
+		}
+		*track = *NewTrack(bytes.NewReader(b))
+	}
+	_, err := parquetio.NewReader(super.NewContext(), track.Reader(), nil)
+	return err
 }
 
 func joinErrs(errs []error) error {

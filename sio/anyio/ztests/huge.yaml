@@ -13,11 +13,11 @@ outputs:
       stdio:stdin: format detection error
       	arrows: schema message length exceeds 1 MiB
       	bsup: BSUP version mismatch: expected 5, found 0
-      	csup: auto-detection requires seekable input
+      	csup: invalid CSUP header
       	csv: line 1: delimiter ',' not found
       	json: buffer exceeded max size trying to infer input format
       	line: auto-detection not supported
-      	parquet: auto-detection requires seekable input
+      	parquet: invalid header
       	sup: buffer exceeded max size trying to infer input format
       	tsv: line 1: delimiter '\t' not found
       	zeek: line 1: bad types/fields definition in zeek header

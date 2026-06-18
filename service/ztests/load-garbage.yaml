@@ -15,11 +15,11 @@ outputs:
       stdio:stdin: format detection error
       	arrows: schema message length exceeds 1 MiB
       	bsup: BSUP version mismatch: expected 5, found 0
-      	csup: auto-detection requires seekable input
+      	csup: file size too small
       	csv: line 1: delimiter ',' not found
       	json: invalid character 'T' looking for beginning of value
       	line: auto-detection not supported
-      	parquet: auto-detection requires seekable input
+      	parquet: invalid header
       	sup: line 1: syntax error
       	tsv: line 1: delimiter '\t' not found
       	zeek: line 1: bad types/fields definition in zeek header

@@ -51,7 +51,11 @@ func (w *Serializer) Push(vec vector.Any) error {
 }
 
 func (w *Serializer) finalizeObject() error {
-	enc := NewDynamicEncoder(w.dynamic.BuildDynamic())
+	vec := w.dynamic.BuildDynamic()
+	if vec.Len() == 0 {
+		return nil
+	}
+	enc := NewDynamicEncoder(vec)
 	root, dataSize, err := enc.Encode()
 	if err != nil {
 		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
