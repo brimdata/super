@@ -15,10 +15,6 @@ import (
 )
 
 var (
-	ErrMissingField = errors.New("record missing a field")
-)
-
-var (
 	Null = Value{typ: TypeNull}
 
 	False = NewBool(false)

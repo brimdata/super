@@ -50,7 +50,7 @@ func walkRecord(typ *TypeRecord, body scode.Bytes, visit Visitor) error {
 	it := body.Iter()
 	for _, f := range typ.Fields {
 		if it.Done() {
-			return ErrMissingField
+			return errors.New("record missing a field")
 		}
 		elem := it.Next()
 		if IsNone(f.Type, elem) {
