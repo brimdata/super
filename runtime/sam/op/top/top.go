@@ -18,7 +18,7 @@ type Op struct {
 	guessReverse bool
 
 	eos     bool
-	records *expr.RecordSlice
+	records *recordSlice
 	compare expr.CompareFn
 }
 
@@ -65,7 +65,7 @@ func (o *Op) consume(rec super.Value) {
 			// package heap implements a min-heap.  Invert the comparison result to get a max-heap.
 			o.compare = func(a, b super.Value) int { return comparator.Compare(a, b) * -1 }
 		}
-		o.records = expr.NewRecordSlice(o.compare)
+		o.records = newRecordSlice(o.compare)
 		heap.Init(o.records)
 	}
 	if o.records.Len() < o.limit || o.compare(o.records.Index(0), rec) < 0 {
@@ -84,4 +84,41 @@ func (o *Op) sorted() sbuf.Batch {
 	// clear records
 	o.records = nil
 	return sbuf.NewArray(out)
+}
+
+type recordSlice struct {
+	vals    []super.Value
+	compare expr.CompareFn
+}
+
+func newRecordSlice(compare expr.CompareFn) *recordSlice {
+	return &recordSlice{compare: compare}
+}
+
+// Swap implements sort.Interface for *Record slices.
+func (r *recordSlice) Len() int { return len(r.vals) }
+
+// Swap implements sort.Interface for *Record slices.
+func (r *recordSlice) Swap(i, j int) { r.vals[i], r.vals[j] = r.vals[j], r.vals[i] }
+
+// Less implements sort.Interface for *Record slices.
+func (r *recordSlice) Less(i, j int) bool {
+	return r.compare(r.vals[i], r.vals[j]) < 0
+}
+
+// Push adds x as element Len(). Implements heap.Interface.
+func (r *recordSlice) Push(rec any) {
+	r.vals = append(r.vals, rec.(super.Value))
+}
+
+// Pop removes the first element in the array. Implements heap.Interface.
+func (r *recordSlice) Pop() any {
+	rec := r.vals[len(r.vals)-1]
+	r.vals = r.vals[:len(r.vals)-1]
+	return rec
+}
+
+// Index returns the ith record.
+func (r *recordSlice) Index(i int) super.Value {
+	return r.vals[i]
 }
