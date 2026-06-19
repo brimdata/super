@@ -357,27 +357,19 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	case *dag.SkipOp:
 		return skip.New(parent, v.Count), nil
 	case *dag.SortOp:
-		var sortExprs []expr.SortExpr
-		for _, e := range v.Exprs {
-			k, err := b.compileExpr(e.Key)
-			if err != nil {
-				return nil, err
-			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
+		exprs, err := b.compileSortExprs(v.Exprs)
+		if err != nil {
+			return nil, err
 		}
-		return sort.New(b.rctx, parent, sortExprs, v.Reverse), nil
+		return sort.New(b.rctx, parent, exprs, v.Reverse), nil
 	case *dag.TailOp:
 		return tail.New(parent, v.Count), nil
 	case *dag.TopOp:
-		var sortExprs []expr.SortExpr
-		for _, dagSortExpr := range v.Exprs {
-			e, err := b.compileExpr(dagSortExpr.Key)
-			if err != nil {
-				return nil, err
-			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, dagSortExpr.Nulls))
+		exprs, err := b.compileSortExprs(v.Exprs)
+		if err != nil {
+			return nil, err
 		}
-		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.Reverse), nil
+		return top.New(b.sctx(), parent, v.Limit, exprs, v.Reverse), nil
 	case *dag.UniqOp:
 		return uniq.New(b.rctx, parent, v.Cflag), nil
 	case *dag.UnnestOp:

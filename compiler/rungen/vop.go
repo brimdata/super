@@ -293,15 +293,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		}
 		return sbuf.NewDematerializer(b.sctx(), sbufPuller), nil
 	case *dag.SortOp:
-		var sortExprs []expr.SortExpr
-		for _, e := range o.Exprs {
-			k, err := b.compileExpr(e.Key)
-			if err != nil {
-				return nil, err
-			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
+		exprs, err := b.compileSortExprs(o.Exprs)
+		if err != nil {
+			return nil, err
 		}
-		return vamop.NewSort(b.rctx, parent, sortExprs, o.Reverse), nil
+		return vamop.NewSort(b.rctx, parent, exprs, o.Reverse), nil
 	case *dag.TailOp:
 		return vamop.NewTail(parent, o.Count), nil
 	case *dag.UniqOp:
