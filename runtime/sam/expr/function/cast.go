@@ -69,7 +69,7 @@ func deoptionType(sctx *super.Context, typ super.Type) super.Type {
 
 func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 	if optionType, _ := super.OptionUnion(to); optionType != nil {
-		val := from.Deoption()
+		val := from.Deunion()
 		if val.Type() == super.TypeNone {
 			return super.None(optionType), true
 		}

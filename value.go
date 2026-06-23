@@ -447,13 +447,6 @@ func (v Value) DeoptionWithMissing(sctx *Context) Value {
 	return v
 }
 
-func (v Value) Deoption() Value {
-	if union, _ := OptionUnion(v.Type()); union != nil {
-		return v.Deunion()
-	}
-	return v
-}
-
 func (v Value) IsNone() bool {
 	if IsOptionType(v.Type()) {
 		return v.Deunion().Type() == TypeNone
