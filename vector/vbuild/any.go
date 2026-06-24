@@ -22,7 +22,6 @@ func (a *anyBuilder) Write(vec vector.Any) {
 		val := vector.ValueAt(&b, vec, slot)
 		a.bytes.Append(val.Bytes())
 		a.types = append(a.types, val.Type())
-		b.Reset()
 	}
 }
 
