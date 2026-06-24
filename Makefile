@@ -64,6 +64,14 @@ build: $(PEG_DEP)
 	@mkdir -p dist
 	@go build -ldflags='$(LDFLAGS)' -o dist ./cmd/...
 
+# Build the playground's Wasm binary and bundle its JavaScript, exercising the
+# same esbuild + GOOS=js GOARCH=wasm build that the docs site relies on.  This
+# catches breakage in book/super-example (e.g., a Go API change that breaks the
+# Wasm build, or a syntax/import error in the playground JS) that `vet` misses
+# since `vet` only vets main.go and never runs esbuild.
+build-book:
+	$(MAKE) -C book all
+
 install:
 	@go install -ldflags='$(LDFLAGS)' $(BUILD_COMMANDS)
 
@@ -85,10 +93,10 @@ markdown-lint:
 
 # CI performs these actions individually since that looks nicer in the UI;
 # this is a shortcut so that a local dev can easily run everything.
-test-ci: fmt tidy vet test-generate test-unit test-system test-heavy
+test-ci: fmt tidy vet build-book test-generate test-unit test-system test-heavy
 
 clean:
 	@rm -rf dist
 
 .PHONY: fmt tidy vet test-unit test-system test-heavy test-ci
-.PHONY: build install clean generate test-generate
+.PHONY: build build-book install clean generate test-generate
