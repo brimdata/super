@@ -9,6 +9,7 @@ import (
 // the Reader interfaces.
 type Array struct {
 	values []super.Value
+	arena  super.Arena
 }
 
 var _ Batch = (*Array)(nil)
@@ -38,7 +39,7 @@ func (a *Array) Append(r super.Value) {
 }
 
 func (a *Array) Write(r super.Value) error {
-	a.Append(r.Copy())
+	a.Append(a.arena.Copy(r))
 	return nil
 }
 
