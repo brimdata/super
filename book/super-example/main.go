@@ -64,25 +64,19 @@ func run(opts opts) wasm.Promise {
 		default:
 			return "", errInvalidInput
 		}
-		zctx := super.NewContext()
-		var readers []sio.Reader
-		if r != nil {
-			rc, err := anyio.NewReader(zctx, r, anyio.ReaderOpts{Format: opts.InputFormat})
-			if err != nil {
-				return "", err
-			}
-			defer rc.Close()
-			readers = []sio.Reader{rc}
-		}
 		var buf bytes.Buffer
 		zwc, err := anyio.NewWriter(sio.NopCloser(&buf), anyio.WriterOpts{Format: opts.OutputFormat})
 		if err != nil {
 			return "", err
 		}
 		defer zwc.Close()
-		local := storage.NewLocalEngine()
-		comp := compiler.NewCompiler(local)
-		query, err := runtime.CompileQuery(context.Background(), zctx, comp, flowgraph, readers)
+		eng := storage.NewInternalEngine()
+		if r != nil {
+			flowgraph.PrependFileScan([]string{"stdio:stdin"})
+			eng.AddReader("stdio:stdin", r)
+		}
+		comp := compiler.NewCompiler(eng)
+		query, err := runtime.CompileQuery(context.Background(), super.NewContext(), comp, flowgraph, nil)
 		if err != nil {
 			return "", err
 		}
