@@ -18,19 +18,10 @@ func newAnyBuilder(typ *super.TypeFusion) Builder {
 
 func (a *anyBuilder) Write(vec vector.Any) {
 	var b scode.Builder
-	if vec, ok := vec.(*vector.Dynamic); ok {
-		for slot := range vec.Len() {
-			vec.Serialize(&b, slot)
-			a.bytes.Append(b.Bytes())
-			a.types = append(a.types, vec.TypeOf(slot))
-			b.Reset()
-		}
-		return
-	}
 	for slot := range vec.Len() {
-		vec.Serialize(&b, slot)
-		a.bytes.Append(b.Bytes())
-		a.types = append(a.types, vec.Type())
+		val := vector.ValueAt(&b, vec, slot)
+		a.bytes.Append(val.Bytes())
+		a.types = append(a.types, val.Type())
 		b.Reset()
 	}
 }

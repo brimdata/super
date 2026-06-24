@@ -441,7 +441,7 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 		return a.createUnion(val, typ)
 	}
 	if super.IsTypeAny(typ) {
-		return a.createAny(val)
+		return a.createAny(val), nil
 	}
 	switch val := val.(type) {
 	case *None:
@@ -504,15 +504,15 @@ func (a *Analyzer) createUnion(val Value, decorator super.Type) (Value, error) {
 	return nil, fmt.Errorf("%q is not in union type %q", FormatType(typ), FormatType(unionType))
 }
 
-func (a *Analyzer) createAny(val Value) (Value, error) {
-	if !super.IsTypeAny(val.Type()) {
-		val = &Fusion{
-			value:   val,
-			typ:     a.sctx.LookupTypeFusion(super.TypeAll),
-			subtype: a.sctx.LookupTypeValue(val.Type()).Bytes(),
-		}
+func (a *Analyzer) createAny(val Value) Value {
+	if super.IsTypeAny(val.Type()) {
+		return val
 	}
-	return val, nil
+	return &Fusion{
+		value:   val,
+		typ:     a.sctx.LookupTypeFusion(super.TypeAll),
+		subtype: a.sctx.LookupTypeValue(val.Type()).Bytes(),
+	}
 }
 
 func (a *Analyzer) decoratePrimitive(val *Primitive, decorator super.Type) (Value, error) {

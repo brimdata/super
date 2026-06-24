@@ -63,8 +63,6 @@ func Super(vec Any) Any {
 }
 
 func IsTypeAny(vec Any) bool {
-	if vec, ok := vec.(*Fusion); ok {
-		return vec.Typ.Type == super.TypeAll
-	}
-	return false
+	fusion, ok := vec.(*Fusion)
+	return ok && fusion.Typ.Type == super.TypeAll
 }
