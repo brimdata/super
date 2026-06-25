@@ -33,8 +33,7 @@ in a structured error.
 
 _Upcast showing missing versus null_
 
-<!-- Remove runtime=sam tag when #6647 is resolved. -->
-```mdtest-spq runtime=sam {data-layout="stacked"}
+```mdtest-spq {data-layout="stacked"}
 # spq
 values
   upcast({x:1},<{x:int64,y?:string}>),

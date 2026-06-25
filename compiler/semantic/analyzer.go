@@ -43,9 +43,6 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 		}
 	}
 	main := newDagen(t.reporter).assemble(seq, t.getTypes(), t.resolver.funcs)
-	if env.Runtime == exec.RuntimeAuto && t.hasVectorizedInput {
-		env.Runtime = exec.RuntimeVAM
-	}
 	return main, t.Error()
 }
 

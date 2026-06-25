@@ -33,10 +33,6 @@ func (o *Optimizer) Parallelize(main *dag.Main, concurrency int) error {
 			}
 			parallel, err = o.parallelizeSeqScan(rest, concurrency)
 		} else if scan, ok := seq[0].(*dag.FileScan); ok {
-			if !o.env.UseVAM() {
-				// Sequence runtime file scan doesn't support parallelism.
-				return seq, nil
-			}
 			front.Append(scan)
 			parallel, err = o.parallelizeFileScan(seq[1:], concurrency)
 		}

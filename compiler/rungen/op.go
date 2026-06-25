@@ -94,14 +94,8 @@ func (b *Builder) Build(main *dag.Main) (map[string]vio.Puller, *vamop.DebugChan
 		}
 		b.mapper = super.NewTypeDefsMapper(b.rctx.Sctx, defs)
 	}
-	if b.env.UseVAM() {
-		if _, err := b.compileVamMain(main, nil); err != nil {
-			return nil, nil, err
-		}
-	} else {
-		if _, err := b.compileMain(main, nil); err != nil {
-			return nil, nil, err
-		}
+	if _, err := b.compileVamMain(main, nil); err != nil {
+		return nil, nil, err
 	}
 	channels := make(map[string]vio.Puller)
 	for key, pullers := range b.channels {

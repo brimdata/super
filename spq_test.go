@@ -17,7 +17,6 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
@@ -157,7 +156,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	dataPuller := vio.Puller(sbuf.NewDematerializer(sctx, sbuf.NewPuller(dataReadCloser)))
 	if format == "parquet" {
 		// Fuse data for formats that require uniform values.
-		q, err := newQuery(t.Context(), sctx, exec.RuntimeSAM, "fuse", dataReadCloser)
+		q, err := newQuery(t.Context(), sctx, "fuse", dataReadCloser)
 		require.NoError(t, err)
 		defer q.Pull(true)
 		dataPuller = q
@@ -216,21 +215,16 @@ func runOneFusionBoomerang(t *testing.T, data string) {
 		t.Skip("skipping because data contains no non-fusion values")
 	}
 
-	samBoomerang, err := fuseDefuse(t.Context(), baseline, exec.RuntimeSAM)
+	boomerang, err := fuseDefuse(t.Context(), baseline)
 	if assert.NoError(t, err) {
-		assert.Equal(t, baseline, samBoomerang, "baseline and boomerang differ for sam")
-	}
-
-	vamBoomerang, err := fuseDefuse(t.Context(), baseline, exec.RuntimeVAM)
-	if assert.NoError(t, err) {
-		assert.Equal(t, baseline, vamBoomerang, "baseline and boomerang differ for vam")
+		assert.Equal(t, baseline, boomerang, "baseline and boomerang differ")
 	}
 }
 
-func fuseDefuse(ctx context.Context, s string, runtime exec.Runtime) (string, error) {
+func fuseDefuse(ctx context.Context, s string) (string, error) {
 	sctx := super.NewContext()
 	r := supio.NewReader(sctx, strings.NewReader(s))
-	q, err := newQuery(ctx, sctx, runtime, "fuse | defuse(this)", r)
+	q, err := newQuery(ctx, sctx, "fuse | defuse(this)", r)
 	if err != nil {
 		return "", err
 	}
@@ -238,15 +232,13 @@ func fuseDefuse(ctx context.Context, s string, runtime exec.Runtime) (string, er
 	return serialize(q, "sup")
 }
 
-func newQuery(ctx context.Context, sctx *super.Context, rt exec.Runtime, spq string, r sio.Reader) (vio.Puller, error) {
+func newQuery(ctx context.Context, sctx *super.Context, spq string, r sio.Reader) (vio.Puller, error) {
 	ast, err := parser.ParseText(spq)
 	if err != nil {
 		return nil, err
 	}
-	e := exec.NewEnvironment(nil, nil)
-	e.Runtime = rt
 	rctx := runtime.NewContext(ctx, sctx)
-	q, err := compiler.NewCompilerWithEnv(e).NewQuery(rctx, ast, []sio.Reader{r}, 0)
+	q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{r}, 0)
 	if err != nil {
 		return nil, err
 	}

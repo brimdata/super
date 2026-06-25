@@ -188,7 +188,7 @@ from fruit
 
 Populating the pools, then executing the query:
 
-```mdtest-command runtime=sam
+```mdtest-command
 export SUPER_DB=lake
 super db init -q
 super db create -q -orderby flavor:asc fruit

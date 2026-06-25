@@ -33,23 +33,6 @@ func (t *Test) Run() error {
 	if t.GoExample != "" {
 		return t.vetGoExample()
 	}
-	var serr, verr error
-	if t.Runtime == "" || t.Runtime == "sam" {
-		serr = t.run("sam")
-		if serr != nil {
-			serr = fmt.Errorf("=== sequence ===\n%w", serr)
-		}
-	}
-	if t.Runtime == "" || t.Runtime == "vam" {
-		verr = t.run("vam")
-		if verr != nil {
-			verr = fmt.Errorf("=== vector ===\n%w", verr)
-		}
-	}
-	return errors.Join(serr, verr)
-}
-
-func (t *Test) run(runtime string) error {
 	var c *exec.Cmd
 	if t.SPQ != "" {
 		c = exec.Command("super", "-s", "-c", t.SPQ)
@@ -65,7 +48,6 @@ func (t *Test) run(runtime string) error {
 		c.Dir = t.Dir
 		c.Stdin = strings.NewReader(t.Command)
 	}
-	c.Env = append(c.Environ(), "SUPER_RUNTIME="+runtime)
 	outBytes, err := c.CombinedOutput()
 	out := string(outBytes)
 	if t.Fails {

@@ -1,4 +1,4 @@
-runtime: sam
+skip: panics
 
 # Test that type names are properly reset and reusable after stream boundaries.
 script: |

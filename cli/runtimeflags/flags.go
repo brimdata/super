@@ -3,11 +3,8 @@ package runtimeflags
 import (
 	"errors"
 	"flag"
-	"fmt"
-	"os"
 
 	"github.com/brimdata/super/cli/auto"
-	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/op/fuse"
 	"github.com/brimdata/super/runtime/sam/op/sort"
@@ -31,23 +28,11 @@ func defaultMemMaxBytes() uint64 {
 	}
 }
 
-type EngineFlags struct {
-	sam     bool
-	vam     bool
-	Runtime exec.Runtime
-}
-
 type Flags struct {
 	// these memory limits should be based on a shared resource model
 	aggMemMax  auto.Bytes
 	sortMemMax auto.Bytes
 	fuseMemMax auto.Bytes
-	EngineFlags
-}
-
-func (e *EngineFlags) SetFlags(fs *flag.FlagSet) {
-	fs.BoolVar(&e.sam, "sam", false, "execute query in sequential runtime")
-	fs.BoolVar(&e.vam, "vam", false, "execute query in vector runtime")
 }
 
 func (e *Flags) SetFlags(fs *flag.FlagSet) {
@@ -58,13 +43,6 @@ func (e *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.Var(&e.sortMemMax, "sortmem", "maximum memory used by sort in MiB, MB, etc")
 	e.fuseMemMax = auto.NewBytes(def)
 	fs.Var(&e.fuseMemMax, "fusemem", "maximum memory used by fuse in MiB, MB, etc")
-	e.EngineFlags.SetFlags(fs)
-}
-
-func (e *EngineFlags) Init() error {
-	var err error
-	e.Runtime, err = e.getRuntime()
-	return err
 }
 
 func (e *Flags) Init() error {
@@ -80,31 +58,5 @@ func (e *Flags) Init() error {
 		return errors.New("fusemem value must be greater than zero")
 	}
 	fuse.MemMaxBytes = int(e.fuseMemMax.Bytes)
-	if e.sam && e.vam {
-		return errors.New("sam and vam flags cannot both be enabled")
-	}
-	return e.EngineFlags.Init()
-}
-
-func (e *EngineFlags) getRuntime() (exec.Runtime, error) {
-	// Flags take precedence.
-	if e.sam {
-		return exec.RuntimeSAM, nil
-	}
-	if e.vam {
-		return exec.RuntimeVAM, nil
-	}
-	// Then environment variable.
-	if rt := os.Getenv("SUPER_RUNTIME"); rt != "" {
-		switch rt {
-		case "sam":
-			return exec.RuntimeSAM, nil
-		case "vam":
-			return exec.RuntimeVAM, nil
-		default:
-			return exec.RuntimeAuto, fmt.Errorf("invalid SUPER_RUNTIME value: %q (must be \"vam\" or \"sam\")", rt)
-		}
-	}
-	return exec.RuntimeAuto, nil
-
+	return nil
 }

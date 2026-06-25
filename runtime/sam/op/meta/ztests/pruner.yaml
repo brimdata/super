@@ -1,5 +1,3 @@
-runtime: sam
-
 # This test makes sure the type context from metadata processing doesn't
 # leak into the flowgraph, except for metaqueries, where it should.
 script: |

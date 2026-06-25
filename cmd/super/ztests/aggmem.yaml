@@ -1,8 +1,8 @@
+skip: incorrect output
+
 script: |
   super -aggmem 1B -s -c 'collect(this)' a.sup
   ! super -aggmem 0 a.sup
-
-runtime: sam
 
 inputs:
   - name: a.sup

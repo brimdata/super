@@ -284,9 +284,6 @@ type ZTest struct {
 }
 
 func (z *ZTest) check() error {
-	if r := z.Runtime; r != nil && *r != "sam" && *r != "vam" {
-		return fmt.Errorf(`unknown runtime %q: must be "sam" or "vam"`, *r)
-	}
 	if z.Script != "" {
 		if z.Outputs == nil {
 			return errors.New("outputs field missing in a sh test")
@@ -347,37 +344,6 @@ func (z *ZTest) ShouldSkip(path string) string {
 	return ""
 }
 
-func (z *ZTest) RunScript(ctx context.Context, shellPath, testDir string, tempDir func() string) error {
-	return z.run(func(r exec.Runtime) error {
-		return z.runScript(ctx, shellPath, testDir, tempDir(), r)
-	})
-}
-
-func (z *ZTest) RunInternal(ctx context.Context) error {
-	return z.run(func(r exec.Runtime) error {
-		return z.diffInternal(z.runInternal(ctx, r))
-	})
-}
-
-func (z *ZTest) run(fn func(exec.Runtime) error) error {
-	if err := z.check(); err != nil {
-		return fmt.Errorf("bad yaml format: %w", err)
-	}
-	r := z.Runtime
-	var samErr, vamErr error
-	if r == nil || *r == "sam" {
-		if err := fn(exec.RuntimeSAM); err != nil {
-			samErr = fmt.Errorf("=== sam ===\n%w", err)
-		}
-	}
-	if r == nil || *r == "vam" {
-		if err := fn(exec.RuntimeVAM); err != nil {
-			vamErr = fmt.Errorf("=== vam ===\n%w", err)
-		}
-	}
-	return errors.Join(samErr, vamErr)
-}
-
 func (z *ZTest) diffInternal(out string, err error) error {
 	var outDiffErr, errDiffErr error
 	if z.Output != out {
@@ -400,7 +366,7 @@ func (z *ZTest) Run(t *testing.T, path, filename string) {
 	}
 	var err error
 	if z.Script != "" {
-		err = z.RunScript(t.Context(), path, filepath.Dir(filename), t.TempDir)
+		err = z.RunScript(t.Context(), path, filepath.Dir(filename), t.TempDir())
 	} else {
 		err = z.RunInternal(t.Context())
 	}
@@ -429,7 +395,10 @@ func diffErr(name, expected, actual string) error {
 	return fmt.Errorf("expected and actual %s differ:\n%s", name, diff)
 }
 
-func (z *ZTest) runScript(ctx context.Context, path, testDir, tempDir string, r exec.Runtime) error {
+func (z *ZTest) RunScript(ctx context.Context, path, testDir, tempDir string) error {
+	if err := z.check(); err != nil {
+		return fmt.Errorf("bad yaml format: %w", err)
+	}
 	var stdin io.Reader
 	for _, f := range z.Inputs {
 		b, _, err := f.load(testDir)
@@ -444,11 +413,7 @@ func (z *ZTest) runScript(ctx context.Context, path, testDir, tempDir string, r 
 			return err
 		}
 	}
-	var extraEnv []string
-	if r == exec.RuntimeVAM {
-		extraEnv = []string{"SUPER_RUNTIME=vam"}
-	}
-	stdout, stderr, err := RunShell(ctx, tempDir, path, z.Script, stdin, z.Env, extraEnv)
+	stdout, stderr, err := RunShell(ctx, tempDir, path, z.Script, stdin, z.Env, nil)
 	if err != nil {
 		return fmt.Errorf("script failed: %w\n=== stdout ===\n%s=== stderr ===\n%s",
 			err, stdout, stderr)
@@ -481,7 +446,14 @@ func (z *ZTest) runScript(ctx context.Context, path, testDir, tempDir string, r 
 	return nil
 }
 
-func (z *ZTest) runInternal(ctx context.Context, r exec.Runtime) (string, error) {
+func (z *ZTest) RunInternal(ctx context.Context) error {
+	if err := z.check(); err != nil {
+		return fmt.Errorf("bad yaml format: %w", err)
+	}
+	return z.diffInternal(z.runInternal(ctx))
+}
+
+func (z *ZTest) runInternal(ctx context.Context) (string, error) {
 	ast, err := parser.ParseText(z.SPQ)
 	if err != nil {
 		return "", err
@@ -511,7 +483,6 @@ func (z *ZTest) runInternal(ctx context.Context, r exec.Runtime) (string, error)
 	env := exec.NewEnvironment(eng, nil)
 	env.Dynamic = inflags.Dynamic
 	env.ReaderOpts = inflags.ReaderOpts
-	env.Runtime = r
 	env.SampleSize = inflags.SampleSize
 	q, err := runtime.CompileQuery(ctx, super.NewContext(), compiler.NewCompilerWithEnv(env), ast, nil)
 	if err != nil {

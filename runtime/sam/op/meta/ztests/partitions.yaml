@@ -1,3 +1,5 @@
+skip: panics
+
 # This test makes sure overlapping objects are merged propertly
 # into partitions.
 

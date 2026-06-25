@@ -1,5 +1,3 @@
-runtime: sam
-
 script: |
   export SUPER_DB=test
   super db init -q

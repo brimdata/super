@@ -20,7 +20,7 @@ subtype equivalent.
 
 _Remove union types_
 
-```mdtest-spq {data-layout="stacked"} runtime=sam
+```mdtest-spq {data-layout="stacked"}
 # spq
 defuse(this)
 # input
@@ -35,7 +35,7 @@ fusion({a:"foo"::(int64|string)},<{a:string}>)
 
 _Retain optional fields using complete fusion_
 
-```mdtest-spq {data-layout="stacked"} runtime=sam
+```mdtest-spq {data-layout="stacked"}
 # spq
 fuse | defuse(this)
 # input

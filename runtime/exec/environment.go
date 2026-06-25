@@ -29,25 +29,6 @@ type VectorConcurrentPuller interface {
 	ConcurrentPull(done bool, id int) (vector.Any, error)
 }
 
-type Runtime int
-
-const (
-	RuntimeAuto Runtime = iota
-	RuntimeSAM
-	RuntimeVAM
-)
-
-func (r Runtime) String() string {
-	switch r {
-	case RuntimeSAM:
-		return "sam"
-	case RuntimeVAM:
-		return "vam"
-	default:
-		return "auto"
-	}
-}
-
 type Environment struct {
 	engine storage.Engine
 	db     *db.Root
@@ -55,7 +36,6 @@ type Environment struct {
 	Dynamic          bool
 	IgnoreOpenErrors bool
 	ReaderOpts       anyio.ReaderOpts
-	Runtime          Runtime
 	SampleSize       int
 	Stdin            sio.Reader
 }
@@ -69,10 +49,6 @@ func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
 
 func (e *Environment) Engine() storage.Engine {
 	return e.engine
-}
-
-func (e *Environment) UseVAM() bool {
-	return e.Runtime == RuntimeVAM
 }
 
 func (e *Environment) IsAttached() bool {

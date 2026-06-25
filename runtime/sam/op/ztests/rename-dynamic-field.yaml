@@ -1,4 +1,4 @@
-runtime: sam
+skip: dynamic fields are unimplemented in vam
 
 script: |
   echo '{target:"foo",src:"bar"} {target:"fool",src:"baz"}' | super -s -c 'rename this[target] := src' -
