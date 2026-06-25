@@ -14,7 +14,7 @@ script: |
 outputs:
   - name: stdout
     data: |
-      file test.csup format csup
+      file test.csup format csup filter (regexp_search(r"(?s)^cslab.*?$", x))
          pruner (
            expr compare("cslab", x.max, true)<=0 and compare("cslac", x.min, true)>0
            fields x.max,x.min
@@ -22,7 +22,7 @@ outputs:
       | where regexp_search(r"(?s)^cslab.*?$", x)
       | output main
       // ===
-      file test.csup format csup
+      file test.csup format csup filter (regexp_search(r"^csla[bB].*", x))
          pruner (
            expr compare("csla", x.max, true)<=0 and compare("cslb", x.min, true)>0
            fields x.max,x.min
@@ -30,7 +30,7 @@ outputs:
       | where regexp_search(r"^csla[bB].*", x)
       | output main
       // ===
-      file test.csup format csup
+      file test.csup format csup filter (regexp_search(r"csla[bB].*", x))
       | where regexp_search(r"csla[bB].*", x)
       | output main
       // ===

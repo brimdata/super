@@ -1,5 +1,3 @@
-runtime: sam
-
 script: |
   super compile -C -O -dynamic 'from f | values {a:b,c:d} | where a==1 and c==2'
   echo ===
@@ -16,18 +14,34 @@ outputs:
   - name: stdout
     data: |
       file f fields b,d filter (b==1 and d==2)
+         pruner (
+           expr compare(1, b.min, true)>=0 and compare(1, b.max, true)<=0 and compare(2, d.min, true)>=0 and compare(2, d.max, true)<=0
+           fields b.max,b.min,d.max,d.min
+        )
+      | where b==1 and d==2
       | values {a:b,c:d}
       | output main
       ===
       file f fields a filter (a.b==1)
+         pruner (
+           expr compare(1, a.b.min, true)>=0 and compare(1, a.b.max, true)<=0
+           fields a.b.max,a.b.min
+        )
+      | where a.b==1
       | values {...a}
       | output main
       ===
       file f fields c filter (c==1)
+         pruner (
+           expr compare(1, c.min, true)>=0 and compare(1, c.max, true)<=0
+           fields c.max,c.min
+        )
+      | where c==1
       | values {a:{b:c}}
       | output main
       ===
       file f fields b,c,d filter (b+1>=c and b+1<=d)
+      | where b+1>=c and b+1<=d
       | values {a:b,c:c,d:d}
       | output main
       ===

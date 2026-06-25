@@ -1,5 +1,3 @@
-runtime: sam
-
 script: |
   super compile -C -O 'from /dev/null | where a | where b'
   echo ===
@@ -13,14 +11,17 @@ outputs:
   - name: stdout
     data: |
       file /dev/null filter (a and b)
+      | where a and b
       | output main
       ===
       fork
         (
           file /dev/null unordered filter (b and c and g)
+          | where b and c and g
         )
         (
           file /dev/zero unordered filter (e and f and g)
+          | where e and f and g
         )
       | output main
       ===

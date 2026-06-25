@@ -1,5 +1,3 @@
-runtime: sam
-
 script: |
   echo === debug
   super compile -C -O 'from /dev/null | debug a | values b'
@@ -118,6 +116,11 @@ outputs:
       | output main
       === where
       file /dev/null fields a,b,c,d,e filter (a==1 or e==2)
+         pruner (
+           expr compare(1, a.min, true)>=0 and compare(1, a.max, true)<=0 or compare(2, e.min, true)>=0 and compare(2, e.max, true)<=0
+           fields a.max,a.min,e.max,e.min
+        )
+      | where a==1 or e==2
       | values c, b, d
       | output main
       ===
