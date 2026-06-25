@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op/infer"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/runtime/vam/op/aggregate"
@@ -249,10 +248,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		return vamop.NewFuse(b.sctx(), parent, o.Complete), nil
 	case *dag.HeadOp:
 		return vamop.NewHead(parent, o.Count), nil
-	case *dag.InferOp:
-		return sbuf.NewDematerializer(b.sctx(), infer.New(b.rctx, sbuf.NewMaterializer(parent), o.Limit)), nil
-	case *dag.NullScan:
-		return sbuf.NewDematerializer(b.sctx(), sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null}))), nil
 	case *dag.OutputOp:
 		b.channels[o.Name] = append(b.channels[o.Name], parent)
 		return parent, nil
@@ -286,12 +281,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		return vamop.NewRobot(b.rctx, b.env, parent, e, o.Format, b.newPushdown(o.Filter, nil)), nil
 	case *dag.SkipOp:
 		return vamop.NewSkip(parent, o.Count), nil
-	case *dag.TopOp:
-		sbufPuller, err := b.compileLeaf(o, sbuf.NewMaterializer(parent))
-		if err != nil {
-			return nil, err
-		}
-		return sbuf.NewDematerializer(b.sctx(), sbufPuller), nil
 	case *dag.SortOp:
 		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {
@@ -300,12 +289,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		return vamop.NewSort(b.rctx, parent, exprs, o.Reverse), nil
 	case *dag.TailOp:
 		return vamop.NewTail(parent, o.Count), nil
-	case *dag.UniqOp:
-		sbufPuller, err := b.compileLeaf(o, sbuf.NewMaterializer(parent))
-		if err != nil {
-			return nil, err
-		}
-		return sbuf.NewDematerializer(b.sctx(), sbufPuller), nil
 	case *dag.UnnestOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {
@@ -319,7 +302,15 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		}
 		return vamop.NewValues(b.sctx(), parent, exprs), nil
 	default:
-		return nil, fmt.Errorf("internal error: unknown dag.Op while compiling for vector runtime: %#v", o)
+		var sbufParent sbuf.Puller
+		if parent != nil {
+			sbufParent = sbuf.NewMaterializer(parent)
+		}
+		sbufPuller, err := b.compileLeaf(o, sbufParent)
+		if err != nil {
+			return nil, err
+		}
+		return sbuf.NewDematerializer(b.sctx(), sbufPuller), nil
 	}
 }
 
