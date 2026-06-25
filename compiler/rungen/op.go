@@ -42,6 +42,7 @@ import (
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
@@ -623,7 +624,7 @@ func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
 	if in == nil {
 		return super.Null, nil
 	}
-	e, err := b.compileExpr(in)
+	e, err := b.compileVamExpr(in)
 	if err != nil {
 		return super.Null, err
 	}
@@ -634,7 +635,12 @@ func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
 			val = b.sctx().Missing()
 		}
 	}()
-	return e.Eval(b.sctx().Missing()), nil
+	missingVec := vector.NewMissing(b.sctx(), 1)
+	vec := e.Eval(missingVec)
+	if vec.Len() != 1 {
+		panic(vector.Format(vec))
+	}
+	return vector.ValueAt(nil, vec, 0), nil
 }
 
 func compileExpr(in dag.Expr) (expr.Evaluator, error) {
