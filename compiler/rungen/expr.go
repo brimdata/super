@@ -1,106 +1,37 @@
 package rungen
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/runtime/sam/op/subquery"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
-	"golang.org/x/text/unicode/norm"
+	vamexpr "github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 )
 
-// compileExpr compiles the given Expression into an object
-// that evaluates the expression against a provided Record.  It returns an
-// error if compilation fails for any reason.
-//
-// This is the "intepreted slow path" of the analytics engine.  Because it
-// handles dynamic typing at runtime, overheads are incurred due to
-// various type checks and coercions that determine different computational
-// outcomes based on type.  There is nothing here that optimizes analytics
-// for native machine types; these optimizations (will) happen in the pushdown
-// predicate processing engine in the CSUP columnar scanner.
-//
-// Eventually, we will optimize this CSUP "fast path" by dynamically
-// generating byte codes (which can in turn be JIT assembled into machine code)
-// for each BSUP TypeRecord encountered.  Once you know the TypeRecord,
-// you can generate code using strong typing just as an OLAP system does
-// due to its schemas defined up-front in its relational tables.  Here,
-// each record type is like a schema and as we encounter them, we can compile
-// optimized code for the now-static types within that record type.
-//
-// The Evaluator return by CompileExpr produces super.Values that are stored
-// in temporary buffers and may be modified on subsequent calls to Eval.
-// This is intended to minimize the garbage collection needs of the inner loop
-// by not allocating memory on a per-Eval basis.  For uses like filtering and
-// aggregations, where the results are immediately used, this is desirable and
-// efficient but for use cases like storing the results as grouping keys, the
-// resulting super.Value should be copied (e.g., via super.Value.Copy()).
-//
-// TBD: string values and net.IP address do not need to be copied because they
-// are allocated by go libraries and temporary buffers are not used.  This will
-// change down the road when we implement no-allocation string and IP conversion.
 func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
-	if e == nil {
-		return nil, errors.New("null expression not allowed")
+	vamEval, err := b.compileVamExpr(e)
+	if err != nil {
+		return nil, err
 	}
-	switch e := e.(type) {
-	case *dag.ArrayExpr:
-		return b.compileArrayExpr(e)
-	case *dag.BinaryExpr:
-		return b.compileBinary(e)
-	case *dag.CondExpr:
-		return b.compileConditional(*e)
-	case *dag.CallExpr:
-		return b.compileCall(e)
-	case *dag.DotExpr:
-		return b.compileDotExpr(e)
-	case *dag.IndexExpr:
-		return b.compileIndexExpr(e)
-	case *dag.IsNullExpr:
-		return b.compileIsNullExpr(e)
-	case *dag.MapCallExpr:
-		return b.compileMapCall(e)
-	case *dag.MapExpr:
-		return b.compileMapExpr(e)
-	case *dag.PrimitiveExpr:
-		val, err := sup.ParseValue(b.sctx(), e.Value)
-		if err != nil {
-			return nil, err
-		}
-		return expr.NewLiteral(val), nil
-	case *dag.RegexpMatchExpr:
-		return b.compileRegexpMatch(e)
-	case *dag.RegexpSearchExpr:
-		return b.compileRegexpSearch(e)
-	case *dag.RecordExpr:
-		return b.compileRecordExpr(e)
-	case *dag.SearchExpr:
-		return b.compileSearch(e)
-	case *dag.SetExpr:
-		return b.compileSetExpr(e)
-	case *dag.SliceExpr:
-		return b.compileSliceExpr(e)
-	case *dag.SubqueryExpr:
-		return b.compileSubquery(e)
-	case *dag.ThisExpr:
-		return expr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
-	case *dag.TypeExpr:
-		typ, err := b.lookupType(e.ID)
-		if err != nil {
-			return nil, err
-		}
-		return expr.NewLiteral(b.rctx.Sctx.LookupTypeValue(typ)), nil
-	case *dag.UnaryExpr:
-		return b.compileUnary(*e)
-	default:
-		return nil, fmt.Errorf("invalid expression type %T", e)
-	}
+	return &samEvaluator{sctx: b.sctx(), vamEval: vamEval}, nil
+}
+
+type samEvaluator struct {
+	sctx    *super.Context
+	vamEval vamexpr.Evaluator
+	builder scode.Builder
+}
+
+func (v *samEvaluator) Eval(val super.Value) super.Value {
+	b := vector.NewValueBuilder(val.Type())
+	b.Write(val.Bytes())
+	vec := b.Build(v.sctx)
+	vec = v.vamEval.Eval(vec)
+	return vector.ValueAt(&v.builder, vec, 0).Copy()
 }
 
 func (b *Builder) compileExprWithEmpty(e dag.Expr) (expr.Evaluator, error) {
@@ -108,106 +39,6 @@ func (b *Builder) compileExprWithEmpty(e dag.Expr) (expr.Evaluator, error) {
 		return nil, nil
 	}
 	return b.compileExpr(e)
-}
-
-func (b *Builder) compileBinary(e *dag.BinaryExpr) (expr.Evaluator, error) {
-	lhs, err := b.compileExpr(e.LHS)
-	if err != nil {
-		return nil, err
-	}
-	rhs, err := b.compileExpr(e.RHS)
-	if err != nil {
-		return nil, err
-	}
-	switch op := e.Op; op {
-	case "and":
-		return expr.NewLogicalAnd(b.sctx(), lhs, rhs), nil
-	case "or":
-		return expr.NewLogicalOr(b.sctx(), lhs, rhs), nil
-	case "in":
-		return expr.NewIn(b.sctx(), lhs, rhs), nil
-	case "==", "!=":
-		return expr.NewCompareEquality(b.sctx(), lhs, rhs, op)
-	case "<", "<=", ">", ">=":
-		return expr.NewCompareRelative(b.sctx(), lhs, rhs, op)
-	case "+", "-", "*", "/", "%":
-		return expr.NewArithmetic(b.sctx(), op, lhs, rhs)
-	default:
-		return nil, fmt.Errorf("invalid binary operator %s", op)
-	}
-}
-
-func (b *Builder) compileSearch(search *dag.SearchExpr) (expr.Evaluator, error) {
-	val, err := sup.ParseValue(b.sctx(), search.Value)
-	if err != nil {
-		return nil, err
-	}
-	e, err := b.compileExpr(search.Expr)
-	if err != nil {
-		return nil, err
-	}
-	if super.TypeUnder(val.Type()) == super.TypeString {
-		// Do a grep-style substring search instead of an
-		// exact match on each value.
-		term := norm.NFC.Bytes(val.Bytes())
-		return expr.NewSearchString(string(term), e), nil
-	}
-	return expr.NewSearch(search.Text, val, e)
-}
-
-func (b *Builder) compileSliceExpr(slice *dag.SliceExpr) (expr.Evaluator, error) {
-	e, err := b.compileExpr(slice.Expr)
-	if err != nil {
-		return nil, err
-	}
-	from, err := b.compileExprWithEmpty(slice.From)
-	if err != nil {
-		return nil, err
-	}
-	to, err := b.compileExprWithEmpty(slice.To)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewSlice(b.sctx(), e, from, to, slice.Base1), nil
-}
-
-func (b *Builder) compileUnary(unary dag.UnaryExpr) (expr.Evaluator, error) {
-	e, err := b.compileExpr(unary.Operand)
-	if err != nil {
-		return nil, err
-	}
-	switch unary.Op {
-	case "-":
-		return expr.NewUnaryMinus(b.sctx(), e), nil
-	case "!":
-		return expr.NewLogicalNot(b.sctx(), e), nil
-	default:
-		return nil, fmt.Errorf("unknown unary operator %s", unary.Op)
-	}
-}
-
-func (b *Builder) compileConditional(node dag.CondExpr) (expr.Evaluator, error) {
-	predicate, err := b.compileExpr(node.Cond)
-	if err != nil {
-		return nil, err
-	}
-	thenExpr, err := b.compileExpr(node.Then)
-	if err != nil {
-		return nil, err
-	}
-	elseExpr, err := b.compileExpr(node.Else)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewConditional(b.sctx(), predicate, thenExpr, elseExpr), nil
-}
-
-func (b *Builder) compileDotExpr(dot *dag.DotExpr) (expr.Evaluator, error) {
-	record, err := b.compileExpr(dot.LHS)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewDotExpr(b.sctx(), record, dot.RHS), nil
 }
 
 func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
@@ -291,18 +122,6 @@ func (b *Builder) compileUDFCall(tag string, f *dag.FuncDef) (expr.Function, err
 	return fn, nil
 }
 
-func (b *Builder) compileMapCall(a *dag.MapCallExpr) (expr.Evaluator, error) {
-	e, err := b.compileExpr(a.Expr)
-	if err != nil {
-		return nil, err
-	}
-	lambda, err := b.compileExpr(a.Lambda)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewMapCall(b.sctx(), e, lambda), nil
-}
-
 func (b *Builder) compileExprs(in []dag.Expr) ([]expr.Evaluator, error) {
 	var exprs []expr.Evaluator
 	for _, e := range in {
@@ -313,80 +132,6 @@ func (b *Builder) compileExprs(in []dag.Expr) ([]expr.Evaluator, error) {
 		exprs = append(exprs, ev)
 	}
 	return exprs, nil
-}
-
-func (b *Builder) compileIndexExpr(e *dag.IndexExpr) (expr.Evaluator, error) {
-	container, err := b.compileExpr(e.Expr)
-	if err != nil {
-		return nil, err
-	}
-	index, err := b.compileExpr(e.Index)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewIndexExpr(b.sctx(), container, index, e.Base1), nil
-}
-
-func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {
-	eval, err := b.compileExpr(e.Expr)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewIsNullExpr(eval), nil
-}
-
-func (b *Builder) compileSubquery(query *dag.SubqueryExpr) (expr.Evaluator, error) {
-	if !query.Correlated {
-		body, err := b.compileSeqAndCombine(query.Body, nil)
-		if err != nil {
-			return nil, err
-		}
-		return subquery.NewCachedSubquery(b.rctx, body), nil
-	}
-	var create func() *subquery.Subquery
-	create = func() *subquery.Subquery {
-		subquery := subquery.NewSubquery(b.rctx, create)
-		body, err := b.compileSeqAndCombine(query.Body, []sbuf.Puller{subquery})
-		if err != nil {
-			panic(err)
-		}
-		subquery.SetBody(body)
-		return subquery
-	}
-	return create(), nil
-}
-
-func (b *Builder) compileSeqAndCombine(seq dag.Seq, parents []sbuf.Puller) (sbuf.Puller, error) {
-	exits, err := b.compileSeq(seq, parents)
-	if err != nil {
-		return nil, err
-	}
-	return b.combineSam(exits), nil
-}
-
-func (b *Builder) compileRegexpMatch(match *dag.RegexpMatchExpr) (expr.Evaluator, error) {
-	e, err := b.compileExpr(match.Expr)
-	if err != nil {
-		return nil, err
-	}
-	re, err := expr.CompileRegexp(match.Pattern)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewRegexpMatch(re, e), nil
-}
-
-func (b *Builder) compileRegexpSearch(search *dag.RegexpSearchExpr) (expr.Evaluator, error) {
-	e, err := b.compileExpr(search.Expr)
-	if err != nil {
-		return nil, err
-	}
-	re, err := expr.CompileRegexp(search.Pattern)
-	if err != nil {
-		return nil, err
-	}
-	match := expr.NewRegexpBoolean(re)
-	return expr.SearchByPredicate(expr.Contains(match), e), nil
 }
 
 func (b *Builder) compileRecordExpr(record *dag.RecordExpr) (expr.Evaluator, error) {
@@ -421,59 +166,6 @@ func (b *Builder) compileRecordExpr(record *dag.RecordExpr) (expr.Evaluator, err
 		}
 	}
 	return expr.NewRecordExpr(b.sctx(), elems), nil
-}
-
-func (b *Builder) compileArrayExpr(array *dag.ArrayExpr) (expr.Evaluator, error) {
-	elems, err := b.compileVectorElems(array.Elems)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewArrayExpr(b.sctx(), elems), nil
-}
-
-func (b *Builder) compileSetExpr(set *dag.SetExpr) (expr.Evaluator, error) {
-	elems, err := b.compileVectorElems(set.Elems)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewSetExpr(b.sctx(), elems), nil
-}
-
-func (b *Builder) compileVectorElems(elems []dag.VectorElem) ([]expr.VectorElem, error) {
-	var out []expr.VectorElem
-	for _, elem := range elems {
-		switch elem := elem.(type) {
-		case *dag.Spread:
-			e, err := b.compileExpr(elem.Expr)
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, expr.VectorElem{Spread: e})
-		case *dag.VectorValue:
-			e, err := b.compileExpr(elem.Expr)
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, expr.VectorElem{Value: e})
-		}
-	}
-	return out, nil
-}
-
-func (b *Builder) compileMapExpr(m *dag.MapExpr) (expr.Evaluator, error) {
-	var entries []expr.Entry
-	for _, f := range m.Entries {
-		key, err := b.compileExpr(f.Key)
-		if err != nil {
-			return nil, err
-		}
-		val, err := b.compileExpr(f.Value)
-		if err != nil {
-			return nil, err
-		}
-		entries = append(entries, expr.Entry{Key: key, Val: val})
-	}
-	return expr.NewMapExpr(b.sctx(), entries), nil
 }
 
 func (b *Builder) compileSortExprs(sortExprs []dag.SortExpr) ([]expr.SortExpr, error) {
