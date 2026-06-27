@@ -302,7 +302,7 @@ $ super -c "SELECT a, typeof(a) as type FROM 'example2.json'"
 {a:1,type:<int64>}
 ```
 
-## SuperSQL
+## SuperSQL<span class="tm">®</span>
 
 Since super-structured data is a superset of the relational model, it turns out that
 a query language for super-structured data can be devised that is a superset of SQL.

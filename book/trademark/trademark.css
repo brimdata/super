@@ -7,6 +7,13 @@
   line-height: 0;
 }
 
+/* The sidebar's "on this page" list is built by cloning heading markup
+   (toc.js filterHeader), which copies the ® span into the nav. The mark belongs
+   on the headings themselves, not in navigation, so hide it in the sidebar. */
+#mdbook-sidebar .tm {
+  display: none;
+}
+
 /* The book title in the top menu bar comes from book.toml as plain text, so the
    registered-trademark mark is injected and styled here rather than inline. */
 .menu-title::after {
