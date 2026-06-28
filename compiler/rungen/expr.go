@@ -34,13 +34,6 @@ func (v *samEvaluator) Eval(val super.Value) super.Value {
 	return vector.ValueAt(&v.builder, vec, 0).Copy()
 }
 
-func (b *Builder) compileExprWithEmpty(e dag.Expr) (expr.Evaluator, error) {
-	if e == nil {
-		return nil, nil
-	}
-	return b.compileExpr(e)
-}
-
 func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
 	switch e := e.(type) {
 	case *dag.DotExpr:
@@ -69,18 +62,6 @@ func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
 		return expr.NewLval(elems), nil
 	}
 	return nil, fmt.Errorf("internal error: invalid lval %#v", e)
-}
-
-func (b *Builder) compileAssignment(node *dag.Assignment) (expr.Assignment, error) {
-	lhs, err := b.compileLval(node.LHS)
-	if err != nil {
-		return expr.Assignment{}, err
-	}
-	rhs, err := b.compileExpr(node.RHS)
-	if err != nil {
-		return expr.Assignment{}, fmt.Errorf("rhs of assigment expression: %w", err)
-	}
-	return expr.Assignment{LHS: lhs, RHS: rhs}, err
 }
 
 func (b *Builder) compileCall(call *dag.CallExpr) (expr.Evaluator, error) {
@@ -132,40 +113,6 @@ func (b *Builder) compileExprs(in []dag.Expr) ([]expr.Evaluator, error) {
 		exprs = append(exprs, ev)
 	}
 	return exprs, nil
-}
-
-func (b *Builder) compileRecordExpr(record *dag.RecordExpr) (expr.Evaluator, error) {
-	var elems []expr.RecordElem
-	for _, elem := range record.Elems {
-		switch elem := elem.(type) {
-		case *dag.Field:
-			e, err := b.compileExpr(elem.Value)
-			if err != nil {
-				return nil, err
-			}
-			elems = append(elems, &expr.FieldElem{
-				Name: elem.Name,
-				Expr: e,
-				Opt:  elem.Opt,
-			})
-		case *dag.None:
-			noneType, err := b.lookupType(elem.Type)
-			if err != nil {
-				return nil, err
-			}
-			elems = append(elems, &expr.NoneElem{
-				Name: elem.Name,
-				Type: noneType,
-			})
-		case *dag.Spread:
-			e, err := b.compileExpr(elem.Expr)
-			if err != nil {
-				return nil, err
-			}
-			elems = append(elems, &expr.SpreadElem{Expr: e})
-		}
-	}
-	return expr.NewRecordExpr(b.sctx(), elems), nil
 }
 
 func (b *Builder) compileSortExprs(sortExprs []dag.SortExpr) ([]expr.SortExpr, error) {
