@@ -6,7 +6,6 @@ import (
 
 	"github.com/brimdata/super/cli/auto"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/runtime/sam/op/fuse"
 	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/pbnjay/memory"
 )
@@ -32,7 +31,6 @@ type Flags struct {
 	// these memory limits should be based on a shared resource model
 	aggMemMax  auto.Bytes
 	sortMemMax auto.Bytes
-	fuseMemMax auto.Bytes
 }
 
 func (e *Flags) SetFlags(fs *flag.FlagSet) {
@@ -41,8 +39,6 @@ func (e *Flags) SetFlags(fs *flag.FlagSet) {
 	def := defaultMemMaxBytes()
 	e.sortMemMax = auto.NewBytes(def)
 	fs.Var(&e.sortMemMax, "sortmem", "maximum memory used by sort in MiB, MB, etc")
-	e.fuseMemMax = auto.NewBytes(def)
-	fs.Var(&e.fuseMemMax, "fusemem", "maximum memory used by fuse in MiB, MB, etc")
 }
 
 func (e *Flags) Init() error {
@@ -54,9 +50,5 @@ func (e *Flags) Init() error {
 		return errors.New("sortmem value must be greater than zero")
 	}
 	sort.MemMaxBytes = int(e.sortMemMax.Bytes)
-	if e.fuseMemMax.Bytes <= 0 {
-		return errors.New("fusemem value must be greater than zero")
-	}
-	fuse.MemMaxBytes = int(e.fuseMemMax.Bytes)
 	return nil
 }
