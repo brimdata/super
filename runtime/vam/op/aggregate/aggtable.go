@@ -161,7 +161,7 @@ func (c *countByString) update(keys, vals []vector.Any) {
 		c.updatePartial(keys[0], vals[0])
 		return
 	}
-	switch val := keys[0].(type) {
+	switch val := vector.Under(keys[0]).(type) {
 	case *vector.String:
 		c.count(val)
 	case *vector.Dict:

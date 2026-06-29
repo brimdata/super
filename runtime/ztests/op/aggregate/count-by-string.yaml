@@ -1,0 +1,26 @@
+spq: count() by x | sort x
+
+input: |
+  type s = string
+  {x:"a"::s}
+  {x:"b"::s}
+  {x:"c"::s}
+  {x:"d"::s}
+  {x:"e"::s}
+  {x:"a"}
+  {x:"b"}
+  {x:"c"}
+  {x:"d"}
+  {x:"a"}
+  {x:"b"}
+  {x:"c"}
+  {x:"a"}
+  {x:"b"}
+  {x:"a"}
+
+output: |
+  {x:"a",count:5}
+  {x:"b",count:4}
+  {x:"c",count:3}
+  {x:"d",count:2}
+  {x:"e",count:1}
