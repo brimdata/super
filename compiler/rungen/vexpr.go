@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/expr/function"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
 	vamop "github.com/brimdata/super/runtime/vam/op"
@@ -191,9 +190,6 @@ func (b *Builder) compileVamExprs(in []dag.Expr) ([]vamexpr.Evaluator, error) {
 }
 
 func (b *Builder) compileVamCall(call *dag.CallExpr) (vamexpr.Evaluator, error) {
-	if call.Tag == "cast" {
-		return b.compileVamCast(call.Args)
-	}
 	var fn vamexpr.Function
 	if f, ok := b.funcs[call.Tag]; ok {
 		var err error
@@ -210,6 +206,13 @@ func (b *Builder) compileVamCall(call *dag.CallExpr) (vamexpr.Evaluator, error) 
 	exprs, err := b.compileVamExprs(call.Args)
 	if err != nil {
 		return nil, err
+	}
+	if call.Tag == "cast" {
+		if literal, ok := exprs[1].(*vamexpr.Literal); ok {
+			if cast, err := vamexpr.NewLiteralCast(b.sctx(), exprs[0], literal); err == nil {
+				return cast, nil
+			}
+		}
 	}
 	// Any call that expects zero arguments must take one argument
 	// consisting of a vector that can represent the length of the argument
@@ -232,28 +235,8 @@ func (b *Builder) compileVamUDFCall(tag string, f *dag.FuncDef) (vamexpr.Functio
 	if fn.Body, err = b.compileVamExpr(f.Expr); err != nil {
 		return nil, err
 	}
-	delete(b.compiledUDFs, tag)
+	delete(b.compiledVamUDFs, tag)
 	return fn, nil
-}
-
-func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
-	if err := function.CheckArgCount(len(args), 2, 2); err != nil {
-		return nil, err
-	}
-	exprs, err := b.compileVamExprs(args)
-	if err != nil {
-		return nil, err
-	}
-	if literal, ok := exprs[1].(*vamexpr.Literal); ok {
-		if cast, err := vamexpr.NewLiteralCast(b.sctx(), exprs[0], literal); err == nil {
-			return cast, nil
-		}
-	}
-	e, err := b.compileCall(&dag.CallExpr{Tag: "cast", Args: args})
-	if err != nil {
-		return nil, err
-	}
-	return vamexpr.NewSamExpr(b.sctx(), e), nil
 }
 
 func (b *Builder) compileVamMapCallExpr(m *dag.MapCallExpr) (vamexpr.Evaluator, error) {

@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/expr/function"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
@@ -62,57 +61,6 @@ func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
 		return expr.NewLval(elems), nil
 	}
 	return nil, fmt.Errorf("internal error: invalid lval %#v", e)
-}
-
-func (b *Builder) compileCall(call *dag.CallExpr) (expr.Evaluator, error) {
-	// First check if call is to a user defined function, otherwise check for
-	// builtin function.
-	var fn expr.Function
-	if f, ok := b.funcs[call.Tag]; ok {
-		var err error
-		if fn, err = b.compileUDFCall(call.Tag, f); err != nil {
-			return nil, err
-		}
-	} else {
-		var err error
-		fn, err = function.New(b.sctx(), call.Tag, len(call.Args))
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", call.Tag, err)
-		}
-	}
-	exprs, err := b.compileExprs(call.Args)
-	if err != nil {
-		return nil, fmt.Errorf("%s: bad argument: %w", call.Tag, err)
-	}
-	return expr.NewCall(fn, exprs), nil
-}
-
-func (b *Builder) compileUDFCall(tag string, f *dag.FuncDef) (expr.Function, error) {
-	if fn, ok := b.compiledUDFs[tag]; ok { //XXX this doesn't work for stateful things
-		return fn, nil
-	}
-	fn := expr.NewUDF(b.sctx(), b.funcs[tag].Name, f.Params)
-	// We store compiled UDF calls here so as to avoid stack overflows on
-	// recursive calls.
-	b.compiledUDFs[tag] = fn
-	var err error
-	if fn.Body, err = b.compileExpr(f.Expr); err != nil {
-		return nil, err
-	}
-	delete(b.compiledUDFs, tag)
-	return fn, nil
-}
-
-func (b *Builder) compileExprs(in []dag.Expr) ([]expr.Evaluator, error) {
-	var exprs []expr.Evaluator
-	for _, e := range in {
-		ev, err := b.compileExpr(e)
-		if err != nil {
-			return nil, err
-		}
-		exprs = append(exprs, ev)
-	}
-	return exprs, nil
 }
 
 func (b *Builder) compileSortExprs(sortExprs []dag.SortExpr) ([]expr.SortExpr, error) {

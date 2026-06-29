@@ -41,7 +41,6 @@ type Builder struct {
 	channels        map[string][]vio.Puller
 	deletes         *sync.Map
 	funcs           map[string]*dag.FuncDef
-	compiledUDFs    map[string]*expr.UDF
 	compiledVamUDFs map[string]*vamexpr.UDF
 }
 
@@ -59,7 +58,6 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 		debugs:          vamop.NewDebugChans(),
 		channels:        make(map[string][]vio.Puller),
 		funcs:           make(map[string]*dag.FuncDef),
-		compiledUDFs:    make(map[string]*expr.UDF),
 		compiledVamUDFs: make(map[string]*vamexpr.UDF),
 	}
 }
