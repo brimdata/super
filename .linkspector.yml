@@ -16,3 +16,6 @@ ignorePatterns:
   - pattern: '^https://www.researchgate.net/publication/221325979_Union_Types_for_Semistructured_Data$'
   - pattern: '^https://db.cs.cmu.edu/papers/2024/whatgoesaround-sigmodrec2024.pdf$'
   - pattern: '^https://openproceedings.org/2017/conf/edbt/paper-62.pdf$'
+
+# Not crawling the following due to persistent HTTP 503 errors
+  - pattern: '^https://sqlite.org'
