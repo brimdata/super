@@ -142,14 +142,16 @@ func (s *superTable) materializeAgg(i int) vector.Any {
 }
 
 type countByString struct {
+	typ        super.Type
 	nulls      int64
 	table      map[string]int64
 	builder    *vector.RecordBuilder
 	partialsIn bool
 }
 
-func newCountByString(b *vector.RecordBuilder, partialsIn bool) aggTable {
+func newCountByString(typ super.Type, b *vector.RecordBuilder, partialsIn bool) aggTable {
 	return &countByString{
+		typ:        typ,
 		builder:    b,
 		table:      make(map[string]int64),
 		partialsIn: partialsIn,
@@ -176,7 +178,7 @@ func (c *countByString) update(keys, vals []vector.Any) {
 }
 
 func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
-	key, ok1 := keyvec.(*vector.String)
+	key, ok1 := vector.Under(keyvec).(*vector.String)
 	val, ok2 := valvec.(*vector.Int)
 	if !ok1 || !ok2 {
 		panic("count by string: invalid partials in")
@@ -236,7 +238,10 @@ func (c *countByString) materialize() vector.Any {
 		counts = append(counts, c.nulls)
 		offs = append(offs, uint32(len(bytes)))
 	}
-	keyVec := vector.NewString(vector.NewBytesTable(offs, bytes))
+	keyVec := vector.Any(vector.NewString(vector.NewBytesTable(offs, bytes)))
+	if n, ok := c.typ.(*super.TypeNamed); ok {
+		keyVec = vector.NewNamed(n, keyVec)
+	}
 	countVec := vector.NewInt(super.TypeInt64, counts)
 	return c.builder.New([]vector.Any{keyVec, countVec})
 }

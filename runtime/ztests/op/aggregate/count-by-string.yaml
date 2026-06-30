@@ -1,7 +1,7 @@
 spq: count() by x | sort x
 
 input: |
-  type s = string
+  type s=string
   {x:"a"::s}
   {x:"b"::s}
   {x:"c"::s}
@@ -19,8 +19,13 @@ input: |
   {x:"a"}
 
 output: |
-  {x:"a",count:5}
-  {x:"b",count:4}
-  {x:"c",count:3}
-  {x:"d",count:2}
-  {x:"e",count:1}
+  type s=string
+  {x:"a"::s,count:1}
+  {x:"a",count:4}
+  {x:"b"::s,count:1}
+  {x:"b",count:3}
+  {x:"c"::s,count:1}
+  {x:"c",count:2}
+  {x:"d"::s,count:1}
+  {x:"d",count:1}
+  {x:"e"::s,count:1}

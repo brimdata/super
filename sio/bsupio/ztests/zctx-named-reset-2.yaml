@@ -1,5 +1,3 @@
-skip: panics
-
 # Test that type names are properly reset and reusable after stream boundaries.
 script: |
   super -c "head 1" in.sup > t1.bsup
