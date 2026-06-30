@@ -287,7 +287,7 @@ echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
 {b:4,c:5}
 ```
 
-_Only an f-string source lets `from` take input from upstream (any other source is an error)_
+_Only a non-constant f-string source lets `from` take input from upstream (any other source is an error)_
 
 ```mdtest-command fails
 echo '1 2' | super -s -c "values this | from inputfile" -
