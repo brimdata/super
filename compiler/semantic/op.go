@@ -342,7 +342,16 @@ func (t *translator) fromURL(urlLoc ast.Node, u string, args []ast.OpArg) sem.Op
 	opArgs := t.opArgs(args, "format", "method", "body", "headers")
 	format, _ := t.textArg(opArgs, "format")
 	method, _ := t.textArg(opArgs, "method")
-	body, _ := t.textArg(opArgs, "body")
+	var body string
+	if e, loc := t.exprArg(opArgs, "body"); e != nil {
+		if val, ok := t.mustEval(e); ok {
+			if super.TypeUnder(val.Type()) != super.TypeString {
+				t.error(loc, fmt.Errorf("body must evaluate to a string but encountered %s", sup.String(val)))
+			} else {
+				body = val.AsString()
+			}
+		}
+	}
 	var headers map[string][]string
 	if e, loc := t.exprArg(opArgs, "headers"); e != nil {
 		if val, ok := t.mustEval(e); ok {

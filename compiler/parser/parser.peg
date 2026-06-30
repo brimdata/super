@@ -875,7 +875,7 @@ OpArgs
 ArgName = UnicodeLetter+ { return string(c.text), nil }
 
 ArgNameExpr
-  = "headers"i !UnicodeLetter
+  = ("headers"i / "body"i) !UnicodeLetter
 
 ColonName
   = ":" n:Name { return n, nil }
