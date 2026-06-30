@@ -293,7 +293,7 @@ _Only an f-string source lets `from` take input from upstream (any other source 
 echo '1 2' | super -s -c "values this | from inputfile" -
 ```
 ```mdtest-output
-from operator cannot read from a parent operator unless its argument is an f-string evaluated for each input value at line 1, column 20:
+from operator cannot have parent unless its argument is a non-constant f-string at line 1, column 20:
 values this | from inputfile
                    ~~~~~~~~~
 ```
