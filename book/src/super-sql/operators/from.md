@@ -271,7 +271,7 @@ super -s -c 'from https://api.github.com/repos/brimdata/super | values name'
 
 ---
 
-## F-String Example
+## F-String Examples
 
 _Read from dynamically defined files and add a column_
 
@@ -285,6 +285,17 @@ echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
 {a:2,c:3}
 {b:3,c:4}
 {b:4,c:5}
+```
+
+_Only an f-string source lets `from` take input from upstream (any other source is an error)_
+
+```mdtest-command fails
+echo '1 2' | super -s -c "values this | from inputfile" -
+```
+```mdtest-output
+from operator cannot read from a parent operator unless its argument is an f-string evaluated for each input value at line 1, column 20:
+values this | from inputfile
+                   ~~~~~~~~~
 ```
 
 ---

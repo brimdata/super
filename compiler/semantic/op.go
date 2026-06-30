@@ -222,7 +222,7 @@ func hasError(val super.Value) bool {
 
 func (t *translator) hasFromParent(loc ast.Node, seq sem.Seq) sem.Seq {
 	if len(seq) > 0 {
-		t.error(loc, errors.New("from operator cannot have parent unless from argument is an expression"))
+		t.error(loc, errors.New("from operator cannot read from a parent operator unless its argument is an f-string evaluated for each input value"))
 		return append(seq, badOp)
 	}
 	return nil
