@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -241,7 +240,6 @@ func handlePoolStats(c *Core, w *ResponseWriter, r *Request) {
 func handlePoolPost(c *Core, w *ResponseWriter, r *Request) {
 	var req api.PoolPostRequest
 	if !r.Unmarshal(w, &req) {
-		fmt.Println("unmarshal.err")
 		return
 	}
 	var sortKeys order.SortKeys
