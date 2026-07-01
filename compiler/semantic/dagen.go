@@ -111,11 +111,19 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Commit: op.Commit,
 		}
 	case *sem.RobotScan:
-		return &dag.RobotScan{
+		r := &dag.RobotScan{
 			Kind:   "RobotScan",
 			Expr:   d.expr(op.Expr),
 			Format: op.Format,
+			Method: op.Method,
 		}
+		if op.Headers != nil {
+			r.Headers = d.expr(op.Headers)
+		}
+		if op.Body != nil {
+			r.Body = d.expr(op.Body)
+		}
+		return r
 	//
 	// Ops in alphabetical order
 	//

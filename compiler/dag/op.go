@@ -287,10 +287,13 @@ type (
 		Commit ksuid.KSUID `json:"commit"`
 	}
 	RobotScan struct {
-		Kind   string `json:"kind" unpack:""`
-		Expr   Expr   `json:"expr"`
-		Format string `json:"format"`
-		Filter Expr   `json:"filter"`
+		Kind    string `json:"kind" unpack:""`
+		Expr    Expr   `json:"expr"`
+		Format  string `json:"format"`
+		Filter  Expr   `json:"filter"`
+		Method  string `json:"method"`
+		Headers Expr   `json:"headers"`
+		Body    Expr   `json:"body"`
 	}
 	PoolMetaScan struct {
 		Kind string      `json:"kind" unpack:""`

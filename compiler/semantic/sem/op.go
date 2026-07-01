@@ -70,8 +70,11 @@ type (
 	}
 	RobotScan struct {
 		ast.Node
-		Expr   Expr
-		Format string
+		Expr    Expr
+		Format  string
+		Method  string
+		Headers Expr
+		Body    Expr
 	}
 )
 
