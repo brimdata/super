@@ -127,6 +127,15 @@ func (f *Fusion) Len(cctx *Context) uint32 {
 	return cctx.Lookup(f.Values).Len(cctx)
 }
 
+type Any struct {
+	Values   ID
+	Subtypes ID
+}
+
+func (a *Any) Len(cctx *Context) uint32 {
+	return cctx.Lookup(a.Values).Len(cctx)
+}
+
 type Int struct {
 	Typ      super.Type `super:"Type"`
 	Location Segment
@@ -297,6 +306,10 @@ func (d *Dynamic) Len(*Context) uint32 {
 func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, projection field.Projection) super.Type {
 	m := cctx.Lookup(id)
 	switch m := under(cctx, m).(type) {
+	case *Any:
+		// XXX Do not have min/max on all values for now.
+		b.Append(nil)
+		return super.TypeNull
 	case *Fusion:
 		return metadataValue(cctx, sctx, b, m.Values, projection)
 	case *Dict:
@@ -373,6 +386,7 @@ var Template = []any{
 	Dict{},
 	Dynamic{},
 	Fusion{},
+	Any{},
 	Empty{},
 	Enum{},
 	Bool{},

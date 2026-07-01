@@ -1,0 +1,15 @@
+script: |
+  super -f csup -o test.csup in.sup
+  super -s -fusion test.csup
+
+inputs:
+  - name: in.sup
+    data: &in |
+      1::any
+      "foo"::any
+      {x:1}::any
+      <string>::any
+
+outputs:
+  - name: stdout
+    data: *in

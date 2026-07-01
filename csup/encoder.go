@@ -48,6 +48,9 @@ func NewEncoder(cctx *Context, vec vector.Any) Encoder {
 	case *vector.Named:
 		return NewNamedEncoder(cctx, vec)
 	case *vector.Fusion:
+		if super.IsTypeAny(vec.Type()) {
+			return NewAnyEncoder(cctx, vec)
+		}
 		return NewFusionEncoder(cctx, vec)
 	default:
 		return NewPrimitiveEncoder(cctx, vec, true)
