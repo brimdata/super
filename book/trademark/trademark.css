@@ -10,7 +10,7 @@
 /* The sidebar's "on this page" list is built by cloning heading markup
    (toc.js filterHeader), which copies the ® span into the nav. The mark belongs
    on the headings themselves, not in navigation, so hide it in the sidebar. */
-#mdbook-sidebar .tm {
+.sidebar .tm {
   display: none;
 }
 
