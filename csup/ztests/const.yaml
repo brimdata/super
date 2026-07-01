@@ -12,6 +12,11 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {Version:22::uint32,MetaSize:45::uint64,TypeSize:6::uint64,DataSize:0::uint64,Root:0::uint32}
+      {Version:23::uint32,SectionType:79::uint8}
+      {MetaSize:45::uint64,TypeSize:6::uint64,DataSize:0::uint64,Root:0::uint32}
       type Const={Value:any,Count:uint32}
       {Value:1::any,Count:3}::Const
+      {Version:23::uint32,SectionType:70::uint8}
+      {MetaSize:1::uint32}
+      <int64>
+      {Size:126::uint64,MetaSize:1::uint32}

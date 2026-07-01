@@ -19,11 +19,11 @@ type stream struct {
 
 type result struct {
 	off    int64
-	header csup.Header
+	header csup.DataHeader
 	err    error
 }
 
-func (s *stream) next() (*csup.Header, int64, error) {
+func (s *stream) next() (*csup.DataHeader, int64, error) {
 	s.once.Do(func() {
 		s.ch = make(chan result, runtime.GOMAXPROCS(0))
 		go s.run()
@@ -45,16 +45,18 @@ func (s *stream) next() (*csup.Header, int64, error) {
 func (s *stream) run() {
 	var off int64
 	for {
-		hdr, err := csup.ReadHeader(io.NewSectionReader(s.r, off, math.MaxInt64))
-		select {
-		case s.ch <- result{off, hdr, err}:
-		case <-s.ctx.Done():
-			return
+		section, err := csup.ReadSection(io.NewSectionReader(s.r, off, math.MaxInt64))
+		if err != nil || section.Type == csup.SectionObject {
+			select {
+			case s.ch <- result{off, section.Object, err}:
+			case <-s.ctx.Done():
+				return
+			}
 		}
 		if err != nil {
 			close(s.ch)
 			break
 		}
-		off += int64(hdr.ObjectSize())
+		off += int64(section.Size())
 	}
 }

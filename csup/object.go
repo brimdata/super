@@ -17,6 +17,7 @@
 package csup
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -28,29 +29,33 @@ import (
 type Object struct {
 	cctx     *Context
 	readerAt io.ReaderAt
-	header   Header
+	header   DataHeader
 }
 
 func NewObject(r io.ReaderAt) (*Object, error) {
-	hdr, err := ReadHeader(r)
+	s, err := ReadSection(r)
 	if err != nil {
 		return nil, err
 	}
-	return NewObjectFromHeader(r, hdr)
+	if s.Type != SectionObject {
+		return nil, errors.New("cannot create object from footer section")
+	}
+	return NewObjectFromHeader(r, s.Object)
 }
 
-func NewObjectFromHeader(r io.ReaderAt, hdr Header) (*Object, error) {
+func NewObjectFromHeader(r io.ReaderAt, hdr DataHeader) (*Object, error) {
 	cctx := NewContext()
-	if err := cctx.readMeta(io.NewSectionReader(r, HeaderSize, int64(hdr.MetaSize))); err != nil {
+	off := int64(HeaderSize + DataHeaderSize)
+	if err := cctx.readMeta(io.NewSectionReader(r, off, int64(hdr.MetaSize))); err != nil {
 		return nil, err
 	}
 	if hdr.Root >= uint32(len(cctx.values)) {
 		return nil, fmt.Errorf("CSUP root ID %d larger than values table (len %d)", hdr.Root, len(cctx.values))
 	}
-	cctx.subtypesReader = io.NewSectionReader(r, int64(HeaderSize+hdr.MetaSize), int64(hdr.TypeSize))
+	cctx.subtypesReader = io.NewSectionReader(r, off+int64(hdr.MetaSize), int64(hdr.TypeSize))
 	return &Object{
 		cctx:     cctx,
-		readerAt: io.NewSectionReader(r, int64(HeaderSize+hdr.MetaSize+hdr.TypeSize), int64(hdr.DataSize)),
+		readerAt: io.NewSectionReader(r, off+int64(hdr.MetaSize+hdr.TypeSize), int64(hdr.DataSize)),
 		header:   hdr,
 	}, nil
 }
@@ -75,7 +80,7 @@ func (o *Object) DataReader() io.ReaderAt {
 }
 
 func (o *Object) Size() uint64 {
-	return o.header.ObjectSize()
+	return HeaderSize + o.header.Size()
 }
 
 func (o *Object) ProjectMetadata(sctx *super.Context, projection field.Projection) []super.Value {

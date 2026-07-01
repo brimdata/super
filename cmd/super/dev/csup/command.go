@@ -1,7 +1,6 @@
 package csup
 
 import (
-	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -10,10 +9,10 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector/vio"
 
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sio/bsupio"
@@ -36,11 +35,13 @@ func init() {
 type Command struct {
 	*dev.Command
 	outputFlags outputflags.Flags
+	printTypes  bool
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*dev.Command)}
 	c.outputFlags.SetFlags(f)
+	f.BoolVar(&c.printTypes, "type", false, "output fused type of file")
 	return c, nil
 }
 
@@ -67,31 +68,87 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	sctx := super.NewContext()
-	reader := bufio.NewReader(r)
-	vals, err := readMeta(sctx, reader)
-	if err == nil {
-		err = vio.Copy(writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(vals)))
+	if c.printTypes {
+		return c.types(r, writer)
 	}
+	var vals []super.Value
+	sctx := super.NewContext()
+	marshaler := sup.NewBSUPMarshalerWithContext(sctx)
+	for {
+		hdr, err := readHeader(r)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		val, err := marshaler.Marshal(hdr)
+		if err != nil {
+			return err
+		}
+		vals = append(vals, val)
+		switch hdr.SectionType {
+		case csup.SectionObject:
+			vals, err = readObject(sctx, marshaler, r, vals)
+			if err != nil {
+				return err
+			}
+		case csup.SectionFooter:
+			vals, err = readFooter(sctx, marshaler, r, vals)
+			if err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("invalid CSUP section type: %c", hdr.SectionType)
+		}
+	}
+	err = writer.Push(sbuf.Dematerialize(sctx, sbuf.NewArray(vals)))
 	if err2 := writer.Close(); err == nil {
 		err = err2
 	}
 	return err
 }
 
-func readMeta(sctx *super.Context, r *bufio.Reader) (*sbuf.Array, error) {
-	marshaler := sup.NewBSUPMarshalerWithContext(sctx)
-	hdr, err := readHeader(r)
-	if err != nil && err != io.EOF {
-		return nil, err
+func (c *Command) types(r storage.Reader, w vio.PushCloser) error {
+	sctx := super.NewContext()
+	typ, err := csup.FusedType(sctx, r)
+	if err != nil {
+		return err
 	}
-	metaReader := bsupio.NewReader(sctx, io.LimitReader(r, int64(hdr.MetaSize)))
+	val := sctx.LookupTypeValue(typ)
+	err = w.Push(sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val})))
+	if err2 := w.Close(); err == nil {
+		err = err2
+	}
+	return err
+}
+
+func readHeader(r io.Reader) (csup.Header, error) {
+	var bytes [csup.HeaderSize]byte
+	_, err := io.ReadFull(r, bytes[:])
+	if err != nil {
+		return csup.Header{}, err
+	}
+	var hdr csup.Header
+	err = hdr.Deserialize(bytes[:])
+	return hdr, err
+}
+
+func readObject(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Reader, vals []super.Value) ([]super.Value, error) {
+	var bytes [csup.DataHeaderSize]byte
+	if _, err := io.ReadFull(r, bytes[:]); err != nil {
+		return vals, err
+	}
+	var hdr csup.DataHeader
+	if err := hdr.Deserialize(bytes[:]); err != nil {
+		return vals, err
+	}
 	val, err := marshaler.Marshal(hdr)
 	if err != nil {
-		return nil, err
+		return vals, err
 	}
-	var vals []super.Value
 	vals = append(vals, val)
+	metaReader := bsupio.NewReader(sctx, io.LimitReader(r, int64(hdr.MetaSize)))
 	for {
 		val, err := metaReader.Read()
 		if err != nil {
@@ -127,31 +184,47 @@ func readMeta(sctx *super.Context, r *bufio.Reader) (*sbuf.Array, error) {
 	if valp != nil {
 		return nil, errors.New("CSUP type section has more than one value")
 	}
-	return sbuf.NewArray(vals), skip(r, int(hdr.DataSize))
+	buf, err := io.ReadAll(io.LimitReader(r, int64(hdr.DataSize)))
+	if err == nil && len(buf) != int(hdr.DataSize) {
+		err = fmt.Errorf("truncated CSUP data: data section %d but read only %d", hdr.DataSize, len(buf))
+	}
+	return vals, err
 }
 
-func readHeader(r io.Reader) (csup.Header, error) {
-	var bytes [csup.HeaderSize]byte
-	cc, err := r.Read(bytes[:])
+func readFooter(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Reader, vals []super.Value) ([]super.Value, error) {
+	var bytes [csup.FooterSize]byte
+	if _, err := io.ReadFull(r, bytes[:]); err != nil {
+		return vals, err
+	}
+	var f csup.Footer
+	f.Deserialize(bytes[:])
+	val, err := marshaler.Marshal(f)
 	if err != nil {
-		return csup.Header{}, err
+		return vals, err
 	}
-	if cc != csup.HeaderSize {
-		return csup.Header{}, fmt.Errorf("truncated CSUP file: %d bytes of %d read", cc, csup.HeaderSize)
+	vals = append(vals, val)
+	typeBytes := make([]byte, f.MetaSize)
+	if _, err := io.ReadFull(r, typeBytes); err != nil {
+		return vals, err
 	}
-	var h csup.Header
-	if err := h.Deserialize(bytes[:]); err != nil {
-		return csup.Header{}, err
+	typ, err := sctx.LookupByValue(typeBytes)
+	if err != nil {
+		return vals, err
 	}
-	return h, nil
-}
-
-func skip(r *bufio.Reader, n int) error {
-	got, err := r.Discard(n)
-	if n != got {
-		return fmt.Errorf("truncated CSUP data: data section %d but read only %d", n, got)
+	vals = append(vals, sctx.LookupTypeValue(typ))
+	var trailerBytes [csup.TrailerSize]byte
+	if _, err := io.ReadFull(r, trailerBytes[:]); err != nil {
+		return vals, err
 	}
-	return err
+	var t csup.Trailer
+	if err := t.Deserialize(trailerBytes[:]); err != nil {
+		return vals, err
+	}
+	if val, err = marshaler.Marshal(t); err != nil {
+		return vals, err
+	}
+	vals = append(vals, val)
+	return vals, nil
 }
 
 func marshalTypeDefs(marshaler *sup.MarshalBSUPContext, vals []super.Value, bytes []byte) ([]super.Value, error) {

@@ -1,0 +1,27 @@
+script: |
+  super -f csup -o a.csup a.sup
+  super -f csup -o b.csup b.sup
+  cat a.csup b.csup > test.csup
+  super -s test.csup
+  echo // ===
+  super dev csup -s -type test.csup
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:1}
+      {b:2}
+  - name: b.sup
+    data: |
+      {c:3}
+      {d:4}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1}
+      {b:2}
+      {c:3}
+      {d:4}
+      // ===
+      <{c?:int64,d?:int64,a?:int64,b?:int64}>

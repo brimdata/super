@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
@@ -19,8 +20,11 @@ var maxObjectSize uint32 = 120_000
 // Serializer implements the vio.Pusher interface. A Pusher creates a vector
 // CSUP object from a stream of vector.Any.
 type Serializer struct {
-	writer  io.WriteCloser
-	dynamic *vbuild.DynamicBuilder
+	writer    io.WriteCloser
+	dynamic   *vbuild.DynamicBuilder
+	fuser     *agg.Fuser
+	fuserSctx *super.Context
+	size      uint64
 }
 
 var _ vio.Pusher = (*Serializer)(nil)
@@ -34,6 +38,9 @@ func NewSerializer(w io.WriteCloser) *Serializer {
 
 func (w *Serializer) Close() error {
 	firstErr := w.finalizeObject()
+	if firstErr == nil {
+		firstErr = w.writeFooter()
+	}
 	if err := w.writer.Close(); err != nil && firstErr == nil {
 		firstErr = err
 	}
@@ -55,6 +62,7 @@ func (w *Serializer) finalizeObject() error {
 	if vec.Len() == 0 {
 		return nil
 	}
+	w.fuse(vec)
 	enc := NewDynamicEncoder(vec)
 	root, dataSize, err := enc.Encode()
 	if err != nil {
@@ -84,11 +92,16 @@ func (w *Serializer) finalizeObject() error {
 	}
 	zw.EndStream()
 	typeSize := zw.Position() - metaSize
-
 	// Header
-	if _, err := w.writer.Write(Header{Version, uint64(metaSize), uint64(typeSize), dataSize, uint32(root)}.Serialize()); err != nil {
+	if _, err := w.writer.Write(Header{Version, SectionObject}.Serialize()); err != nil {
 		return fmt.Errorf("system error: could not write CSUP header: %w", err)
 	}
+	// DataHeader
+	o := DataHeader{uint64(metaSize), uint64(typeSize), dataSize, uint32(root)}
+	if _, err := w.writer.Write(o.Serialize()); err != nil {
+		return fmt.Errorf("system error: could not write CSUP header: %w", err)
+	}
+	w.size += HeaderSize + o.Size()
 	// Metadata section
 	if _, err := w.writer.Write(metaBuf.Bytes()); err != nil {
 		return fmt.Errorf("system error: could not write CSUP metadata section: %w", err)
@@ -99,6 +112,42 @@ func (w *Serializer) finalizeObject() error {
 	}
 	// Set new dynamic so we can write the next object.
 	w.dynamic = vbuild.NewDynamicBuilder()
+	return nil
+}
+
+func (w *Serializer) fuse(dynamic *vector.Dynamic) {
+	if w.fuser == nil {
+		w.fuserSctx = super.NewContext()
+		w.fuser = agg.NewFuser(w.fuserSctx, false)
+	}
+	for _, vec := range dynamic.Values {
+		typ, err := w.fuserSctx.TranslateType(vec.Type())
+		if err != nil {
+			panic(err)
+		}
+		w.fuser.Fuse(typ)
+	}
+}
+
+func (w *Serializer) writeFooter() error {
+	if w.fuser == nil {
+		return nil
+	}
+	fusedBytes := super.EncodeTypeValue(w.fuser.Type())
+	if _, err := w.writer.Write(Header{Version, SectionFooter}.Serialize()); err != nil {
+		return err
+	}
+	f := Footer{uint32(len(fusedBytes))}
+	if _, err := w.writer.Write(f.Serialize()); err != nil {
+		return err
+	}
+	if _, err := w.writer.Write(fusedBytes); err != nil {
+		return err
+	}
+	w.size += HeaderSize + f.Size()
+	if _, err := w.writer.Write(Trailer{w.size, uint32(len(fusedBytes))}.Serialize()); err != nil {
+		return err
+	}
 	return nil
 }
 
