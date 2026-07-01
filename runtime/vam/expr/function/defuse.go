@@ -45,7 +45,7 @@ func (d *Defuse) eval(in vector.Any) vector.Any {
 	case vector.KindMap:
 		return d.defuseMap(in)
 	case vector.KindUnion:
-		u := in.(*vector.Union)
+		u := vector.PushView(in).(*vector.Union)
 		return vector.Apply(vector.ApplyNone, d.Call, u.Dynamic())
 	case vector.KindError:
 		return d.defuseError(in)
