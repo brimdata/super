@@ -12,6 +12,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
@@ -213,6 +214,12 @@ func (o *Robot) openHTTP(off uint32, url string) (vio.Puller, error) {
 }
 
 func valueToJSON(val super.Value) (string, error) {
+	// An HTTP request body is wire data, not terminal output, so never let the
+	// process-global terminal-color setting leak ANSI codes into it. (This
+	// toggles a global and so isn't concurrency-safe; a real fix would give
+	// jsonio a per-writer color option.)
+	defer func(e bool) { color.Enabled = e }(color.Enabled)
+	color.Enabled = false
 	var buf bytes.Buffer
 	w := jsonio.NewWriter(sio.NopCloser(&buf), jsonio.WriterOpts{})
 	if err := w.Write(val); err != nil {
