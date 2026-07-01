@@ -732,7 +732,10 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		// anyway, but we don't want to change cut until we're ready to do that work.
 		for k, arg := range o.Args {
 			if arg.LHS == nil {
+				// Push and pop to prevent duplicating errors from t.assignments below.
+				t.checker.pushErrs()
 				rhs, _ := t.expr(arg.RHS, inType)
+				t.checker.popErrs()
 				if _, ok := isLval(rhs); ok {
 					o.Args[k].LHS = arg.RHS
 				}
