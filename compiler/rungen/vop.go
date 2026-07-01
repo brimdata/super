@@ -278,7 +278,18 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewRobot(b.rctx, b.env, parent, e, o.Format, b.newPushdown(o.Filter, nil)), nil
+		var headers, body vamexpr.Evaluator
+		if o.Headers != nil {
+			if headers, err = b.compileVamExpr(o.Headers); err != nil {
+				return nil, err
+			}
+		}
+		if o.Body != nil {
+			if body, err = b.compileVamExpr(o.Body); err != nil {
+				return nil, err
+			}
+		}
+		return vamop.NewRobot(b.rctx, b.env, parent, e, o.Format, o.Method, headers, body, b.newPushdown(o.Filter, nil)), nil
 	case *dag.SkipOp:
 		return vamop.NewSkip(parent, o.Count), nil
 	case *dag.SortOp:

@@ -207,11 +207,42 @@ func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem
 		return t.fromConst(val, entity, args)
 	}
 	// This is an expression so set up a robot scanner that pulls values from
-	// parent to decide what to scan.
+	// parent to decide what to scan.  Unlike the static (compile-time-constant)
+	// path, the HTTP headers and body are kept as expressions and evaluated at
+	// runtime, once per input value.  They must be compiled against the robot's
+	// dynamic input type (t.checker.unknown) so field references resolve, rather
+	// than the empty TypeNull used by the generic opArgs path.
+	var format, method string
+	var headersExpr, bodyExpr sem.Expr
+	for _, a := range args {
+		switch a := a.(type) {
+		case *ast.ArgText:
+			switch strings.ToLower(a.Key) {
+			case "format":
+				format = a.Value.Text
+			case "method":
+				method = a.Value.Text
+			default:
+				t.error(a, fmt.Errorf("unknown argument %q", a.Key))
+			}
+		case *ast.ArgExpr:
+			switch strings.ToLower(a.Key) {
+			case "headers":
+				headersExpr, _ = t.expr(a.Value, t.checker.unknown)
+			case "body":
+				bodyExpr, _ = t.expr(a.Value, t.checker.unknown)
+			default:
+				t.error(a, fmt.Errorf("unknown argument %q", a.Key))
+			}
+		}
+	}
 	return append(seq, &sem.RobotScan{
-		Node:   entity,
-		Expr:   expr,
-		Format: t.asFormatArg(args),
+		Node:    entity,
+		Expr:    expr,
+		Format:  format,
+		Method:  method,
+		Headers: headersExpr,
+		Body:    bodyExpr,
 	}), ""
 }
 
