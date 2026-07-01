@@ -1,12 +1,8 @@
-spq: count() by x | sort x
+spq: count() by x | sort typeof(x), x
 
 input: |
   type s=string
   {x:"a"::s}
-  {x:"b"::s}
-  {x:"c"::s}
-  {x:"d"::s}
-  {x:"e"::s}
   {x:"a"}
   {x:"b"}
   {x:"c"}
@@ -22,10 +18,6 @@ output: |
   type s=string
   {x:"a"::s,count:1}
   {x:"a",count:4}
-  {x:"b"::s,count:1}
   {x:"b",count:3}
-  {x:"c"::s,count:1}
   {x:"c",count:2}
-  {x:"d"::s,count:1}
   {x:"d",count:1}
-  {x:"e"::s,count:1}
