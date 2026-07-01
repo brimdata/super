@@ -143,7 +143,6 @@ func (s *superTable) materializeAgg(i int) vector.Any {
 
 type countByString struct {
 	typ        super.Type
-	nulls      int64
 	table      map[string]int64
 	builder    *vector.RecordBuilder
 	partialsIn bool
@@ -205,12 +204,7 @@ func (c *countByString) countDict(vec *vector.String, counts []uint32) {
 }
 
 func (c *countByString) countFixed(vec *vector.Const) {
-	switch vec.Type().ID() {
-	case super.IDString:
-		c.table[vector.StringValue(vec, 0)] += int64(vec.Len())
-	case super.IDNull:
-		c.nulls += int64(vec.Len())
-	}
+	c.table[vector.StringValue(vec, 0)] += int64(vec.Len())
 }
 
 func (c *countByString) countView(vec *vector.View) {
@@ -233,11 +227,6 @@ func (c *countByString) materialize() vector.Any {
 		k++
 	}
 	offs[k] = uint32(len(bytes))
-	if c.nulls > 0 {
-		length++
-		counts = append(counts, c.nulls)
-		offs = append(offs, uint32(len(bytes)))
-	}
 	keyVec := vector.Any(vector.NewString(vector.NewBytesTable(offs, bytes)))
 	if n, ok := c.typ.(*super.TypeNamed); ok {
 		keyVec = vector.NewNamed(n, keyVec)
