@@ -27,11 +27,7 @@ func lookupReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCl
 	case "bsup":
 		return bsupio.NewReaderWithOpts(sctx, r, opts.BSUP), nil
 	case "csup":
-		zr, err := csupio.NewReader(sctx, r, opts.Fields)
-		if err != nil {
-			return nil, err
-		}
-		return sio.NopReadCloser(zr), nil
+		return csupio.NewReader(sctx, r, opts.Fields)
 	case "csv":
 		return sio.NopReadCloser(csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "line":

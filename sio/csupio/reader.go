@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-type reader struct {
+type Reader struct {
 	sctx       *super.Context
 	stream     *stream
 	projection field.Projection
@@ -26,13 +26,15 @@ type reader struct {
 	vals []super.Value
 }
 
-func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (sio.Reader, error) {
+var _ sio.Typer = (*Reader)(nil)
+
+func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (*Reader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return &reader{
+	return &Reader{
 		sctx:       sctx,
 		stream:     &stream{ctx: ctx, r: ra},
 		projection: field.NewProjection(fields),
@@ -41,7 +43,7 @@ func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (sio.Reade
 	}, nil
 }
 
-func (r *reader) Read() (*super.Value, error) {
+func (r *Reader) Read() (*super.Value, error) {
 again:
 	if len(r.vals) == 0 {
 		hdr, off, err := r.stream.next()
@@ -64,14 +66,18 @@ again:
 	return &val, nil
 }
 
-func (r *reader) materializeVector(vec vector.Any) {
+func (r *Reader) materializeVector(vec vector.Any) {
 	r.vals = r.vals[:0]
 	for i := range vec.Len() {
 		r.vals = append(r.vals, vector.ValueAt(&r.sb, vec, i).Copy())
 	}
 }
 
-func (r *reader) Close() error {
+func (r *Reader) Type() (super.Type, error) {
+	return csup.FusedType(r.sctx, r.readerAt)
+}
+
+func (r *Reader) Close() error {
 	r.cancel()
 	if closer, ok := r.readerAt.(io.Closer); ok {
 		return closer.Close()

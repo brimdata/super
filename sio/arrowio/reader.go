@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
 )
 
@@ -37,6 +38,8 @@ type Reader struct {
 	builder scode.Builder
 	val     super.Value
 }
+
+var _ sio.Typer = (*Reader)(nil)
 
 func NewReader(sctx *super.Context, r io.Reader) (*Reader, error) {
 	ipcReader, err := ipc.NewReader(r)
@@ -67,8 +70,8 @@ func NewReaderFromRecordReader(sctx *super.Context, rbr RecordBatchReader) (*Rea
 	return r, nil
 }
 
-func (r *Reader) Type() super.Type {
-	return r.topLevelType
+func (r *Reader) Type() (super.Type, error) {
+	return r.topLevelType, nil
 }
 
 func UniquifyFieldNames(fields []super.Field) {
