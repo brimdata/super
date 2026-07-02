@@ -89,6 +89,10 @@ type Writer interface {
 	Write(val super.Value) error
 }
 
+type Typer interface {
+	Type() (super.Type, error)
+}
+
 type ReadCloser interface {
 	Reader
 	io.Closer
