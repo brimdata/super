@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/arrowio"
+	"github.com/brimdata/super/sio"
 )
 
 // Open uses engine to open path for reading.  path is a local file path or a
@@ -86,9 +86,8 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	// file, so it shares stdin's file offset. Reset to 0 so a re-open reads
 	// from the start instead of resuming where the last read left off.
 	defer rs.Seek(0, io.SeekStart)
-	switch r := f.Reader.(type) {
-	case *arrowio.Reader:
-		return r.Type(), nil
+	if typed, ok := f.Reader.(sio.Typer); ok {
+		return typed.Type()
 	}
 	if sampleSize < 1 {
 		sampleSize = math.MaxInt

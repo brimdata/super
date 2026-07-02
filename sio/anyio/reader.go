@@ -39,11 +39,7 @@ func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadClose
 
 	csupErr := isCSUPStream(track)
 	if csupErr == nil {
-		cr, err := csupio.NewReader(sctx, track.Reader(), opts.Fields)
-		if err != nil {
-			return nil, err
-		}
-		return sio.NopReadCloser(cr), nil
+		return csupio.NewReader(sctx, track.Reader(), opts.Fields)
 	}
 	csupErr = fmt.Errorf("csup: %w", csupErr)
 	track.Reset()

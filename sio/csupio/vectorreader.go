@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
 )
 
@@ -28,6 +29,8 @@ type VectorReader struct {
 	hasClosed     bool
 	vecs          [][]vector.Any
 }
+
+var _ sio.Typer = (*VectorReader)(nil)
 
 func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
 	if concurrentReaders < 1 {
@@ -140,6 +143,10 @@ func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 		}
 	}
 	return true
+}
+
+func (v *VectorReader) Type() (super.Type, error) {
+	return csup.FusedType(v.sctx, v.readerAt)
 }
 
 func (v *VectorReader) close() error {
