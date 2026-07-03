@@ -326,7 +326,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 			for i, vec := range fieldVecs {
 				arrowField := arrowStructType.Field(i)
 				typ := vec.Type()
-				if arrowField.Nullable {
+				if arrowField.Nullable && typ != super.TypeNull {
 					typ = v.sctx.Nullable(typ)
 				}
 				fields[i] = super.NewField(arrowField.Name, typ)
