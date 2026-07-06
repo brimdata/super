@@ -23,7 +23,7 @@ while True:
         socket.create_connection(('localhost', $port))
         break
     except ConnectionRefusedError:
-        if time.time() - start > 5:
+        if time.time() - start > 30:
             raise
     time.sleep(0.1)
 EOF
