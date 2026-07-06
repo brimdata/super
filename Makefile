@@ -37,8 +37,8 @@ $(SAMPLEDATA):
 sampledata: $(SAMPLEDATA)
 
 bin/minio: Makefile
-	@curl -o $@ --compressed --create-dirs \
-		https://dl.min.io/server/minio/release/$$(go env GOOS)-$$(go env GOARCH)/archive/minio.RELEASE.2022-05-04T07-45-27Z
+	@curl -fL -o $@ --compressed --create-dirs \
+		https://dl.min.io/server/minio/release/$$(go env GOOS)-$$(go env GOARCH)/archive/minio.RELEASE.2025-09-07T16-13-09Z
 	@chmod +x $@
 
 generate:

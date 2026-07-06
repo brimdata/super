@@ -1,6 +1,6 @@
 script: |
   source minio.sh
-  mv babble.zson ./data/bucket
+  zq -f zson -o s3://bucket/babble.zson babble.zson
   zq -z "count()" s3://bucket/babble.zson
 
 inputs:

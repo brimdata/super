@@ -1,6 +1,6 @@
 script: |
   source minio.sh
-  mv dns.parquet data/bucket
+  zq -i parquet -f parquet -o s3://bucket/dns.parquet dns.parquet
   zq -z "count()" s3://bucket/dns.parquet
 
 inputs:

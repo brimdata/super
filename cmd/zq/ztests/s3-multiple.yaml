@@ -1,6 +1,7 @@
 script: |
   source minio.sh
-  mv *.zson data/bucket
+  zq -f zson -o s3://bucket/log1.zson log1.zson
+  zq -f zson -o s3://bucket/log2.zson log2.zson
   zq -z "sort ts" s3://bucket/log1.zson s3://bucket/log2.zson
 
 inputs:
