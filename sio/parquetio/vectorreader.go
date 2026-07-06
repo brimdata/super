@@ -340,7 +340,33 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 			v.types[dt] = typ
 		}
 		out = vector.NewRecord(typ.(*super.TypeRecord), fieldVecs, length)
-	// case arrow.MAP: TODO
+	case arrow.MAP:
+		arr := a.(*array.Map)
+		keysNullable := dt.(*arrow.MapType).KeyField().Nullable
+		keys, err := v.build(arr.Keys(), keysNullable)
+		if err != nil {
+			return nil, err
+		}
+		valsNullable := dt.(*arrow.MapType).ItemField().Nullable
+		vals, err := v.build(arr.Items(), valsNullable)
+		if err != nil {
+			return nil, err
+		}
+		offsets := byteconv.ReinterpretSlice[uint32](arr.Offsets())
+		typ, ok := v.types[dt]
+		if !ok {
+			keyType := keys.Type()
+			if nullable {
+				keyType = v.sctx.Nullable(keyType)
+			}
+			valType := vals.Type()
+			if nullable {
+				valType = v.sctx.Nullable(valType)
+			}
+			typ = v.sctx.LookupTypeMap(keyType, valType)
+			v.types[dt] = typ
+		}
+		out = vector.NewMap(typ.(*super.TypeMap), offsets, keys, vals)
 	case arrow.FIXED_SIZE_LIST:
 		arr := a.(*array.FixedSizeList)
 		nullable := dt.(*arrow.FixedSizeListType).ElemField().Nullable

@@ -1,6 +1,7 @@
 script: |
   super -f parquet -o f.parquet -
-  super -S f.parquet
+  # from f.parquet uses NewVectorReader
+  super -S -c 'from f.parquet'
 
 inputs:
   - name: stdin
