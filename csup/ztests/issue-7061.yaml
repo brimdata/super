@@ -1,0 +1,14 @@
+script: |
+  super -f csup -o test.csup -
+  super -s -c 'from test.csup | where b==1'
+
+inputs:
+  - name: stdin
+    data: |
+      {a:1,b?:1}
+      {a:2,b?:_::int64}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1,b?:1}

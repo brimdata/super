@@ -5,7 +5,9 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/scode"
 )
 
@@ -303,6 +305,12 @@ func (d *Dynamic) Len(*Context) uint32 {
 	return d.Length
 }
 
+func newMetadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, p field.Projection) super.Value {
+	b.Truncate()
+	typ := metadataValue(cctx, sctx, b, id, p)
+	return super.NewValue(typ, b.Bytes().Body())
+}
+
 func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, projection field.Projection) super.Type {
 	m := cctx.Lookup(id)
 	switch m := under(cctx, m).(type) {
@@ -332,6 +340,28 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		}
 		b.EndContainer()
 		return sctx.MustLookupTypeRecord(fields)
+	case *Union:
+		cmp := expr.NewValueCompareFn(order.Asc, order.NullsLast)
+		var bb scode.Builder
+		var min, max *super.Value
+		for _, id := range m.Values {
+			val := newMetadataValue(cctx, sctx, &bb, id, projection)
+			if val.IsNull() {
+				continue
+			}
+			min2, max2 := val.Deref("min"), val.Deref("max")
+			if min == nil || (min2 != nil && cmp(*min, *min2) > 0) {
+				min = new(min2.Copy())
+			}
+			if max == nil || (max2 != nil && cmp(*max, *max2) < 0) {
+				max = new(max2.Copy())
+			}
+		}
+		if min == nil {
+			b.Append(nil)
+			return super.TypeNull
+		}
+		return metadataLeaf(sctx, b, *min, *max)
 	case *Int:
 		return metadataLeaf(sctx, b, super.NewInt(m.Typ, m.Min), super.NewInt(m.Typ, m.Max))
 	case *Uint:
