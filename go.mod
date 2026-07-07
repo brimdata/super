@@ -13,7 +13,7 @@ require (
 	github.com/bytedance/sonic v1.15.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/goccy/go-yaml v1.19.0
-	github.com/golang-jwt/jwt/v4 v4.4.3
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/gorilla/mux v1.7.5-0.20200711200521-98cb6bf42e08
 	github.com/gosuri/uilive v0.0.4
 	github.com/hashicorp/golang-lru/arc/v2 v2.0.7
