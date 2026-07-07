@@ -1,6 +1,7 @@
 package semantic
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/url"
@@ -19,10 +20,12 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/reglob"
+	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
@@ -376,10 +379,17 @@ func (t *translator) fromURL(urlLoc ast.Node, u string, args []ast.OpArg) sem.Op
 	var body string
 	if e, loc := t.exprArg(opArgs, "body"); e != nil {
 		if val, ok := t.mustEval(e); ok {
-			if super.TypeUnder(val.Type()) != super.TypeString {
-				t.error(loc, fmt.Errorf("body must evaluate to a string but encountered %s", sup.String(val)))
-			} else {
+			if super.TypeUnder(val.Type()) == super.TypeString {
 				body = val.AsString()
+			} else {
+				// A non-string body is serialized to JSON so a record can be posted
+				// directly with `body <record>`, matching the robot-scan path.
+				s, err := bodyToJSON(val)
+				if err != nil {
+					t.error(loc, err)
+				} else {
+					body = s
+				}
 			}
 		}
 	}
@@ -440,6 +450,24 @@ func decodeStrings(val *super.Value) ([]string, error) {
 		return nil, errors.New("header field value must be a string or an array or set of strings")
 	}
 	return []string{val.AsString()}, nil
+}
+
+// bodyToJSON serializes a value to a compact JSON string for use as an HTTP
+// request body, so a record can be posted directly with `body <record>`. Color
+// is forced off so terminal styling never leaks into the wire data (this mirrors
+// the robot-scan path's serialization; a real fix would share one helper).
+func bodyToJSON(val super.Value) (string, error) {
+	defer func(e bool) { color.Enabled = e }(color.Enabled)
+	color.Enabled = false
+	var buf bytes.Buffer
+	w := jsonio.NewWriter(sio.NopCloser(&buf), jsonio.WriterOpts{})
+	if err := w.Write(val); err != nil {
+		return "", err
+	}
+	if err := w.Close(); err != nil {
+		return "", err
+	}
+	return strings.TrimRight(buf.String(), "\n"), nil
 }
 
 func (t *translator) fromPoolRegexp(node ast.Node, re, orig, which string, args []ast.OpArg) sem.Seq {
