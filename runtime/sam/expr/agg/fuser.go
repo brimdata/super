@@ -100,10 +100,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		if len(types) == 1 {
 			return types[0]
 		}
-		union, ok := f.sctx.LookupTypeUnion(super.Flatten(types))
-		if !ok {
-			panic(types)
-		}
+		union := f.sctx.MustLookupTypeUnion(super.Flatten(types))
 		return f.fusion(union)
 	case *super.TypeEnum:
 		if b, ok := b.(*super.TypeEnum); ok {
@@ -137,11 +134,8 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 	if _, ok := b.(*super.TypeUnion); ok {
 		return f.fuse(b, a)
 	}
-	union, ok := f.sctx.LookupTypeUnion([]super.Type{a, b})
-	if !ok {
-		panic("a or b can't be anonymous unions at this point")
-	}
-	return f.fusion(union)
+	// Neither a nor b can be an anonymous union at this point.
+	return f.fusion(f.sctx.MustLookupTypeUnion([]super.Type{a, b}))
 }
 
 func (f *Fuser) makeOption(t super.Type) super.Type {
@@ -187,11 +181,7 @@ func (f *Fuser) fuseInternal(typ super.Type) super.Type {
 		if len(types) == 1 {
 			out = types[0]
 		} else {
-			var ok bool
-			out, ok = f.sctx.LookupTypeUnion(super.Flatten(types))
-			if !ok {
-				panic(types)
-			}
+			out = f.sctx.MustLookupTypeUnion(super.Flatten(types))
 		}
 	case *super.TypeEnum:
 		return typ

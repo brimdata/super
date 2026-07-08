@@ -126,13 +126,9 @@ func (i *inferNode) typeof(sctx *super.Context, typ super.Type) super.Type {
 		if len(types) == 1 {
 			return types[0]
 		}
-		out, ok := sctx.LookupTypeUnion(types)
-		if !ok {
-			// infer does not create new unions so there should be
-			// no way to get an anonymous union inserted into an existing union.
-			panic(types)
-		}
-		return out
+		// infer does not create new unions so there should be
+		// no way to get an anonymous union inserted into an existing union.
+		return sctx.MustLookupTypeUnion(types)
 	default:
 		return typ
 	}

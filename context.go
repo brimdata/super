@@ -208,6 +208,14 @@ func badUnion(types []Type) bool {
 	return false
 }
 
+func (c *Context) MustLookupTypeUnion(types []Type) *TypeUnion {
+	typ, ok := c.LookupTypeUnion(types)
+	if !ok {
+		panic(types)
+	}
+	return typ
+}
+
 func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -687,11 +695,7 @@ func (c *Context) Nullable(typ Type) *TypeUnion {
 	} else {
 		types = []Type{typ}
 	}
-	out, ok := c.LookupTypeUnion(append(types, TypeNull))
-	if !ok {
-		panic(typ)
-	}
-	return out
+	return c.MustLookupTypeUnion(append(types, TypeNull))
 }
 
 func NullableUnion(typ Type) (*TypeUnion, int) {
@@ -717,11 +721,7 @@ func (c *Context) Option(typ Type) *TypeUnion {
 	} else {
 		types = []Type{typ}
 	}
-	out, ok := c.LookupTypeUnion(append(types, TypeNone))
-	if !ok {
-		panic(typ)
-	}
-	return out
+	return c.MustLookupTypeUnion(append(types, TypeNone))
 }
 
 func OptionUnion(typ Type) (*TypeUnion, int) {

@@ -70,12 +70,9 @@ func (u *Union) Result(sctx *super.Context) super.Value {
 	var inner super.Type
 	var b scode.Builder
 	if len(types) > 1 {
-		union, ok := sctx.LookupTypeUnion(types)
-		if !ok {
-			// Values are always deunioned when entering into the unioned set,
-			// so there should never be anonymous unions in the types set.
-			panic(u)
-		}
+		// Values are always deunioned when entering into the unioned set,
+		// so there should never be anonymous unions in the types set.
+		union := sctx.MustLookupTypeUnion(types)
 		inner = union
 		for typ, m := range u.types {
 			for v := range m {

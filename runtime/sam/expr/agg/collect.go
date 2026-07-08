@@ -53,10 +53,7 @@ func newArray(sctx *super.Context, vals []super.Value) super.Value {
 		}
 		typ = types[0]
 	} else {
-		union, ok := sctx.LookupTypeUnion(types)
-		if !ok {
-			panic(types)
-		}
+		union := sctx.MustLookupTypeUnion(types)
 		for _, val := range vals {
 			val = val.Deunion()
 			super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())

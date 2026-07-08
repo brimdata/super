@@ -70,10 +70,7 @@ func (m *materializer) union(u *Union) (vector.Any, []uint32) {
 		types = append(types, super.TypeNone)
 		vecs = append(vecs, vector.NewEmpty(super.TypeNone))
 	}
-	utyp, ok := m.sctx.LookupTypeUnion(super.UniqueTypes(types))
-	if !ok {
-		panic(types)
-	}
+	utyp := m.sctx.MustLookupTypeUnion(super.UniqueTypes(types))
 	subtypes := m.makeUnionSubtypes(u.Tags, dynamic, fixed)
 	typ := m.sctx.LookupTypeFusion(utyp)
 	loader := &subtypesLoader{

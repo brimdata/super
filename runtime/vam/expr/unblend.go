@@ -265,9 +265,5 @@ func typeOfRange(sctx *super.Context, dynamic *vector.Dynamic, alltypes []super.
 	for _, tag := range uniq {
 		types = append(types, alltypes[tag])
 	}
-	out, ok := sctx.LookupTypeUnion(types)
-	if !ok {
-		panic(types)
-	}
-	return out
+	return sctx.MustLookupTypeUnion(types)
 }

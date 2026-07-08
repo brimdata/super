@@ -92,9 +92,5 @@ func unionOf(sctx *super.Context, types []super.Type) (super.Type, int) {
 	if len(types) == 1 {
 		return types[0], 1
 	}
-	typ, ok := sctx.LookupTypeUnion(types)
-	if !ok {
-		panic(types)
-	}
-	return typ, len(types)
+	return sctx.MustLookupTypeUnion(types), len(types)
 }

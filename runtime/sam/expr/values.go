@@ -419,6 +419,5 @@ func unionOf(sctx *super.Context, types []super.Type) super.Type {
 	if len(unique) == 1 {
 		return unique[0]
 	}
-	out, _ := sctx.LookupTypeUnion(unique)
-	return out
+	return sctx.MustLookupTypeUnion(unique)
 }

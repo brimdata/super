@@ -59,11 +59,7 @@ func deoptionType(sctx *super.Context, typ super.Type) super.Type {
 		types := slices.DeleteFunc(slices.Clone(union.Types), func(t super.Type) bool {
 			return t == super.TypeNone
 		})
-		out, ok := sctx.LookupTypeUnion(types)
-		if !ok {
-			panic(types)
-		}
-		return out
+		return sctx.MustLookupTypeUnion(types)
 	}
 	return typ
 }
@@ -220,10 +216,7 @@ func (c *cast) maybeConvertToUnion(vals []super.Value, types map[super.Type]stru
 	if len(typesSlice) == 1 {
 		return typesSlice[0], true
 	}
-	union, ok := c.sctx.LookupTypeUnion(typesSlice)
-	if !ok {
-		panic(typesSlice)
-	}
+	union := c.sctx.MustLookupTypeUnion(typesSlice)
 	aok := true
 	for i, val := range vals {
 		var ok bool

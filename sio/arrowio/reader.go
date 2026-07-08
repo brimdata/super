@@ -305,10 +305,7 @@ Loop:
 			}
 		}
 	}
-	superUnion, ok := r.sctx.LookupTypeUnion(uniqueTypes)
-	if !ok {
-		panic(uniqueTypes)
-	}
+	superUnion := r.sctx.MustLookupTypeUnion(uniqueTypes)
 	r.unionTagMappings[superUnion] = x
 	return superUnion, nil
 }

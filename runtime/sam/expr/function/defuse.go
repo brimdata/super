@@ -127,11 +127,8 @@ func (d *Defuse) unify(elems []super.Value) (super.Type, scode.Bytes) {
 		}
 		return types[0], b.Bytes()
 	}
+	union := d.sctx.MustLookupTypeUnion(types)
 	var b scode.Builder
-	union, ok := d.sctx.LookupTypeUnion(types)
-	if !ok {
-		panic(types)
-	}
 	for _, e := range elems {
 		super.BuildUnion(&b, union.TagOf(e.Type()), e.Bytes())
 	}
@@ -154,11 +151,7 @@ func (d *Defuse) unifyType(vals []super.Value) super.Type {
 	case 1:
 		return types[0]
 	default:
-		union, ok := d.sctx.LookupTypeUnion(types)
-		if !ok {
-			panic(types)
-		}
-		return union
+		return d.sctx.MustLookupTypeUnion(types)
 	}
 }
 

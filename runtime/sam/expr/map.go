@@ -68,9 +68,5 @@ func (a *mapCall) innerType(types []super.Type) super.Type {
 	if len(types) == 1 {
 		return types[0]
 	}
-	union, ok := a.sctx.LookupTypeUnion(types)
-	if !ok {
-		panic(types)
-	}
-	return union
+	return a.sctx.MustLookupTypeUnion(types)
 }

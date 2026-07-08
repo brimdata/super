@@ -360,8 +360,7 @@ func GenType(b *bytes.Reader, context *super.Context, depth int) super.Type {
 			if len(unionTypes) == 0 {
 				return super.TypeNull
 			}
-			out, _ := context.LookupTypeUnion(unionTypes)
-			return out
+			return context.MustLookupTypeUnion(unionTypes)
 		default:
 			panic("Unreachable")
 		}

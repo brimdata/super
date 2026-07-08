@@ -500,10 +500,7 @@ func (m *MarshalBSUPContext) encodeArray(arrayVal reflect.Value) (super.Type, er
 	case 1:
 		innerType = types[0]
 	default:
-		unionType, ok := m.Context.LookupTypeUnion(uniqueTypes)
-		if !ok {
-			panic(uniqueTypes)
-		}
+		unionType := m.Context.MustLookupTypeUnion(uniqueTypes)
 		// Convert each container element to the union type.
 		m.Builder.TransformContainer(func(bytes scode.Bytes) scode.Bytes {
 			var b scode.Builder

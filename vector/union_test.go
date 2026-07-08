@@ -10,7 +10,7 @@ import (
 func TestNewUnionVerifyPanics(t *testing.T) {
 	sctx := super.NewContext()
 	intVec := NewInt(super.TypeInt64, nil)
-	utyp, _ := sctx.LookupTypeUnion([]super.Type{super.TypeInt64, super.TypeString})
+	utyp := sctx.MustLookupTypeUnion([]super.Type{super.TypeInt64, super.TypeString})
 	require.PanicsWithValue(t, "NewUnion: must have one vector for each type", func() {
 		NewUnion(utyp, nil, []Any{intVec})
 	})
@@ -26,7 +26,7 @@ func TestNewUnionVerifyPanics(t *testing.T) {
 func TestNewUnionFromRLEVerifyPanics(t *testing.T) {
 	sctx := super.NewContext()
 	intVec := NewInt(super.TypeInt64, nil)
-	utyp, _ := sctx.LookupTypeUnion([]super.Type{super.TypeInt64, super.TypeString})
+	utyp := sctx.MustLookupTypeUnion([]super.Type{super.TypeInt64, super.TypeString})
 	require.PanicsWithValue(t, "NewUnion: must have one vector for each type", func() {
 		NewUnionFromRLE(utyp, nil, []Any{intVec})
 	})

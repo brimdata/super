@@ -49,11 +49,7 @@ func NewUnionFromDynamic(sctx *super.Context, d *Dynamic) *Union {
 	for _, vec := range d.Values {
 		types = append(types, vec.Type())
 	}
-	unionType, ok := sctx.LookupTypeUnion(types)
-	if !ok {
-		panic(types)
-	}
-	return &Union{dynamic: d, Typ: unionType}
+	return &Union{dynamic: d, Typ: sctx.MustLookupTypeUnion(types)}
 }
 
 func NewUnionFromRLE(typ *super.TypeUnion, rle []uint32, vecs []Any) *Union {

@@ -408,10 +408,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 }
 
 func (v *vectorBuilder) buildNullableUnion(vec vector.Any, a arrow.Array) vector.Any {
-	unionType, ok := v.sctx.LookupTypeUnion([]super.Type{vec.Type(), super.TypeNull})
-	if !ok {
-		panic(vec)
-	}
+	unionType := v.sctx.MustLookupTypeUnion([]super.Type{vec.Type(), super.TypeNull})
 	nullTag, vecTag, _ := arrowio.NullableUnionTagsAndType(unionType)
 	tags := make([]uint32, vec.Len())
 	var vecIndex []uint32
