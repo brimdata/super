@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
@@ -246,6 +247,9 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		return vamop.NewFilter(b.sctx(), parent, e), nil
 	case *dag.FuseOp:
 		return vamop.NewFuse(b.sctx(), parent, o.Complete), nil
+	case *dag.HTTPScan:
+		body := strings.NewReader(o.Body)
+		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), o.URL, o.Format, o.Method, o.Headers, body, nil)
 	case *dag.HeadOp:
 		return vamop.NewHead(parent, o.Count), nil
 	case *dag.OutputOp:

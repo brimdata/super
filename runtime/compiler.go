@@ -6,13 +6,12 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/dbid"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
 type Compiler interface {
-	NewQuery(*Context, *parser.AST, []sio.Reader, int) (Query, error)
+	NewQuery(*Context, *parser.AST, []vio.Puller, int) (Query, error)
 	NewDeleteQuery(*Context, *parser.AST, *dbid.Commitish) (DeleteQuery, error)
 }
 
@@ -27,7 +26,7 @@ type DeleteQuery interface {
 	DeletionSet() []ksuid.KSUID
 }
 
-func CompileQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST, readers []sio.Reader) (Query, error) {
+func CompileQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST, readers []vio.Puller) (Query, error) {
 	rctx := NewContext(ctx, sctx)
 	q, err := c.NewQuery(rctx, ast, readers, 0)
 	if err != nil {

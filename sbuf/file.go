@@ -3,16 +3,16 @@ package sbuf
 import (
 	"io"
 
-	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type File struct {
-	sio.Reader
+	vio.Puller
 	c    io.Closer
 	name string
 }
 
-func NewFile(r sio.Reader, c io.Closer, name string) *File {
+func NewFile(r vio.Puller, c io.Closer, name string) *File {
 	return &File{r, c, name}
 }
 

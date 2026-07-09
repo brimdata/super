@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -173,9 +172,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 			pushdown = &deleter{pushdown, b, v.Where}
 		}
 		return meta.NewDeleter(b.rctx, parent, pool, pushdown, pruner, b.progress, b.deletes), nil
-	case *dag.HTTPScan:
-		body := strings.NewReader(v.Body)
-		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
 	case *dag.ListerScan:
 		if parent != nil {
 			return nil, errors.New("internal error: data source cannot have a parent operator")

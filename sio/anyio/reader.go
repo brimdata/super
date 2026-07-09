@@ -3,6 +3,7 @@ package anyio
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
-	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
@@ -21,46 +22,52 @@ import (
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sio/zeekio"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type ReaderOpts struct {
-	Fields []field.Path
-	Format string
-	BSUP   bsupio.ReaderOpts
-	CSV    csvio.ReaderOpts
+	Format            string
+	Pushdown          sbuf.Pushdown
+	ConcurrentReaders int
+	BSUP              bsupio.ReaderOpts
+	CSV               csvio.ReaderOpts
 }
 
-func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCloser, error) {
+func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts ReaderOpts) (vio.Puller, error) {
+	if opts.ConcurrentReaders == 0 {
+		opts.ConcurrentReaders = 1
+	}
 	if opts.Format != "" && opts.Format != "auto" {
-		return lookupReader(sctx, r, opts)
+		return lookupReader(ctx, sctx, r, opts)
 	}
 
 	track := NewTrack(r)
 
 	csupErr := isCSUPStream(track)
 	if csupErr == nil {
-		return csupio.NewReader(sctx, track.Reader(), opts.Fields)
+		return csupio.NewVectorReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
 	}
 	csupErr = fmt.Errorf("csup: %w", csupErr)
 	track.Reset()
 
-	parquetErr := isParquetStream(track)
+	parquetErr := isParquetStream(ctx, track)
 	if parquetErr == nil {
-		return parquetio.NewReader(sctx, track.Reader(), opts.Fields)
+		return parquetio.NewVectorReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
 	}
 	parquetErr = fmt.Errorf("parquet: %w", parquetErr)
 	track.Reset()
 
 	arrowsErr := isArrowStream(track)
 	if arrowsErr == nil {
-		return arrowio.NewReader(sctx, track.Reader())
+		r, err := arrowio.NewReader(sctx, track.Reader())
+		return newVioPuller(sctx, r), err
 	}
 	arrowsErr = fmt.Errorf("arrows: %w", arrowsErr)
 	track.Reset()
 
 	zeekErr := match(zeekio.NewReader(super.NewContext(), track), "zeek", 1)
 	if zeekErr == nil {
-		return sio.NopReadCloser(zeekio.NewReader(sctx, track.Reader())), nil
+		return newVioPuller(sctx, zeekio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
@@ -69,13 +76,13 @@ func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadClose
 	// sake of tests.
 	jsonErr := match(jsonio.NewReader(super.NewContext(), track), "json", 10)
 	if jsonErr == nil {
-		return sio.NopReadCloser(jsonio.NewReader(sctx, track.Reader())), nil
+		return newVioPuller(sctx, jsonio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
 	supErr := match(supio.NewReader(super.NewContext(), track), "sup", 1)
 	if supErr == nil {
-		return sio.NopReadCloser(supio.NewReader(sctx, track.Reader())), nil
+		return newVioPuller(sctx, supio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
@@ -89,19 +96,23 @@ func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadClose
 	// Close bsupReader to ensure that it does not continue to call track.Read.
 	bsupReader.Close()
 	if bsupErr == nil {
-		return bsupio.NewReaderWithOpts(sctx, track.Reader(), opts.BSUP), nil
+		scanner, err := bsupio.NewReaderWithOpts(sctx, track.Reader(), opts.BSUP).NewScanner(ctx, opts.Pushdown)
+		if err != nil {
+			return nil, err
+		}
+		return sbuf.NewDematerializer(sctx, scanner), nil
 	}
 	track.Reset()
 
 	csvErr := isCSVStream(track, ',', "csv")
 	if csvErr == nil {
-		return sio.NopReadCloser(csvio.NewReader(sctx, track.Reader(), csvio.ReaderOpts{Delim: ','})), nil
+		return newVioPuller(sctx, csvio.NewReader(sctx, track.Reader(), csvio.ReaderOpts{Delim: ','})), nil
 	}
 	track.Reset()
 
 	tsvErr := isCSVStream(track, '\t', "tsv")
 	if tsvErr == nil {
-		return sio.NopReadCloser(csvio.NewReader(sctx, track.Reader(), csvio.ReaderOpts{Delim: '\t'})), nil
+		return newVioPuller(sctx, csvio.NewReader(sctx, track.Reader(), csvio.ReaderOpts{Delim: '\t'})), nil
 	}
 	track.Reset()
 
@@ -182,7 +193,7 @@ func isCSVStream(track *Track, delim rune, name string) error {
 	return match(csvio.NewReader(super.NewContext(), track, csvio.ReaderOpts{Delim: delim}), name, 1)
 }
 
-func isParquetStream(track *Track) error {
+func isParquetStream(ctx context.Context, track *Track) error {
 	// a parquet stream starts with a 4-byte magic: PAR1 or PARE. If we find
 	// this we probably have a parquet but to be sure we'll have to read the
 	// entire stream till EOF and then check the footer.
@@ -201,7 +212,7 @@ func isParquetStream(track *Track) error {
 		}
 		*track = *NewTrack(bytes.NewReader(b))
 	}
-	_, err := parquetio.NewReader(super.NewContext(), track.Reader(), nil)
+	_, err := parquetio.NewVectorReader(ctx, super.NewContext(), track.Reader(), nil, 1)
 	return err
 }
 

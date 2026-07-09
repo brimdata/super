@@ -30,7 +30,7 @@ func Open(ctx context.Context, sctx *super.Context, engine storage.Engine, path 
 			return
 		}
 		// NewFile reads from sr, which might block.
-		zf, err = NewFile(sctx, sr, path, opts)
+		zf, err = NewFile(ctx, sctx, sr, path, opts)
 		if err != nil {
 			sr.Close()
 		}
@@ -43,12 +43,12 @@ func Open(ctx context.Context, sctx *super.Context, engine storage.Engine, path 
 	}
 }
 
-func NewFile(sctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts) (*sbuf.File, error) {
+func NewFile(ctx context.Context, sctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts) (*sbuf.File, error) {
 	r, err := GzipReader(rc)
 	if err != nil {
 		return nil, err
 	}
-	zr, err := NewReader(sctx, r, opts)
+	zr, err := NewReader(ctx, sctx, r, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	if _, err := rs.Seek(0, io.SeekCurrent); err != nil {
 		return nil, nil
 	}
-	f, err := NewFile(sctx, r, path, opts)
+	f, err := NewFile(ctx, sctx, r, path, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -86,16 +86,17 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	// file, so it shares stdin's file offset. Reset to 0 so a re-open reads
 	// from the start instead of resuming where the last read left off.
 	defer rs.Seek(0, io.SeekStart)
-	if typed, ok := f.Reader.(sio.Typer); ok {
+	if typed, ok := f.Puller.(sio.Typer); ok {
 		return typed.Type()
 	}
 	if sampleSize < 1 {
 		sampleSize = math.MaxInt
 	}
 	// XXX this should pass super true when type checker can handle it
+	rr := sbuf.PullerReader(sbuf.NewMaterializer(f))
 	fuser := agg.NewFuser(sctx, false)
 	for range sampleSize {
-		val, err := f.Read()
+		val, err := rr.Read()
 		if val == nil || err != nil {
 			return fuser.Type(), err
 		}

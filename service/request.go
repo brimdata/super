@@ -175,13 +175,14 @@ func (r *Request) Unmarshal(w *ResponseWriter, body any, templates ...any) bool 
 	if !ok {
 		return false
 	}
-	zrc, err := anyio.NewReader(super.NewContext(), r.Body, anyio.ReaderOpts{Format: format})
+	p, err := anyio.NewReader(r.Context(), super.NewContext(), r.Body, anyio.ReaderOpts{Format: format})
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return false
 	}
-	defer zrc.Close()
-	zv, err := zrc.Read()
+	defer func() { p.Pull(true) }()
+	sr := sbuf.PullerReader(sbuf.NewMaterializer(p))
+	zv, err := sr.Read()
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return false

@@ -5,26 +5,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sio/csupio"
-	"github.com/brimdata/super/sio/fjsonio"
-	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
-type VectorConcurrentPuller interface {
+type ConcurrentPuller interface {
 	vio.Puller
 	ConcurrentPull(done bool, id int) (vector.Any, error)
 }
@@ -37,7 +33,7 @@ type Environment struct {
 	IgnoreOpenErrors bool
 	ReaderOpts       anyio.ReaderOpts
 	SampleSize       int
-	Stdin            sio.Reader
+	Stdin            vio.Puller
 }
 
 func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
@@ -82,41 +78,31 @@ func (e *Environment) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
 	return nil
 }
 
-func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, format string, pushdown sbuf.Pushdown) (sbuf.Puller, error) {
+func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, format string, p sbuf.Pushdown, concurrentReaders int) (ConcurrentPuller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
-	var fields []field.Path
-	if pushdown != nil {
-		if proj := pushdown.Projection(); proj != nil {
-			fields = proj.Paths()
-		}
-	}
 	if path == "stdio:stdin" && e.Stdin != nil {
-		return sbuf.NewScanner(ctx, e.Stdin, pushdown)
+		return newConcurrentPuller(path, e.Stdin), nil
 	}
-	file, err := anyio.Open(ctx, sctx, e.engine, path, e.readerOpts(fields, format))
+	file, err := anyio.Open(ctx, sctx, e.engine, path, e.readerOpts(p, format, concurrentReaders))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
-	scanner, err := sbuf.NewScanner(ctx, file, pushdown)
-	if err != nil {
-		file.Close()
-		return nil, err
-	}
-	return &closePuller{scanner, file}, nil
+	return newConcurrentPuller(path, file.Puller), nil
 }
 
-func (e *Environment) readerOpts(fields []field.Path, format string) anyio.ReaderOpts {
+func (e *Environment) readerOpts(p sbuf.Pushdown, format string, concurrentReaders int) anyio.ReaderOpts {
 	o := e.ReaderOpts
-	o.Fields = fields
+	o.Pushdown = p
+	o.ConcurrentReaders = concurrentReaders
 	if format != "" {
 		o.Format = format
 	}
 	return o
 }
 
-func (e *Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, fields []field.Path) (sbuf.Puller, error) {
+func (e *Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, p sbuf.Pushdown) (vio.Puller, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return nil, err
@@ -126,76 +112,41 @@ func (e *Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, fo
 	if err != nil {
 		return nil, err
 	}
-	file, err := anyio.NewFile(sctx, resp.Body, url, e.readerOpts(fields, format))
+	file, err := anyio.NewFile(ctx, sctx, resp.Body, url, e.readerOpts(p, format, 1))
 	if err != nil {
 		resp.Body.Close()
 		return nil, fmt.Errorf("%s: %w", url, err)
 	}
-	scanner, err := sbuf.NewScanner(ctx, file, nil)
-	if err != nil {
-		file.Close()
-		return nil, err
-	}
-	return &closePuller{scanner, file}, nil
+	return file, nil
 }
 
-type closePuller struct {
-	p sbuf.Puller
-	c io.Closer
+func newConcurrentPuller(path string, puller vio.Puller) ConcurrentPuller {
+	cp, ok := puller.(ConcurrentPuller)
+	if !ok {
+		cp = &concurrentPuller{Puller: puller}
+	}
+	return &errorPrefixConcurrentPuller{cp, path}
 }
 
-func (c *closePuller) Pull(done bool) (sbuf.Batch, error) {
-	batch, err := c.p.Pull(done)
-	if batch == nil {
-		c.c.Close()
-	}
-	return batch, err
+type concurrentPuller struct {
+	vio.Puller
+	mu sync.Mutex
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, p sbuf.Pushdown, concurrentReaders int) (VectorConcurrentPuller, error) {
-	if format != "csup" && format != "fjson" && format != "parquet" {
-		sbufPuller, err := e.Open(ctx, sctx, path, format, p)
-		if err != nil {
-			return nil, err
-		}
-		return sbuf.NewDematerializer(sctx, sbufPuller), nil
-	}
-	if path == "-" {
-		path = "stdio:stdin"
-	}
-	uri, err := storage.ParseURI(path)
-	if err != nil {
-		return nil, err
-	}
-	reader, err := e.engine.Get(ctx, uri)
-	if err != nil {
-		return nil, err
-	}
-	var puller VectorConcurrentPuller
-	switch format {
-	case "csup":
-		puller, err = csupio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
-	case "parquet":
-		puller, err = parquetio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
-	case "fjson":
-		puller = fjsonio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
-	default:
-		panic(format)
-	}
-	if err != nil {
-		reader.Close()
-		return nil, fmt.Errorf("%s: %w", path, err)
-	}
-	return &errorPrefixConcurrentPuller{puller, path}, nil
+func (c *concurrentPuller) ConcurrentPull(done bool, id int) (vector.Any, error) {
+	c.mu.Lock()
+	// Defer to ensure lock is released if c.Puller.Pull panics.
+	defer c.mu.Unlock()
+	return c.Pull(done)
 }
 
 type errorPrefixConcurrentPuller struct {
-	VectorConcurrentPuller
+	ConcurrentPuller
 	prefix string
 }
 
 func (e *errorPrefixConcurrentPuller) ConcurrentPull(done bool, id int) (vector.Any, error) {
-	vec, err := e.VectorConcurrentPuller.ConcurrentPull(done, id)
+	vec, err := e.ConcurrentPuller.ConcurrentPull(done, id)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", e.prefix, err)
 	}
@@ -203,7 +154,7 @@ func (e *errorPrefixConcurrentPuller) ConcurrentPull(done bool, id int) (vector.
 }
 
 func (e *errorPrefixConcurrentPuller) Pull(done bool) (vector.Any, error) {
-	vec, err := e.VectorConcurrentPuller.Pull(done)
+	vec, err := e.ConcurrentPuller.Pull(done)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", e.prefix, err)
 	}

@@ -96,7 +96,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 
 func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
 	keys, vals, ok := removeQuietRows(keys, vals)
-	if !ok {
+	if !ok || keys[0].Len() == 0 {
 		return
 	}
 	var keyTypes []super.Type
