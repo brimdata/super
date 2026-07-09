@@ -2,6 +2,7 @@ package parquetio
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -14,6 +15,7 @@ import (
 	"github.com/apache/arrow-go/v18/parquet"
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
+	"github.com/apache/arrow-go/v18/parquet/schema"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/field"
@@ -23,6 +25,9 @@ import (
 	"github.com/brimdata/super/vector"
 	"golang.org/x/exp/constraints"
 )
+
+//lint:ignore ST1005 Parquet should be capitalized
+var errNotSeekable = errors.New("Parquet format requires seekable input")
 
 type VectorReader struct {
 	ctx  context.Context
@@ -107,6 +112,16 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 		rrs:                make([]pqarrow.RecordReader, concurrentReaders),
 		vbs:                vbs,
 	}, nil
+}
+
+func columnIndexes(schema *schema.Schema, fields []field.Path) []int {
+	var indexes []int
+	for _, f := range fields {
+		if i := schema.ColumnIndexByName(f.String()); i >= 0 {
+			indexes = append(indexes, i)
+		}
+	}
+	return indexes
 }
 
 func (p *VectorReader) Pull(done bool) (vector.Any, error) {
