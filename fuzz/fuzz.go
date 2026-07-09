@@ -2,6 +2,7 @@ package fuzz
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/semantic"
 	"github.com/brimdata/super/csup"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -45,15 +45,16 @@ func ReadBSUP(bs []byte) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
+func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	context := super.NewContext()
-	reader, err := csupio.NewReader(context, bytesReader, fields)
+	sctx := super.NewContext()
+	reader, err := csupio.NewVectorReader(ctx, sctx, bytesReader, nil, 1)
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Pull(true)
 	var a sbuf.Array
-	err = sio.Copy(&a, reader)
+	err = sbuf.CopyPuller(&a, sbuf.NewMaterializer(reader))
 	if err != nil {
 		return nil, err
 	}

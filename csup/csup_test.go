@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/fuzz"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sup"
@@ -37,7 +38,7 @@ func FuzzCSUPRoundtripBytes(f *testing.F) {
 func roundtrip(t *testing.T, valuesIn []super.Value) {
 	var buf bytes.Buffer
 	fuzz.WriteCSUP(t, valuesIn, &buf)
-	valuesOut, err := fuzz.ReadCSUP(buf.Bytes(), nil)
+	valuesOut, err := fuzz.ReadCSUP(t.Context(), buf.Bytes())
 	require.NoError(t, err)
 	fuzz.CompareValues(t, valuesIn, valuesOut)
 }
@@ -55,8 +56,10 @@ func TestCSUPBatchBug(t *testing.T) {
 	err = w.Push(valToVec(sctx, val2))
 	err = w.Close()
 	require.NoError(t, err)
-	r, err := csupio.NewReader(sctx, bytes.NewReader(b.Bytes()), nil)
+	p, err := csupio.NewVectorReader(t.Context(), sctx, bytes.NewReader(b.Bytes()), nil, 1)
 	require.NoError(t, err)
+	defer p.Pull(true)
+	r := sbuf.PullerReader(sbuf.NewMaterializer(p))
 	val, err := r.Read()
 	require.NoError(t, err)
 	require.Equal(t, "{a:[1,2,3]}", sup.String(val))
