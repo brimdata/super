@@ -5,82 +5,155 @@ import (
 	"errors"
 	"io"
 	"math"
+	"sync/atomic"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
 )
 
 type Reader struct {
-	sctx       *super.Context
-	stream     *stream
-	projection field.Projection
-	readerAt   io.ReaderAt
-	cancel     context.CancelFunc
+	ctx  context.Context
+	sctx *super.Context
 
-	sb   scode.Builder
-	vals []super.Value
+	activeReaders *atomic.Int64
+	stream        *stream
+	pushdown      sbuf.Pushdown
+	metaFilters   []*metafilter
+	readerAt      io.ReaderAt
+	hasClosed     bool
+	vecs          [][]vector.Any
 }
 
 var _ sio.Typer = (*Reader)(nil)
 
-func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (*Reader, error) {
+func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*Reader, error) {
+	if concurrentReaders < 1 {
+		panic(concurrentReaders)
+	}
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	var metaFilters []*metafilter
+	if p != nil {
+		filter, _, err := p.MetaFilter()
+		if err != nil {
+			return nil, err
+		}
+		if filter != nil {
+			for range concurrentReaders {
+				filter, projection, err := p.MetaFilter()
+				if err != nil {
+					return nil, err
+				}
+				metaFilters = append(metaFilters, &metafilter{filter, projection})
+			}
+		}
+	}
+	activeReaders := new(atomic.Int64)
+	activeReaders.Store(int64(concurrentReaders))
 	return &Reader{
-		sctx:       sctx,
-		stream:     &stream{ctx: ctx, r: ra},
-		projection: field.NewProjection(fields),
-		readerAt:   ra,
-		cancel:     cancel,
+		ctx:           ctx,
+		sctx:          sctx,
+		activeReaders: activeReaders,
+		stream:        &stream{ctx: ctx, r: ra},
+		pushdown:      p,
+		metaFilters:   metaFilters,
+		readerAt:      ra,
+		vecs:          make([][]vector.Any, concurrentReaders),
 	}, nil
 }
 
-func (r *Reader) Read() (*super.Value, error) {
-again:
-	if len(r.vals) == 0 {
-		hdr, off, err := r.stream.next()
-		if hdr == nil || err != nil {
-			return nil, err
-		}
-		o, err := csup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
-		if err != nil {
-			return nil, err
-		}
-		vec, err := vcache.NewObjectFromCSUP(o).Fetch(r.sctx, r.projection)
-		if err != nil {
-			return nil, err
-		}
-		r.materializeVector(vec)
-		goto again
+type metafilter struct {
+	filter     expr.Evaluator
+	projection field.Projection
+}
+
+func (v *Reader) Pull(done bool) (vector.Any, error) {
+	return v.ConcurrentPull(done, 0)
+}
+
+func (v *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
+	if done {
+		return nil, v.close()
 	}
-	val := r.vals[0]
-	r.vals = r.vals[1:]
-	return &val, nil
-}
-
-func (r *Reader) materializeVector(vec vector.Any) {
-	r.vals = r.vals[:0]
-	for i := range vec.Len() {
-		r.vals = append(r.vals, vector.ValueAt(&r.sb, vec, i).Copy())
+	if err := v.ctx.Err(); err != nil {
+		v.close()
+		return nil, err
+	}
+	for {
+		if k := len(v.vecs[n]); k > 0 {
+			// Return these last to first so v.vecs gets resued.
+			vec := v.vecs[n][k-1]
+			v.vecs[n] = v.vecs[n][:k-1]
+			return vec, nil
+		}
+		hdr, off, err := v.stream.next()
+		if err != nil {
+			v.close()
+			return nil, err
+		}
+		if hdr == nil {
+			return nil, v.close()
+		}
+		o, err := csup.NewObjectFromHeader(io.NewSectionReader(v.readerAt, off, math.MaxInt64), *hdr)
+		if err != nil {
+			v.close()
+			return nil, err
+		}
+		// XXX using the query context for the metadata filter unnecessarily
+		// pollutes the type context.  We should use the csup local context for
+		// this filtering but this will require a little compiler refactoring to be
+		// able to build runtime expressions that use different type contexts.
+		if len(v.metaFilters) == 0 || !pruneObject(v.sctx, v.metaFilters[n], o) {
+			vo := vcache.NewObjectFromCSUP(o)
+			var proj field.Projection
+			if v.pushdown != nil {
+				proj = v.pushdown.Projection()
+			}
+			if v.pushdown != nil && v.pushdown.Unordered() {
+				v.vecs[n], err = vo.FetchUnordered(v.vecs[n][:0], v.sctx, proj)
+				if err != nil {
+					v.close()
+					return nil, err
+				}
+			} else {
+				vec, err := vo.Fetch(v.sctx, proj)
+				if err != nil {
+					v.close()
+					return nil, err
+				}
+				v.vecs[n] = append(v.vecs[n], vec)
+			}
+		}
 	}
 }
 
-func (r *Reader) Type() (super.Type, error) {
-	return csup.FusedType(r.sctx, r.readerAt)
+func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
+	vals := o.ProjectMetadata(sctx, mf.projection)
+	for _, val := range vals {
+		if mf.filter.Eval(val).Ptr().AsBool() {
+			return false
+		}
+	}
+	return true
 }
 
-func (r *Reader) Close() error {
-	r.cancel()
-	if closer, ok := r.readerAt.(io.Closer); ok {
-		return closer.Close()
+func (v *Reader) Type() (super.Type, error) {
+	return csup.FusedType(v.sctx, v.readerAt)
+}
+
+func (v *Reader) close() error {
+	if v.activeReaders.Add(-1) == 0 {
+		if closer, ok := v.readerAt.(io.Closer); ok {
+			return closer.Close()
+		}
 	}
 	return nil
 }

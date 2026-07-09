@@ -36,7 +36,7 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 		}
 		return sbuf.NewDematerializer(sctx, scanner), nil
 	case "csup":
-		return csupio.NewVectorReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
+		return csupio.NewReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
 	case "csv":
 		return newDematerializer(sctx, csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "line":

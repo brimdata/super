@@ -2,6 +2,7 @@ package fuzz
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/semantic"
 	"github.com/brimdata/super/csup"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -45,15 +45,15 @@ func ReadBSUP(bs []byte) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
+func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	context := super.NewContext()
-	reader, err := csupio.NewReader(context, bytesReader, fields)
+	sctx := super.NewContext()
+	reader, err := csupio.NewReader(ctx, sctx, bytesReader, nil, 1)
 	if err != nil {
 		return nil, err
 	}
 	var a sbuf.Array
-	err = sio.Copy(&a, reader)
+	err = sbuf.CopyPuller(&a, sbuf.NewMaterializer(reader))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.V
 
 func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	p, err := csupio.NewVectorReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
+	p, err := csupio.NewReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
 	require.NoError(t, err)
 	defer func() { p.Pull(true) }()
 	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})
