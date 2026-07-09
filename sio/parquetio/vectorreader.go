@@ -16,6 +16,7 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/arrowio"
@@ -65,7 +66,9 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 	}
 	var metadataColIndexes []int
 	var metadataFilters []expr.Evaluator
+	var fields []field.Path
 	if p != nil {
+		fields = p.Projection().Paths()
 		filter, projection, err := p.MetaFilter()
 		if err != nil {
 			return nil, err
@@ -96,7 +99,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 		ctx:                ctx,
 		sctx:               sctx,
 		fr:                 fr,
-		colIndexes:         columnIndexes(prmd.Schema, p.Projection().Paths()),
+		colIndexes:         columnIndexes(prmd.Schema, fields),
 		colIndexToField:    schemaManifest.ColIndexToField,
 		metadataColIndexes: metadataColIndexes,
 		metadataFilters:    metadataFilters,

@@ -455,13 +455,14 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		BSUP: bsupio.ReaderOpts{Validate: true},
 	}
 	sctx := super.NewContext()
-	zrc, err := anyio.NewReader(sctx, reader, opts)
+	p, err := anyio.NewReader(r.Context(), sctx, reader, opts)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
 	}
-	defer zrc.Close()
-	wr := &warningsReader{zrc, []string{}}
+	defer func() { p.Pull(true) }()
+	// XXX Load should handle vectors natively.
+	wr := &warningsReader{sbuf.PullerReader(sbuf.NewMaterializer(p)), []string{}}
 	kommit, err := branch.Load(r.Context(), sctx, wr, message.Author, message.Body, message.Meta)
 	if err != nil {
 		if errors.Is(err, commits.ErrEmptyTransaction) {

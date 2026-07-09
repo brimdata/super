@@ -40,10 +40,6 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
 	}
-	var buf [1]byte
-	if _, err := ra.ReadAt(buf[:], 0); err != nil {
-		return nil, errors.New("Super Columnar requires a seekable input")
-	}
 	var metaFilters []*metafilter
 	if p != nil {
 		filter, _, err := p.MetaFilter()
@@ -117,14 +113,18 @@ func (v *VectorReader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 		// able to build runtime expressions that use different type contexts.
 		if len(v.metaFilters) == 0 || !pruneObject(v.sctx, v.metaFilters[n], o) {
 			vo := vcache.NewObjectFromCSUP(o)
-			if v.pushdown.Unordered() {
-				v.vecs[n], err = vo.FetchUnordered(v.vecs[n][:0], v.sctx, v.pushdown.Projection())
+			var proj field.Projection
+			if v.pushdown != nil {
+				proj = v.pushdown.Projection()
+			}
+			if v.pushdown != nil && v.pushdown.Unordered() {
+				v.vecs[n], err = vo.FetchUnordered(v.vecs[n][:0], v.sctx, proj)
 				if err != nil {
 					v.close()
 					return nil, err
 				}
 			} else {
-				vec, err := vo.Fetch(v.sctx, v.pushdown.Projection())
+				vec, err := vo.Fetch(v.sctx, proj)
 				if err != nil {
 					v.close()
 					return nil, err

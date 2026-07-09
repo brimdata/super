@@ -48,12 +48,7 @@ func NewScanner(ctx context.Context, r sio.Reader, filterExpr Pushdown) (Scanner
 }
 
 func newScanner(ctx context.Context, r sio.Reader, filterExpr Pushdown) (Scanner, error) {
-	var sa ScannerAble
-	if zf, ok := r.(*File); ok {
-		sa, _ = zf.Reader.(ScannerAble)
-	} else {
-		sa, _ = r.(ScannerAble)
-	}
+	sa, _ := r.(ScannerAble)
 	if sa != nil {
 		return sa.NewScanner(ctx, filterExpr)
 	}

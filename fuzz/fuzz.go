@@ -27,6 +27,7 @@ import (
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
 )
@@ -73,28 +74,29 @@ func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 
 func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	readers := []sio.Reader{bsupio.NewReader(sctx, buf)}
-	defer sio.CloseReaders(readers)
-	return RunQuery(t, sctx, readers, querySource, func(_ demand.Demand) {})
+	s, err := bsupio.NewReader(sctx, buf).NewScanner(t.Context(), nil)
+	require.NoError(t, err)
+	p := sbuf.NewDematerializer(sctx, s)
+	defer func() { p.Pull(true) }()
+	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})
 }
 
 func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	reader, err := csupio.NewReader(sctx, bytes.NewReader(buf.Bytes()), nil)
+	p, err := csupio.NewVectorReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
 	require.NoError(t, err)
-	readers := []sio.Reader{reader}
-	defer sio.CloseReaders(readers)
-	return RunQuery(t, sctx, readers, querySource, func(_ demand.Demand) {})
+	defer func() { p.Pull(true) }()
+	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})
 }
 
-func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
+func RunQuery(t testing.TB, sctx *super.Context, p vio.Puller, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
 	// Compile query
 	comp := compiler.NewCompiler(nil)
 	ast, err := parser.ParseText(querySource)
 	if err != nil {
 		t.Skipf("%v", err)
 	}
-	query, err := runtime.CompileQuery(t.Context(), sctx, comp, ast, readers)
+	query, err := runtime.CompileQuery(t.Context(), sctx, comp, ast, []vio.Puller{p})
 	if err != nil {
 		t.Skipf("%v", err)
 	}

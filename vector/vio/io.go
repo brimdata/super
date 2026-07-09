@@ -2,6 +2,7 @@ package vio
 
 import (
 	"io"
+	"slices"
 	"sync/atomic"
 
 	"github.com/brimdata/super/vector"
@@ -113,4 +114,36 @@ func CopyMux(outputs map[string]Pusher, parent Puller) error {
 			}
 		}
 	}
+}
+
+func ConcatPuller(readers ...Puller) Puller {
+	if len(readers) == 1 {
+		return readers[0]
+	}
+	return &concatReader{slices.Clone(readers)}
+}
+
+type concatReader struct {
+	pullers []Puller
+}
+
+func (c *concatReader) Pull(done bool) (vector.Any, error) {
+	if done {
+		var err error
+		for _, p := range c.pullers {
+			if _, perr := p.Pull(done); err == nil {
+				err = perr
+			}
+		}
+		c.pullers = nil
+		return nil, err
+	}
+	for len(c.pullers) > 0 {
+		rec, err := c.pullers[0].Pull(done)
+		if rec != nil || err != nil {
+			return rec, err
+		}
+		c.pullers = c.pullers[1:]
+	}
+	return nil, nil
 }

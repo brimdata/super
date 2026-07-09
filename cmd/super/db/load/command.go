@@ -21,6 +21,7 @@ import (
 	"github.com/brimdata/super/pkg/display"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/pkg/units"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/paulbellamy/ratecounter"
@@ -128,7 +129,7 @@ func (c *Command) open(ctx context.Context, sctx *super.Context, paths []string)
 			fmt.Fprintf(os.Stderr, "%s: %s\n", path, err)
 			continue
 		}
-		readers = append(readers, file)
+		readers = append(readers, sbuf.PullerReader(sbuf.NewMaterializer(file)))
 	}
 	return readers, nil
 }

@@ -22,7 +22,6 @@ import (
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/brimdata/super/ztest"
@@ -116,14 +115,15 @@ func isValid(t *testing.T, name, s string) bool {
 			t.Fatalf("boomerang panic reading test input: %s: %+v\n%s\n", name, r, debug.Stack())
 		}
 	}()
-	zrc, err := anyio.NewReader(super.NewContext(), strings.NewReader(s), anyio.ReaderOpts{})
+	p, err := anyio.NewReader(t.Context(), super.NewContext(), strings.NewReader(s), anyio.ReaderOpts{})
 	if err != nil {
 		return false
 	}
-	defer zrc.Close()
+	defer func() { p.Pull(true) }()
+	r := sbuf.PullerReader(sbuf.NewMaterializer(p))
 	var foundValue bool
 	for {
-		val, err := zrc.Read()
+		val, err := r.Read()
 		if err != nil {
 			return false
 		}
@@ -149,14 +149,13 @@ func runAllBoomerangs(t *testing.T, format string, data map[string]string) {
 func runOneBoomerang(t *testing.T, format, data string) {
 	// Create an auto-detecting reader for data.
 	sctx := super.NewContext()
-	dataReadCloser, err := anyio.NewReader(sctx, strings.NewReader(data), anyio.ReaderOpts{})
+	dataPuller, err := anyio.NewReader(t.Context(), sctx, strings.NewReader(data), anyio.ReaderOpts{})
 	require.NoError(t, err)
-	defer dataReadCloser.Close()
+	defer func() { dataPuller.Pull(true) }()
 
-	dataPuller := vio.Puller(sbuf.NewDematerializer(sctx, sbuf.NewPuller(dataReadCloser)))
 	if format == "parquet" {
 		// Fuse data for formats that require uniform values.
-		q, err := newQuery(t.Context(), sctx, "fuse", dataReadCloser)
+		q, err := newQuery(t.Context(), sctx, "fuse", dataPuller)
 		require.NoError(t, err)
 		defer q.Pull(true)
 		dataPuller = q
@@ -172,16 +171,16 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		t.Fatalf("unexpected error writing %s baseline: %s", format, err)
 	}
 
-	baselineReader, err := anyio.NewReader(super.NewContext(), strings.NewReader(baseline), anyio.ReaderOpts{
+	baselinePuller, err := anyio.NewReader(t.Context(), super.NewContext(), strings.NewReader(baseline), anyio.ReaderOpts{
 		Format: format,
 		BSUP: bsupio.ReaderOpts{
 			Validate: true,
 		},
 	})
 	require.NoError(t, err)
-	defer baselineReader.Close()
+	defer func() { baselinePuller.Pull(true) }()
 
-	boomerang, err := serialize(sbuf.NewDematerializer(sctx, sbuf.NewPuller(baselineReader)), format)
+	boomerang, err := serialize(baselinePuller, format)
 	require.NoError(t, err)
 
 	require.Equal(t, baseline, boomerang, "baseline and boomerang differ")
@@ -202,12 +201,12 @@ func runAllFusionBoomerangs(t *testing.T, data map[string]string) {
 func runOneFusionBoomerang(t *testing.T, data string) {
 	// Create an auto-detecting reader for data.
 	dataSctx := super.NewContext()
-	dataReader, err := anyio.NewReader(dataSctx, strings.NewReader(data), anyio.ReaderOpts{})
+	dataReader, err := anyio.NewReader(t.Context(), dataSctx, strings.NewReader(data), anyio.ReaderOpts{})
 	require.NoError(t, err)
-	defer dataReader.Close()
+	defer func() { dataReader.Pull(true) }()
 
 	// Serialize non-fusion values from dataReader to baseline as SUP.
-	r := &fusionRemovingReader{dataReader, hasFusion{}}
+	r := &fusionRemovingReader{sbuf.PullerReader(sbuf.NewMaterializer(dataReader)), hasFusion{}}
 	puller := sbuf.NewDematerializer(dataSctx, sbuf.NewPuller(r))
 	baseline, err := serialize(puller, "sup")
 	require.NoError(t, err)
@@ -223,7 +222,10 @@ func runOneFusionBoomerang(t *testing.T, data string) {
 
 func fuseDefuse(ctx context.Context, s string) (string, error) {
 	sctx := super.NewContext()
-	r := supio.NewReader(sctx, strings.NewReader(s))
+	r, err := anyio.NewReader(ctx, sctx, strings.NewReader(s), anyio.ReaderOpts{Format: "sup"})
+	if err != nil {
+		return "", err
+	}
 	q, err := newQuery(ctx, sctx, "fuse | defuse(this)", r)
 	if err != nil {
 		return "", err
@@ -232,13 +234,13 @@ func fuseDefuse(ctx context.Context, s string) (string, error) {
 	return serialize(q, "sup")
 }
 
-func newQuery(ctx context.Context, sctx *super.Context, spq string, r sio.Reader) (vio.Puller, error) {
+func newQuery(ctx context.Context, sctx *super.Context, spq string, p vio.Puller) (vio.Puller, error) {
 	ast, err := parser.ParseText(spq)
 	if err != nil {
 		return nil, err
 	}
 	rctx := runtime.NewContext(ctx, sctx)
-	q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{r}, 0)
+	q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []vio.Puller{p}, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -273,13 +275,13 @@ type fusionRemovingReader struct {
 
 func (f *fusionRemovingReader) Read() (*super.Value, error) {
 	for {
-		val, err := f.r.Read()
-		if val != nil && err == nil {
-			if val.IsQuiet() || f.h.hasFusion(val.Type()) {
+		vec, err := f.r.Read()
+		if vec != nil && err == nil {
+			if vec.IsQuiet() || f.h.hasFusion(vec.Type()) {
 				continue
 			}
 		}
-		return val, err
+		return vec, err
 	}
 }
 

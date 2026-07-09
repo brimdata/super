@@ -158,6 +158,9 @@ func newCountByString(typ super.Type, b *vector.RecordBuilder, partialsIn bool) 
 }
 
 func (c *countByString) update(keys, vals []vector.Any) {
+	if keys[0].Len() == 0 {
+		return
+	}
 	if c.partialsIn {
 		c.updatePartial(keys[0], vals[0])
 		return

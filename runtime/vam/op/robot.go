@@ -138,5 +138,5 @@ func (o *Robot) open(path string) (vio.Puller, error) {
 	if o.env.IsAttached() {
 		return nil, fmt.Errorf("%s: cannot open in a database environment", path)
 	}
-	return o.env.VectorOpen(o.rctx.Context, o.rctx.Sctx, path, o.format, o.pushdown, 1)
+	return o.env.Open(o.rctx.Context, o.rctx.Sctx, path, o.format, o.pushdown, 1)
 }

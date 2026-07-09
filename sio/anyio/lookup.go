@@ -18,35 +18,46 @@ import (
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sio/zeekio"
+	"github.com/brimdata/super/vector/vio"
 )
 
-func lookupReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCloser, error) {
+func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts ReaderOpts) (vio.Puller, error) {
 	switch opts.Format {
 	case "arrows":
-		return arrowio.NewReader(sctx, r)
+		r, err := arrowio.NewReader(sctx, r)
+		if err != nil {
+			return nil, err
+		}
+		return newDematerializer(sctx, r), nil
 	case "bsup":
-		return bsupio.NewReaderWithOpts(sctx, r, opts.BSUP), nil
+		scanner, err := bsupio.NewReaderWithOpts(sctx, r, opts.BSUP).NewScanner(ctx, opts.Pushdown)
+		if err != nil {
+			return nil, err
+		}
+		return sbuf.NewDematerializer(sctx, scanner), nil
 	case "csup":
-		return csupio.NewReader(sctx, r, opts.Fields)
+		return csupio.NewVectorReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
 	case "csv":
-		return sio.NopReadCloser(csvio.NewReader(sctx, r, opts.CSV)), nil
+		return newDematerializer(sctx, csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "line":
-		return sio.NopReadCloser(lineio.NewReader(r)), nil
+		return newDematerializer(sctx, lineio.NewReader(r)), nil
 	case "fjson":
-		v := fjsonio.NewVectorReader(context.Background(), sctx, r, nil, 1)
-		puller := sbuf.NewMaterializer(v)
-		return sio.NopReadCloser(sbuf.PullerReader(puller)), nil
+		return fjsonio.NewVectorReader(context.Background(), sctx, r, opts.Pushdown, opts.ConcurrentReaders), nil
 	case "json":
-		return sio.NopReadCloser(jsonio.NewReader(sctx, r)), nil
+		return newDematerializer(sctx, jsonio.NewReader(sctx, r)), nil
 	case "parquet":
-		return parquetio.NewReader(sctx, r, opts.Fields)
+		return parquetio.NewVectorReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
 	case "sup":
-		return sio.NopReadCloser(supio.NewReader(sctx, r)), nil
+		return newDematerializer(sctx, supio.NewReader(sctx, r)), nil
 	case "tsv":
 		opts.CSV.Delim = '\t'
-		return sio.NopReadCloser(csvio.NewReader(sctx, r, opts.CSV)), nil
+		return newDematerializer(sctx, csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "zeek":
-		return sio.NopReadCloser(zeekio.NewReader(sctx, r)), nil
+		return newDematerializer(sctx, zeekio.NewReader(sctx, r)), nil
 	}
 	return nil, fmt.Errorf("no such format: \"%s\"", opts.Format)
+}
+
+func newDematerializer(sctx *super.Context, r sio.Reader) vio.Puller {
+	return sbuf.NewDematerializer(sctx, sbuf.NewPuller(r))
 }

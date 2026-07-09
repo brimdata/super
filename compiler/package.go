@@ -16,7 +16,6 @@ import (
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -61,10 +60,10 @@ func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environme
 	return outputs, debugs, b, nil
 }
 
-func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader) (*exec.Query, error) {
+func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environment, optimize bool, parallel int, readers []vio.Puller) (*exec.Query, error) {
 	if len(readers) > 0 {
 		env = new(*env)
-		env.Stdin = sio.ConcatReader(readers...)
+		env.Stdin = vio.ConcatPuller(readers...)
 	}
 	main, err := Analyze(rctx, ast, env, len(readers) > 0)
 	if err != nil {
@@ -83,7 +82,7 @@ func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environmen
 	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs, debugs), meter), nil
 }
 
-func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader, inputs []srcfiles.Input) (*exec.Query, error) {
+func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parallel int, readers []vio.Puller, inputs []srcfiles.Input) (*exec.Query, error) {
 	ast, err := parser.ParseFiles(inputs)
 	if err != nil {
 		return nil, err

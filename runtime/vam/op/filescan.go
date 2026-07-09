@@ -20,7 +20,7 @@ type FileScan struct {
 	pushdown sbuf.Pushdown
 
 	mu      sync.Mutex
-	current exec.VectorConcurrentPuller
+	current exec.ConcurrentPuller
 	next    int
 	numDone int
 	puller  vio.Puller
@@ -77,7 +77,7 @@ func (f *FileScan) done() {
 	}
 }
 
-func (f *FileScan) nextFile(current exec.VectorConcurrentPuller) (exec.VectorConcurrentPuller, error) {
+func (f *FileScan) nextFile(current exec.ConcurrentPuller) (exec.ConcurrentPuller, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if current != f.current {
@@ -86,7 +86,7 @@ func (f *FileScan) nextFile(current exec.VectorConcurrentPuller) (exec.VectorCon
 	for f.next < len(f.paths) {
 		path := f.paths[f.next]
 		f.next++
-		puller, err := f.env.VectorOpen(f.rctx.Context, f.rctx.Sctx, path, f.format, f.pushdown, len(f.pullers))
+		puller, err := f.env.Open(f.rctx.Context, f.rctx.Sctx, path, f.format, f.pushdown, len(f.pullers))
 		if err != nil {
 			if f.env.IgnoreOpenErrors {
 				fmt.Fprintln(os.Stderr, err)
@@ -105,7 +105,7 @@ type concurrentPuller struct {
 	id int
 
 	eos     bool
-	current exec.VectorConcurrentPuller
+	current exec.ConcurrentPuller
 	waitCh  chan struct{}
 }
 
