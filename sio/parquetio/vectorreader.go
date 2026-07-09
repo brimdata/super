@@ -300,12 +300,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 		offsets := byteconv.ReinterpretSlice[uint32](arr.Offsets())
 		typ, ok := v.types[dt]
 		if !ok {
-			inner := values.Type()
-			if nullable {
-				inner = v.sctx.Nullable(inner)
-
-			}
-			typ = v.sctx.LookupTypeArray(inner)
+			typ = v.sctx.LookupTypeArray(values.Type())
 			v.types[dt] = typ
 		}
 		out = vector.NewArray(typ.(*super.TypeArray), offsets, values)
@@ -324,12 +319,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 		if !ok {
 			fields := make([]super.Field, arr.NumField())
 			for i, vec := range fieldVecs {
-				arrowField := arrowStructType.Field(i)
-				typ := vec.Type()
-				if arrowField.Nullable && typ != super.TypeNull {
-					typ = v.sctx.Nullable(typ)
-				}
-				fields[i] = super.NewField(arrowField.Name, typ)
+				fields[i] = super.NewField(arrowStructType.Field(i).Name, vec.Type())
 			}
 			arrowio.UniquifyFieldNames(fields)
 			var err error
@@ -355,15 +345,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 		offsets := byteconv.ReinterpretSlice[uint32](arr.Offsets())
 		typ, ok := v.types[dt]
 		if !ok {
-			keyType := keys.Type()
-			if nullable {
-				keyType = v.sctx.Nullable(keyType)
-			}
-			valType := vals.Type()
-			if nullable {
-				valType = v.sctx.Nullable(valType)
-			}
-			typ = v.sctx.LookupTypeMap(keyType, valType)
+			typ = v.sctx.LookupTypeMap(keys.Type(), vals.Type())
 			v.types[dt] = typ
 		}
 		out = vector.NewMap(typ.(*super.TypeMap), offsets, keys, vals)
@@ -381,11 +363,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 		}
 		typ, ok := v.types[dt]
 		if !ok {
-			inner := values.Type()
-			if nullable {
-				inner = v.sctx.Nullable(inner)
-			}
-			typ = v.sctx.LookupTypeArray(inner)
+			typ = v.sctx.LookupTypeArray(values.Type())
 			v.types[dt] = typ
 		}
 		out = vector.NewArray(typ.(*super.TypeArray), offsets, values)

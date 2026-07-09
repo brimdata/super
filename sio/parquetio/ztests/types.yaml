@@ -29,8 +29,12 @@ inputs:
         nul: null,
         err: error("err"),
         rec: {a:1},
-        lst: [1,null],
-        set: set[1,null],
+        lst1: [1,null],
+        lst2: [null],
+        lst3: [],
+        set1: set[1,null],
+        set2: set[null],
+        set3: set[],
         map: map{1:"one",2:null},
       }
 
@@ -61,14 +65,22 @@ outputs:
         rec: {
           a: 1
         },
-        lst: [
+        lst1: [
           1,
           null
         ],
-        set: [
+        lst2: [
+          null
+        ],
+        lst3: []::[null],
+        set1: [
           1,
           null
         ],
+        set2: [
+          null
+        ],
+        set3: []::[null],
         map: map{
           1: "one",
           2: null
