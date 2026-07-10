@@ -4,12 +4,18 @@ spq: pass
 input-flags: '-i fjson'
 
 input: |
-  {"x":1}
+  1
+  null
+  {
+    "x":1
+  }
+  true
+  [1,2]
   {"x":}
   {"x":1}
 
 error: |
-  stdio:stdin: line 2: invalid JSON value
+  stdio:stdin: line 8: invalid JSON value
 
 ---
 

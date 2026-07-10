@@ -62,7 +62,7 @@ func (r *valReader) Next() ([]byte, error) {
 			}
 			return nil, r.parseError()
 		}
-		b := r.cursor[start:end]
+		b := r.cursor[:end]
 		r.line += bytes.Count(b, []byte{'\n'})
 		r.cursor = r.cursor[end:]
 		return b, nil
