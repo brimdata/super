@@ -33,3 +33,4 @@ func (f *Float) EnterArray() Value       { panic("system error") }
 func (f *Float) EndArray(Value)          { panic("system error") }
 func (f *Float) Kind() vector.Kind       { return vector.KindFloat }
 func (f *Float) Len() uint32             { return f.Value.Len() }
+func (*Float) Error() error              { return nil }

@@ -30,3 +30,4 @@ func (s *String) EnterArray() Value       { panic("system error") }
 func (s *String) EndArray(Value)          { panic("system error") }
 func (s *String) Kind() vector.Kind       { return vector.KindString }
 func (s *String) Len() uint32             { return s.Value.Len() }
+func (*String) Error() error              { return nil }

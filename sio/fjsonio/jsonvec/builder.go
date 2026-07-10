@@ -60,8 +60,9 @@ func (b *builder) OnObjectBegin(capacity int) error {
 
 func (b *builder) OnObjectKey(name string) error {
 	b.pop()
-	b.push(b.tos().Field(name))
-	return nil
+	v := b.tos().Field(name)
+	b.push(v)
+	return v.Error()
 }
 
 func (b *builder) OnObjectEnd() error {

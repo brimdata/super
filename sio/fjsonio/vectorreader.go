@@ -1,7 +1,9 @@
 package fjsonio
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"sync/atomic"
 
@@ -48,7 +50,7 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	if done {
 		return nil, v.close()
 	}
-	table, err := v.stream.next()
+	table, start, err := v.stream.next()
 	if table == nil || err != nil {
 		v.close()
 		return nil, err
@@ -56,6 +58,7 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	builder := v.newBuilder()
 	for i := range table.Len() {
 		if err := ast.Preorder(byteconv.UnsafeString(table.Bytes(i)), builder, nil); err != nil {
+			err = preorderErr(i, start, table, err)
 			bytesTablePool.Put(table)
 			v.close()
 			return nil, err
@@ -63,6 +66,16 @@ func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	}
 	bytesTablePool.Put(table)
 	return jsonvec.Materialize(v.sctx, builder), nil
+}
+
+func preorderErr(idx uint32, start int, table *vector.BytesTable, err error) error {
+	b := table.RawBytes()
+	off := int(table.RawOffsets()[idx])
+	lineNum := start + bytes.Count(b[:off], []byte{'\n'})
+	if i := firstNonWhitespaceCharacter(b[off:]); i != -1 {
+		lineNum += bytes.Count(b[off:off+i], []byte{'\n'})
+	}
+	return fmt.Errorf("line %d: %w", lineNum, err)
 }
 
 func (v *VectorReader) newBuilder() jsonvec.Builder {

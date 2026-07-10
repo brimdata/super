@@ -28,11 +28,12 @@ func newStream(ctx context.Context, r io.Reader, n int) *stream {
 }
 
 type result struct {
-	bytes *vector.BytesTable
-	err   error
+	bytes        *vector.BytesTable
+	startLineNum int
+	err          error
 }
 
-func (s *stream) next() (*vector.BytesTable, error) {
+func (s *stream) next() (*vector.BytesTable, int, error) {
 	s.once.Do(func() {
 		s.ch = make(chan result, runtime.GOMAXPROCS(0))
 		go s.run()
@@ -43,22 +44,22 @@ func (s *stream) next() (*vector.BytesTable, error) {
 			r.err = nil
 		}
 		if !ok || r.err != nil {
-			return nil, r.err
+			return nil, -1, r.err
 		}
-		return r.bytes, nil
+		return r.bytes, r.startLineNum, nil
 	case <-s.ctx.Done():
-		return nil, s.ctx.Err()
+		return nil, -1, s.ctx.Err()
 	case <-s.done:
-		return nil, nil
+		return nil, -1, nil
 	}
 }
 
 func (s *stream) run() {
 	r := newValReader(s.r)
 	for {
-		batch, err := readBatch(r)
+		batch, startLineNum, err := readBatch(r)
 		select {
-		case s.ch <- result{batch, err}:
+		case s.ch <- result{batch, startLineNum, err}:
 		case <-s.ctx.Done():
 			return
 		}
@@ -88,14 +89,15 @@ func newBytesTable() *vector.BytesTable {
 	return b
 }
 
-func readBatch(r *valReader) (*vector.BytesTable, error) {
+func readBatch(r *valReader) (*vector.BytesTable, int, error) {
 	t := newBytesTable()
+	start := r.lineNumber()
 	for range VecBatchSize {
 		b, err := r.Next()
 		if err != nil {
-			return t, err
+			return t, start, err
 		}
 		t.Append(b)
 	}
-	return t, nil
+	return t, start, nil
 }

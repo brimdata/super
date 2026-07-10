@@ -2,6 +2,8 @@ package jsonvec
 
 import (
 	"encoding/binary"
+	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/brimdata/super/vector"
@@ -29,6 +31,8 @@ type Record struct {
 	// the visitor calls to build up the array.
 	perm    map[string]uint32
 	scratch []byte
+	seen    []uint32
+	rows    uint32
 }
 
 func NewRecord() *Record {
@@ -39,6 +43,7 @@ func NewRecord() *Record {
 }
 
 func (r *Record) BeginRecord() Value {
+	r.rows++
 	r.scratch = r.scratch[:0]
 	return r
 }
@@ -52,7 +57,13 @@ func (r *Record) Field(name string) Value {
 		r.LUT[strings.Clone(name)] = idx
 		r.Fields = append(r.Fields, &Element{Value: Unknown{}})
 		r.RLEs = append(r.RLEs, vector.RLE{})
+		r.seen = slices.Grow(r.seen, idx+1)[:idx+1]
 	}
+	if r.seen[idx] == r.rows {
+		e := &Element{err: fmt.Errorf("duplicate field %q", name)}
+		return e
+	}
+	r.seen[idx] = r.rows
 	r.scratch = binary.AppendUvarint(r.scratch, uint64(idx))
 	r.RLEs[idx].Touch(uint32(len(r.tags)))
 	return r.Fields[idx]
@@ -78,11 +89,13 @@ func (r *Record) EnterArray() Value       { panic("system error") }
 func (r *Record) EndArray(Value)          {}
 func (r *Record) Kind() vector.Kind       { return vector.KindRecord }
 func (r *Record) Len() uint32             { return uint32(len(r.tags)) }
+func (*Record) Error() error              { return nil }
 
 var _ Value = (*Element)(nil)
 
 type Element struct {
 	Value
+	err error
 }
 
 func (f *Element) OnNull() Value {
@@ -118,4 +131,8 @@ func (f *Element) BeginRecord() Value {
 func (f *Element) BeginArray() Value {
 	f.Value = f.Value.BeginArray()
 	return f
+}
+
+func (f *Element) Error() error {
+	return f.err
 }

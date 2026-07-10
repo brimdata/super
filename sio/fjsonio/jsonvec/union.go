@@ -165,3 +165,4 @@ func (u *Union) Values() []Value {
 
 func (u *Union) Kind() vector.Kind { return vector.KindUnion }
 func (u *Union) Len() uint32       { return uint32(len(u.Tags)) }
+func (*Union) Error() error        { return nil }

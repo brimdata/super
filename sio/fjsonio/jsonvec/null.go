@@ -26,3 +26,4 @@ func (n *Null) EnterArray() Value       { panic("system error") }
 func (n *Null) EndArray(Value)          { panic("system error") }
 func (n *Null) Kind() vector.Kind       { return vector.KindNull }
 func (n *Null) Len() uint32             { return n.len }
+func (*Null) Error() error              { return nil }

@@ -20,3 +20,4 @@ func (n *None) EnterArray() Value       { panic("system error") }
 func (n *None) EndArray(Value)          { panic("system error") }
 func (n *None) Kind() vector.Kind       { return vector.KindNone }
 func (n *None) Len() uint32             { return 0 }
+func (*None) Error() error              { return nil }

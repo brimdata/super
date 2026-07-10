@@ -43,3 +43,4 @@ func (a *Array) Field(v string) Value    { panic("system error") }
 func (a *Array) EndRecord()              { panic("system error") }
 func (a *Array) Kind() vector.Kind       { return vector.KindArray }
 func (a *Array) Len() uint32             { return uint32(len(a.Offsets)) - 1 }
+func (a *Array) Error() error            { return nil }

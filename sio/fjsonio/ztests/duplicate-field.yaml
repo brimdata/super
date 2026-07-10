@@ -1,0 +1,13 @@
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  1
+  {"x":1,"y":{"z":3}}
+  [{"a":0}]
+  {"x":1,"x":2}
+  {"a":"b"}
+
+error: | 
+  stdio:stdin: line 4: duplicate field "x"

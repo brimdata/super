@@ -88,14 +88,17 @@ func (r *valReader) fill() error {
 func (r *valReader) lineNumber() int {
 	// The first character of a new line is often a newline which throws off
 	// line count, so count newlines before first non-whitespace character.
-	i := bytes.IndexFunc(r.cursor, func(r rune) bool {
-		return r != ' ' && r != '\t' && r != '\n' && r != '\r'
-	})
 	line := r.line
-	if i != -1 {
+	if i := firstNonWhitespaceCharacter(r.cursor); i != -1 {
 		line += bytes.Count(r.cursor[:i], []byte{'\n'})
 	}
 	return line + 1
+}
+
+func firstNonWhitespaceCharacter(b []byte) int {
+	return bytes.IndexFunc(b, func(r rune) bool {
+		return r != ' ' && r != '\t' && r != '\n' && r != '\r'
+	})
 }
 
 func (r *valReader) parseError() error {

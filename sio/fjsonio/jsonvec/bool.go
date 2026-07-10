@@ -29,3 +29,4 @@ func (b *Bool) EnterArray() Value       { panic("system error") }
 func (b *Bool) EndArray(Value)          { panic("system error") }
 func (b *Bool) Kind() vector.Kind       { return vector.KindBool }
 func (b *Bool) Len() uint32             { return b.Value.Len() }
+func (*Bool) Error() error              { return nil }

@@ -19,6 +19,7 @@ type Value interface {
 	EndArray(Value)
 	Kind() vector.Kind
 	Len() uint32
+	Error() error
 }
 
 var _ Value = Unknown{}
@@ -39,3 +40,4 @@ func (Unknown) EnterArray() Value       { panic("system error") }
 func (Unknown) EndArray(Value)          { panic("system error") }
 func (Unknown) Kind() vector.Kind       { panic("system error") }
 func (Unknown) Len() uint32             { return 0 }
+func (Unknown) Error() error            { return nil }
