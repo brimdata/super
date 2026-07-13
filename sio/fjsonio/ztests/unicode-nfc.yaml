@@ -1,0 +1,15 @@
+spq: values this::bytes
+
+input-flags: -i fjson
+
+input: |
+  "Å"
+  "\u00c5"
+  "\u212b"
+  "A\u030a"
+
+output: |
+  0xc385
+  0xc385
+  0xc385
+  0xc385

@@ -1,6 +1,9 @@
 package jsonvec
 
-import "github.com/brimdata/super/vector"
+import (
+	"github.com/brimdata/super/vector"
+	"golang.org/x/text/unicode/norm"
+)
 
 var _ Value = (*String)(nil)
 
@@ -13,7 +16,7 @@ func NewString() *String {
 }
 
 func (s *String) OnString(v string) Value {
-	s.Value.Append(v)
+	s.Value.Append(norm.NFC.String(v))
 	return s
 }
 
