@@ -38,11 +38,7 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 	if a.Where == nil {
 		return vec
 	}
-	return vector.Apply(vector.ApplyRipUnions, a.apply, vec, a.Where.Eval(this))
-}
-
-func (*Aggregator) apply(args ...vector.Any) vector.Any {
-	vec, where := args[0], args[1]
+	where := a.Where.Eval(this)
 	bools, _ := BoolMask(where)
 	if bools.IsEmpty() {
 		// everything is filtered.
