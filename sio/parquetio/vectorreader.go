@@ -172,7 +172,7 @@ func (v *VectorReader) Type() (super.Type, error) {
 	if err != nil {
 		return nil, err
 	}
-	return arrowio.NewSuperTypeFromSchema(v.sctx, s)
+	return arrowio.NewTypeFromSchema(v.sctx, s)
 }
 
 type vectorBuilder struct {

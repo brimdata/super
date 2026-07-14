@@ -129,7 +129,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	return &r.val, nil
 }
 
-func NewSuperTypeFromSchema(sctx *super.Context, schema *arrow.Schema) (super.Type, error) {
+func NewTypeFromSchema(sctx *super.Context, schema *arrow.Schema) (super.Type, error) {
 	r := &Reader{sctx: sctx, unionTagMappings: map[*super.TypeUnion][]int{}}
 	return r.newTypeFromDataType(arrow.StructOf(schema.Fields()...))
 }
