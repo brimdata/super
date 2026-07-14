@@ -167,6 +167,14 @@ func (p *VectorReader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 	}
 }
 
+func (v *VectorReader) Type() (super.Type, error) {
+	s, err := v.fr.Schema()
+	if err != nil {
+		return nil, err
+	}
+	return arrowio.NewSuperTypeFromSchema(v.sctx, s)
+}
+
 type vectorBuilder struct {
 	sctx  *super.Context
 	types map[arrow.DataType]super.Type
