@@ -142,7 +142,7 @@ func (v *VectorReader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 	vals := o.ProjectMetadata(sctx, mf.projection)
 	for _, val := range vals {
-		if mf.filter.Eval(val).Ptr().AsBool() {
+		if !mf.filter.Eval(val).Equal(super.False) {
 			return false
 		}
 	}

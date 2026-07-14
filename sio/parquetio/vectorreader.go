@@ -145,7 +145,7 @@ func (p *VectorReader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 			if len(p.metadataFilters) > 0 {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
 				val := buildMetadataValue(p.sctx, rgMetadata, p.metadataColIndexes, p.colIndexToField)
-				if !p.metadataFilters[id].Eval(val).Ptr().AsBool() {
+				if p.metadataFilters[id].Eval(val).Equal(super.False) {
 					continue
 				}
 			}

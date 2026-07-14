@@ -1,0 +1,12 @@
+script: |
+  super -f csup -o t.csup -
+  super -s -c 'from t.csup | where x.y==1'
+
+inputs:
+  - name: stdin
+    data: &stdin |
+      {x?:{y:1}}
+
+outputs:
+  - name: stdout
+    data: *stdin
