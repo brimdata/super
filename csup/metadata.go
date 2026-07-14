@@ -351,8 +351,10 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 			}
 			min2, max2 := val.Deref("min"), val.Deref("max")
 			if min == nil {
-				min = new(min2.Copy())
-				max = new(max2.Copy())
+				if min2 != nil {
+					min = new(min2.Copy())
+					max = new(max2.Copy())
+				}
 				continue
 			}
 			if cmp(*min, *min2) > 0 {
