@@ -342,33 +342,29 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		return sctx.MustLookupTypeRecord(fields)
 	case *Union:
 		cmp := expr.NewValueCompareFn(order.Asc, order.NullsLast)
+		max, min := super.Null, super.Null
 		var bb scode.Builder
-		var min, max *super.Value
 		for _, id := range m.Values {
 			val := newMetadataValue(cctx, sctx, &bb, id, projection)
 			if val.IsNull() {
 				continue
 			}
 			min2, max2 := val.Deref("min"), val.Deref("max")
-			if min == nil {
-				if min2 != nil {
-					min = new(min2.Copy())
-					max = new(max2.Copy())
-				}
+			if min2 == nil {
 				continue
 			}
-			if cmp(*min, *min2) > 0 {
-				min = new(min2.Copy())
+			if min.IsNull() || cmp(min, *min2) > 0 {
+				min = min2.Copy()
 			}
-			if cmp(*max, *max2) < 0 {
-				max = new(max2.Copy())
+			if max.IsNull() || cmp(max, *max2) < 0 {
+				max = max2.Copy()
 			}
 		}
-		if min == nil {
+		if min.IsNull() {
 			b.Append(nil)
 			return super.TypeNull
 		}
-		return metadataLeaf(sctx, b, *min, *max)
+		return metadataLeaf(sctx, b, min, max)
 	case *Int:
 		return metadataLeaf(sctx, b, super.NewInt(m.Typ, m.Min), super.NewInt(m.Typ, m.Max))
 	case *Uint:
