@@ -83,10 +83,6 @@ func (b *Builder) Build(main *dag.Main) (map[string]vio.Puller, *vamop.DebugChan
 	return channels, b.debugs, nil
 }
 
-func (b *Builder) BuildWithPuller(seq dag.Seq, parent vio.Puller) ([]vio.Puller, error) {
-	return b.compileVamSeq(seq, []vio.Puller{parent})
-}
-
 func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KSUID) (sbuf.Puller, error) {
 	pool, err := b.env.DB().OpenPool(b.rctx.Context, poolID)
 	if err != nil {
