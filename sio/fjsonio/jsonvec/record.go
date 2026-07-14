@@ -60,8 +60,7 @@ func (r *Record) Field(name string) Value {
 		r.seen = slices.Grow(r.seen, idx+1)[:idx+1]
 	}
 	if r.seen[idx] == r.rows {
-		e := &Element{err: fmt.Errorf("duplicate field %q", name)}
-		return e
+		return &Element{err: fmt.Errorf("duplicate field %q", name)}
 	}
 	r.seen[idx] = r.rows
 	r.scratch = binary.AppendUvarint(r.scratch, uint64(idx))
