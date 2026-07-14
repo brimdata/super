@@ -1,0 +1,15 @@
+# Test pruner flips comparator with literal/path
+script: |
+  super -f parquet -o test.parquet -c 'values {v:1}'
+  super compile -O -C -c 'from test.parquet | where 1 <= v and 1 >= v'
+
+outputs:
+  - name: stdout
+    data: |
+      file test.parquet format parquet filter (1<=v and 1>=v)
+         pruner (
+           expr compare(v.max, 1, true)>=0 and compare(v.min, 1, true)<=0
+           fields v.max,v.min
+        )
+      | where 1<=v and 1>=v
+      | output main

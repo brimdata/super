@@ -138,13 +138,13 @@ func reverseComparator(op string) string {
 	case "==", "!=":
 		return op
 	case "<":
-		return ">="
-	case "<=":
 		return ">"
+	case "<=":
+		return ">="
 	case ">":
-		return "<="
-	case ">=":
 		return "<"
+	case ">=":
+		return "<="
 	}
 	panic("unknown op")
 }
