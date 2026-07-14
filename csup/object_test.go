@@ -41,8 +41,8 @@ func TestObjectProjectMetadata(t *testing.T) {
 func TestObjectProjectMetadataForUnion(t *testing.T) {
 	sctx := super.NewContext()
 	supValues := []string{
-		"{a:1::(int64|string),b?:2,c:3::(int64|null)}",
-		`{a:"s"::(int64|string),b?:_::int64,c:null::(int64|null)}`,
+		"{a:1::(int64|string),b?:2,c:3::(int64|null),d?:{e:4}}",
+		`{a:"s"::(int64|string),b?:_::int64,c:null::(int64|null),d?:_::{e:int64}}`,
 	}
 	builder := vector.NewDynamicValueBuilder()
 	for _, s := range supValues {
@@ -56,8 +56,8 @@ func TestObjectProjectMetadataForUnion(t *testing.T) {
 
 	o, err := csup.NewObject(bytes.NewReader(csupBytes))
 	require.NoError(t, err)
-	p := field.NewProjection(field.DottedList("a,b,c"))
+	p := field.NewProjection(field.DottedList("a,b,c,d"))
 	values := o.ProjectMetadata(super.NewContext(), p)
 	require.Len(t, values, 1)
-	require.Equal(t, `{a:{min:1,max:"s"},b:{min:2,max:2},c:{min:3,max:3}}`, sup.FormatValue(values[0]))
+	require.Equal(t, `{a:{min:1,max:"s"},b:{min:2,max:2},c:{min:3,max:3},d:null}`, sup.FormatValue(values[0]))
 }
