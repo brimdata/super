@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/brimdata/super/scode"
 )
 
 var (
@@ -149,13 +147,12 @@ const (
 	TypeValueMax     = TypeValueFusion
 )
 
-// True iff the type id is encoded as a BSUP signed or unsigened integer scode.Bytes.
+// True iff the type id is a signed or unsigened integer.
 func IsInteger(id int) bool {
 	return id <= IDInt256
 }
 
-// True iff the type id is encoded as a BSUP signed or unsigned integer scode.Bytes,
-// float16 scode.Bytes, float32 scode.Bytes, or float64 scode.Bytes.
+// True iff the type id is a signed or unsigned integer, float16, float32, or float64.
 func IsNumber(id int) bool {
 	return id <= IDDecimal256
 }
@@ -503,16 +500,16 @@ func (t *TypeOfType) Kind() Kind {
 	return PrimitiveKind
 }
 
-func EncodeTypeValue(t Type) scode.Bytes {
+func EncodeTypeValue(t Type) []byte {
 	return AppendTypeValue(nil, t)
 }
 
-func AppendTypeValue(b scode.Bytes, t Type) scode.Bytes {
+func AppendTypeValue(b []byte, t Type) []byte {
 	var typedefs map[string]Type
 	return appendTypeValue(b, t, &typedefs)
 }
 
-func appendTypeValue(b scode.Bytes, t Type, typedefs *map[string]Type) scode.Bytes {
+func appendTypeValue(b []byte, t Type, typedefs *map[string]Type) []byte {
 	switch t := t.(type) {
 	case *TypeNamed:
 		if *typedefs == nil {
@@ -529,7 +526,7 @@ func appendTypeValue(b scode.Bytes, t Type, typedefs *map[string]Type) scode.Byt
 		}
 		b = append(b, id)
 		b = binary.AppendUvarint(b, uint64(len(t.Name)))
-		b = append(b, scode.Bytes(t.Name)...)
+		b = append(b, t.Name...)
 		if id == TypeValueNameRef {
 			return b
 		}

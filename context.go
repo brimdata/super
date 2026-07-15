@@ -35,7 +35,7 @@ type Context struct {
 	typedefs  *TypeDefs
 	named     map[string]*TypeNamed
 	stringErr atomic.Pointer[TypeError]
-	toValue   map[Type]scode.Bytes
+	toValue   map[Type][]byte
 	toType    map[string]Type
 }
 
@@ -390,12 +390,12 @@ func (c *Context) LookupTypeFusion(inner Type) *TypeFusion {
 // LookupByValue returns the Type indicated by a binary-serialized type value.
 // This provides a means to translate a type-context-independent serialized
 // encoding for an arbitrary type into the reciever Context.
-func (c *Context) LookupByValue(tv scode.Bytes) (Type, error) {
+func (c *Context) LookupByValue(tv []byte) (Type, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.toType == nil {
 		c.toType = make(map[string]Type)
-		c.toValue = make(map[Type]scode.Bytes)
+		c.toValue = make(map[Type][]byte)
 	}
 	typ, ok := c.toType[string(tv)]
 	if ok {
@@ -436,7 +436,7 @@ func (c *Context) LookupTypeValue(typ Type) Value {
 	return c.LookupTypeValue(typ)
 }
 
-func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
+func (c *Context) DecodeTypeValue(tv []byte) (Type, []byte) {
 	if len(tv) == 0 {
 		return nil, nil
 	}
@@ -601,7 +601,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 	}
 }
 
-func DecodeName(tv scode.Bytes) (string, scode.Bytes) {
+func DecodeName(tv []byte) (string, []byte) {
 	namelen, tv := DecodeLength(tv)
 	if tv == nil || namelen > len(tv) {
 		return "", nil
@@ -609,12 +609,12 @@ func DecodeName(tv scode.Bytes) (string, scode.Bytes) {
 	return string(tv[:namelen]), tv[namelen:]
 }
 
-func MustDecodeName(tv scode.Bytes) (string, scode.Bytes) {
+func MustDecodeName(tv []byte) (string, []byte) {
 	namelen, tv := MustDecodeLength(tv)
 	return string(tv[:namelen]), tv[namelen:]
 }
 
-func DecodeLength(tv scode.Bytes) (int, scode.Bytes) {
+func DecodeLength(tv []byte) (int, []byte) {
 	namelen, n := binary.Uvarint(tv)
 	if n <= 0 {
 		return 0, nil
@@ -622,7 +622,7 @@ func DecodeLength(tv scode.Bytes) (int, scode.Bytes) {
 	return int(namelen), tv[n:]
 }
 
-func MustDecodeLength(tv scode.Bytes) (int, scode.Bytes) {
+func MustDecodeLength(tv []byte) (int, []byte) {
 	namelen, n := binary.Uvarint(tv)
 	if n <= 0 {
 		panic(tv)
@@ -740,7 +740,7 @@ func IsOptionType(typ Type) bool {
 	return u != nil
 }
 
-func IsNone(typ Type, bytes scode.Bytes) bool {
+func IsNone(typ Type, bytes []byte) bool {
 	if union, ok := TypeUnder(typ).(*TypeUnion); ok {
 		typ, _ := union.Untag(bytes)
 		return typ == TypeNone
