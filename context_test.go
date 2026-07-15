@@ -20,7 +20,7 @@ func TestContextLookupByValueAndLookupTypeValue(t *testing.T) {
 	// Overwriting tv should not affect sctx's cached type value for recType.
 	super.AppendTypeValue(tv[:0], super.TypeNull)
 	val := sctx.LookupTypeValue(recType)
-	assert.Exactly(t, super.EncodeTypeValue(recType), val.Bytes())
+	assert.Exactly(t, super.EncodeTypeValue(recType), []byte(val.Bytes()))
 }
 
 func TestContextLookupTypeNamedErrors(t *testing.T) {
