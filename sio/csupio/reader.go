@@ -115,26 +115,27 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 		// pollutes the type context.  We should use the csup local context for
 		// this filtering but this will require a little compiler refactoring to be
 		// able to build runtime expressions that use different type contexts.
-		if len(r.metaFilters) == 0 || !pruneObject(r.sctx, r.metaFilters[n], o) {
-			vo := vcache.NewObjectFromCSUP(o)
-			var proj field.Projection
-			if r.pushdown != nil {
-				proj = r.pushdown.Projection()
+		if len(r.metaFilters) > 0 && pruneObject(r.sctx, r.metaFilters[n], o) {
+			continue
+		}
+		vo := vcache.NewObjectFromCSUP(o)
+		var proj field.Projection
+		if r.pushdown != nil {
+			proj = r.pushdown.Projection()
+		}
+		if r.pushdown != nil && r.pushdown.Unordered() {
+			r.vecs[n], err = vo.FetchUnordered(r.vecs[n][:0], r.sctx, proj)
+			if err != nil {
+				r.close()
+				return nil, err
 			}
-			if r.pushdown != nil && r.pushdown.Unordered() {
-				r.vecs[n], err = vo.FetchUnordered(r.vecs[n][:0], r.sctx, proj)
-				if err != nil {
-					r.close()
-					return nil, err
-				}
-			} else {
-				vec, err := vo.Fetch(r.sctx, proj)
-				if err != nil {
-					r.close()
-					return nil, err
-				}
-				r.vecs[n] = append(r.vecs[n], vec)
+		} else {
+			vec, err := vo.Fetch(r.sctx, proj)
+			if err != nil {
+				r.close()
+				return nil, err
 			}
+			r.vecs[n] = append(r.vecs[n], vec)
 		}
 	}
 }
