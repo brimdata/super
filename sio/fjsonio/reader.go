@@ -19,7 +19,7 @@ import (
 
 var VecBatchSize uint32 = 10 * 1024
 
-type VectorReader struct {
+type Reader struct {
 	sctx       *super.Context
 	ctx        context.Context
 	stream     *stream
@@ -29,12 +29,12 @@ type VectorReader struct {
 	hasClosed atomic.Bool
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) *VectorReader {
+func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) *Reader {
 	var fields field.List
 	if p != nil {
 		fields = p.Projection().Paths()
 	}
-	return &VectorReader{
+	return &Reader{
 		sctx:       sctx,
 		ctx:        ctx,
 		stream:     newStream(ctx, r, concurrentReaders),
@@ -42,30 +42,30 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 	}
 }
 
-func (v *VectorReader) Pull(done bool) (vector.Any, error) {
-	return v.ConcurrentPull(done, 0)
+func (r *Reader) Pull(done bool) (vector.Any, error) {
+	return r.ConcurrentPull(done, 0)
 }
 
-func (v *VectorReader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
+func (r *Reader) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	if done {
-		return nil, v.close()
+		return nil, r.close()
 	}
-	table, start, err := v.stream.next()
+	table, start, err := r.stream.next()
 	if table == nil || err != nil {
-		v.close()
+		r.close()
 		return nil, err
 	}
-	builder := v.newBuilder()
+	builder := r.newBuilder()
 	for i := range table.Len() {
 		if err := ast.Preorder(byteconv.UnsafeString(table.Bytes(i)), builder, nil); err != nil {
 			err = preorderErr(i, start, table, err)
 			bytesTablePool.Put(table)
-			v.close()
+			r.close()
 			return nil, err
 		}
 	}
 	bytesTablePool.Put(table)
-	return jsonvec.Materialize(v.sctx, builder), nil
+	return jsonvec.Materialize(r.sctx, builder), nil
 }
 
 func preorderErr(idx uint32, start int, table *vector.BytesTable, err error) error {
@@ -78,16 +78,16 @@ func preorderErr(idx uint32, start int, table *vector.BytesTable, err error) err
 	return fmt.Errorf("line %d: %w", lineNum, err)
 }
 
-func (v *VectorReader) newBuilder() jsonvec.Builder {
-	if v.projection != nil {
-		return jsonvec.NewProjectionBuilder(v.projection)
+func (r *Reader) newBuilder() jsonvec.Builder {
+	if r.projection != nil {
+		return jsonvec.NewProjectionBuilder(r.projection)
 	}
 	return jsonvec.NewBuilder()
 }
 
-func (v *VectorReader) close() error {
-	if v.hasClosed.CompareAndSwap(false, true) {
-		return v.stream.close()
+func (r *Reader) close() error {
+	if r.hasClosed.CompareAndSwap(false, true) {
+		return r.stream.close()
 	}
 	return nil
 }
