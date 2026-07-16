@@ -88,18 +88,6 @@ func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Fusion:
 		return u.upcast(vec.Values, to)
-	case *vector.Const:
-		vec2 := u.upcast(vec.Any, to)
-		if vec2 == nil {
-			return nil
-		}
-		return vector.NewConst(vec2, vec.Len())
-	case *vector.Dict:
-		vec2 := u.upcast(vec.Any, to)
-		if vec2 == nil {
-			return nil
-		}
-		return vector.NewDict(vec2, vec.Index, vec.Counts)
 	case *vector.View:
 		vec2 := u.upcast(vec.Any, to)
 		if vec2 == nil {
