@@ -48,7 +48,7 @@ func ReadBSUP(bs []byte) ([]super.Value, error) {
 func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
 	sctx := super.NewContext()
-	reader, err := csupio.NewVectorReader(ctx, sctx, bytesReader, nil, 1)
+	reader, err := csupio.NewReader(ctx, sctx, bytesReader, nil, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.V
 
 func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	p, err := csupio.NewVectorReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
+	p, err := csupio.NewReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
 	require.NoError(t, err)
 	defer p.Pull(true)
 	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})

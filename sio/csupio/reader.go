@@ -17,7 +17,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-type VectorReader struct {
+type Reader struct {
 	ctx  context.Context
 	sctx *super.Context
 
@@ -30,9 +30,9 @@ type VectorReader struct {
 	vecs          [][]vector.Any
 }
 
-var _ sio.Typer = (*VectorReader)(nil)
+var _ sio.Typer = (*Reader)(nil)
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
+func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*Reader, error) {
 	if concurrentReaders < 1 {
 		panic(concurrentReaders)
 	}
@@ -62,7 +62,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 	}
 	activeReaders := new(atomic.Int64)
 	activeReaders.Store(int64(concurrentReaders))
-	return &VectorReader{
+	return &Reader{
 		ctx:           ctx,
 		sctx:          sctx,
 		activeReaders: activeReaders,
@@ -79,61 +79,61 @@ type metafilter struct {
 	projection field.Projection
 }
 
-func (v *VectorReader) Pull(done bool) (vector.Any, error) {
-	return v.ConcurrentPull(done, 0)
+func (r *Reader) Pull(done bool) (vector.Any, error) {
+	return r.ConcurrentPull(done, 0)
 }
 
-func (v *VectorReader) ConcurrentPull(done bool, n int) (vector.Any, error) {
+func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 	if done {
-		return nil, v.close()
+		return nil, r.close()
 	}
-	if err := v.ctx.Err(); err != nil {
-		v.close()
+	if err := r.ctx.Err(); err != nil {
+		r.close()
 		return nil, err
 	}
 	for {
-		if k := len(v.vecs[n]); k > 0 {
-			// Return these last to first so v.vecs gets resued.
-			vec := v.vecs[n][k-1]
-			v.vecs[n] = v.vecs[n][:k-1]
+		if k := len(r.vecs[n]); k > 0 {
+			// Return these last to first so r.vecs gets resued.
+			vec := r.vecs[n][k-1]
+			r.vecs[n] = r.vecs[n][:k-1]
 			return vec, nil
 		}
-		hdr, off, err := v.stream.next()
+		hdr, off, err := r.stream.next()
 		if err != nil {
-			v.close()
+			r.close()
 			return nil, err
 		}
 		if hdr == nil {
-			return nil, v.close()
+			return nil, r.close()
 		}
-		o, err := csup.NewObjectFromHeader(io.NewSectionReader(v.readerAt, off, math.MaxInt64), *hdr)
+		o, err := csup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
 		if err != nil {
-			v.close()
+			r.close()
 			return nil, err
 		}
 		// XXX using the query context for the metadata filter unnecessarily
 		// pollutes the type context.  We should use the csup local context for
 		// this filtering but this will require a little compiler refactoring to be
 		// able to build runtime expressions that use different type contexts.
-		if len(v.metaFilters) == 0 || !pruneObject(v.sctx, v.metaFilters[n], o) {
+		if len(r.metaFilters) == 0 || !pruneObject(r.sctx, r.metaFilters[n], o) {
 			vo := vcache.NewObjectFromCSUP(o)
 			var proj field.Projection
-			if v.pushdown != nil {
-				proj = v.pushdown.Projection()
+			if r.pushdown != nil {
+				proj = r.pushdown.Projection()
 			}
-			if v.pushdown != nil && v.pushdown.Unordered() {
-				v.vecs[n], err = vo.FetchUnordered(v.vecs[n][:0], v.sctx, proj)
+			if r.pushdown != nil && r.pushdown.Unordered() {
+				r.vecs[n], err = vo.FetchUnordered(r.vecs[n][:0], r.sctx, proj)
 				if err != nil {
-					v.close()
+					r.close()
 					return nil, err
 				}
 			} else {
-				vec, err := vo.Fetch(v.sctx, proj)
+				vec, err := vo.Fetch(r.sctx, proj)
 				if err != nil {
-					v.close()
+					r.close()
 					return nil, err
 				}
-				v.vecs[n] = append(v.vecs[n], vec)
+				r.vecs[n] = append(r.vecs[n], vec)
 			}
 		}
 	}
@@ -149,13 +149,13 @@ func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 	return true
 }
 
-func (v *VectorReader) Type() (super.Type, error) {
-	return csup.FusedType(v.sctx, v.readerAt)
+func (r *Reader) Type() (super.Type, error) {
+	return csup.FusedType(r.sctx, r.readerAt)
 }
 
-func (v *VectorReader) close() error {
-	if v.activeReaders.Add(-1) == 0 {
-		if closer, ok := v.readerAt.(io.Closer); ok {
+func (r *Reader) close() error {
+	if r.activeReaders.Add(-1) == 0 {
+		if closer, ok := r.readerAt.(io.Closer); ok {
 			return closer.Close()
 		}
 	}

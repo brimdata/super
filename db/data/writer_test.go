@@ -31,7 +31,7 @@ func TestDataReaderWriterVector(t *testing.T) {
 	// Read back the CSUP file and make sure it's the same.
 	get, err := engine.Get(ctx, object.VectorURI(tmp))
 	require.NoError(t, err)
-	p, err := csupio.NewVectorReader(t.Context(), super.NewContext(), get, nil, 1)
+	p, err := csupio.NewReader(t.Context(), super.NewContext(), get, nil, 1)
 	require.NoError(t, err)
 	defer p.Pull(true)
 	reader := sbuf.PullerReader(sbuf.NewMaterializer(p))

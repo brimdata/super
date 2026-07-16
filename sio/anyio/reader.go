@@ -45,7 +45,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 
 	csupErr := isCSUPStream(track)
 	if csupErr == nil {
-		return csupio.NewVectorReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
+		return csupio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
 	}
 	csupErr = fmt.Errorf("csup: %w", csupErr)
 	track.Reset()
