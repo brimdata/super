@@ -46,7 +46,7 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 	case "json":
 		return newVioPuller(sctx, jsonio.NewReader(sctx, r)), nil
 	case "parquet":
-		return parquetio.NewVectorReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
+		return parquetio.NewReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
 	case "sup":
 		return newVioPuller(sctx, supio.NewReader(sctx, r)), nil
 	case "tsv":

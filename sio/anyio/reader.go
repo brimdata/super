@@ -52,7 +52,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 
 	parquetErr := isParquetStream(ctx, track)
 	if parquetErr == nil {
-		return parquetio.NewVectorReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
+		return parquetio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
 	}
 	parquetErr = fmt.Errorf("parquet: %w", parquetErr)
 	track.Reset()
@@ -212,7 +212,7 @@ func isParquetStream(ctx context.Context, track *Track) error {
 		}
 		*track = *NewTrack(bytes.NewReader(b))
 	}
-	_, err := parquetio.NewVectorReader(ctx, super.NewContext(), track.Reader(), nil, 1)
+	_, err := parquetio.NewReader(ctx, super.NewContext(), track.Reader(), nil, 1)
 	return err
 }
 

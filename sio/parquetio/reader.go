@@ -29,7 +29,7 @@ import (
 //lint:ignore ST1005 Parquet should be capitalized
 var errNotSeekable = errors.New("Parquet format requires seekable input")
 
-type VectorReader struct {
+type Reader struct {
 	ctx  context.Context
 	sctx *super.Context
 
@@ -44,7 +44,7 @@ type VectorReader struct {
 	vbs          []vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
+func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*Reader, error) {
 	if concurrentReaders < 1 {
 		panic(concurrentReaders)
 	}
@@ -100,7 +100,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 	for range concurrentReaders {
 		vbs = append(vbs, vectorBuilder{sctx, map[arrow.DataType]super.Type{}})
 	}
-	return &VectorReader{
+	return &Reader{
 		ctx:                ctx,
 		sctx:               sctx,
 		fr:                 fr,
@@ -124,55 +124,55 @@ func columnIndexes(schema *schema.Schema, fields []field.Path) []int {
 	return indexes
 }
 
-func (p *VectorReader) Pull(done bool) (vector.Any, error) {
-	return p.ConcurrentPull(done, 0)
+func (r *Reader) Pull(done bool) (vector.Any, error) {
+	return r.ConcurrentPull(done, 0)
 }
 
-func (p *VectorReader) ConcurrentPull(done bool, id int) (vector.Any, error) {
+func (r *Reader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 	if done {
 		return nil, nil
 	}
 	for {
-		if err := p.ctx.Err(); err != nil {
+		if err := r.ctx.Err(); err != nil {
 			return nil, err
 		}
-		if p.rrs[id] == nil {
-			pr := p.fr.ParquetReader()
-			rowGroup := int(p.nextRowGroup.Add(1) - 1)
+		if r.rrs[id] == nil {
+			pr := r.fr.ParquetReader()
+			rowGroup := int(r.nextRowGroup.Add(1) - 1)
 			if rowGroup >= pr.NumRowGroups() {
 				return nil, nil
 			}
-			if len(p.metadataFilters) > 0 {
+			if len(r.metadataFilters) > 0 {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
-				val := buildMetadataValue(p.sctx, rgMetadata, p.metadataColIndexes, p.colIndexToField)
-				if p.metadataFilters[id].Eval(val).Equal(super.False) {
+				val := buildMetadataValue(r.sctx, rgMetadata, r.metadataColIndexes, r.colIndexToField)
+				if r.metadataFilters[id].Eval(val).Equal(super.False) {
 					continue
 				}
 			}
-			rr, err := p.fr.GetRecordReader(p.ctx, p.colIndexes, []int{rowGroup})
+			rr, err := r.fr.GetRecordReader(r.ctx, r.colIndexes, []int{rowGroup})
 			if err != nil {
 				return nil, err
 			}
-			p.rrs[id] = rr
+			r.rrs[id] = rr
 		}
-		batch, err := p.rrs[id].Read()
+		batch, err := r.rrs[id].Read()
 		if err != nil {
 			if err == io.EOF {
-				p.rrs[id] = nil
+				r.rrs[id] = nil
 				continue
 			}
 			return nil, err
 		}
-		return p.vbs[id].build(array.RecordToStructArray(batch), false)
+		return r.vbs[id].build(array.RecordToStructArray(batch), false)
 	}
 }
 
-func (v *VectorReader) Type() (super.Type, error) {
-	s, err := v.fr.Schema()
+func (r *Reader) Type() (super.Type, error) {
+	s, err := r.fr.Schema()
 	if err != nil {
 		return nil, err
 	}
-	return arrowio.NewTypeFromSchema(v.sctx, s)
+	return arrowio.NewTypeFromSchema(r.sctx, s)
 }
 
 type vectorBuilder struct {
