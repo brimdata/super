@@ -177,7 +177,7 @@ func (u *Union) load() {
 
 func Deunion(vec Any) Any {
 	if u, ok := vec.(*Union); ok {
-		return u.dynamic
+		return u.Dynamic()
 	}
 	return vec
 }

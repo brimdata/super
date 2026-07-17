@@ -222,16 +222,21 @@ func (m *mapValueBuilder) Build(sctx *super.Context) Any {
 type unionValueBuilder struct {
 	typ    *super.TypeUnion
 	values []ValueBuilder
+	rle    *RLE
+	count  uint32
 	tags   []uint32
 }
 
 func newUnionValueBuilder(typ *super.TypeUnion) ValueBuilder {
-
 	var values []ValueBuilder
 	for _, typ := range typ.Types {
 		values = append(values, NewValueBuilder(typ))
 	}
-	builder := &unionValueBuilder{typ: typ, values: values}
+	var rle *RLE
+	if len(typ.Types) == 2 {
+		rle = NewRLE()
+	}
+	builder := &unionValueBuilder{typ: typ, values: values, rle: rle}
 	// XXX this will be added back or deleted in a subsequent PR
 	//if union, _ := super.OptionUnion(typ); union != nil {
 	//	return &optionValueBuilder{union: union, val: builder}
@@ -244,13 +249,23 @@ func (u *unionValueBuilder) Write(bytes scode.Bytes) {
 	typ, bytes = u.typ.Untag(bytes)
 	tag := u.typ.TagOf(typ)
 	u.values[tag].Write(bytes)
-	u.tags = append(u.tags, uint32(tag))
+	if u.rle != nil {
+		if tag == 0 {
+			u.rle.Touch(u.count)
+		}
+		u.count++
+	} else {
+		u.tags = append(u.tags, uint32(tag))
+	}
 }
 
 func (u *unionValueBuilder) Build(sctx *super.Context) Any {
 	var vecs []Any
 	for _, v := range u.values {
 		vecs = append(vecs, v.Build(sctx))
+	}
+	if u.rle != nil {
+		return NewUnionFromRLE(u.typ, u.rle.End(u.count), vecs)
 	}
 	return NewUnion(u.typ, u.tags, vecs)
 }
