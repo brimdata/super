@@ -17,7 +17,7 @@ func NewPutter(sctx *super.Context, e Evaluator) Evaluator {
 }
 
 func (p *putter) Eval(vec vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyNone, p.eval, vec)
+	return vector.Apply(vector.ApplyRipFusions, p.eval, vec)
 }
 
 func (p *putter) eval(vecs ...vector.Any) vector.Any {

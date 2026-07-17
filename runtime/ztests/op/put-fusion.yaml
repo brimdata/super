@@ -1,0 +1,9 @@
+spq: x := 10
+
+input: |
+  fusion({x?:1,y?:_::int64},<{x:int64}>)
+  fusion({x?:_::int64,y?:2},<{y:int64}>)
+
+output: |
+  {x:10,y?:_::int64}
+  {x:10,y?:2}
