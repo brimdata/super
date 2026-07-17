@@ -86,21 +86,25 @@ func loadZTestInputsAndOutputs(t *testing.T, ztestDirs map[string]struct{}) (map
 			if b.Test == nil {
 				continue
 			}
-			testName := b.FileName + "/" + strconv.Itoa(b.Test.Line)
-			if i := b.Test.Input; i != nil && isValid(t, testName, *i) {
-				out[testName+"/input"] = *i
+			namePrefix := b.FileName + "/" + strconv.Itoa(b.Test.Line)
+			name := namePrefix + "/input"
+			if i := b.Test.Input; i != nil && isValid(t, name, *i) {
+				out[name] = *i
 			}
-			if o := b.Test.Output; isValid(t, testName, o) {
-				out[testName+"/output"] = o
+			name = namePrefix + "/output"
+			if o := b.Test.Output; isValid(t, name, o) {
+				out[name] = o
 			}
 			for _, i := range b.Test.Inputs {
-				if i.Data != nil && isValid(t, testName, *i.Data) {
-					out[testName+"/inputs/"+i.Name] = *i.Data
+				name = namePrefix + "/inputs/" + i.Name
+				if i.Data != nil && isValid(t, name, *i.Data) {
+					out[name] = *i.Data
 				}
 			}
 			for _, o := range b.Test.Outputs {
-				if o.Data != nil && isValid(t, testName, *o.Data) {
-					out[testName+"/outputs/"+o.Name] = *o.Data
+				name = namePrefix + "/outputs/" + o.Name
+				if o.Data != nil && isValid(t, name, *o.Data) {
+					out[name] = *o.Data
 				}
 			}
 		}
