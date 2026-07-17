@@ -1,0 +1,8 @@
+spq: pass
+
+output-flags: -fusion
+
+input: &input |
+  {a:fusion(_::(int64|null|none),<none>)}
+
+output: *input

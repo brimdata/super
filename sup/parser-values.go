@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/netip"
+	"slices"
 	"strconv"
 	"time"
 
@@ -17,18 +18,20 @@ import (
 
 func (p *Parser) ParseValue() (ast.Value, error) {
 	v, err := p.matchOuterValue()
-	if err == io.EOF {
-		err = nil
-	}
 	if v == nil && err == nil {
-		if err := p.lexer.check(1); err != nil && err != io.EOF {
-			return nil, fmt.Errorf("line %d: %w", p.lexer.line, err)
-		}
-		if len(p.lexer.cursor) > 0 {
-			return nil, fmt.Errorf("line %d: syntax error", p.lexer.line)
-		}
+		err = p.lexerError()
 	}
 	return v, err
+}
+
+func (p *Parser) lexerError() error {
+	if err := p.lexer.check(1); err != nil && err != io.EOF {
+		return fmt.Errorf("line %d: %w", p.lexer.line, err)
+	}
+	if len(p.lexer.cursor) > 0 {
+		return fmt.Errorf("line %d: syntax error", p.lexer.line)
+	}
+	return nil
 }
 
 func noEOF(err error) error {
@@ -41,7 +44,7 @@ func noEOF(err error) error {
 func (p *Parser) matchOuterValue() (ast.Value, error) {
 	var decls []ast.TypeDecl
 	for {
-		val, decl, err := p.matchValueOrDecl()
+		val, decl, err := p.matchValueOrDecl(false)
 		if err != nil {
 			return nil, err
 		}
@@ -63,8 +66,8 @@ func (p *Parser) matchOuterValue() (ast.Value, error) {
 	}
 }
 
-func (p *Parser) matchValue() (ast.Value, error) {
-	val, decl, err := p.matchValueOrDecl()
+func (p *Parser) matchValue(allowNone bool) (ast.Value, error) {
+	val, decl, err := p.matchValueOrDecl(allowNone)
 	if noEOF(err) != nil {
 		return nil, err
 	}
@@ -74,7 +77,12 @@ func (p *Parser) matchValue() (ast.Value, error) {
 	return val, nil
 }
 
-func (p *Parser) matchValueOrDecl() (ast.Value, *ast.TypeDecl, error) {
+func (p *Parser) matchValueOrDecl(allowNone bool) (ast.Value, *ast.TypeDecl, error) {
+	if allowNone {
+		if val, err := p.matchNone(); val != nil || err != nil {
+			return val, nil, err
+		}
+	}
 	if val, err := p.matchRecord(); val != nil || err != nil {
 		val, err := p.decorate(val, err)
 		return val, nil, err
@@ -104,7 +112,7 @@ func (p *Parser) matchValueOrDecl() (ast.Value, *ast.TypeDecl, error) {
 	if typ, err := p.matchTypeDecl(name); typ != nil || err != nil {
 		return nil, typ, err
 	}
-	if val, err := p.matchFusion(name); val != nil || err != nil {
+	if val, err := p.matchFusion(name, allowNone); val != nil || err != nil {
 		val, err := p.decorate(val, err)
 		return val, nil, err
 	}
@@ -344,27 +352,52 @@ func (p *Parser) matchField() (*ast.Field, error) {
 	if !ok {
 		return nil, p.errorf("no type name found for field %q", name)
 	}
-	var val ast.Value
-	none, err := p.matchNone()
+	val, err := p.matchValue(true)
+	if val == nil && err == nil {
+		err = p.lexerError()
+	}
 	if err != nil {
 		return nil, err
 	}
-	if none != nil {
-		val = none
-		if !opt {
-			return nil, p.errorf("_ cannot appear in non-optional field %q", name)
-		}
-	} else {
-		val, err = p.ParseValue()
-		if err != nil {
-			return nil, err
-		}
+	if isNone(val) && !opt && !isOption(val) {
+		return nil, p.errorf("_ cannot appear in non-optional field %q", name)
 	}
 	return &ast.Field{
 		Name:  name,
 		Value: val,
 		Opt:   opt,
 	}, nil
+}
+
+func isNone(val ast.Value) bool {
+	switch val := val.(type) {
+	case *ast.None:
+		return true
+	case *ast.Fusion:
+		_, ok := val.Value.(*ast.None)
+		return ok
+	}
+	return false
+}
+
+func isOption(val ast.Value) bool {
+	switch val := val.(type) {
+	case *ast.Primitive:
+		fmt.Printf("%#v\n", val)
+	case *ast.None:
+		return isOptionType(val.Type)
+	case *ast.Fusion:
+		return isOption(val.Value)
+	}
+	return false
+}
+
+func isOptionType(typ ast.Type) bool {
+	u, ok := typ.(*ast.TypeUnion)
+	return ok && slices.ContainsFunc(u.Types, func(t ast.Type) bool {
+		p, ok := t.(*ast.TypePrimitive)
+		return ok && p.Name == "none"
+	})
 }
 
 func (p *Parser) matchSymbol() (string, bool, error) {
@@ -408,7 +441,7 @@ func (p *Parser) matchValueList() ([]ast.Value, error) {
 	l := p.lexer
 	var vals []ast.Value
 	for {
-		val, err := p.matchValue()
+		val, err := p.matchValue(false)
 		if err != nil {
 			return nil, err
 		}
@@ -496,7 +529,7 @@ func (p *Parser) matchMapEntries() ([]ast.Entry, error) {
 }
 
 func (p *Parser) parseEntry() (*ast.Entry, error) {
-	key, err := p.matchValue()
+	key, err := p.matchValue(false)
 	if err != nil {
 		return nil, err
 	}
@@ -530,7 +563,7 @@ func (p *Parser) matchError(name string) (*ast.Error, error) {
 	if ok, err := l.match('('); !ok || err != nil {
 		return nil, noEOF(err)
 	}
-	val, err := p.matchValue()
+	val, err := p.matchValue(false)
 	if err != nil {
 		return nil, noEOF(err)
 	}
@@ -578,7 +611,7 @@ func (p *Parser) matchTypeDecl(keyword string) (*ast.TypeDecl, error) {
 	}, nil
 }
 
-func (p *Parser) matchFusion(name string) (*ast.Fusion, error) {
+func (p *Parser) matchFusion(name string, allowNone bool) (*ast.Fusion, error) {
 	if name != "fusion" {
 		return nil, nil
 	}
@@ -586,7 +619,7 @@ func (p *Parser) matchFusion(name string) (*ast.Fusion, error) {
 	if ok, err := l.match('('); !ok || err != nil {
 		return nil, noEOF(err)
 	}
-	val, err := p.matchValue()
+	val, err := p.matchValue(allowNone)
 	if err != nil {
 		return nil, noEOF(err)
 	}
