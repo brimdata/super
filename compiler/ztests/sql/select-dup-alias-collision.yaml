@@ -1,0 +1,9 @@
+script: |
+  super compile -C -O "select 1 as x, 2 as x, 3 as x_1"
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | values {x:1,x_1:2,x_1_1:3}
+      | output main
