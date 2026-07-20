@@ -8,7 +8,6 @@ input: |
 output: |
   {a:1,b?:"foo"}
   {a:1,b?:_::string}
-  {a:1,b:"foo"}
 
 ---
 

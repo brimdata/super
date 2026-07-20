@@ -21,3 +21,16 @@ output: |
   error("missing")
   error("missing")
   error("missing")
+
+---
+
+# Test deoption on dot expressions.
+spq: 'values {x:a.b}'
+
+input: |
+  {a:{b?:1}}
+  {a:{b?:_::int64}}
+
+output: |
+  {x:1}
+  {x:error("missing")}
