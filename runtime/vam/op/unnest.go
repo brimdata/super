@@ -51,6 +51,8 @@ func (u *Unnest) Pull(done bool) (vector.Any, error) {
 
 func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 	switch vec := vector.Under(vec).(type) {
+	case *vector.Fusion:
+		return u.flatten(vec.Values, slot)
 	case *vector.Dynamic:
 		return u.flatten(vec.Values[vec.Tags[slot]], vec.ForwardTagMap()[slot])
 	case *vector.View:

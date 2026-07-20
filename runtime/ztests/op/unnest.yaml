@@ -7,6 +7,7 @@ input: |
   type foo=int64
   [10::foo,11::foo]
   [fusion(12::(int64|string),<int64>),"13"]
+  fusion([null,1,"a"],<[int64|string|null]>)
   null
 
 output-flags: -fusion
@@ -26,6 +27,9 @@ output: |
   11::foo
   fusion(12::(int64|string),<int64>)
   "13"
+  null
+  1
+  "a"
 
 ---
 
