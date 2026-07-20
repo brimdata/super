@@ -21,13 +21,12 @@ func NewIndexExpr(sctx *super.Context, container, index Evaluator, base1 bool) E
 }
 
 func (i *Index) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, i.eval, this)
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, i.eval, i.container.Eval(this), i.index.Eval(this))
 }
 
 func (i *Index) eval(args ...vector.Any) vector.Any {
-	this := args[0]
-	container := vector.Under(i.container.Eval(this))
-	index := vector.Under(i.index.Eval(this))
+	container := vector.Under(args[0])
+	index := vector.Under(args[1])
 	switch container.Kind() {
 	case vector.KindArray, vector.KindSet:
 		return indexArrayOrSet(i.sctx, container, index, i.base1)
@@ -36,7 +35,7 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	case vector.KindMap:
 		return indexMap(i.sctx, container, index)
 	default:
-		return vector.NewMissing(i.sctx, this.Len())
+		return vector.NewMissing(i.sctx, container.Len())
 	}
 }
 
@@ -155,32 +154,18 @@ func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	if _, ok := indexVec.(*vector.Error); ok {
 		return indexVec
 	}
-	n := vec.Len()
-	var index []uint32
-	if view, ok := vec.(*vector.View); ok {
-		index = view.Index
-		vec = view.Any
-	}
-	m := vec.(*vector.Map)
+	m := vector.PushView(vec).(*vector.Map)
 	var pick []uint32
-	for idx := range n {
-		i := idx
-		if index != nil {
-			i = index[idx]
-		}
+	for i := range vec.Len() {
 		for range m.Offsets[i+1] - m.Offsets[i] {
-			pick = append(pick, idx)
+			pick = append(pick, i)
 		}
 	}
 	var valIndexes, errs []uint32
 	cmp := NewCompare(sctx, "==", nil, nil).eval
 	hits := vector.Apply(vector.ApplyRipUnions, cmp, vector.Pick(indexVec, pick), m.Keys)
 	bits := FlattenBool(hits).Bits
-	for idx := range n {
-		i := idx
-		if index != nil {
-			i = index[idx]
-		}
+	for i := range vec.Len() {
 		selected := -1
 		for off := m.Offsets[i]; off < m.Offsets[i+1]; off++ {
 			if bits.IsSet(off) {
@@ -191,7 +176,7 @@ func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 		if selected != -1 {
 			valIndexes = append(valIndexes, uint32(selected))
 		} else {
-			errs = append(errs, idx)
+			errs = append(errs, i)
 		}
 	}
 	vals := vector.Pick(vector.Deunion(m.Values), valIndexes)

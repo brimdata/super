@@ -108,3 +108,16 @@ output: |
   error("missing")
   error("missing")
   123
+
+---
+
+# Test index on fused values
+spq: val[1].r
+
+input: |
+  {val:fusion(2::(int64|[int64|{r:int64}]),<int64>)}
+  {val:fusion([1,{r:3}]::(int64|[int64|{r:int64}]),<[int64|{r:int64}]>)}
+
+output: |
+  error("missing")
+  3
