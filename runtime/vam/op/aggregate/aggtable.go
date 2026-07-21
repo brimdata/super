@@ -28,6 +28,10 @@ type superTable struct {
 	table       map[string]int
 	rows        []aggRow
 	sctx        *super.Context
+
+	// Reused across batches to avoid per-batch/per-row allocation in update.
+	batchGroups map[int][]uint32
+	kb          scode.Builder
 }
 
 var _ aggTable = (*superTable)(nil)
@@ -38,40 +42,58 @@ type aggRow struct {
 }
 
 func (s *superTable) update(keys []vector.Any, args []vector.Any) {
-	m := make(map[string][]uint32)
+	// Group this batch's slots by row id (index into s.rows) by probing the
+	// global table directly.  This replaces the previous per-batch
+	// map[string][]uint32 (a fresh map every batch) plus a per-row string
+	// allocation: a key string is now allocated only when a genuinely new
+	// group is created (O(distinct keys) rather than O(rows)), and the int
+	// keyed grouping map is reused across batches.
+	if s.batchGroups == nil {
+		s.batchGroups = make(map[int][]uint32)
+	}
+	groups := s.batchGroups
+	clear(groups)
 	if len(keys) > 0 {
-		var b scode.Builder
+		b := &s.kb
 		for slot := range keys[0].Len() {
 			b.Truncate()
 			for _, key := range keys {
-				key.Serialize(&b, slot)
+				key.Serialize(b, slot)
 			}
-			keyStr := string(b.Bytes())
-			m[keyStr] = append(m[keyStr], slot)
+			body := []byte(b.Bytes())
+			id, ok := s.table[string(body)] // no-alloc map lookup
+			if !ok {
+				id = len(s.rows)
+				s.table[string(body)] = id // allocates the key string once
+				s.rows = append(s.rows, s.newRowForSlot(keys, slot))
+			}
+			groups[id] = append(groups[id], slot)
 		}
 	} else {
-		m[""] = nil
-	}
-	for rowKey, index := range m {
-		id, ok := s.table[rowKey]
+		id, ok := s.table[""]
 		if !ok {
 			id = len(s.rows)
-			s.table[rowKey] = id
-			s.rows = append(s.rows, s.newRow(keys, index))
+			s.table[""] = id
+			s.rows = append(s.rows, s.newRowForSlot(keys, 0))
 		}
+		groups[id] = nil
+	}
+	single := len(groups) == 1
+	for id, index := range groups {
 		row := s.rows[id]
 		for i, arg := range args {
-			if len(m) > 1 {
-				arg = vector.Pick(arg, index)
+			a := arg
+			if !single {
+				a = vector.Pick(a, index)
 			}
-			arg, ok := removeQuiet(arg)
+			a, ok := removeQuiet(a)
 			if !ok {
 				continue
 			}
 			if s.partialsIn {
-				row.funcs[i].ConsumeAsPartial(arg)
+				row.funcs[i].ConsumeAsPartial(a)
 			} else {
-				row.funcs[i].Consume(arg)
+				row.funcs[i].Consume(a)
 			}
 		}
 	}
@@ -90,15 +112,17 @@ func removeQuiet(vec vector.Any) (vector.Any, bool) {
 	return vec, true
 }
 
-func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
+func (s *superTable) newRowForSlot(keys []vector.Any, slot uint32) aggRow {
 	var row aggRow
 	for _, agg := range s.aggs {
 		row.funcs = append(row.funcs, agg.Pattern())
 	}
+	// Use a fresh builder here (not s.kb) because the serialized key bytes are
+	// retained by the stored super.Value and must not be reused/truncated.
 	var b scode.Builder
 	for _, key := range keys {
 		b.Reset()
-		key.Serialize(&b, index[0])
+		key.Serialize(&b, slot)
 		row.keys = append(row.keys, super.NewValue(key.Type(), b.Bytes().Body()))
 	}
 	return row
