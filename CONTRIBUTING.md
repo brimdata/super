@@ -2,9 +2,20 @@
 
 Thank you for contributing to SuperDB!
 
-Per common practice, please [open an issue](https://github.com/brimdata/super/issues)
-before sending a pull request.  If you think your ideas might benefit from some
-refinement via Q&A, come talk to us on [Slack](https://www.brimdata.io/join-slack/) as well.
+Per common practice, please engage with an
+[issue](https://github.com/brimdata/super/issues) before sending a pull request,
+either by opening a new one or by commenting on an existing one that covers your
+intended change.  When doing so, please describe your intended approach and wait for
+feedback from a maintainer before investing time writing code.  This helps avoid situations where
+effort goes into a direction the team can't accept.  If you think your ideas might
+benefit from some refinement via Q&A, come talk to us on
+[Slack](https://www.brimdata.io/join-slack/) as well.
+
+Regardless of what tools you use to write code, you as the contributor are responsible
+for the correctness, design fit, and quality of what you submit.  A reviewable PR is
+one where a human can explain *why* the design choices were made, not just *what*
+changed.  PRs that show no evidence of prior discussion or human judgment applied to
+the approach may be closed without review.
 
 SuperDB is early in its life cycle and will be expanding quickly.  Please star and/or
 watch the repo so you can follow and track our progress.
