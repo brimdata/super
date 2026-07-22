@@ -58,18 +58,15 @@ func (s *scalarAggregate) Pull(done bool) (vector.Any, error) {
 			}
 		} else {
 			for _, e := range s.aggs {
-				v := e.Eval(vec)
-				if e.Name == "fuse" {
-					v = &vector.NoRip{Any: v}
-				}
-				vals = append(vals, v)
+				vals = append(vals, e.Eval(vec))
 			}
 		}
-		vector.Apply(vector.ApplyRipUnions, s.consume, vals...)
+		vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, s.consume, vals...)
 	}
 }
 
 func (s *scalarAggregate) consume(vecs ...vector.Any) vector.Any {
+	vector.ClearNoRips(vecs)
 	for i, vec := range vecs {
 		vec, ok := removeQuiet(vec)
 		if !ok {

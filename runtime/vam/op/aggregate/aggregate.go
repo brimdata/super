@@ -78,11 +78,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 			}
 		} else {
 			for _, e := range a.aggs {
-				v := e.Eval(vec)
-				if e.Name == "fuse" {
-					v = &vector.NoRip{Any: v}
-				}
-				vals = append(vals, v)
+				vals = append(vals, e.Eval(vec))
 			}
 		}
 		vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, func(args ...vector.Any) vector.Any {
@@ -95,6 +91,8 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 }
 
 func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
+	vector.ClearNoRips(keys)
+	vector.ClearNoRips(vals)
 	keys, vals, ok := removeQuietRows(keys, vals)
 	if !ok || keys[0].Len() == 0 {
 		return

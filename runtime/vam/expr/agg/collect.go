@@ -10,14 +10,22 @@ type collect struct {
 	builder *vbuild.DynamicBuilder
 }
 
+func (c *collect) NoRip() bool { return true }
+
 func (c *collect) Consume(vec vector.Any) {
+	vector.Apply(vector.ApplyRipUnions, c.consume, vec)
+}
+
+func (c *collect) consume(vecs ...vector.Any) vector.Any {
+	vec := vecs[0]
 	if vec.Len() == 0 || vec.Kind() == vector.KindNull {
-		return
+		return vector.NewNull(vec.Len())
 	}
 	if c.builder == nil {
 		c.builder = vbuild.NewDynamicBuilder()
 	}
 	c.builder.Write(vec)
+	return vector.NewNull(vec.Len())
 }
 
 func (c *collect) Result(sctx *super.Context) vector.Any {

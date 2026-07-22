@@ -12,12 +12,17 @@ type Aggregator struct {
 	Distinct bool
 	Expr     Evaluator
 	Where    Evaluator
+	norip    bool
 }
 
 func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) (*Aggregator, error) {
 	pattern, err := agg.NewPattern(name, distinct, expr != nil)
 	if err != nil {
 		return nil, err
+	}
+	var norip bool
+	if fn, ok := pattern().(interface{ NoRip() bool }); ok {
+		norip = fn.NoRip()
 	}
 	if expr == nil {
 		// Count is the only that has no argument so we just return
@@ -30,12 +35,16 @@ func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) 
 		Distinct: distinct,
 		Expr:     expr,
 		Where:    where,
+		norip:    norip,
 	}, nil
 }
 
 func (a *Aggregator) Eval(this vector.Any) vector.Any {
 	vec := a.Expr.Eval(this)
 	if a.Where == nil {
+		if a.norip {
+			vec = vector.AddNoRip(vec)
+		}
 		return vec
 	}
 	where := a.Where.Eval(this)
@@ -44,10 +53,13 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 		// everything is filtered.
 		return vector.NewNull(vec.Len())
 	}
-	if bools.GetCardinality() == uint64(vec.Len()) {
-		return vec
+	if bools.GetCardinality() != uint64(vec.Len()) {
+		index := bools.ToArray()
+		nulls := vector.NewNull(vec.Len() - uint32(len(index)))
+		vec = vector.Combine(nulls, index, vector.Pick(vec, index))
 	}
-	index := bools.ToArray()
-	nulls := vector.NewNull(vec.Len() - uint32(len(index)))
-	return vector.Combine(nulls, index, vector.Pick(vec, index))
+	if a.norip {
+		vec = vector.AddNoRip(vec)
+	}
+	return vec
 }

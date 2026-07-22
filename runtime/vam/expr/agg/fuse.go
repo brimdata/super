@@ -22,6 +22,8 @@ func newFuse(complete bool) *fuse {
 	}
 }
 
+func (f *fuse) NoRip() bool { return true }
+
 func (f *fuse) Consume(vec vector.Any) {
 	if view, ok := vec.(*vector.View); ok {
 		vec = view.Any
