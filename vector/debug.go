@@ -74,6 +74,7 @@ func write(w io.Writer, vec Any, indent, prefix string) {
 		fmt.Fprintf(w, " values=%v", vec.Values)
 	case *TypeValue:
 	case *Null:
+	case *None:
 	case *Empty:
 
 	case *Record:
@@ -123,8 +124,6 @@ func write(w io.Writer, vec Any, indent, prefix string) {
 	case *Fusion:
 		fmt.Fprintf(w, " subtype=%s\n", "?" /* sup.FormatType(val.SubTypes) */)
 		write(w, vec.Values, indent, "values=")
-	case *None:
-		fmt.Fprintln(w)
 	case *View:
 		fmt.Fprintf(w, " index=%v\n", vec.Index)
 		write(w, vec.Any, indent, "any=")
