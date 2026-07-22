@@ -1,0 +1,50 @@
+# Regression test for https://github.com/brimdata/super/issues/7140
+# A two-typed union column (T|null) reaches the CSUP writer as separate
+# value and null batches.  The writer stitched the per-batch tag run-length
+# encodings together without materializing each batch's implicit trailing
+# value run, collapsing the runs and misaligning the null bitmap so nulls
+# landed on the wrong rows.  CSUP output must match the (correct) Parquet
+# output for the same input.
+script: |
+  super -f csup    -o repro.csup    -c "put v := v::float32::(float32|null)" repro.csv
+  super -f parquet -o repro.parquet -c "put v := v::float32::(float32|null)" repro.csv
+  super -f sup -c "sort id" repro.csup
+  echo ---
+  super -f sup -c "sort id" repro.parquet
+
+inputs:
+  - name: repro.csv
+    data: |
+      id,v
+      0,10
+      1,
+      2,30
+
+outputs:
+  - name: stdout
+    data: |
+      {
+        id: 0.,
+        v: 10.::float32::(float32|null)
+      }
+      {
+        id: 1.,
+        v: null::(float32|null)
+      }
+      {
+        id: 2.,
+        v: 30.::float32::(float32|null)
+      }
+      ---
+      {
+        id: 0.,
+        v: 10.::float32::(float32|null)
+      }
+      {
+        id: 1.,
+        v: null::(float32|null)
+      }
+      {
+        id: 2.,
+        v: 30.::float32::(float32|null)
+      }

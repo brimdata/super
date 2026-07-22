@@ -38,11 +38,14 @@ func (u *unionBuilder) Write(vec vector.Any) {
 	var vecs []vector.Any
 	if len(union.Typ.Types) == 2 {
 		// Code tags as run lengths.
-		rle := union.TagsRLE()
-		if rle == nil {
-			// Encoder returns nil for all tag 0
-			rle = []uint32{0, vec.Len()}
-		}
+		// TagsRLE encodes the tags as alternating runs of nones and
+		// values beginning with a none run.  The final value run is left
+		// implicit (e.g. a nil or [0] result for an all-values batch), so
+		// its length is not recoverable from the run slice alone.  Make
+		// the trailing value run explicit before stitching batches
+		// together; otherwise concatRLEs collapses adjacent batches and
+		// misaligns the null bitmap (see issue #7140).
+		rle := completeRLE(union.TagsRLE(), vec.Len())
 		vecs, rle = reorderRLE(union, rle)
 		u.rleOrTags = concatRLEs(u.rleOrTags, rle)
 	} else {
@@ -55,6 +58,29 @@ func (u *unionBuilder) Write(vec vector.Any) {
 			u.values[k].Write(vec)
 		}
 	}
+}
+
+// completeRLE returns a run-length tag slice whose runs cover exactly n
+// elements.  TagsRLE leaves the final value run implicit (returning nil or a
+// slice whose runs sum to fewer than n elements), so any positions not
+// accounted for by rle are a trailing run of values (tag 0).  We materialize
+// that run here so the result is self-describing and safe to concatenate with
+// concatRLEs.  Runs alternate none/value starting with a none run, so when the
+// number of existing runs is even (the next run would be a none run) we insert
+// an empty none run before the trailing value run.
+func completeRLE(rle []uint32, n uint32) []uint32 {
+	var sum uint32
+	for _, r := range rle {
+		sum += r
+	}
+	if sum >= n {
+		return rle
+	}
+	out := slices.Clone(rle)
+	if len(out)%2 == 0 {
+		out = append(out, 0)
+	}
+	return append(out, n-sum)
 }
 
 func concatRLEs(a, b []uint32) []uint32 {
