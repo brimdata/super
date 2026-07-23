@@ -38,3 +38,9 @@ func TestNewUnionFromRLEVerifyPanics(t *testing.T) {
 		NewUnionFromRLE(utyp, nil, []Any{intVec, ipVec})
 	})
 }
+
+func TestUnionAllZerosTagsRLE(t *testing.T) {
+	utyp := super.NewContext().MustLookupTypeUnion([]super.Type{super.TypeInt64, super.TypeNull})
+	u := NewUnionFromRLE(utyp, nil, []Any{NewInt(super.TypeInt64, []int64{1, 2}), NewEmpty(super.TypeNull)})
+	require.Zero(t, u.TagsRLE())
+}
