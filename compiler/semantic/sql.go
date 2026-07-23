@@ -720,10 +720,21 @@ func (t *translator) resolveOrdinalOuter(ts tableScope, n ast.Node, prefix strin
 func dedup(scores map[string]int, s string) string {
 	cnt := scores[s]
 	scores[s] = cnt + 1
-	if cnt != 0 {
-		s = fmt.Sprintf("%s_%d", s, cnt)
+	if cnt == 0 {
+		return s
 	}
-	return s
+	// Suffix duplicate names with "_<n>", but skip any candidate that is
+	// already taken by another column (explicit or previously generated) so
+	// the projected record cannot end up with two identical field names, which
+	// would panic in MustLookupTypeRecord (e.g. "SELECT 1 AS x, 2 AS x, 3 AS x_1").
+	for {
+		candidate := fmt.Sprintf("%s_%d", s, cnt)
+		if scores[candidate] == 0 {
+			scores[candidate] = 1
+			return candidate
+		}
+		cnt++
+	}
 }
 
 func valuesExpr(e sem.Expr, seq sem.Seq) sem.Seq {
