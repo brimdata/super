@@ -206,16 +206,19 @@ func NewKind(sctx *super.Context) *Kind {
 
 func (k *Kind) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
-	if typ := vec.Type(); typ.ID() != super.IDType {
-		s := typ.Kind().String()
-		return vector.NewConstString(s, vec.Len())
+	switch vec.Kind() {
+	case vector.KindType:
+		out := vector.NewStringEmpty(vec.Len())
+		for i := range vec.Len() {
+			typ := vector.TypeValueValue(vec, i)
+			out.Append(typ.Kind().String())
+		}
+		return out
+	case vector.KindFusion:
+		return k.Call(vector.PushView(vec).(*vector.Fusion).Subtypes)
+	default:
+		return vector.NewConstString(vec.Type().Kind().String(), vec.Len())
 	}
-	out := vector.NewStringEmpty(vec.Len())
-	for i, n := uint32(0), vec.Len(); i < n; i++ {
-		typ := vector.TypeValueValue(vec, i)
-		out.Append(typ.Kind().String())
-	}
-	return out
 }
 
 func (*Kind) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
