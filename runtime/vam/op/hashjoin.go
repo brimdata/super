@@ -276,12 +276,12 @@ func (j *hashJoin) wrap(l, r *super.Value) super.Value {
 	j.builder.Reset()
 	var fields []super.Field
 	if l != nil {
-		left := l.Under()
+		left := l.Deunion()
 		fields = append(fields, super.Field{Name: j.leftAlias, Type: left.Type()})
 		j.builder.Append(left.Bytes())
 	}
 	if r != nil {
-		right := r.Under()
+		right := r.Deunion()
 		fields = append(fields, super.Field{Name: j.rightAlias, Type: right.Type()})
 		j.builder.Append(right.Bytes())
 
@@ -326,5 +326,6 @@ func (b *bufPuller) pull(done bool) (vector.Any, error) {
 }
 
 func hashKey(val super.Value) string {
+	val = val.Deunion()
 	return string(binary.LittleEndian.AppendUint32(val.Bytes(), uint32(val.Type().ID())))
 }
