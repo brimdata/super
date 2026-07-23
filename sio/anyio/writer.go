@@ -7,7 +7,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/runtime/vam/expr"
-	"github.com/brimdata/super/runtime/vam/expr/function"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
@@ -75,11 +74,11 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
 
 type defuser struct {
 	vio.PushCloser
-	defuse expr.Function
+	defuse expr.Evaluator
 }
 
 func newDefuser(w vio.PushCloser) vio.PushCloser {
-	return &defuser{PushCloser: w, defuse: function.NewDefuse(super.NewContext())}
+	return &defuser{PushCloser: w, defuse: expr.NewDefuse(super.NewContext())}
 }
 
 func (d *defuser) Push(vec vector.Any) error {
@@ -88,7 +87,7 @@ func (d *defuser) Push(vec vector.Any) error {
 		vec = label.Any
 	}
 	if vec != nil {
-		vec = vector.Apply(vector.ApplyNone, d.defuse.Call, vec)
+		vec = d.defuse.Eval(vec)
 	}
 	if ok {
 		vec = &vector.Labeled{Any: vec, Label: label.Label}

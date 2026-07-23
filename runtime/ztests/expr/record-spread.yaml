@@ -9,6 +9,7 @@ input: |
   {b:3,r:{x:3,c:3}}
   {b:3,r:{x:3,c:3},s:{d:1}}
   {b:3,r:{y:true,z:false}}
+  {r:fusion({x?:1},<{x:int64}>),b:3}
   null
 
 output: |
@@ -20,4 +21,5 @@ output: |
   {x:3,c:2,b:3}
   {x:3,c:2,b:3,d:1}
   {y:true,z:false,b:3,c:2}
+  {x:1,b:3,c:2}
   {b:error("missing"),c:2}

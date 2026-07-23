@@ -3,6 +3,7 @@ package op
 import (
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/function"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
@@ -17,7 +18,7 @@ type Fuse struct {
 	fuser    *samagg.Fuser
 	vecs     []vector.Any
 	upcaster *function.Upcast
-	defuser  *function.Defuse
+	defuser  *expr.Defuse
 }
 
 func NewFuse(sctx *super.Context, parent vio.Puller, complete bool) *Fuse {
@@ -26,7 +27,7 @@ func NewFuse(sctx *super.Context, parent vio.Puller, complete bool) *Fuse {
 		parent:   parent,
 		complete: complete,
 		upcaster: function.NewUpcast(sctx),
-		defuser:  function.NewDefuse(sctx),
+		defuser:  expr.NewDefuse(sctx),
 	}
 }
 
@@ -61,7 +62,7 @@ func (f *Fuse) Pull(done bool) (vector.Any, error) {
 }
 
 func (f *Fuse) fuse(vecs ...vector.Any) vector.Any {
-	vec := f.defuser.Call(vecs[0])
+	vec := f.defuser.Eval(vecs[0])
 	vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		f.fuser.Fuse(vecs[0].Type())
 		return nil
