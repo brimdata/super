@@ -155,7 +155,11 @@ type TypeOf struct {
 }
 
 func (t *TypeOf) Call(args ...vector.Any) vector.Any {
-	return vector.NewConstType(t.sctx, args[0].Type(), args[0].Len())
+	vec := args[0]
+	if vec.Kind() == vector.KindFusion {
+		return vector.PushView(vec).(*vector.Fusion).Subtypes
+	}
+	return vector.NewConstType(t.sctx, vec.Type(), vec.Len())
 }
 
 func (t *TypeOf) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
