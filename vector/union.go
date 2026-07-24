@@ -141,7 +141,7 @@ func (u *Union) Tags() []uint32 {
 }
 
 func (u *Union) TagsRLE() []uint32 {
-	if u.rle == nil {
+	if u.dynamic.Tags != nil && u.rle == nil {
 		if len(u.Typ.Types) != 2 {
 			panic("union tags RLEs can have only two types")
 		}
