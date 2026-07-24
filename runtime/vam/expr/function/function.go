@@ -100,7 +100,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmax = -1
 		f = newSamFunc(sctx, function.NewReducer(sctx, name, anymath.Min))
 	case "len", "length":
-		f = &Len{sctx}
+		f = newLen(sctx)
 	case "levenshtein":
 		argmin, argmax = 2, 2
 		f = &Levenshtein{sctx}
