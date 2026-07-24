@@ -1,0 +1,27 @@
+script: |
+  echo // hash join
+  super -s -c 'from a.sup | inner join (from b.sup) on left.a=right.b | values left | sort'
+  echo // nested loop join
+  super -s -c 'from a.sup | inner join (from b.sup) on left.a<right.b | values left | sort'
+
+inputs:
+  - name: a.sup
+    data: |
+      fusion({a:1::(int64|string),b?:_::string},<{a:int64}>)
+      fusion({a:2::(int64|string),b?:"note1"},<{a:int64,b:string}>)
+      fusion({a:"bar"::(int64|string),b?:"note2"},<{a:string,b:string}>)
+  - name: b.sup
+    data: |
+      {b:1}
+      {b:3}
+      {b:"bar"}
+
+outputs:
+  - name: stdout
+    data: |
+      // hash join
+      {a:1}
+      {a:"bar",b:"note2"}
+      // nested loop join
+      {a:1}
+      {a:2,b:"note1"}
