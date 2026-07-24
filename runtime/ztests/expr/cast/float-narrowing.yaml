@@ -1,0 +1,39 @@
+# Casting to a narrower float type must actually round the value to that
+# type's precision, not just relabel the type while keeping float64 bits.
+# 0.99 is not exactly representable in float32: float64(float32(0.99)) is
+# 0.9900000095367432.  Regression guard for the vam cast path, where a
+# cast float32 could hold unrounded float64 bits and fail to compare equal
+# to a genuine float32 of the same value.
+spq: values this::float32::float64, this::float16::float64
+
+input: |
+  0.99
+
+output: |
+  0.9900000095367432
+  0.990234375
+
+---
+
+# A cast float32 must compare equal to a genuine float32 of the same value,
+# and must not be considered greater than it.  x comes from the input so the
+# cast runs through the vam runtime rather than being constant-folded (an
+# all-literal comparison folds via sam and would pass even with the bug).
+spq: "values {eq: x == CAST(0.99 AS float32), gt: x > CAST(0.99 AS float32)}"
+
+input: |
+  {x:0.99::float32}
+
+output: |
+  {eq:true,gt:false}
+
+---
+
+# The string-to-float cast path must narrow too.
+spq: values this::float32::float64
+
+input: |
+  "0.99"
+
+output: |
+  0.9900000095367432

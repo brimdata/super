@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/vector"
+	"github.com/x448/float16"
 	"golang.org/x/exp/constraints"
 )
 
@@ -33,9 +34,28 @@ func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, [
 		return vector.NewUint(typ, vals), errs, "", true
 	case super.IsFloat(id):
 		vals, errs := toNumeric[float64](vec, typ, index)
+		narrowFloats(vals, id)
 		return vector.NewFloat(typ, vals), errs, "", true
 	default:
 		return nil, nil, "", false
+	}
+}
+
+// narrowFloats rounds float64 values in place to the precision of the target
+// float type id.  toNumeric and the string-to-float path both accumulate
+// float64s, so without this a "float32"/"float16" vector would carry more
+// precision than its type claims and fail to compare equal to genuine
+// float32/float16 values.  A float64 target is a no-op.
+func narrowFloats(vals []float64, id int) {
+	switch id {
+	case super.IDFloat16:
+		for i, v := range vals {
+			vals[i] = float64(float16.Fromfloat32(float32(v)).Float32())
+		}
+	case super.IDFloat32:
+		for i, v := range vals {
+			vals[i] = float64(float32(v))
+		}
 	}
 }
 
@@ -237,5 +257,6 @@ func stringToFloat(vec *vector.String, typ super.Type, index []uint32) (vector.A
 		}
 		floats = append(floats, v)
 	}
+	narrowFloats(floats, typ.ID())
 	return vector.NewFloat(typ, floats), errs
 }
