@@ -27,20 +27,11 @@ func (m *mapBuilder) Write(vec vector.Any) {
 	if n == 0 {
 		return
 	}
-	var index []uint32
-	if view, ok := vec.(*vector.View); ok {
-		index = view.Index
-		vec = view.Any
-	}
-	vmap := vec.(*vector.Map)
+	vmap := vector.PushView(vec).(*vector.Map)
 	m.keys.Write(vmap.Keys)
 	m.vals.Write(vmap.Values)
 	for i := range n {
-		idx := i
-		if index != nil {
-			idx = index[i]
-		}
-		m.len += vmap.Offsets[idx+1] - vmap.Offsets[idx]
+		m.len += vmap.Offsets[i+1] - vmap.Offsets[i]
 		m.offsets = append(m.offsets, m.len)
 	}
 }
