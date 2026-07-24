@@ -37,3 +37,16 @@ input: &input |
   []
 
 output: *input
+
+---
+
+# Test array with fusion records
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  [{"a":1},{"a":2,"b":3}]
+
+output: *input
