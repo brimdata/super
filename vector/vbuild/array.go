@@ -25,11 +25,7 @@ func (a *arraySetBuilder) Write(vec vector.Any) {
 	if n == 0 {
 		return
 	}
-	var index []uint32
-	if view, ok := vec.(*vector.View); ok {
-		vec = view.Any
-		index = view.Index
-	}
+	vec = vector.PushView(vec)
 	var offsets []uint32
 	switch vec := vec.(type) {
 	case *vector.Array:
@@ -42,11 +38,7 @@ func (a *arraySetBuilder) Write(vec vector.Any) {
 		panic(vec)
 	}
 	for i := range n {
-		idx := i
-		if index != nil {
-			idx = index[i]
-		}
-		a.len += offsets[idx+1] - offsets[idx]
+		a.len += offsets[i+1] - offsets[i]
 		a.offsets = append(a.offsets, a.len)
 	}
 }
