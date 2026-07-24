@@ -30,6 +30,7 @@ input: |
   <[int64|string]>
   type Any=int64|string
   <Any>
+  fusion({a:1,b?:_::int64},<{a:int64}>)
   error(null)
   error("")
   error("error")
@@ -63,6 +64,7 @@ output: |
   1
   2
   2
+  1
   error({message:"len()",on:error(null)})
   error({message:"len()",on:error("")})
   error({message:"len()",on:error("error")})
