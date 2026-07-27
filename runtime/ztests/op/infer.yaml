@@ -39,6 +39,7 @@ input: |
   {b:["1","2"]}
   {ts:"Jun 2, 2025"}
   {y:"foo"}
+  fusion({x?:"4",y?:_::string},<{x:string}>)
 
 output: |
   {a:[true,false]}
@@ -46,6 +47,7 @@ output: |
   {ts:2025-06-02T00:00:00Z}
   {ts:2025-06-01T00:00:00Z}
   {x:1}
+  {x:4}
   {y:"2"}
   {y:"foo"}
 

@@ -74,6 +74,7 @@ type converter struct {
 	rctx   *runtime.Context
 	queues map[super.Type][]super.Value
 	caster function.Caster
+	defuse *function.Defuse
 	target map[super.Type]super.Type
 	limit  int
 }
@@ -83,6 +84,7 @@ func newConverter(rctx *runtime.Context, limit int) *converter {
 		rctx:   rctx,
 		queues: make(map[super.Type][]super.Value),
 		caster: function.NewCaster(rctx.Sctx),
+		defuse: function.NewDefuse(rctx.Sctx),
 		target: make(map[super.Type]super.Type),
 		limit:  limit,
 	}
@@ -127,6 +129,7 @@ func (c *converter) drain(out *sbuf.Array, force bool) error {
 }
 
 func (c *converter) convert(val super.Value) (super.Value, bool) {
+	val = c.defuse.Call([]super.Value{val})
 	if to, ok := c.target[val.Type()]; ok {
 		if to != nil {
 			if converted, ok := c.caster.Cast(val, to); ok {
