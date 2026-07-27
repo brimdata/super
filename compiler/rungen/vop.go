@@ -376,16 +376,19 @@ func (b *Builder) compileVamAggregate(s *dag.AggregateOp, parent vio.Puller) (vi
 	var aggs []*vamexpr.Aggregator
 	for _, assignment := range s.Aggs {
 		aggNames = append(aggNames, assignment.LHS.(*dag.ThisExpr).Path)
-		lhs, err := b.compileVamExpr(assignment.LHS)
-		if err != nil {
-			return nil, err
-		}
-		aggExprs = append(aggExprs, lhs)
 		agg, err := b.compileVamAgg(assignment.RHS.(*dag.AggExpr))
 		if err != nil {
 			return nil, err
 		}
 		aggs = append(aggs, agg)
+		lhs, err := b.compileVamExpr(assignment.LHS)
+		if err != nil {
+			return nil, err
+		}
+		if agg.NoRip {
+			lhs = vamexpr.NoRipEval(lhs)
+		}
+		aggExprs = append(aggExprs, lhs)
 	}
 	// compile keys
 	var keyNames []field.Path

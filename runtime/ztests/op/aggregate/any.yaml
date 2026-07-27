@@ -6,9 +6,11 @@ input: |
   {k:"k2",v:null}
   {k:"k3",v:error("missing")}
   {k:"k4",v:error("quiet")}
+  {k:"k5",v:fusion({a:1,b?:_::int64},<{a:int64}>)} 
 
 output: |
   {k:"k1",any:1}
   {k:"k2",any:null}
   {k:"k3",any:error("missing")}
   {k:"k4",any:null}
+  {k:"k5",any:{a:1}}

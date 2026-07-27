@@ -12,7 +12,7 @@ type Aggregator struct {
 	Distinct bool
 	Expr     Evaluator
 	Where    Evaluator
-	norip    bool
+	NoRip    bool
 }
 
 func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) (*Aggregator, error) {
@@ -35,14 +35,14 @@ func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) 
 		Distinct: distinct,
 		Expr:     expr,
 		Where:    where,
-		norip:    norip,
+		NoRip:    norip,
 	}, nil
 }
 
 func (a *Aggregator) Eval(this vector.Any) vector.Any {
 	vec := a.Expr.Eval(this)
 	if a.Where == nil {
-		if a.norip {
+		if a.NoRip {
 			vec = vector.AddNoRip(vec)
 		}
 		return vec
@@ -58,8 +58,20 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 		nulls := vector.NewNull(vec.Len() - uint32(len(index)))
 		vec = vector.Combine(nulls, index, vector.Pick(vec, index))
 	}
-	if a.norip {
+	if a.NoRip {
 		vec = vector.AddNoRip(vec)
 	}
 	return vec
+}
+
+type noRipEval struct {
+	eval Evaluator
+}
+
+func NoRipEval(e Evaluator) Evaluator {
+	return &noRipEval{e}
+}
+
+func (n *noRipEval) Eval(vec vector.Any) vector.Any {
+	return vector.AddNoRip(n.eval.Eval(vec))
 }
