@@ -9,6 +9,8 @@ input: |
   {goo:"goo5"}
   {foo:"hello"::(string|null)}
   {foo:null::(string|null)}
+  fusion({foo:"foo",bar?:_::string},<{foo:string}>)
+  fusion({foo:"foo",bar?:"bar"},<{foo:string,bar:string}>)
 
 output: |
   {f:"foo0"}
@@ -19,3 +21,5 @@ output: |
   {goo:"goo5"}
   {f:"hello"::(string|null)}
   {f:null::(string|null)}
+  {f:"foo"}
+  {f:"foo",b:"bar"}

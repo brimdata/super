@@ -10,20 +10,21 @@ import (
 // it relies, for more detail.
 type Renamer struct {
 	sctx    *super.Context
+	defuse  *Defuse
 	renamer *expr.Renamer
 }
 
 func NewRenamer(sctx *super.Context, srcs, dsts []*expr.Lval) *Renamer {
-	return &Renamer{sctx, expr.NewRenamer(sctx, srcs, dsts)}
+	return &Renamer{sctx, NewDefuse(sctx), expr.NewRenamer(sctx, srcs, dsts)}
 }
 
 func (r *Renamer) Eval(vec vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyNone, r.eval, vec)
+	return vector.Apply(vector.ApplyNone, r.eval, r.defuse.Eval(vec))
 }
 
 func (r *Renamer) eval(vecs ...vector.Any) vector.Any {
 	vec := vecs[0]
-	recVec, ok := vector.Under(vec).(*vector.Record)
+	recVec, ok := vector.PushView(vector.Under(vec)).(*vector.Record)
 	if !ok {
 		return vec
 	}
