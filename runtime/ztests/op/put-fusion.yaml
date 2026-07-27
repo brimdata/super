@@ -5,5 +5,5 @@ input: |
   fusion({x?:_::int64,y?:2},<{y:int64}>)
 
 output: |
-  {x:10,y?:_::int64}
-  {x:10,y?:2}
+  {x:10}
+  {y:2,x:10}
