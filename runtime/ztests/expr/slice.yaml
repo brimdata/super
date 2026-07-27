@@ -26,15 +26,20 @@ output: |
 
 ---
 
-# Test slice on union values
+# Test slice on union and fusion values
 spq: this[1:]
 
 input: |
   [1,2,3]::(null|[int64])
   set[1,2,3]::(null|set[int64])
   "food"::(null|string)
+  fusion("foo"::(string|[int64]),<string>)
+  fusion([1,2,3]::(string|[int64]),<string>)
+
 
 output: |
   [2,3]
   set[2,3]
   "ood"
+  "oo"
+  [2,3]
