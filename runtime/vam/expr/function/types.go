@@ -151,18 +151,21 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 }
 
 type TypeOf struct {
-	sctx *super.Context
+	sctx   *super.Context
+	defuse *expr.Defuse
 }
 
-func (t *TypeOf) Call(args ...vector.Any) vector.Any {
-	vec := args[0]
-	if vec.Kind() == vector.KindFusion {
-		return vector.PushView(vec).(*vector.Fusion).Subtypes
-	}
-	return vector.NewConstType(t.sctx, vec.Type(), vec.Len())
+func newTypeOf(sctx *super.Context) *TypeOf {
+	return &TypeOf{sctx, expr.NewDefuse(sctx)}
 }
 
 func (t *TypeOf) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+
+func (t *TypeOf) Call(args ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipFusions, func(vecs ...vector.Any) vector.Any {
+		return vector.NewConstType(t.sctx, vecs[0].Type(), vecs[0].Len())
+	}, t.defuse.Eval(args[0]))
+}
 
 type TypeName struct {
 	sctx *super.Context
