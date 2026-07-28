@@ -1,8 +1,8 @@
 script: |
-  super -s -c 'select x, x.a from test.fjson'
+  super -s -c 'select x, x.a from test.json'
 
 inputs:
-  - name: test.fjson
+  - name: test.json
     data: |
       {"x":{"a":1},"y":"foo","z":[1,2,3]}
       {"x":{"a":1},"y":"foo","z":[1,2,3]}

@@ -1,7 +1,7 @@
 # Test parse error on EOF.
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 
 input: |
   1
@@ -22,7 +22,7 @@ error: |
 # Test that we don't get a parser error on file with whitespace at the end.
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
 input: "{\"x\":1}\n       \n\n\n\t"

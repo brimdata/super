@@ -20,15 +20,15 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
-      stdio:stdin: unexpected end of JSON input
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
+      stdio:stdin: line 1: invalid JSON value
   - name: stdout
     data: ""

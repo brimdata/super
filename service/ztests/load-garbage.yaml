@@ -17,7 +17,7 @@ outputs:
       	bsup: BSUP version mismatch: expected 5, found 0
       	csup: invalid CSUP header
       	csv: line 1: delimiter ',' not found
-      	json: invalid character 'T' looking for beginning of value
+      	json: line 1: invalid JSON value
       	line: auto-detection not supported
       	parquet: invalid header
       	sup: line 1: syntax error

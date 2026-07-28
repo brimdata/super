@@ -1,6 +1,6 @@
 spq: values this::bytes
 
-input-flags: -i fjson
+input-flags: -i json
 
 input: |
   "Å"

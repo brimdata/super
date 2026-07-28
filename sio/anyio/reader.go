@@ -74,10 +74,11 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	// JSON comes before SUP because the JSON reader is faster than the
 	// SUP reader.  The number of values wanted is greater than one for the
 	// sake of tests.
-	jsonErr := match(jsonio.NewReader(super.NewContext(), track), "json", 10)
+	jsonErr := isJSONStream(track, 10)
 	if jsonErr == nil {
-		return newVioPuller(sctx, jsonio.NewReader(sctx, track.Reader())), nil
+		return jsonio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders), nil
 	}
+	jsonErr = fmt.Errorf("json: %w", jsonErr)
 	track.Reset()
 
 	supErr := match(supio.NewReader(super.NewContext(), track), "sup", 1)
@@ -191,6 +192,19 @@ func isCSVStream(track *Track, delim rune, name string) error {
 	}
 	track.Reset()
 	return match(csvio.NewReader(super.NewContext(), track, csvio.ReaderOpts{Delim: delim}), name, 1)
+}
+
+func isJSONStream(track *Track, want int) error {
+	r := jsonio.NewValReader(track)
+	for range want {
+		if _, err := r.Next(); err != nil {
+			if errors.Is(err, io.EOF) {
+				err = nil
+			}
+			return err
+		}
+	}
+	return nil
 }
 
 func isParquetStream(ctx context.Context, track *Track) error {

@@ -20,7 +20,7 @@ type valReader struct {
 	line   int
 }
 
-func newValReader(r io.Reader) *valReader {
+func NewValReader(r io.Reader) *valReader {
 	return &valReader{r: r, buf: make([]byte, 512*1024)}
 }
 

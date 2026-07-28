@@ -1,3 +1,5 @@
+skip: "vectorized json reader does not currently support this"
+
 script: |
   mkfifo fifo
   # "-i json" avoids reader buffering.

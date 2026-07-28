@@ -12,7 +12,6 @@ import (
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/csvio"
-	"github.com/brimdata/super/sio/fjsonio"
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/lineio"
 	"github.com/brimdata/super/sio/parquetio"
@@ -41,10 +40,8 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 		return newVioPuller(sctx, csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "line":
 		return newVioPuller(sctx, lineio.NewReader(r)), nil
-	case "fjson":
-		return fjsonio.NewReader(context.Background(), sctx, r, opts.Pushdown, opts.ConcurrentReaders), nil
 	case "json":
-		return newVioPuller(sctx, jsonio.NewReader(sctx, r)), nil
+		return jsonio.NewReader(context.Background(), sctx, r, opts.Pushdown, opts.ConcurrentReaders), nil
 	case "parquet":
 		return parquetio.NewReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
 	case "sup":

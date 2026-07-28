@@ -1,6 +1,6 @@
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
 input: &input |

@@ -55,7 +55,7 @@ func (s *stream) next() (*vector.BytesTable, int, error) {
 }
 
 func (s *stream) run() {
-	r := newValReader(s.r)
+	r := NewValReader(s.r)
 	for {
 		batch, startLineNum, err := readBatch(r)
 		select {

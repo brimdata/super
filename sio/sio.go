@@ -40,8 +40,6 @@ func FormatFromPath(path string) string {
 		return "csup"
 	case ".csv":
 		return "csv"
-	case ".fjson":
-		return "fjson"
 	case ".json", ".jsonl", ".ndjson":
 		return "json"
 	case ".parquet":

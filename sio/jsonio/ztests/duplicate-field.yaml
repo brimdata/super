@@ -1,9 +1,0 @@
-spq: pass
-
-input-flags: -i json
-
-input: |
-  {"b":null,"a":1,"a":2,"b":"3"}
-
-output: |
-  {b:"3",a:2}

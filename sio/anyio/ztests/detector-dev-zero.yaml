@@ -9,7 +9,7 @@ outputs:
       	bsup: BSUP version mismatch: expected 5, found 0
       	csup: invalid CSUP header
       	csv: line 1: bufio: buffer full
-      	json: invalid character '\x00' looking for beginning of value
+      	json: line 1: value exceeded max buffer size
       	line: auto-detection not supported
       	parquet: invalid header
       	sup: short buffer

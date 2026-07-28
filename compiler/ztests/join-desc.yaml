@@ -33,6 +33,7 @@ inputs:
       from fruits
       | join (from people) on left.flavor=right.likes
       | values {...left,eater:right.name}
+      | sort name
 
 outputs:
   - name: stdout
@@ -49,7 +50,7 @@ outputs:
     data: |
       {name:"apple",color:"red",flavor:"tart",eater:"morgan"}
       {name:"apple",color:"red",flavor:"tart",eater:"chris"}
-      {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn"}
       {name:"banana",color:"yellow",flavor:"sweet",eater:"quinn"}
       {name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn"}
       {name:"figs",color:"brown",flavor:"plain",eater:"jessie"}
+      {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn"}

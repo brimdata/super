@@ -184,6 +184,7 @@ from fruit
   from people
 ) as {fruit,people} on fruit.flavor=people.likes
 | values {...fruit, eater:people.name}
+| sort flavor, name
 ```
 
 Populating the pools, then executing the query:
@@ -200,8 +201,8 @@ super db -s -I inner-join-pools.spq
 produces
 ```mdtest-output
 {name:"figs",color:"brown",flavor:"plain",eater:"jessie"}
-{name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn"}
 {name:"banana",color:"yellow",flavor:"sweet",eater:"quinn"}
+{name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn"}
 {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn"}
 {name:"apple",color:"red",flavor:"tart",eater:"chris"}
 {name:"apple",color:"red",flavor:"tart",eater:"morgan"}

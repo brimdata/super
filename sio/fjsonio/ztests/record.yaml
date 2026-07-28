@@ -1,6 +1,6 @@
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
 input: &input |
@@ -15,7 +15,7 @@ output: *input
 # Test fusion on record leaves.
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
 input: &input |
@@ -28,7 +28,7 @@ output: *input
 
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
 input: &input |
@@ -46,7 +46,7 @@ output: *input
 # an explicit defuse here.
 spq: defuse(this)
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
 input: &input |
@@ -60,7 +60,7 @@ output: *input
 # Test nested record
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
 input: &input |
@@ -75,13 +75,12 @@ output: *input
 # Test empty record
 spq: pass
 
-input-flags: '-i fjson'
+input-flags: '-i json'
 output-flags: '-f json'
 
-input: |
+input: &input |
   {}
   {}
+  {"a":{}}
 
-output: |
-  {}
-  {}
+output: *input
