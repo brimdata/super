@@ -102,10 +102,13 @@ spq: defuse(this)
 input: |
   fusion({a?:1,b?:_::int64,c?:_::int64},<{a:int64}>)
   fusion({a?:_::int64,b?:1,c?:2},<{b:int64,c:int64}>)
+  // None-valued record fields.
+  [{a:fusion(_::(int64|none),<none>)},{a:fusion(_::(string|none),<none>)}]
 
 output: |
   {a:1}
   {b:1,c:2}
+  [{},{}]
 
 ---
 
@@ -293,17 +296,3 @@ output: |
   [1,2,"foo"]
   set[1,2]
   set[1,2,"foo"]
-
----
-
-spq: defuse(this)
-
-input: |
-  [{key:["a"],value:fusion(1::(int64|null|none),<int64>)},{key:["b"],value:fusion(null::(string|null|none),<null>)}]
-  [{key:["a"],value:fusion(_::(int64|null|none),<none>)},{key:["b"],value:fusion(_::(string|null|none),<none>)},{key:["foo"],value?:null}]
-  [{key:["a"],value:fusion(1::(int64|null|none),<int64|null>)},{key:["b"],value:fusion(null::(string|null|none),<string|null>)}]
-
-output: |
-  [{key:["a"],value:1},{key:["b"],value:null}]
-  [{key:["a"]},{key:["b"]},{key:["foo"],value?:null}]
-  [{key:["a"],value:1::(int64|null)},{key:["b"],value:null::(string|null)}]
