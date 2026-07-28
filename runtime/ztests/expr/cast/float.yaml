@@ -3,7 +3,9 @@ spq: values this::float16, this::float32, this::float64
 input: |
   "1.5"
   "-6.9e20"
+  "3.1415926535"
   "foo"
+  3.1415926535
   1::uint64
   1000000000::uint64
   type named=int64
@@ -21,9 +23,15 @@ output: |
   -Inf::float16
   -6.9e+20::float32
   -6.9e+20
+  3.140625::float16
+  3.1415927::float32
+  3.1415926535
   error({message:"cannot cast to float16",on:"foo"})
   error({message:"cannot cast to float32",on:"foo"})
   error({message:"cannot cast to float64",on:"foo"})
+  3.140625::float16
+  3.1415927::float32
+  3.1415926535
   1.::float16
   1.::float32
   1.
