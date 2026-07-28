@@ -1,6 +1,7 @@
 package agg
 
 import (
+	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
@@ -17,15 +18,45 @@ func (c *collect) Consume(vec vector.Any) {
 }
 
 func (c *collect) consume(vecs ...vector.Any) vector.Any {
-	vec := vecs[0]
-	if vec.Len() == 0 || vec.Kind() == vector.KindNull {
-		return vector.NewNull(vec.Len())
+	vec := filterNulls(vecs[0])
+	if vec.Len() == 0 {
+		return vector.NewNull(vecs[0].Len())
 	}
 	if c.builder == nil {
 		c.builder = vbuild.NewDynamicBuilder()
 	}
 	c.builder.Write(vec)
-	return vector.NewNull(vec.Len())
+	return vector.NewNull(vecs[0].Len())
+}
+
+func filterNulls(vec vector.Any) vector.Any {
+	switch mask := nullsMask(vec); {
+	case mask.IsEmpty():
+		return vec
+	case mask.GetCardinality() == uint64(vec.Len()):
+		return vector.NewNull(0)
+	default:
+		return vector.ReversePick(vec, mask.ToArray())
+	}
+}
+
+func nullsMask(vec vector.Any) *roaring.Bitmap {
+	vec = vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
+		return vecs[0]
+	}, vec)
+	bm := roaring.New()
+	if dynamic, ok := vec.(*vector.Dynamic); ok {
+		for i, vec := range dynamic.Values {
+			if vec.Len() > 0 && vec.Kind() == vector.KindNull {
+				bm.AddMany(dynamic.ReverseTagMap()[i])
+			}
+		}
+		return bm
+	}
+	if vec.Len() > 0 && vec.Kind() == vector.KindNull {
+		bm.AddRange(0, uint64(vec.Len()))
+	}
+	return bm
 }
 
 func (c *collect) Result(sctx *super.Context) vector.Any {
