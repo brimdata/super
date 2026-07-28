@@ -72,6 +72,7 @@ func (d *Defuse) defuseRecord(vec vector.Any) vector.Any {
 	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
 		n := vecs[len(vecs)-1].Len()
 		vecs = vecs[:len(vecs)-1]
+		fieldVecs := vecs[:0]
 		var fields []super.Field
 		for i, f := range rec.Typ.Fields {
 			vec := vecs[i]
@@ -79,9 +80,10 @@ func (d *Defuse) defuseRecord(vec vector.Any) vector.Any {
 				continue
 			}
 			fields = append(fields, super.NewField(f.Name, vec.Type()))
+			fieldVecs = append(fieldVecs, vec)
 		}
 		typ := d.sctx.MustLookupTypeRecord(fields)
-		return vector.NewRecord(typ, vecs, n)
+		return vector.NewRecord(typ, fieldVecs, n)
 	}, vecs...)
 }
 
