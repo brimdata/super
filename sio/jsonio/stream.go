@@ -1,4 +1,4 @@
-package fjsonio
+package jsonio
 
 import (
 	"context"

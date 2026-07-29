@@ -1,4 +1,4 @@
-package fjsonio
+package jsonio
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/fjsonio/jsonvec"
+	"github.com/brimdata/super/sio/jsonio/jsonvec"
 	"github.com/brimdata/super/vector"
 )
 
