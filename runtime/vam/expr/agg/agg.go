@@ -33,6 +33,10 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		pattern = func() Func {
 			return &avg{}
 		}
+	case "array_agg":
+		pattern = func() Func {
+			return &arrayAgg{}
+		}
 	case "blend":
 		pattern = func() Func {
 			return newFuse(false)

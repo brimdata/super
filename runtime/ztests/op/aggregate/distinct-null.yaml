@@ -1,8 +1,8 @@
 spq: |
-  avg(distinct this), count(distinct this), collect(distinct this), sum(distinct this)
+  avg(distinct this), array_agg(distinct this), count(distinct this), collect(distinct this), sum(distinct this)
 
 input: |
   null
 
 output: |
-  {avg:null,count:0,collect:null,sum:null}
+  {avg:null,array_agg:null,count:0,collect:[],sum:null}

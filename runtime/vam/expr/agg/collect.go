@@ -61,7 +61,8 @@ func nullsMask(vec vector.Any) *roaring.Bitmap {
 
 func (c *collect) Result(sctx *super.Context) vector.Any {
 	if c.builder == nil {
-		return vector.NewNull(1)
+		atyp := sctx.LookupTypeArray(super.TypeNone)
+		return vector.NewArray(atyp, []uint32{0, 0}, vector.NewNone(0))
 	}
 	vec := c.builder.Build()
 	if dynamic, ok := vec.(*vector.Dynamic); ok {
@@ -77,9 +78,18 @@ func (c *collect) ConsumeAsPartial(partial vector.Any) {
 }
 
 func (c *collect) ResultAsPartial(sctx *super.Context) vector.Any {
-	if c.builder == nil {
-		atyp := sctx.LookupTypeArray(super.TypeNone)
-		return vector.NewArray(atyp, []uint32{0, 0}, vector.NewNone(0))
-	}
 	return c.Result(sctx)
+}
+
+// arrayAgg is the same as collect, except if nothing was collected it returns
+// null instead of an empty array.
+type arrayAgg struct {
+	collect
+}
+
+func (a *arrayAgg) Result(sctx *super.Context) vector.Any {
+	if a.collect.builder == nil {
+		return vector.NewNull(1)
+	}
+	return a.collect.Result(sctx)
 }

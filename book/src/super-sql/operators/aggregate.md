@@ -182,8 +182,8 @@ array:=collect(v) filter (k=="foo")
 {k:"foo",v:3}
 {k:"baz",v:4}
 # expected output
-{key:"bar",set:set[2],array:null}
-{key:"baz",set:set[4],array:null}
+{key:"bar",set:set[2],array:[]}
+{key:"baz",set:set[4],array:[]}
 {key:"foo",set:set[3],array:[1,3]}
 ```
 
