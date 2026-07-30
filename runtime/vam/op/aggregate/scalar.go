@@ -65,7 +65,6 @@ func (s *scalarAggregate) Pull(done bool) (vector.Any, error) {
 }
 
 func (s *scalarAggregate) consume(vecs ...vector.Any) vector.Any {
-	vector.ClearNoRips(vecs)
 	for i, vec := range vecs {
 		vec, ok := removeQuiet(vec)
 		if !ok {

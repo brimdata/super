@@ -18,7 +18,9 @@ type NoRip struct {
 
 // Apply applies eval to vecs. If any element of vecs is a Dynamic, Apply rips
 // vecs accordingly, applies eval to the ripped vectors, and stitches the
-// results together into a Dynamic.
+// results together into a Dynamic.  For NoRip elements in vecs, Apply does not
+// rip the element but unwraps it (i.e, replaces it with NoRip.Any) before
+// calling eval.
 func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	if opt&ApplyRipFusions != 0 {
 		for k, vec := range vecs {
@@ -40,6 +42,11 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	d, ok := findDynamic(vecs)
 	if !ok {
+		for k, vec := range vecs {
+			if vec, ok := vec.(*NoRip); ok {
+				vecs[k] = vec.Any
+			}
+		}
 		return eval(vecs...)
 	}
 	results := make([]Any, len(d.Values))
@@ -138,12 +145,4 @@ func AddNoRip(vec Any) Any {
 		return NewDynamic(dynamic.Tags, vals)
 	}
 	return &NoRip{vec}
-}
-
-func ClearNoRips(vecs []Any) {
-	for i, vec := range vecs {
-		if norip, ok := vec.(*NoRip); ok {
-			vecs[i] = norip.Any
-		}
-	}
 }

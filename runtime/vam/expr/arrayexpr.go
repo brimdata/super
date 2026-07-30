@@ -48,7 +48,6 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 }
 
 func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
-	vector.ClearNoRips(in)
 	offsets, inner := buildList(a.sctx, a.elems, in)
 	return vector.NewArray(a.sctx.LookupTypeArray(inner.Type()), offsets, inner)
 }

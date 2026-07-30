@@ -93,8 +93,6 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 }
 
 func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
-	vector.ClearNoRips(keys)
-	vector.ClearNoRips(vals)
 	keys, vals, ok := removeQuietRows(keys, vals)
 	if !ok || keys[0].Len() == 0 {
 		return
