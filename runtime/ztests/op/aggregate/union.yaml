@@ -18,7 +18,7 @@ input: |
   null
 
 output: |
-  set[[]::[string]]
+  set[null,[]::[string]]
   
 ---
 
@@ -30,3 +30,13 @@ input: |
 
 output: |
   set[1]
+
+---
+
+# Test empty unions
+spq: union(this) filter(false)
+
+input: '1'
+
+output: |
+  null
