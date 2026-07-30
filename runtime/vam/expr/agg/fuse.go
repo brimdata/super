@@ -70,7 +70,7 @@ func (f *fuse) Result(sctx *super.Context) vector.Any {
 
 func (f *fuse) ConsumeAsPartial(partial vector.Any) {
 	kind := partial.Kind()
-	if kind == vector.KindNull {
+	if kind == vector.KindNull || kind == vector.KindNone {
 		return
 	}
 	if kind != vector.KindType {

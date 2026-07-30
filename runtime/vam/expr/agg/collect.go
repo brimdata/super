@@ -18,42 +18,42 @@ func (c *collect) Consume(vec vector.Any) {
 }
 
 func (c *collect) consume(vecs ...vector.Any) vector.Any {
-	vec := filterNulls(vecs[0])
+	vec := filterNones(vecs[0])
 	if vec.Len() == 0 {
-		return vector.NewNull(vecs[0].Len())
+		return vector.NewNone(vecs[0].Len())
 	}
 	if c.builder == nil {
 		c.builder = vbuild.NewDynamicBuilder()
 	}
 	c.builder.Write(vec)
-	return vector.NewNull(vecs[0].Len())
+	return vector.NewNone(vecs[0].Len())
 }
 
-func filterNulls(vec vector.Any) vector.Any {
-	switch mask := nullsMask(vec); {
+func filterNones(vec vector.Any) vector.Any {
+	switch mask := nonesMask(vec); {
 	case mask.IsEmpty():
 		return vec
 	case mask.GetCardinality() == uint64(vec.Len()):
-		return vector.NewNull(0)
+		return vector.NewNone(0)
 	default:
 		return vector.ReversePick(vec, mask.ToArray())
 	}
 }
 
-func nullsMask(vec vector.Any) *roaring.Bitmap {
+func nonesMask(vec vector.Any) *roaring.Bitmap {
 	vec = vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		return vecs[0]
 	}, vec)
 	bm := roaring.New()
 	if dynamic, ok := vec.(*vector.Dynamic); ok {
 		for i, vec := range dynamic.Values {
-			if vec.Len() > 0 && vec.Kind() == vector.KindNull {
+			if vec.Len() > 0 && vec.Kind() == vector.KindNone {
 				bm.AddMany(dynamic.ReverseTagMap()[i])
 			}
 		}
 		return bm
 	}
-	if vec.Len() > 0 && vec.Kind() == vector.KindNull {
+	if vec.Len() > 0 && vec.Kind() == vector.KindNone {
 		bm.AddRange(0, uint64(vec.Len()))
 	}
 	return bm

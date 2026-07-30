@@ -51,11 +51,11 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 	bools, _ := BoolMask(where)
 	if bools.IsEmpty() {
 		// everything is filtered.
-		return vector.NewNull(vec.Len())
+		return vector.NewNone(vec.Len())
 	}
 	if bools.GetCardinality() != uint64(vec.Len()) {
 		index := bools.ToArray()
-		nulls := vector.NewNull(vec.Len() - uint32(len(index)))
+		nulls := vector.NewNone(vec.Len() - uint32(len(index)))
 		vec = vector.Combine(nulls, index, vector.Pick(vec, index))
 	}
 	if a.NoRip {

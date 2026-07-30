@@ -16,4 +16,14 @@ output-flags: -fusion
 
 output: |
   type foo=int64
-  [{a:1},{a:2},{b:1.5},error("missing"),1::foo,fusion(1::(int64|null),<int64>)]
+  [{a:1},{a:2},null,{b:1.5},error("missing"),1::foo,fusion(1::(int64|null),<int64>),fusion(null::(int64|null),<null>)]
+
+---
+
+# Test empty array_agg
+spq: array_agg(this) filter (false)
+
+input: '1'
+
+output: |
+  null
