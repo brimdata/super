@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -18,7 +18,7 @@ func NewLiteralCast(sctx *super.Context, expr Evaluator, literal *Literal) (Eval
 			return nil, err
 		}
 		if typ.ID() >= super.IDTypeComplex {
-			return nil, fmt.Errorf("cast: casting to type %s not currently supported in vector runtime", sup.FormatType(typ))
+			return nil, fmt.Errorf("cast: casting to type %s not currently supported in vector runtime", tsup.FormatType(typ))
 		}
 		return &casterPrimitive{sctx, expr, typ}, nil
 	case super.IDString:
@@ -28,7 +28,7 @@ func NewLiteralCast(sctx *super.Context, expr Evaluator, literal *Literal) (Eval
 		}
 		return &casterNamedType{sctx, expr, name}, nil
 	default:
-		return nil, fmt.Errorf("cast type argument is not a type: %s", sup.FormatValue(typeVal))
+		return nil, fmt.Errorf("cast type argument is not a type: %s", tsup.FormatValue(typeVal))
 	}
 }
 

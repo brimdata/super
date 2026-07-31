@@ -3,11 +3,11 @@ package seekindex
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Writer struct {
-	marshal *sup.MarshalBSUPContext
+	marshal *tsup.MarshalBSUPContext
 	writer  sio.WriteCloser
 	offset  uint64
 	valoff  uint64
@@ -15,7 +15,7 @@ type Writer struct {
 
 func NewWriter(w sio.WriteCloser) *Writer {
 	return &Writer{
-		marshal: sup.NewBSUPMarshaler(),
+		marshal: tsup.NewBSUPMarshaler(),
 		writer:  w,
 	}
 }

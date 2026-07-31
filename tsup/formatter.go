@@ -1,4 +1,4 @@
-package sup
+package tsup
 
 import (
 	"encoding/hex"
@@ -768,7 +768,7 @@ func String(p any) string {
 	case super.Value:
 		return FormatValue(val)
 	default:
-		panic(fmt.Sprintf("sup.String takes a super.Type or *super.Value: %T", val))
+		panic(fmt.Sprintf("tsup.String takes a super.Type or *super.Value: %T", val))
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Unflatten struct {
@@ -97,7 +97,7 @@ func (u *Unflatten) parseElem(inner super.Type, vb scode.Bytes) (field.Path, sup
 	if a, ok := super.TypeUnder(ktyp).(*super.TypeArray); ok && a.Type.ID() == super.IDString {
 		return u.decodeKey(kbytes), vtyp, vbytes, nil
 	}
-	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", sup.FormatType(ktyp))
+	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", tsup.FormatType(ktyp))
 }
 
 func (u *Unflatten) decodeKey(b scode.Bytes) field.Path {

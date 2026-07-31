@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Union struct {
@@ -27,7 +27,7 @@ func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any) *Union {
 func NewUnionOfOne(typ *super.TypeUnion, vec Any) *Union {
 	tag := typ.TagOf(vec.Type())
 	if tag < 0 {
-		panic(fmt.Sprintf("trying to put %s inside %s", sup.String(vec.Type()), sup.String(typ)))
+		panic(fmt.Sprintf("trying to put %s inside %s", tsup.String(vec.Type()), tsup.String(typ)))
 	}
 	tags := make([]uint32, vec.Len())
 	for k := range tags {
@@ -101,10 +101,10 @@ func verifyUnion(utyp *super.TypeUnion, vecs []Any) {
 	for _, vec := range vecs {
 		typ := vec.Type()
 		if utyp.TagOf(typ) == -1 {
-			panic(fmt.Sprintf("NewUnion: type %s not a member of union %s", sup.FormatType(vec.Type()), sup.FormatType(utyp)))
+			panic(fmt.Sprintf("NewUnion: type %s not a member of union %s", tsup.FormatType(vec.Type()), tsup.FormatType(utyp)))
 		}
 		if _, ok := seen[typ]; ok {
-			panic(fmt.Sprintf("NewUnion: multiple vectors with the same type %s", sup.FormatType(typ)))
+			panic(fmt.Sprintf("NewUnion: multiple vectors with the same type %s", tsup.FormatType(typ)))
 		}
 		seen[typ] = struct{}{}
 	}

@@ -2,7 +2,7 @@ package cast
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -96,7 +96,7 @@ func castNamed(sctx *super.Context, vec vector.Any, named *super.TypeNamed) vect
 }
 
 func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type, msgSuffix string) vector.Any {
-	msg := "cannot cast to " + sup.FormatType(typ)
+	msg := "cannot cast to " + tsup.FormatType(typ)
 	if msgSuffix != "" {
 		msg = msg + ": " + msgSuffix
 	}

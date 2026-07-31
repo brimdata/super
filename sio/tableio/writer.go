@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/zeekio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -40,7 +40,7 @@ func (w *Writer) Push(vec vector.Any) error {
 
 func (w *Writer) Write(r super.Value) error {
 	if r.Type().Kind() != super.RecordKind {
-		return fmt.Errorf("table output encountered non-record value: %s", sup.FormatValue(r))
+		return fmt.Errorf("table output encountered non-record value: %s", tsup.FormatValue(r))
 	}
 	r, err := w.flattener.Flatten(r)
 	if err != nil {

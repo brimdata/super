@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +35,7 @@ func TestReadOneLineNoEOF(t *testing.T) {
 	case res := <-done:
 		require.NoError(t, res.err)
 		rec := res.val
-		assert.Equal(t, expected, sup.String(rec))
+		assert.Equal(t, expected, tsup.String(rec))
 	}
 }
 

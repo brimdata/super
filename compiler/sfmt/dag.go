@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func DAG(main *dag.Main) string {
@@ -219,7 +219,7 @@ func (c *canonDAG) recordElems(elems []dag.RecordElem) {
 		}
 		switch e := elem.(type) {
 		case *dag.Field:
-			c.write(sup.QuotedName(e.Name))
+			c.write(tsup.QuotedName(e.Name))
 			c.write(":")
 			c.expr(e.Value, "")
 		case *dag.Spread:

@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Caster interface {
@@ -124,7 +124,7 @@ func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 }
 
 func (c *cast) error(from super.Value, to super.Type) (super.Value, bool) {
-	return c.sctx.WrapError("cannot cast to "+sup.FormatType(to), from), false
+	return c.sctx.WrapError("cannot cast to "+tsup.FormatType(to), from), false
 }
 
 func (c *cast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bool) {

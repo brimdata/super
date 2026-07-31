@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -25,7 +25,7 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 	}
 	defer r.Close()
 	var ranges seekindex.Ranges
-	unmarshaler := sup.NewBSUPUnmarshaler()
+	unmarshaler := tsup.NewBSUPUnmarshaler()
 	reader := bsupio.NewReader(super.NewContext(), r)
 	defer reader.Close()
 	for {
@@ -39,7 +39,7 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 		}
 		var entry seekindex.Entry
 		if err := unmarshaler.Unmarshal(*val, &entry); err != nil {
-			return nil, fmt.Errorf("corrupt seek index entry for %q at value: %q (%w)", obj.ID.String(), sup.String(val), err)
+			return nil, fmt.Errorf("corrupt seek index entry for %q at value: %q (%w)", obj.ID.String(), tsup.String(val), err)
 		}
 		ranges.Append(entry)
 	}
@@ -61,7 +61,7 @@ func readSeekIndex(ctx context.Context, engine storage.Engine, path *storage.URI
 	}
 	defer r.Close()
 	zr := bsupio.NewReader(super.NewContext(), r)
-	u := sup.NewBSUPUnmarshaler()
+	u := tsup.NewBSUPUnmarshaler()
 	var index seekindex.Index
 	for {
 		val, err := zr.Read()

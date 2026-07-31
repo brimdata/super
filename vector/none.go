@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // A None vector arises from values not present in option types.
@@ -43,7 +43,7 @@ func (*None) Type() super.Type {
 func NewOptionNone(sctx *super.Context, optionType *super.TypeUnion, length uint32) *Union {
 	u, noneTag := super.OptionUnion(optionType)
 	if u == nil {
-		panic(sup.FormatType(optionType))
+		panic(tsup.FormatType(optionType))
 	}
 	tags := make([]uint32, length)
 	for k := range length {

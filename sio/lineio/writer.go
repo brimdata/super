@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -33,7 +33,7 @@ func (w *Writer) Write(val super.Value) error {
 	if _, ok := super.TypeUnder(val.Type()).(*super.TypeOfString); ok {
 		s = super.DecodeString(val.Bytes())
 	} else {
-		s = sup.FormatValue(val)
+		s = tsup.FormatValue(val)
 	}
 	_, err := fmt.Fprintln(w.writer, s)
 	return err

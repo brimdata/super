@@ -18,7 +18,7 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
@@ -216,14 +216,14 @@ func idToHex(id ksuid.KSUID) string {
 }
 
 type buffer struct {
-	unmarshaler *sup.UnmarshalBSUPContext
+	unmarshaler *tsup.UnmarshalBSUPContext
 	results     []any
 }
 
 var _ sio.Writer = (*buffer)(nil)
 
 func newBuffer(types ...any) *buffer {
-	u := sup.NewBSUPUnmarshaler()
+	u := tsup.NewBSUPUnmarshaler()
 	u.Bind(types...)
 	return &buffer{unmarshaler: u}
 }

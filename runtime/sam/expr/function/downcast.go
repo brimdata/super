@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type downcast struct {
@@ -277,13 +277,13 @@ func (d *downcast) toError(typ super.Type, bytes scode.Bytes, to *super.TypeErro
 }
 
 func (d *downcast) errNonOptionNone(to super.Type) *super.Value {
-	return d.sctx.NewErrorf("downcast: none value in non-option type: %s", sup.FormatType(to)).Ptr()
+	return d.sctx.NewErrorf("downcast: none value in non-option type: %s", tsup.FormatType(to)).Ptr()
 }
 
 func (d *downcast) errMismatch(typ super.Type, bytes []byte, to super.Type) *super.Value {
-	return d.sctx.WrapError("downcast: type mismatch to "+sup.FormatType(to), super.NewValue(typ, bytes)).Ptr()
+	return d.sctx.WrapError("downcast: type mismatch to "+tsup.FormatType(to), super.NewValue(typ, bytes)).Ptr()
 }
 
 func (d *downcast) errSubtype(typ super.Type, bytes []byte, to super.Type) *super.Value {
-	return d.sctx.WrapError("downcast: invalid subtype "+sup.FormatType(to), super.NewValue(typ, bytes)).Ptr()
+	return d.sctx.WrapError("downcast: invalid subtype "+tsup.FormatType(to), super.NewValue(typ, bytes)).Ptr()
 }

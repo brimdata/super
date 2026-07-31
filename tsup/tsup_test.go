@@ -1,4 +1,4 @@
-package sup_test
+package tsup_test
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/pkg/fs"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +18,7 @@ func parse(path string) (ast.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sup.NewParser(file).ParseValue()
+	return tsup.NewParser(file).ParseValue()
 }
 
 const testFile = "test.sup"
@@ -31,12 +31,12 @@ func TestSUPParser(t *testing.T) {
 	assert.NotEqual(t, s, "")
 }
 
-func analyze(sctx *super.Context, path string) (sup.Value, error) {
+func analyze(sctx *super.Context, path string) (tsup.Value, error) {
 	val, err := parse(path)
 	if err != nil {
 		return nil, err
 	}
-	return sup.NewAnalyzer(sctx).ConvertValue(val)
+	return tsup.NewAnalyzer(sctx).ConvertValue(val)
 }
 
 func TestSUPAnalyzer(t *testing.T) {
@@ -51,16 +51,16 @@ func TestSUPBuilder(t *testing.T) {
 	val, err := analyze(sctx, testFile)
 	require.NoError(t, err)
 	b := scode.NewBuilder()
-	zv, err := sup.Build(b, val)
+	zv, err := tsup.Build(b, val)
 	require.NoError(t, err)
 	rec := super.NewValue(zv.Type().(*super.TypeRecord), zv.Bytes())
 	a := rec.Deref("a")
-	assert.Equal(t, `["1","2","3"]`, sup.String(a))
+	assert.Equal(t, `["1","2","3"]`, tsup.String(a))
 }
 
 func TestFormatPrimitiveLengthZero(t *testing.T) {
-	assert.Equal(t, `""`, sup.FormatPrimitive(super.TypeString, nil))
-	assert.Equal(t, `""`, sup.FormatPrimitive(super.TypeString, []byte{}))
+	assert.Equal(t, `""`, tsup.FormatPrimitive(super.TypeString, nil))
+	assert.Equal(t, `""`, tsup.FormatPrimitive(super.TypeString, []byte{}))
 }
 
 func TestParseValueStringEscapeSequences(t *testing.T) {
@@ -72,7 +72,7 @@ func TestParseValueStringEscapeSequences(t *testing.T) {
 		{` "\u0000\u000A\u000b" `, "\u0000\u000A\u000b"},
 	}
 	for _, c := range cases {
-		val, err := sup.ParseValue(super.NewContext(), c.in)
+		val, err := tsup.ParseValue(super.NewContext(), c.in)
 		assert.NoError(t, err)
 		assert.Equal(t, super.NewString(c.expected), val, "in %q", c.in)
 	}
@@ -102,7 +102,7 @@ func TestParseValueErrors(t *testing.T) {
 		{` "\v" `, `line 1: parse error: string literal: illegal escape (\v)`},
 	}
 	for _, c := range cases {
-		_, err := sup.ParseValue(super.NewContext(), c.in)
+		_, err := tsup.ParseValue(super.NewContext(), c.in)
 		assert.EqualError(t, err, c.expectedError, "in: %q", c.in)
 	}
 }

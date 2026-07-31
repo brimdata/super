@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func FormatValue(val super.Value) string {
@@ -60,12 +60,12 @@ func formatAny(val super.Value, inContainer bool) string {
 	case *super.TypeOfString:
 		return formatString(val.Bytes(), inContainer)
 	case *super.TypeOfType:
-		return sup.String(val)
+		return tsup.String(val)
 	case *super.TypeError:
 		if super.TypeUnder(t.Type) == super.TypeString {
 			return string(val.Bytes())
 		}
-		return sup.FormatValue(val)
+		return tsup.FormatValue(val)
 	default:
 		return fmt.Sprintf("zeekio.StringOf: unknown type: %T", t)
 	}

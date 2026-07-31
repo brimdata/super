@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/x448/float16"
 )
@@ -131,7 +131,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string,
 			b.Reset()
 			vec.Serialize(&b, idx)
 			v := super.NewValue(vec.Type(), b.Bytes().Body())
-			bytes = append(bytes, sup.FormatValue(v)...)
+			bytes = append(bytes, tsup.FormatValue(v)...)
 			offs = append(offs, uint32(len(bytes)))
 		}
 	}

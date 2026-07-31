@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/csupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/require"
 )
@@ -47,9 +47,9 @@ func TestCSUPBatchBug(t *testing.T) {
 	var b bytes.Buffer
 	w := csup.NewSerializer(sio.NopCloser(&b))
 	sctx := super.NewContext()
-	v1, err := sup.ParseValue(sctx, `{a: [1,2,3]}`)
+	v1, err := tsup.ParseValue(sctx, `{a: [1,2,3]}`)
 	require.NoError(t, err)
-	val2, err := sup.ParseValue(sctx, `{a:[4,5]}`)
+	val2, err := tsup.ParseValue(sctx, `{a:[4,5]}`)
 	require.NoError(t, err)
 	err = w.Push(valToVec(sctx, v1))
 	require.NoError(t, err)
@@ -62,10 +62,10 @@ func TestCSUPBatchBug(t *testing.T) {
 	r := sbuf.PullerReader(sbuf.NewMaterializer(p))
 	val, err := r.Read()
 	require.NoError(t, err)
-	require.Equal(t, "{a:[1,2,3]}", sup.String(val))
+	require.Equal(t, "{a:[1,2,3]}", tsup.String(val))
 	val, err = r.Read()
 	require.NoError(t, err)
-	require.Equal(t, "{a:[4,5]}", sup.String(val))
+	require.Equal(t, "{a:[4,5]}", tsup.String(val))
 }
 
 func valToVec(sctx *super.Context, val super.Value) vector.Any {

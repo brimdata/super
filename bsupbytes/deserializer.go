@@ -5,12 +5,12 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Deserializer struct {
 	reader      *bsupio.Reader
-	unmarshaler *sup.UnmarshalBSUPContext
+	unmarshaler *tsup.UnmarshalBSUPContext
 }
 
 func NewDeserializer(reader io.Reader, templates []any) *Deserializer {
@@ -18,7 +18,7 @@ func NewDeserializer(reader io.Reader, templates []any) *Deserializer {
 }
 
 func NewDeserializerWithContext(sctx *super.Context, reader io.Reader, templates []any) *Deserializer {
-	u := sup.NewBSUPUnmarshaler()
+	u := tsup.NewBSUPUnmarshaler()
 	u.Bind(templates...)
 	return &Deserializer{
 		reader:      bsupio.NewReader(sctx, reader),

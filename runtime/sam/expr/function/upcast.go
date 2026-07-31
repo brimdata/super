@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Upcast struct {
@@ -27,7 +27,7 @@ func (u *Upcast) Call(args []super.Value) super.Value {
 	}
 	val, ok := u.Cast(from, typ)
 	if !ok {
-		return u.sctx.WrapError("upcast: value not a subtype of "+sup.FormatType(typ), from)
+		return u.sctx.WrapError("upcast: value not a subtype of "+tsup.FormatType(typ), from)
 	}
 	return val
 }

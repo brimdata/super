@@ -2,7 +2,7 @@ package cast
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -19,7 +19,7 @@ func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 			if index != nil {
 				idx = index[i]
 			}
-			val, err := sup.ParseValue(sctx, vec.Value(idx))
+			val, err := tsup.ParseValue(sctx, vec.Value(idx))
 			if err != nil || val.Type().ID() != super.IDType {
 				errs = append(errs, i)
 				continue

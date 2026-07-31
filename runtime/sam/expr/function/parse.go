@@ -8,16 +8,16 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type ParseURI struct {
 	sctx      *super.Context
-	marshaler *sup.MarshalBSUPContext
+	marshaler *tsup.MarshalBSUPContext
 }
 
 func NewParseURI(sctx *super.Context) *ParseURI {
-	return &ParseURI{sctx, sup.NewBSUPMarshalerWithContext(sctx)}
+	return &ParseURI{sctx, tsup.NewBSUPMarshalerWithContext(sctx)}
 }
 
 func (p *ParseURI) Call(args []super.Value) super.Value {

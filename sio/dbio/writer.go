@@ -17,7 +17,7 @@ import (
 	"github.com/brimdata/super/pkg/units"
 	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
 )
@@ -28,7 +28,7 @@ type WriterOpts struct {
 
 type Writer struct {
 	writer   io.WriteCloser
-	sup      *sup.StreamFormatter
+	sup      *tsup.StreamFormatter
 	commits  table
 	branches map[ksuid.KSUID][]string
 	width    int
@@ -40,7 +40,7 @@ type Writer struct {
 func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 	writer := &Writer{
 		writer:   w,
-		sup:      sup.NewStreamFormatter(0, false),
+		sup:      tsup.NewStreamFormatter(0, false),
 		commits:  make(table),
 		branches: make(map[ksuid.KSUID][]string),
 		width:    80, //XXX
@@ -157,17 +157,17 @@ func formatDataObject(b *bytes.Buffer, object *data.Object, prefix string, inden
 	b.WriteString("\n  ")
 	tab(b, indent)
 	b.WriteString(" min ")
-	b.WriteString(sup.String(object.Min))
+	b.WriteString(tsup.String(object.Min))
 	b.WriteString(" max ")
-	b.WriteString(sup.String(object.Max))
+	b.WriteString(tsup.String(object.Max))
 	b.WriteByte('\n')
 }
 
 func formatPartition(b *bytes.Buffer, p meta.Partition) {
 	b.WriteString("min ")
-	b.WriteString(sup.String(p.Min))
+	b.WriteString(tsup.String(p.Min))
 	b.WriteString(" max ")
-	b.WriteString(sup.String(p.Max))
+	b.WriteString(tsup.String(p.Max))
 	b.WriteByte('\n')
 	for _, o := range p.Objects {
 		formatDataObject(b, o, "", 2)

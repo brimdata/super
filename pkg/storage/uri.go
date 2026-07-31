@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type URI url.URL
@@ -69,6 +69,6 @@ func (u *URI) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (u *URI) MarshalBSUP(mc *sup.MarshalBSUPContext) (super.Type, error) {
+func (u *URI) MarshalBSUP(mc *tsup.MarshalBSUPContext) (super.Type, error) {
 	return mc.MarshalValue(u.String())
 }

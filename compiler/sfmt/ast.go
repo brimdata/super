@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func AST(p ast.Seq) string {
@@ -172,7 +172,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(e.Text)
 	case *ast.StarExpr:
 		if e.Table != "" {
-			c.write(sup.QuotedName(e.Table))
+			c.write(tsup.QuotedName(e.Table))
 			c.write(".")
 		}
 		c.write("*")
@@ -184,7 +184,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			}
 			switch e := elem.(type) {
 			case *ast.FieldElem:
-				c.write(sup.QuotedName(e.Name.Text))
+				c.write(tsup.QuotedName(e.Name.Text))
 				c.write(":")
 				c.expr(e.Value, "")
 			case *ast.ExprElem:
@@ -281,7 +281,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.expr(e.Upper, "")
 		c.write(")")
 	case *ast.SQLTimeExpr:
-		c.write("%s %s", strings.ToUpper(e.Type), sup.QuotedString(e.Value.Text))
+		c.write("%s %s", strings.ToUpper(e.Type), tsup.QuotedString(e.Value.Text))
 	case *ast.TupleExpr:
 		c.write("(")
 		c.exprs(e.Elems)
@@ -445,7 +445,7 @@ func (c *canon) decl(d ast.Decl) {
 		c.write(")")
 		c.head, c.first = true, true
 	case *ast.TypeDecl:
-		c.write("type %s = ", sup.QuotedName(d.Name.Name))
+		c.write("type %s = ", tsup.QuotedName(d.Name.Name))
 		c.typ(d.Type)
 	default:
 		c.open("unknown decl: %T", d)
@@ -525,7 +525,7 @@ func (c *canon) op(p ast.Op) {
 		c.close()
 	case *ast.CallOp:
 		c.next()
-		c.write("call %s ", sup.QuotedName(p.Name.Name))
+		c.write("call %s ", tsup.QuotedName(p.Name.Name))
 		c.funcOrExprs(p.Args)
 	case *ast.CountOp:
 		c.next()
@@ -552,7 +552,7 @@ func (c *canon) op(p ast.Op) {
 		c.sortExprs(p.Exprs)
 	case *ast.LoadOp:
 		c.next()
-		c.write("load %s", sup.QuotedString(p.Pool.Text))
+		c.write("load %s", tsup.QuotedString(p.Pool.Text))
 		c.opArgs(p.Args)
 	case *ast.HeadOp:
 		c.next()
@@ -835,12 +835,12 @@ func (c *canon) sqlFromItem(item *ast.SQLFromItem) {
 }
 
 func (c *canon) tableAlias(alias *ast.TableAlias) {
-	c.write(" as %s", sup.QuotedName(alias.Name))
+	c.write(" as %s", tsup.QuotedName(alias.Name))
 	if len(alias.Columns) != 0 {
 		c.write(" (")
 		var comma string
 		for _, col := range alias.Columns {
-			c.write("%s%s", comma, sup.QuotedName(col.Name))
+			c.write("%s%s", comma, tsup.QuotedName(col.Name))
 			comma = ", "
 		}
 		c.write(")")
@@ -856,7 +856,7 @@ func (c *canon) fromSource(s ast.FromSource) {
 	case *ast.RegexpExpr:
 		c.write("/" + s.Pattern + "/")
 	case *ast.Text:
-		c.write(sup.QuotedName(s.Text))
+		c.write(tsup.QuotedName(s.Text))
 	default:
 		panic(s)
 	}
@@ -968,7 +968,7 @@ func (c *canon) opArgs(args []ast.OpArg) {
 	for _, arg := range args {
 		switch arg := arg.(type) {
 		case *ast.ArgText:
-			c.write(" %s %s", arg.Key, sup.QuotedName(arg.Value.Text))
+			c.write(" %s %s", arg.Key, tsup.QuotedName(arg.Value.Text))
 		case *ast.ArgExpr:
 			c.write(" %s ", arg.Key)
 			c.expr(arg.Value, "")

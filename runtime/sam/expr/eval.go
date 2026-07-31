@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Evaluator interface {
@@ -449,7 +449,7 @@ func (a *Add) Eval(this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)+toFloat(rhsVal))
 	}
-	return a.sctx.NewErrorf("type %s incompatible with '+' operator", sup.FormatType(typ))
+	return a.sctx.NewErrorf("type %s incompatible with '+' operator", tsup.FormatType(typ))
 }
 
 func (s *Subtract) Eval(this super.Value) super.Value {
@@ -472,7 +472,7 @@ func (s *Subtract) Eval(this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)-toFloat(rhsVal))
 	}
-	return s.sctx.NewErrorf("type %s incompatible with '-' operator", sup.FormatType(typ))
+	return s.sctx.NewErrorf("type %s incompatible with '-' operator", tsup.FormatType(typ))
 }
 
 func (m *Multiply) Eval(this super.Value) super.Value {
@@ -488,7 +488,7 @@ func (m *Multiply) Eval(this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)*toFloat(rhsVal))
 	}
-	return m.sctx.NewErrorf("type %s incompatible with '*' operator", sup.FormatType(typ))
+	return m.sctx.NewErrorf("type %s incompatible with '*' operator", tsup.FormatType(typ))
 }
 
 func (d *Divide) Eval(this super.Value) super.Value {
@@ -512,7 +512,7 @@ func (d *Divide) Eval(this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)/toFloat(rhsVal))
 	}
-	return d.sctx.NewErrorf("type %s incompatible with '/' operator", sup.FormatType(typ))
+	return d.sctx.NewErrorf("type %s incompatible with '/' operator", tsup.FormatType(typ))
 }
 
 func (m *Modulo) Eval(this super.Value) super.Value {
@@ -534,7 +534,7 @@ func (m *Modulo) Eval(this super.Value) super.Value {
 		}
 		return super.NewInt(typ, toInt(lhsVal)%v)
 	}
-	return m.sctx.NewErrorf("type %s incompatible with '%%' operator", sup.FormatType(typ))
+	return m.sctx.NewErrorf("type %s incompatible with '%%' operator", tsup.FormatType(typ))
 }
 
 type UnaryMinus struct {
@@ -568,7 +568,7 @@ func (u *UnaryMinus) Eval(this super.Value) super.Value {
 		}
 		v, ok := coerce.ToInt(val, typ)
 		if !ok {
-			return u.sctx.WrapError("cannot cast to "+sup.FormatType(typ), val)
+			return u.sctx.WrapError("cannot cast to "+tsup.FormatType(typ), val)
 		}
 		if val.IsNull() {
 			return super.Null

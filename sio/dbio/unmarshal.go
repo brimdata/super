@@ -7,13 +7,13 @@ import (
 	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/op/meta"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
-var unmarshaler *sup.UnmarshalBSUPContext
+var unmarshaler *tsup.UnmarshalBSUPContext
 
 func init() {
-	unmarshaler = sup.NewBSUPUnmarshaler()
+	unmarshaler = tsup.NewBSUPUnmarshaler()
 	unmarshaler.Bind(
 		commits.Add{},
 		commits.Commit{},

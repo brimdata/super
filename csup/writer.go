@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
 	"github.com/brimdata/super/vector/vio"
@@ -74,8 +74,8 @@ func (w *Serializer) finalizeObject() error {
 	zw := bsupio.NewWriter(sio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
 	cctx := enc.cctx
-	m := sup.NewBSUPMarshalerWithContext(cctx.local)
-	m.Decorate(sup.StyleSimple)
+	m := tsup.NewBSUPMarshalerWithContext(cctx.local)
+	m.Decorate(tsup.StyleSimple)
 	for id := range len(cctx.metas) {
 		val, err := m.Marshal(cctx.Lookup(ID(id)))
 		if err != nil {

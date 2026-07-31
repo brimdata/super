@@ -12,7 +12,7 @@ import (
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
 	vamop "github.com/brimdata/super/runtime/vam/op"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector/vio"
 	"golang.org/x/text/unicode/norm"
 )
@@ -41,7 +41,7 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	case *dag.MapExpr:
 		return b.compileVamMapExpr(e)
 	case *dag.PrimitiveExpr:
-		val, err := sup.ParseValue(b.sctx(), e.Value)
+		val, err := tsup.ParseValue(b.sctx(), e.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -350,7 +350,7 @@ func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearchExpr) (vamexpr.
 }
 
 func (b *Builder) compileVamSearch(search *dag.SearchExpr) (vamexpr.Evaluator, error) {
-	val, err := sup.ParseValue(b.sctx(), search.Value)
+	val, err := tsup.ParseValue(b.sctx(), search.Value)
 	if err != nil {
 		return nil, err
 	}

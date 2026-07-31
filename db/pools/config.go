@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -68,12 +68,12 @@ type oldSortKey struct {
 	Keys  field.List  `json:"keys" super:"keys"`
 }
 
-var hackedBindings = []sup.Binding{
+var hackedBindings = []tsup.Binding{
 	{Name: "order.SortKey", Template: oldSortKey{}},
 	{Name: "pools.Config", Template: marshalConfig{}},
 }
 
-func (p Config) MarshalBSUP(ctx *sup.MarshalBSUPContext) (super.Type, error) {
+func (p Config) MarshalBSUP(ctx *tsup.MarshalBSUPContext) (super.Type, error) {
 	ctx.NamedBindings(hackedBindings)
 	m := marshalConfig{
 		Ts:         p.Ts,
@@ -92,7 +92,7 @@ func (p Config) MarshalBSUP(ctx *sup.MarshalBSUPContext) (super.Type, error) {
 	return typ, err
 }
 
-func (p *Config) UnmarshalBSUP(ctx *sup.UnmarshalBSUPContext, val super.Value) error {
+func (p *Config) UnmarshalBSUP(ctx *tsup.UnmarshalBSUPContext, val super.Value) error {
 	ctx.NamedBindings(hackedBindings)
 	var m marshalConfig
 	if err := ctx.Unmarshal(val, &m); err != nil {

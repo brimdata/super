@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type checker struct {
@@ -357,7 +357,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		}
 		return c.t.sctx.LookupTypeMap(c.fuse(keyTypes), c.fuse(valTypes))
 	case *sem.PrimitiveExpr:
-		val, err := sup.ParseValue(c.t.sctx, e.Value)
+		val, err := tsup.ParseValue(c.t.sctx, e.Value)
 		if err != nil {
 			return c.unknown
 		}
@@ -696,7 +696,7 @@ func (c *checker) boolean(loc ast.Node, typ super.Type) bool {
 		return typ == super.TypeBool || typ == super.TypeNull
 	})
 	if !ok {
-		c.error(loc, fmt.Errorf("boolean type required, encountered type %q", sup.FormatType(typ)))
+		c.error(loc, fmt.Errorf("boolean type required, encountered type %q", tsup.FormatType(typ)))
 	}
 	return ok
 }
@@ -721,7 +721,7 @@ func (c *checker) integer(loc ast.Node, typ super.Type) bool {
 		return super.IsInteger(typ.ID())
 	})
 	if !ok {
-		c.error(loc, fmt.Errorf("integer type required, encountered %s", sup.FormatType(typ)))
+		c.error(loc, fmt.Errorf("integer type required, encountered %s", tsup.FormatType(typ)))
 	}
 	return ok
 }
@@ -732,7 +732,7 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 		return super.IsNumber(id) || id == super.IDNull
 	})
 	if !ok {
-		c.error(loc, fmt.Errorf("numeric type required, encountered %s", sup.FormatType(typ)))
+		c.error(loc, fmt.Errorf("numeric type required, encountered %s", tsup.FormatType(typ)))
 	}
 	return ok
 }
@@ -835,7 +835,7 @@ func (c *checker) in(loc, lloc, rloc ast.Node, lhs, rhs super.Type) bool {
 		// and is true for equality of any value as well as equality containment
 		// of the LHS in the RHS.
 		if !comparable(lhs, rhs) {
-			c.error(loc, fmt.Errorf("scalar type mismatch for 'in' operator where right-hand side is not container type: %s", sup.FormatType(typ)))
+			c.error(loc, fmt.Errorf("scalar type mismatch for 'in' operator where right-hand side is not container type: %s", tsup.FormatType(typ)))
 		}
 		return false
 	}
@@ -919,7 +919,7 @@ func (c *checker) plus(loc ast.Node, lhs, rhs super.Type) super.Type {
 	if hasNumber(lhs) && hasNumber(rhs) {
 		return c.fuse([]super.Type{lhs, rhs})
 	}
-	c.error(loc, fmt.Errorf("type mismatch: %s + %s", sup.FormatType(lhs), sup.FormatType(rhs)))
+	c.error(loc, fmt.Errorf("type mismatch: %s + %s", tsup.FormatType(lhs), tsup.FormatType(rhs)))
 	return c.unknown
 }
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func TestFuserSamePrimitiveTypeTwice(t *testing.T) {
@@ -13,6 +13,6 @@ func TestFuserSamePrimitiveTypeTwice(t *testing.T) {
 	s.Fuse(typ)
 	s.Fuse(typ)
 	if sType := s.Type(); sType != typ {
-		t.Fatalf("expected %s, got %s", sup.FormatType(typ), sup.FormatType(sType))
+		t.Fatalf("expected %s, got %s", tsup.FormatType(typ), tsup.FormatType(sType))
 	}
 }

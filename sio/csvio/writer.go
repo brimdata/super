@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -64,7 +64,7 @@ func (w *Writer) Push(vec vector.Any) error {
 func (w *Writer) Write(rec super.Value) error {
 	rec = rec.Under()
 	if rec.Type().Kind() != super.RecordKind {
-		return fmt.Errorf("CSV output encountered non-record value: %s", sup.FormatValue(rec))
+		return fmt.Errorf("CSV output encountered non-record value: %s", tsup.FormatValue(rec))
 	}
 	rec, err := w.flattener.Flatten(rec)
 	if err != nil {
@@ -116,9 +116,9 @@ func (w *Writer) Write(rec super.Value) error {
 func formatValue(typ super.Type, bytes scode.Bytes) string {
 	// Avoid SUP decoration.
 	if typ.ID() < super.IDTypeComplex {
-		return sup.FormatPrimitive(super.TypeUnder(typ), bytes)
+		return tsup.FormatPrimitive(super.TypeUnder(typ), bytes)
 	}
-	return sup.FormatValue(super.NewValue(typ, bytes))
+	return tsup.FormatValue(super.NewValue(typ, bytes))
 }
 
 func fieldNamesEqual(a, b []super.Field) bool {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -54,7 +54,7 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 	}
 	f, ok := arithFuncs[vector.FuncCode(a.opCode, kind, lform, rform)]
 	if !ok {
-		s := fmt.Sprintf("type %s incompatible with '%s' operator", sup.FormatType(lhs.Type()), vector.ArithOpToString(a.opCode))
+		s := fmt.Sprintf("type %s incompatible with '%s' operator", tsup.FormatType(lhs.Type()), vector.ArithOpToString(a.opCode))
 		return vector.NewStringError(a.sctx, s, lhs.Len())
 	}
 	if a.opCode == vector.ArithDiv || a.opCode == vector.ArithMod {

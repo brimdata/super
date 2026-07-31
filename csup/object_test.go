@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +24,7 @@ func TestObjectProjectMetadata(t *testing.T) {
 	}
 	builder := vector.NewDynamicValueBuilder()
 	for _, s := range supValues {
-		builder.Write(sup.MustParseValue(sctx, s))
+		builder.Write(tsup.MustParseValue(sctx, s))
 	}
 	require.NoError(t, w.Push(builder.Build(sctx)))
 	require.NoError(t, w.Close())
@@ -35,7 +35,7 @@ func TestObjectProjectMetadata(t *testing.T) {
 	p := field.NewProjection(field.DottedList("b.d,a"))
 	values := o.ProjectMetadata(super.NewContext(), p)
 	require.Len(t, values, 1)
-	require.Equal(t, "{b:{d:{min:0.7,max:0.9}},a:{min:1,max:3}}", sup.FormatValue(values[0]))
+	require.Equal(t, "{b:{d:{min:0.7,max:0.9}},a:{min:1,max:3}}", tsup.FormatValue(values[0]))
 }
 
 func TestObjectProjectMetadataForUnion(t *testing.T) {
@@ -46,7 +46,7 @@ func TestObjectProjectMetadataForUnion(t *testing.T) {
 	}
 	builder := vector.NewDynamicValueBuilder()
 	for _, s := range supValues {
-		builder.Write(sup.MustParseValue(sctx, s))
+		builder.Write(tsup.MustParseValue(sctx, s))
 	}
 	var b bytes.Buffer
 	w := csup.NewSerializer(sio.NopCloser(&b))
@@ -59,5 +59,5 @@ func TestObjectProjectMetadataForUnion(t *testing.T) {
 	p := field.NewProjection(field.DottedList("a,b,c,d"))
 	values := o.ProjectMetadata(super.NewContext(), p)
 	require.Len(t, values, 1)
-	require.Equal(t, `{a:{min:1,max:"s"},b:{min:2,max:2},c:{min:3,max:3},d:null}`, sup.FormatValue(values[0]))
+	require.Equal(t, `{a:{min:1,max:"s"},b:{min:2,max:2},c:{min:3,max:3},d:null}`, tsup.FormatValue(values[0]))
 }

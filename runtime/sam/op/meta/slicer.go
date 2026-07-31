@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // Slicer implements an op that pulls data objects and organizes
@@ -19,8 +19,8 @@ import (
 // non-overlapping Partitions.
 type Slicer struct {
 	parent      sbuf.Puller
-	marshaler   *sup.MarshalBSUPContext
-	unmarshaler *sup.UnmarshalBSUPContext
+	marshaler   *tsup.MarshalBSUPContext
+	unmarshaler *tsup.UnmarshalBSUPContext
 	objects     []*data.Object
 	cmp         expr.CompareFn
 	min         *super.Value
@@ -29,12 +29,12 @@ type Slicer struct {
 }
 
 func NewSlicer(parent sbuf.Puller, sctx *super.Context) *Slicer {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshalerWithContext(sctx)
+	m.Decorate(tsup.StylePackage)
 	return &Slicer{
 		parent:      parent,
 		marshaler:   m,
-		unmarshaler: sup.NewBSUPUnmarshaler(),
+		unmarshaler: tsup.NewBSUPUnmarshaler(),
 		//XXX check that nulls position is consistent for both dirs in database ops
 		cmp: expr.NewValueCompareFn(order.Asc, order.NullsLast),
 	}
@@ -146,9 +146,9 @@ func (p Partition) IsZero() bool {
 
 func (p Partition) FormatRangeOf(index int) string {
 	o := p.Objects[index]
-	return fmt.Sprintf("[%s-%s,%s-%s]", sup.String(p.Min), sup.String(p.Max), sup.String(o.Min), sup.String(o.Max))
+	return fmt.Sprintf("[%s-%s,%s-%s]", tsup.String(p.Min), tsup.String(p.Max), tsup.String(o.Min), tsup.String(o.Max))
 }
 
 func (p Partition) FormatRange() string {
-	return fmt.Sprintf("[%s-%s]", sup.String(p.Min), sup.String(p.Max))
+	return fmt.Sprintf("[%s-%s]", tsup.String(p.Min), tsup.String(p.Max))
 }

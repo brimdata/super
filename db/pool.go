@@ -21,7 +21,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -159,7 +159,7 @@ func (p *Pool) ResolveRevision(ctx context.Context, revision string) (ksuid.KSUI
 	return id, nil
 }
 
-func (p *Pool) BatchifyBranches(ctx context.Context, sctx *super.Context, recs []super.Value, m *sup.MarshalBSUPContext, f expr.Evaluator) ([]super.Value, error) {
+func (p *Pool) BatchifyBranches(ctx context.Context, sctx *super.Context, recs []super.Value, m *tsup.MarshalBSUPContext, f expr.Evaluator) ([]super.Value, error) {
 	branches, err := p.ListBranches(ctx)
 	if err != nil {
 		return nil, err
@@ -194,8 +194,8 @@ func (p *Pool) BatchifyBranchTips(ctx context.Context, sctx *super.Context, f ex
 	if err != nil {
 		return nil, err
 	}
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshalerWithContext(sctx)
+	m.Decorate(tsup.StylePackage)
 	recs := make([]super.Value, 0, len(branches))
 	for _, branchRef := range branches {
 		rec, err := m.Marshal(&BranchTip{branchRef.Name, branchRef.Commit})

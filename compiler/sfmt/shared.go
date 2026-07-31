@@ -2,7 +2,7 @@ package sfmt
 
 import (
 	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type shared struct {
@@ -28,7 +28,7 @@ func (s *shared) fieldpath(path []string) {
 		return
 	}
 	for k, elem := range path {
-		if sup.IsIdentifier(elem) {
+		if tsup.IsIdentifier(elem) {
 			if k != 0 {
 				s.write(".")
 			}
@@ -88,7 +88,7 @@ func (s *shared) typeFields(fields []ast.TypeField) {
 		if k != 0 {
 			s.write(",")
 		}
-		s.write("%s:", sup.QuotedName(f.Name))
+		s.write("%s:", tsup.QuotedName(f.Name))
 		s.typ(f.Type)
 	}
 }

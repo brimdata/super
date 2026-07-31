@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -40,8 +40,8 @@ func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, po
 	var vals []super.Value
 	switch meta {
 	case "branches":
-		m := sup.NewBSUPMarshalerWithContext(sctx)
-		m.Decorate(sup.StylePackage)
+		m := tsup.NewBSUPMarshalerWithContext(sctx)
+		m.Decorate(tsup.StylePackage)
 		vals, err = p.BatchifyBranches(ctx, sctx, nil, m, nil)
 		if err != nil {
 			return nil, err
@@ -113,8 +113,8 @@ func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, 
 
 func objectReader(sctx *super.Context, snap commits.View, order order.Which) (sio.Reader, error) {
 	objects := snap.Select(nil, order)
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshalerWithContext(sctx)
+	m.Decorate(tsup.StylePackage)
 	return readerFunc(func() (*super.Value, error) {
 		if len(objects) == 0 {
 			return nil, nil

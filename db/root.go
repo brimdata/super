@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -133,7 +133,7 @@ func (r *Root) writeMagic(ctx context.Context) error {
 		Version: Version,
 	}
 	serializer := bsupbytes.NewSerializer()
-	serializer.Decorate(sup.StylePackage)
+	serializer.Decorate(tsup.StylePackage)
 	if err := serializer.Write(magic); err != nil {
 		return err
 	}
@@ -167,10 +167,10 @@ func (r *Root) readMagic(ctx context.Context) error {
 		return err
 	}
 	if last != nil {
-		return fmt.Errorf("corrupt database version file: more than one value at %s", sup.String(last))
+		return fmt.Errorf("corrupt database version file: more than one value at %s", tsup.String(last))
 	}
 	var magic Magic
-	if err := sup.UnmarshalBSUP(*val, &magic); err != nil {
+	if err := tsup.UnmarshalBSUP(*val, &magic); err != nil {
 		return fmt.Errorf("corrupt database version file: %w", err)
 	}
 	if magic.Magic != MagicString {
@@ -183,8 +183,8 @@ func (r *Root) readMagic(ctx context.Context) error {
 }
 
 func (r *Root) BatchifyPools(ctx context.Context, sctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshalerWithContext(sctx)
+	m.Decorate(tsup.StylePackage)
 	pools, err := r.ListPools(ctx)
 	if err != nil {
 		return nil, err
@@ -203,8 +203,8 @@ func (r *Root) BatchifyPools(ctx context.Context, sctx *super.Context, f expr.Ev
 }
 
 func (r *Root) BatchifyBranches(ctx context.Context, sctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshalerWithContext(sctx)
+	m.Decorate(tsup.StylePackage)
 	poolRefs, err := r.ListPools(ctx)
 	if err != nil {
 		return nil, err

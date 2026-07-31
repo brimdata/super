@@ -8,14 +8,14 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRecordAccessNamed(t *testing.T) {
 	const input = `type zfile=string type zbool=bool {foo:"hello"::zfile,bar:true::zbool}`
-	rec := sup.MustParseValue(super.NewContext(), input)
+	rec := tsup.MustParseValue(super.NewContext(), input)
 	s := rec.Deref("foo").AsString()
 	assert.Equal(t, s, "hello")
 	b := rec.Deref("bar").AsBool()
@@ -99,7 +99,7 @@ func TestDuplicates(t *testing.T) {
 		{"b", setType},
 	})
 	require.NoError(t, err)
-	typ2, err := sup.ParseType(ctx, "{a:string,b:set[int32]}")
+	typ2, err := tsup.ParseType(ctx, "{a:string,b:set[int32]}")
 	require.NoError(t, err)
 	assert.EqualValues(t, typ1.ID(), typ2.ID())
 	assert.EqualValues(t, setType.ID(), typ2.(*super.TypeRecord).Fields[1].Type.ID())
@@ -111,9 +111,9 @@ func TestDuplicates(t *testing.T) {
 func TestTranslateNamed(t *testing.T) {
 	c1 := super.NewContext()
 	c2 := super.NewContext()
-	set1, err := sup.ParseType(c1, "set[int64]")
+	set1, err := tsup.ParseType(c1, "set[int64]")
 	require.NoError(t, err)
-	set2, err := sup.ParseType(c2, "set[int64]")
+	set2, err := tsup.ParseType(c2, "set[int64]")
 	require.NoError(t, err)
 	named1, err := c1.LookupTypeNamed("foo", set1)
 	require.NoError(t, err)

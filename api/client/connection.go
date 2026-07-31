@@ -22,7 +22,7 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	sup "github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 )
 

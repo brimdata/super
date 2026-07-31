@@ -5,7 +5,7 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // Fuser constructs a fused supertype for all the types passed to Fuse.
@@ -152,7 +152,7 @@ func isAll(t super.Type) bool {
 
 func (f *Fuser) redefPanic(named *super.TypeNamed) {
 	previous := f.sctx.LookupByName(named.Name)
-	panic(fmt.Sprintf("type %s redefined: %s to %s", named.Name, sup.String(previous), sup.String(named.Type)))
+	panic(fmt.Sprintf("type %s redefined: %s to %s", named.Name, tsup.String(previous), tsup.String(named.Type)))
 }
 
 func (f *Fuser) fuseInternal(typ super.Type) super.Type {

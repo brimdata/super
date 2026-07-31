@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -81,7 +81,7 @@ func marshalControl(zctrl *sbuf.Control) (any, error) {
 	if ctrl.Format != bsupio.ControlFormatSUP {
 		return nil, fmt.Errorf("unsupported app encoding: %v", ctrl.Format)
 	}
-	value, err := sup.ParseValue(super.NewContext(), string(ctrl.Bytes))
+	value, err := tsup.ParseValue(super.NewContext(), string(ctrl.Bytes))
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse control message: %w (%s)", err, ctrl.Bytes)
 	}

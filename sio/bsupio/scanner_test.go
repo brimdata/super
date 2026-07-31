@@ -9,7 +9,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +26,7 @@ func TestScannerContext(t *testing.T) {
 	for i := range count {
 		names = append(names, strconv.Itoa(i))
 		values = append(values, i)
-		rec, err := sup.NewBSUPMarshaler().MarshalCustom(names, values)
+		rec, err := tsup.NewBSUPMarshaler().MarshalCustom(names, values)
 		require.NoError(t, err)
 		var buf bytes.Buffer
 		w := NewWriter(sio.NopCloser(&buf))

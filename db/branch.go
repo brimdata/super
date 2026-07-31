@@ -17,7 +17,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
@@ -98,7 +98,7 @@ func loadMeta(sctx *super.Context, meta string) (super.Value, error) {
 	if meta == "" {
 		return super.Null, nil
 	}
-	val, err := sup.ParseValue(super.NewContext(), meta)
+	val, err := tsup.ParseValue(super.NewContext(), meta)
 	if err != nil {
 		return sctx.Missing(), fmt.Errorf("%w %q: %s", ErrInvalidCommitMeta, meta, err)
 	}

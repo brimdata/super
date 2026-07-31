@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/sync/errgroup"
 )
@@ -28,7 +28,7 @@ type Lister struct {
 	snap      commits.View
 	pruner    *pruner
 	group     *errgroup.Group
-	marshaler *sup.MarshalBSUPContext
+	marshaler *tsup.MarshalBSUPContext
 	mu        sync.Mutex
 	objects   []*data.Object
 	err       error
@@ -53,8 +53,8 @@ func NewSortedListerByID(ctx context.Context, sctx *super.Context, r *db.Root, p
 }
 
 func NewSortedListerFromSnap(ctx context.Context, sctx *super.Context, pool *db.Pool, snap commits.View, pruner expr.Evaluator) *Lister {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshalerWithContext(sctx)
+	m.Decorate(tsup.StylePackage)
 	l := &Lister{
 		ctx:       ctx,
 		pool:      pool,

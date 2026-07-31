@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type RecordBatchReader interface {
@@ -334,7 +334,7 @@ func (r *Reader) buildScodeWithNullable(typ super.Type, a arrow.Array, i int, nu
 
 func NullableUnionTagsAndType(union *super.TypeUnion) (nullTag, nonNullTag int, nonNullType super.Type) {
 	if len(union.Types) != 2 {
-		panic(sup.FormatType(union))
+		panic(tsup.FormatType(union))
 	}
 	if union.Types[0] == super.TypeNull {
 		nullTag, nonNullTag = 0, 1

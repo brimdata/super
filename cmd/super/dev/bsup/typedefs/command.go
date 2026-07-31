@@ -18,7 +18,7 @@ import (
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/pierrec/lz4/v4"
 )
@@ -82,7 +82,7 @@ func (c *Command) Run(args []string) error {
 
 type metaReader struct {
 	reader    *reader
-	marshaler *sup.MarshalBSUPContext
+	marshaler *tsup.MarshalBSUPContext
 	metas     []any
 	off       int
 }
@@ -92,7 +92,7 @@ var _ sio.Reader = (*metaReader)(nil)
 func newMetaReader(sctx *super.Context, r io.Reader) *metaReader {
 	return &metaReader{
 		reader:    &reader{reader: bufio.NewReader(r)},
-		marshaler: sup.NewBSUPMarshalerWithContext(sctx),
+		marshaler: tsup.NewBSUPMarshalerWithContext(sctx),
 	}
 }
 

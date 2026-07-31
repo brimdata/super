@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type distinct struct {
@@ -34,7 +34,7 @@ func (d *distinct) ConsumeAsPartial(val super.Value) {
 	}
 	arrayType, ok := val.Type().(*super.TypeArray)
 	if !ok {
-		panic(fmt.Errorf("distinct partial is not an array: %s", sup.FormatValue(val)))
+		panic(fmt.Errorf("distinct partial is not an array: %s", tsup.FormatValue(val)))
 	}
 	typ := arrayType.Type
 	for it := val.ContainerIter(); !it.Done(); {

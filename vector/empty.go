@@ -3,7 +3,7 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // An Empty vector represents a vector with a type of zero length.
@@ -65,7 +65,7 @@ func (e *Empty) Kind() Kind {
 		case *super.TypeNamed:
 			typ = t.Type
 		default:
-			panic(sup.String(e.typ))
+			panic(tsup.String(e.typ))
 		}
 	}
 }

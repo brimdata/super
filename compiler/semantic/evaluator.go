@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // evaluator provides a means to compile and run expressions in the runtime
@@ -42,7 +42,7 @@ func (e *evaluator) mustEval(sctx *super.Context, expr sem.Expr) (super.Value, b
 
 func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, bool) {
 	if literal, ok := expr.(*sem.PrimitiveExpr); ok {
-		val, err := sup.ParseValue(sctx, literal.Value)
+		val, err := tsup.ParseValue(sctx, literal.Value)
 		if err != nil {
 			e.errs.error(literal.Node, err)
 			return val, false

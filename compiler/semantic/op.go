@@ -23,7 +23,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -235,13 +235,13 @@ func (t *translator) fromConst(val super.Value, entity *ast.FromEval, args []ast
 	}
 	vals, ok := val.Elements()
 	if !ok {
-		t.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", sup.String(val)))
+		t.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", tsup.String(val)))
 		return sem.Seq{badOp}, ""
 	}
 	names := make([]string, 0, len(vals))
 	for _, val := range vals {
 		if super.TypeUnder(val.Type()) != super.TypeString {
-			t.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", sup.String(val)))
+			t.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", tsup.String(val)))
 			return sem.Seq{badOp}, ""
 		}
 		names = append(names, val.AsString())

@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -93,7 +93,7 @@ func (o *Object) appendDeleteVector(id ksuid.KSUID) {
 
 func (o Object) Serialize() ([]byte, error) {
 	writer := bsupbytes.NewSerializer()
-	writer.Decorate(sup.StylePackage)
+	writer.Decorate(tsup.StylePackage)
 	for _, action := range o.Actions {
 		if err := writer.Write(action); err != nil {
 			writer.Close()

@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/pkg/anymath"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type consumer interface {
@@ -305,5 +305,5 @@ func (s *String) consume(val super.Value) {
 func (s *String) typ() super.Type { return super.TypeString }
 
 func panicCoercionFail(to, from super.Type) {
-	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", sup.String(from), sup.String(to)))
+	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", tsup.String(from), tsup.String(to)))
 }

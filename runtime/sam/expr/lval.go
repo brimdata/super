@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Lval struct {
@@ -86,5 +86,5 @@ func lvalErr(errVal super.Value) error {
 	if val.IsString() {
 		return errors.New(val.AsString())
 	}
-	return errors.New(sup.FormatValue(val))
+	return errors.New(tsup.FormatValue(val))
 }

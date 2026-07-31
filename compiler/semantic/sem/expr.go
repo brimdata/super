@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Expr interface {
@@ -285,7 +285,7 @@ func NewLiteral(n ast.Node, val super.Value, defs *super.Context) Expr {
 		}
 	}
 	if super.IsPrimitiveType(val.Type()) {
-		return &PrimitiveExpr{Node: n, Value: sup.FormatValue(val)}
+		return &PrimitiveExpr{Node: n, Value: tsup.FormatValue(val)}
 	}
 	return valueToExpr(n, val.Type(), val.Bytes(), defs)
 }
@@ -509,7 +509,7 @@ func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes, defs *super.Co
 		}
 		return &PrimitiveExpr{
 			Node:  loc,
-			Value: sup.FormatValue(super.NewValue(typ, bytes)),
+			Value: tsup.FormatValue(super.NewValue(typ, bytes)),
 		}
 	}
 	switch typ := typ.(type) {

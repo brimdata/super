@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // Analyze performs a semantic analysis of the AST, translating it from AST
@@ -62,7 +62,7 @@ type translator struct {
 	env                *exec.Environment
 	scope              *Scope
 	sctx               *super.Context
-	types              *sup.Analyzer
+	types              *tsup.Analyzer
 	defs               *super.Context
 }
 
@@ -80,7 +80,7 @@ func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *tran
 		// types referred to by TypeRefs in the resulting sem tree.  This provides the
 		// means to create dag.TypeRef references these types and serialize the defs tyepdefs
 		// table into the DAG header.
-		types: sup.NewAnalyzer(defs),
+		types: tsup.NewAnalyzer(defs),
 		defs:  defs,
 	}
 	t.checker = newChecker(t)

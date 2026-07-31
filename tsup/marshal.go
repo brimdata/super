@@ -1,4 +1,4 @@
-package sup
+package tsup
 
 import (
 	"errors"
@@ -1159,7 +1159,7 @@ func (u *UnmarshalBSUPContext) lookupGoType(typ super.Type, bytes scode.Bytes) (
 	case *super.TypeEnum:
 		// For now just return nil here. The layer above will flag
 		// a type error.  At some point, we can create Go-native data structures
-		// in package super for representing a union or enum as a standalone
+		// in package tsuper for representing a union or enum as a standalone
 		// entity.  See issue #1853.
 		return nil, nil
 	case *super.TypeMap:

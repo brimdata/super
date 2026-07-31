@@ -5,18 +5,18 @@ import (
 
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Serializer struct {
-	marshaler *sup.MarshalBSUPContext
+	marshaler *tsup.MarshalBSUPContext
 	buffer    bytes.Buffer
 	writer    *bsupio.Writer
 }
 
 func NewSerializer() *Serializer {
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StyleSimple)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StyleSimple)
 	s := &Serializer{
 		marshaler: m,
 	}
@@ -24,7 +24,7 @@ func NewSerializer() *Serializer {
 	return s
 }
 
-func (s *Serializer) Decorate(style sup.TypeStyle) {
+func (s *Serializer) Decorate(style tsup.TypeStyle) {
 	s.marshaler.Decorate(style)
 }
 

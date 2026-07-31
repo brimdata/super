@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )
 
@@ -188,14 +188,14 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 			Entries: entries,
 		}, t.sctx.LookupTypeMap(t.checker.fuse(keyTypes), t.checker.fuse(valTypes))
 	case *ast.Primitive:
-		val, err := sup.ParsePrimitive(e.Type, e.Text)
+		val, err := tsup.ParsePrimitive(e.Type, e.Text)
 		if err != nil {
 			t.error(e, err)
 			return badExpr, t.checker.unknown
 		}
 		return &sem.PrimitiveExpr{
 			Node:  e,
-			Value: sup.FormatValue(val),
+			Value: tsup.FormatValue(val),
 		}, val.Type()
 	case *ast.SubqueryExpr:
 		return t.subqueryExpr(e, e.Array, e.Body, inType)
@@ -316,19 +316,19 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 		var val string
 		switch term := e.Value.(type) {
 		case *ast.Primitive:
-			v, err := sup.ParsePrimitive(term.Type, term.Text)
+			v, err := tsup.ParsePrimitive(term.Type, term.Text)
 			if err != nil {
 				t.error(e, err)
 				return badExpr, t.checker.unknown
 			}
-			val = sup.FormatValue(v)
+			val = tsup.FormatValue(v)
 		case *ast.DoubleQuoteExpr:
-			v, err := sup.ParsePrimitive("string", term.Text)
+			v, err := tsup.ParsePrimitive("string", term.Text)
 			if err != nil {
 				t.error(e, err)
 				return badExpr, t.checker.unknown
 			}
-			val = sup.FormatValue(v)
+			val = tsup.FormatValue(v)
 		case *ast.TypeValue:
 			e, typ := t.semType(term.Value)
 			typeExpr, ok := e.(*sem.TypeExpr)
@@ -339,7 +339,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 			if err != nil {
 				panic(err)
 			}
-			val = "<" + sup.FormatType(typ) + ">"
+			val = "<" + tsup.FormatType(typ) + ">"
 		default:
 			panic(fmt.Errorf("unexpected term value: %s (%T)", e.Kind, e))
 		}
@@ -827,7 +827,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 			return &sem.SearchTermExpr{
 				Node:  call,
 				Text:  s,
-				Value: sup.QuotedString(s),
+				Value: tsup.QuotedString(s),
 				Expr:  args[1],
 			}, super.TypeBool
 		}
@@ -1063,7 +1063,7 @@ func idString(e ast.Expr) (string, bool) {
 }
 
 func quoteString(e *ast.DoubleQuoteExpr) (string, bool) {
-	v, err := sup.ParsePrimitive("string", e.Text)
+	v, err := tsup.ParsePrimitive("string", e.Text)
 	if err == nil {
 		return v.AsString(), true
 	}

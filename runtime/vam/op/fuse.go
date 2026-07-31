@@ -5,7 +5,7 @@ import (
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/function"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -74,7 +74,7 @@ func (f *Fuse) upcast(vecs ...vector.Any) vector.Any {
 	typ := f.fuser.Type()
 	out, ok := f.upcaster.Cast(vecs[0], typ)
 	if !ok {
-		return vector.NewWrappedError(f.sctx, "cannot upcast to "+sup.FormatType(typ), vecs[0])
+		return vector.NewWrappedError(f.sctx, "cannot upcast to "+tsup.FormatType(typ), vecs[0])
 	}
 	return out
 }

@@ -1,4 +1,4 @@
-package sup_test
+package tsup_test
 
 import (
 	"bytes"
@@ -12,14 +12,14 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
 )
 
 func boomerang(t *testing.T, in any, out any) {
-	rec, err := sup.NewBSUPMarshaler().Marshal(in)
+	rec, err := tsup.NewBSUPMarshaler().Marshal(in)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	zw := bsupio.NewWriter(sio.NopCloser(&buf))
@@ -31,7 +31,7 @@ func boomerang(t *testing.T, in any, out any) {
 	defer zr.Close()
 	val, err := zr.Read()
 	require.NoError(t, err)
-	err = sup.UnmarshalBSUP(*val, out)
+	err = tsup.UnmarshalBSUP(*val, out)
 	require.NoError(t, err)
 }
 
@@ -45,7 +45,7 @@ func TestMarshalBSUP(t *testing.T) {
 		Sub1    S2
 		PField1 *bool
 	}
-	rec, err := sup.NewBSUPMarshaler().Marshal(S1{
+	rec, err := tsup.NewBSUPMarshaler().Marshal(S1{
 		Field1: "value1",
 		Sub1: S2{
 			Field2: "value2",
@@ -54,7 +54,7 @@ func TestMarshalBSUP(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, `{Field1:"value1",Sub1:{f2:"value2",Field3:-1},PField1:null}`, sup.FormatValue(rec))
+	assert.Equal(t, `{Field1:"value1",Sub1:{f2:"value2",Field3:-1},PField1:null}`, tsup.FormatValue(rec))
 }
 
 func TestMarshalMap(t *testing.T) {
@@ -87,27 +87,27 @@ type BSUPThings struct {
 
 func TestMarshalSlice(t *testing.T) {
 	t.Skip() // skipping until we fix marshal to use named types for interfaces
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StyleSimple)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StyleSimple)
 
 	s := []BSUPThing{{"hello", 123}, {"world", 0}}
 	r := BSUPThings{s}
 	rec, err := m.Marshal(r)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, `{Things:[{a:"hello",B:123}::=BSUPThing,{a:"world",B:0}::BSUPThing]}::=BSUPThings`, sup.FormatValue(rec))
+	assert.Equal(t, `{Things:[{a:"hello",B:123}::=BSUPThing,{a:"world",B:0}::BSUPThing]}::=BSUPThings`, tsup.FormatValue(rec))
 
 	empty := []BSUPThing{}
 	r2 := BSUPThings{empty}
 	rec2, err := m.Marshal(r2)
 	require.NoError(t, err)
 	require.NotNil(t, rec2)
-	assert.Equal(t, "{Things:[]::[BSUPThing={a:string,B:int64}]}::=BSUPThings", sup.FormatValue(rec2))
+	assert.Equal(t, "{Things:[]::[BSUPThing={a:string,B:int64}]}::=BSUPThings", tsup.FormatValue(rec2))
 
 	rec3, err := m.Marshal(BSUPThings{nil})
 	require.NoError(t, err)
 	require.NotNil(t, rec3)
-	assert.Equal(t, "{Things:null}::=BSUPThings", sup.FormatValue(rec3))
+	assert.Equal(t, "{Things:null}::=BSUPThings", tsup.FormatValue(rec3))
 
 }
 
@@ -151,14 +151,14 @@ type TestIP struct {
 func TestIPType(t *testing.T) {
 	s := TestIP{Addr: netip.MustParseAddr("192.168.1.1")}
 	sctx := super.NewContext()
-	m := sup.NewBSUPMarshalerWithContext(sctx)
+	m := tsup.NewBSUPMarshalerWithContext(sctx)
 	rec, err := m.Marshal(s)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{Addr:192.168.1.1}", sup.FormatValue(rec))
+	assert.Equal(t, "{Addr:192.168.1.1}", tsup.FormatValue(rec))
 
 	var tip TestIP
-	err = sup.UnmarshalBSUP(rec, &tip)
+	err = tsup.UnmarshalBSUP(rec, &tip)
 	require.NoError(t, err)
 	require.Equal(t, s, tip)
 }
@@ -178,16 +178,16 @@ func TestUnmarshalRecord(t *testing.T) {
 	v1 := T1{
 		T1f1: &T2{T2f1: T3{T3f1: 1, T3f2: 1.0}, T2f2: "t2f2-string1"},
 	}
-	rec, err := sup.NewBSUPMarshaler().Marshal(v1)
+	rec, err := tsup.NewBSUPMarshaler().Marshal(v1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 
 	const expected = `{top:{T2f1:{T3f1:1::int32,T3f2:1.::float32},T2f2:"t2f2-string1"}}`
-	require.Equal(t, expected, sup.FormatValue(rec))
+	require.Equal(t, expected, tsup.FormatValue(rec))
 
-	val := sup.MustParseValue(super.NewContext(), expected)
+	val := tsup.MustParseValue(super.NewContext(), expected)
 	var v2 T1
-	err = sup.UnmarshalBSUP(val, &v2)
+	err = tsup.UnmarshalBSUP(val, &v2)
 	require.NoError(t, err)
 	require.Equal(t, v1, v2)
 
@@ -195,7 +195,7 @@ func TestUnmarshalRecord(t *testing.T) {
 		T4f1 *T2 `super:"top"`
 	}
 	var v3 *T4
-	err = sup.UnmarshalBSUP(rec, &v3)
+	err = tsup.UnmarshalBSUP(rec, &v3)
 	require.NoError(t, err)
 	require.NotNil(t, v3)
 	require.NotNil(t, v3.T4f1)
@@ -205,34 +205,34 @@ func TestUnmarshalRecord(t *testing.T) {
 func TestUnmarshalNull(t *testing.T) {
 	t.Run("slice", func(t *testing.T) {
 		slice := []int{1}
-		require.NoError(t, sup.UnmarshalBSUP(super.Null, &slice))
+		require.NoError(t, tsup.UnmarshalBSUP(super.Null, &slice))
 		assert.Nil(t, slice)
 		slice = []int{1}
-		val := sup.MustParseValue(super.NewContext(), "null::(null|[int64])")
-		require.NoError(t, sup.UnmarshalBSUP(val, &slice))
+		val := tsup.MustParseValue(super.NewContext(), "null::(null|[int64])")
+		require.NoError(t, tsup.UnmarshalBSUP(val, &slice))
 		assert.Nil(t, slice)
 		buf := []byte("testing")
-		require.NoError(t, sup.UnmarshalBSUP(super.Null, &buf))
+		require.NoError(t, tsup.UnmarshalBSUP(super.Null, &buf))
 		assert.Nil(t, buf)
 		buf = []byte("testing")
-		val = sup.MustParseValue(super.NewContext(), "null::(null|bytes)")
-		require.NoError(t, sup.UnmarshalBSUP(val, &buf))
+		val = tsup.MustParseValue(super.NewContext(), "null::(null|bytes)")
+		require.NoError(t, tsup.UnmarshalBSUP(val, &buf))
 		assert.Nil(t, buf)
 	})
 	t.Run("primitive", func(t *testing.T) {
 		integer := -1
-		assert.EqualError(t, sup.UnmarshalBSUP(super.Null, &integer), "incompatible type translation: Super type null, Go type int, Go kind int")
+		assert.EqualError(t, tsup.UnmarshalBSUP(super.Null, &integer), "incompatible type translation: Super type null, Go type int, Go kind int")
 		intptr := &integer
-		assert.NoError(t, sup.UnmarshalBSUP(super.Null, &intptr))
+		assert.NoError(t, tsup.UnmarshalBSUP(super.Null, &intptr))
 		assert.Nil(t, intptr)
 	})
 	t.Run("map", func(t *testing.T) {
 		m := map[string]string{"key": "value"}
-		require.NoError(t, sup.UnmarshalBSUP(super.Null, &m))
+		require.NoError(t, tsup.UnmarshalBSUP(super.Null, &m))
 		assert.Nil(t, m)
 		m = map[string]string{"key": "value"}
-		val := sup.MustParseValue(super.NewContext(), "null::(null|map{string:string})")
-		require.NoError(t, sup.UnmarshalBSUP(val, &m))
+		val := tsup.MustParseValue(super.NewContext(), "null::(null|map{string:string})")
+		require.NoError(t, tsup.UnmarshalBSUP(val, &m))
 		assert.Nil(t, m)
 	})
 	t.Run("struct", func(t *testing.T) {
@@ -242,15 +242,15 @@ func TestUnmarshalNull(t *testing.T) {
 		var obj struct {
 			Test *testobj `super:"test"`
 		}
-		val := sup.MustParseValue(super.NewContext(), "{test:null::(null|{Val:int64})}")
-		require.NoError(t, sup.UnmarshalBSUP(val, &obj))
+		val := tsup.MustParseValue(super.NewContext(), "{test:null::(null|{Val:int64})}")
+		require.NoError(t, tsup.UnmarshalBSUP(val, &obj))
 		require.Nil(t, obj.Test)
 		var slice struct {
 			Test []string `super:"test"`
 		}
 		slice.Test = []string{"1"}
-		val = sup.MustParseValue(super.NewContext(), "{test:null}")
-		require.NoError(t, sup.UnmarshalBSUP(val, &slice))
+		val = tsup.MustParseValue(super.NewContext(), "{test:null}")
+		require.NoError(t, tsup.UnmarshalBSUP(val, &slice))
 		require.Nil(t, slice.Test)
 	})
 }
@@ -263,12 +263,12 @@ func TestUnmarshalSlice(t *testing.T) {
 		T1f1: []bool{true, false, true},
 	}
 	sctx := super.NewContext()
-	rec, err := sup.NewBSUPMarshalerWithContext(sctx).Marshal(v1)
+	rec, err := tsup.NewBSUPMarshalerWithContext(sctx).Marshal(v1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 
 	var v2 T1
-	err = sup.UnmarshalBSUP(rec, &v2)
+	err = tsup.UnmarshalBSUP(rec, &v2)
 	require.NoError(t, err)
 	require.Equal(t, v1, v2)
 
@@ -280,23 +280,23 @@ func TestUnmarshalSlice(t *testing.T) {
 		Field1: []*int{intp(1), intp(2)},
 	}
 	sctx = super.NewContext()
-	rec, err = sup.NewBSUPMarshalerWithContext(sctx).Marshal(v3)
+	rec, err = tsup.NewBSUPMarshalerWithContext(sctx).Marshal(v3)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 
 	var v4 T2
-	err = sup.UnmarshalBSUP(rec, &v4)
+	err = tsup.UnmarshalBSUP(rec, &v4)
 	require.NoError(t, err)
 	require.Equal(t, v1, v2)
 }
 
 type testMarshaler string
 
-func (m testMarshaler) MarshalBSUP(mc *sup.MarshalBSUPContext) (super.Type, error) {
+func (m testMarshaler) MarshalBSUP(mc *tsup.MarshalBSUPContext) (super.Type, error) {
 	return mc.MarshalValue("marshal-" + string(m))
 }
 
-func (m *testMarshaler) UnmarshalBSUP(mc *sup.UnmarshalBSUPContext, val super.Value) error {
+func (m *testMarshaler) UnmarshalBSUP(mc *tsup.UnmarshalBSUPContext, val super.Value) error {
 	var s string
 	if err := mc.Unmarshal(val, &s); err != nil {
 		return err
@@ -316,13 +316,13 @@ func TestMarshalInterface(t *testing.T) {
 	}
 	m1 := testMarshaler("m1")
 	r1 := rectype{M1: &m1, M2: testMarshaler("m2")}
-	rec, err := sup.NewBSUPMarshaler().Marshal(r1)
+	rec, err := tsup.NewBSUPMarshaler().Marshal(r1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, `{M1:"marshal-m1",M2:"marshal-m2"}`, sup.FormatValue(rec))
+	assert.Equal(t, `{M1:"marshal-m1",M2:"marshal-m2"}`, tsup.FormatValue(rec))
 
 	var r2 rectype
-	err = sup.UnmarshalBSUP(rec, &r2)
+	err = tsup.UnmarshalBSUP(rec, &r2)
 	require.NoError(t, err)
 	assert.Equal(t, "m1", string(*r2.M1))
 	assert.Equal(t, "m2", string(r2.M2))
@@ -336,14 +336,14 @@ func TestMarshalArray(t *testing.T) {
 	}
 	a2 := &[2]string{"foo", "bar"}
 	r1 := rectype{A1: [2]int8{1, 2}, A2: a2} // A3 left as nil
-	rec, err := sup.NewBSUPMarshaler().Marshal(r1)
+	rec, err := tsup.NewBSUPMarshaler().Marshal(r1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 	const expected = `{A1:[1::int8,2::int8],A2:["foo","bar"],A3:[]::[bytes]}`
-	assert.Equal(t, expected, sup.FormatValue(rec))
+	assert.Equal(t, expected, tsup.FormatValue(rec))
 
 	var r2 rectype
-	err = sup.UnmarshalBSUP(rec, &r2)
+	err = tsup.UnmarshalBSUP(rec, &r2)
 	require.NoError(t, err)
 	assert.Equal(t, r1.A1, r2.A1)
 	assert.Equal(t, *r2.A2, *r2.A2)
@@ -381,14 +381,14 @@ func TestNumbers(t *testing.T) {
 		F32:  math.MaxFloat32,
 		F64:  math.MaxFloat64,
 	}
-	rec, err := sup.NewBSUPMarshaler().Marshal(r1)
+	rec, err := tsup.NewBSUPMarshaler().Marshal(r1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 	const expected = "{I:-9223372036854775808,I8:-128::int8,I16:-32768::int16,I32:-2147483648::int32,I64:-9223372036854775808,U:18446744073709551615::uint64,UI8:255::uint8,UI16:65535::uint16,UI32:4294967295::uint32,UI64:18446744073709551615::uint64,F16:65504.::float16,F32:3.4028235e+38::float32,F64:1.7976931348623157e+308}"
-	assert.Equal(t, expected, sup.FormatValue(rec))
+	assert.Equal(t, expected, tsup.FormatValue(rec))
 
 	var r2 rectype
-	err = sup.UnmarshalBSUP(rec, &r2)
+	err = tsup.UnmarshalBSUP(rec, &r2)
 	require.NoError(t, err)
 	assert.Equal(t, r1, r2)
 }
@@ -398,10 +398,10 @@ func TestCustomRecord(t *testing.T) {
 		BSUPThing{"hello", 123},
 		99,
 	}
-	m := sup.NewBSUPMarshaler()
+	m := tsup.NewBSUPMarshaler()
 	rec, err := m.MarshalCustom([]string{"foo", "bar"}, vals)
 	require.NoError(t, err)
-	assert.Equal(t, `{foo:{a:"hello",B:123},bar:99}`, sup.FormatValue(rec))
+	assert.Equal(t, `{foo:{a:"hello",B:123},bar:99}`, tsup.FormatValue(rec))
 
 	vals = []any{
 		BSUPThing{"hello", 123},
@@ -409,7 +409,7 @@ func TestCustomRecord(t *testing.T) {
 	}
 	rec, err = m.MarshalCustom([]string{"foo", "bar"}, vals)
 	require.NoError(t, err)
-	assert.Equal(t, `{foo:{a:"hello",B:123},bar:null}`, sup.FormatValue(rec))
+	assert.Equal(t, `{foo:{a:"hello",B:123},bar:null}`, tsup.FormatValue(rec))
 }
 
 type ThingTwo struct {
@@ -437,38 +437,38 @@ type Rolls []int
 
 func TestInterfaceBSUPMarshal(t *testing.T) {
 	t1 := Make(2)
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StylePackage)
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, `"sup_test.ThingTwo"`, sup.String(zv.Type()))
+	assert.Equal(t, `"tsup_test.ThingTwo"`, tsup.String(zv.Type()))
 
-	m.Decorate(sup.StyleSimple)
+	m.Decorate(tsup.StyleSimple)
 	rolls := Rolls{1, 2, 3}
 	zv, err = m.Marshal(rolls)
 	require.NoError(t, err)
-	assert.Equal(t, "Rolls", sup.String(zv.Type()))
+	assert.Equal(t, "Rolls", tsup.String(zv.Type()))
 
-	m.Decorate(sup.StyleFull)
+	m.Decorate(tsup.StyleFull)
 	zv, err = m.Marshal(rolls)
 	require.NoError(t, err)
-	assert.Equal(t, `"github.com/brimdata/super/sup_test.Rolls"`, sup.String(zv.Type()))
+	assert.Equal(t, `"github.com/brimdata/super/tsup_test.Rolls"`, tsup.String(zv.Type()))
 
 	plain := []int32{1, 2, 3}
 	zv, err = m.Marshal(plain)
 	require.NoError(t, err)
-	assert.Equal(t, "[int32]", sup.String(zv.Type()))
+	assert.Equal(t, "[int32]", tsup.String(zv.Type()))
 }
 
 func TestInterfaceUnmarshal(t *testing.T) {
 	t1 := Make(1)
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StylePackage)
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, `"sup_test.BSUPThing"`, sup.String(zv.Type()))
+	assert.Equal(t, `"tsup_test.BSUPThing"`, tsup.String(zv.Type()))
 
-	u := sup.NewBSUPUnmarshaler()
+	u := tsup.NewBSUPUnmarshaler()
 	u.Bind(BSUPThing{}, ThingTwo{})
 	var thing ThingaMaBob
 	require.NoError(t, err)
@@ -478,12 +478,12 @@ func TestInterfaceUnmarshal(t *testing.T) {
 
 	var thingI any
 	err = u.Unmarshal(zv, &thingI)
-	require.NoError(t, err, sup.String(zv))
+	require.NoError(t, err, tsup.String(zv))
 	actualThing, ok := thingI.(*BSUPThing)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, t1, actualThing)
 
-	u2 := sup.NewBSUPUnmarshaler()
+	u2 := tsup.NewBSUPUnmarshaler()
 	var genericThing any
 	err = u2.Unmarshal(zv, &genericThing)
 	require.Error(t, err)
@@ -492,17 +492,17 @@ func TestInterfaceUnmarshal(t *testing.T) {
 
 func TestBindings(t *testing.T) {
 	t1 := Make(1)
-	m := sup.NewBSUPMarshaler()
-	m.NamedBindings([]sup.Binding{
+	m := tsup.NewBSUPMarshaler()
+	m.NamedBindings([]tsup.Binding{
 		{"SpecialThingOne", &BSUPThing{}},
 		{"SpecialThingTwo", &ThingTwo{}},
 	})
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "SpecialThingOne", sup.String(zv.Type()))
+	assert.Equal(t, "SpecialThingOne", tsup.String(zv.Type()))
 
-	u := sup.NewBSUPUnmarshaler()
-	u.NamedBindings([]sup.Binding{
+	u := tsup.NewBSUPUnmarshaler()
+	u.NamedBindings([]tsup.Binding{
 		{"SpecialThingOne", &BSUPThing{}},
 		{"SpecialThingTwo", &ThingTwo{}},
 	})
@@ -514,19 +514,19 @@ func TestBindings(t *testing.T) {
 }
 
 func TestEmptyInterface(t *testing.T) {
-	zv, err := sup.MarshalBSUP(int8(123))
+	zv, err := tsup.MarshalBSUP(int8(123))
 	require.NoError(t, err)
-	assert.Equal(t, "int8", sup.String(zv.Type()))
+	assert.Equal(t, "int8", tsup.String(zv.Type()))
 
 	var v any
-	err = sup.UnmarshalBSUP(zv, &v)
+	err = tsup.UnmarshalBSUP(zv, &v)
 	require.NoError(t, err)
 	i, ok := v.(int8)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, int8(123), i)
 
 	var actual int8
-	err = sup.UnmarshalBSUP(zv, &actual)
+	err = tsup.UnmarshalBSUP(zv, &actual)
 	require.NoError(t, err)
 	assert.Equal(t, int8(123), actual)
 }
@@ -535,15 +535,15 @@ type CustomInt8 int8
 
 func TestNamedNormal(t *testing.T) {
 	t1 := CustomInt8(88)
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StyleSimple)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StyleSimple)
 
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "CustomInt8", sup.String(zv.Type()))
+	assert.Equal(t, "CustomInt8", tsup.String(zv.Type()))
 
 	var actual CustomInt8
-	u := sup.NewBSUPUnmarshaler()
+	u := tsup.NewBSUPUnmarshaler()
 	u.Bind(CustomInt8(0))
 	err = u.Unmarshal(zv, &actual)
 	require.NoError(t, err)
@@ -569,13 +569,13 @@ func TestEmbeddedInterface(t *testing.T) {
 	t1 := &EmbeddedA{
 		A: Make(1),
 	}
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StyleSimple)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StyleSimple)
 	zv, err := m.Marshal(t1)
 	require.NoError(t, err)
-	assert.Equal(t, "EmbeddedA", sup.String(zv.Type()))
+	assert.Equal(t, "EmbeddedA", tsup.String(zv.Type()))
 
-	u := sup.NewBSUPUnmarshaler()
+	u := tsup.NewBSUPUnmarshaler()
 	u.Bind(BSUPThing{}, ThingTwo{})
 	var actual EmbeddedA
 	require.NoError(t, err)
@@ -595,7 +595,7 @@ func TestEmbeddedInterface(t *testing.T) {
 func TestMultipleSuperValues(t *testing.T) {
 	t.Skip()
 	bytes := []byte("foo")
-	u := sup.NewBSUPUnmarshaler()
+	u := tsup.NewBSUPUnmarshaler()
 	var foo super.Value
 	err := u.Unmarshal(super.NewValue(super.TypeString, bytes), &foo)
 	require.NoError(t, err)
@@ -612,12 +612,12 @@ func TestSuperValues(t *testing.T) {
 	t.Skip() // doesn't work like this anymore
 	test := func(t *testing.T, name, s string, v any) {
 		t.Run(name, func(t *testing.T) {
-			val := sup.MustParseValue(super.NewContext(), s)
-			err := sup.UnmarshalBSUP(val, v)
+			val := tsup.MustParseValue(super.NewContext(), s)
+			err := tsup.UnmarshalBSUP(val, v)
 			require.NoError(t, err)
-			val, err = sup.MarshalBSUP(v)
+			val, err = tsup.MarshalBSUP(v)
 			require.NoError(t, err)
-			assert.Equal(t, s, sup.FormatValue(val))
+			assert.Equal(t, s, tsup.FormatValue(val))
 		})
 	}
 	var testptr struct {

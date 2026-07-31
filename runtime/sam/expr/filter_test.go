@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -49,7 +49,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 	t.Helper()
 
 	sctx := super.NewContext()
-	rec, err := sup.ParseValue(sctx, record)
+	rec, err := tsup.ParseValue(sctx, record)
 	require.NoError(t, err, "record: %q", record)
 
 	rctx := runtime.NewContext(t.Context(), sctx)
@@ -72,7 +72,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			assert.NoError(t, err, "filter: %q", c.filter)
 			if f != nil {
 				assert.Equal(t, c.expected, filter(rec, f),
-					"filter: %q\nrecord: %s", c.filter, sup.FormatValue(rec))
+					"filter: %q\nrecord: %s", c.filter, tsup.FormatValue(rec))
 			}
 			bf, err := filterMaker.BSUPFilter()
 			assert.NoError(t, err, "filter: %q", c.filter)
@@ -84,7 +84,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 				buf := binary.AppendUvarint(nil, uint64(rec.Type().ID()))
 				buf = scode.Append(buf, rec.Bytes())
 				assert.Equal(t, expected, bf.Eval(sctx, buf),
-					"filter: %q\nvalues:%s\nbuffer:\n%s", c.filter, sup.FormatValue(rec), hex.Dump(buf))
+					"filter: %q\nvalues:%s\nbuffer:\n%s", c.filter, tsup.FormatValue(rec), hex.Dump(buf))
 			}
 		})
 	}
@@ -338,7 +338,7 @@ func TestFilters(t *testing.T) {
 		{"i32 == 2147483647", true},
 		{"u32 == 4294967295", true},
 		{"i64 == 9223372036854775807", true},
-		// Can't represent large unsigned 64 bit values in SUP.
+		// Can't represent large unsigned 64 bit values in TSUP.
 		// {"u64 = 18446744073709551615", true},
 	})
 

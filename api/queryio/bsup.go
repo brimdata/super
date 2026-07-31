@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
+	sup "github.com/brimdata/super/tsup"
 )
 
 type BSUPWriter struct {

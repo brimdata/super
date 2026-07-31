@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Collect struct {
@@ -69,7 +69,7 @@ func (c *Collect) ConsumeAsPartial(val super.Value) {
 	}
 	arrayType, ok := val.Type().(*super.TypeArray)
 	if !ok {
-		panic(fmt.Errorf("collect partial: partial not an array type: %s", sup.FormatValue(val)))
+		panic(fmt.Errorf("collect partial: partial not an array type: %s", tsup.FormatValue(val)))
 	}
 	typ := arrayType.Type
 	for it := val.ContainerIter(); !it.Done(); {

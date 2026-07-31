@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -90,7 +90,7 @@ func (w *Writer) writeAny(tab int, val super.Value) {
 	case *super.TypeError:
 		w.writeError(tab, typ, val.Bytes())
 	default:
-		panic(fmt.Sprintf("unsupported type: %s", sup.FormatType(typ)))
+		panic(fmt.Sprintf("unsupported type: %s", tsup.FormatType(typ)))
 	}
 }
 
@@ -168,16 +168,16 @@ func mapKey(typ super.Type, b scode.Bytes) string {
 			// Don't quote strings.
 			return val.AsString()
 		}
-		return sup.FormatPrimitive(val.Type(), val.Bytes())
+		return tsup.FormatPrimitive(val.Type(), val.Bytes())
 	case super.UnionKind:
 		// Untagged, decorated SUP so
 		// map{0:1,0(uint64):2,0(=t):3,"0":4} gets unique keys.
 		typ, bytes := typ.(*super.TypeUnion).Untag(b)
-		return sup.FormatValue(super.NewValue(typ, bytes))
+		return tsup.FormatValue(super.NewValue(typ, bytes))
 	case super.EnumKind:
 		return convertEnum(typ.(*super.TypeEnum), b)
 	default:
-		return sup.FormatValue(val)
+		return tsup.FormatValue(val)
 	}
 }
 
@@ -237,7 +237,7 @@ func (w *Writer) writePrimitive(val super.Value) {
 	case id == super.IDNet:
 		v = super.DecodeNet(val.Bytes()).String()
 	case id == super.IDType:
-		v = sup.FormatValue(val)
+		v = tsup.FormatValue(val)
 	default:
 		panic(fmt.Sprintf("unsupported id=%d", id))
 	}

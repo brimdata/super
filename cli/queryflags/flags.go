@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -35,7 +35,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 
 func (f *Flags) PrintStats(stats vio.Progress) {
 	if f.Stats {
-		out, err := sup.Marshal(stats)
+		out, err := tsup.Marshal(stats)
 		if err != nil {
 			out = fmt.Sprintf("error marshaling stats: %s", err)
 		}

@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 var spec = &charm.Spec{
@@ -73,7 +73,7 @@ func (c *Command) Run(args []string) error {
 	}
 	var vals []super.Value
 	sctx := super.NewContext()
-	marshaler := sup.NewBSUPMarshalerWithContext(sctx)
+	marshaler := tsup.NewBSUPMarshalerWithContext(sctx)
 	for {
 		hdr, err := readHeader(r)
 		if err != nil {
@@ -134,7 +134,7 @@ func readHeader(r io.Reader) (csup.Header, error) {
 	return hdr, err
 }
 
-func readObject(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Reader, vals []super.Value) ([]super.Value, error) {
+func readObject(sctx *super.Context, marshaler *tsup.MarshalBSUPContext, r io.Reader, vals []super.Value) ([]super.Value, error) {
 	var bytes [csup.DataHeaderSize]byte
 	if _, err := io.ReadFull(r, bytes[:]); err != nil {
 		return vals, err
@@ -191,7 +191,7 @@ func readObject(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Rea
 	return vals, err
 }
 
-func readFooter(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Reader, vals []super.Value) ([]super.Value, error) {
+func readFooter(sctx *super.Context, marshaler *tsup.MarshalBSUPContext, r io.Reader, vals []super.Value) ([]super.Value, error) {
 	var bytes [csup.FooterSize]byte
 	if _, err := io.ReadFull(r, bytes[:]); err != nil {
 		return vals, err
@@ -227,7 +227,7 @@ func readFooter(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Rea
 	return vals, nil
 }
 
-func marshalTypeDefs(marshaler *sup.MarshalBSUPContext, vals []super.Value, bytes []byte) ([]super.Value, error) {
+func marshalTypeDefs(marshaler *tsup.MarshalBSUPContext, vals []super.Value, bytes []byte) ([]super.Value, error) {
 	id := uint32(super.IDTypeComplex)
 	for len(bytes) > 0 {
 		var desc any

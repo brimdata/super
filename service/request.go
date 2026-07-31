@@ -24,7 +24,7 @@ import (
 	"github.com/brimdata/super/service/srverr"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
@@ -39,8 +39,8 @@ type Request struct {
 func newRequest(w http.ResponseWriter, r *http.Request, c *Core) (*ResponseWriter, *Request, bool) {
 	req := &Request{Request: r}
 	req.Logger = c.logger.With(zap.String("request_id", req.ID()))
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StylePackage)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StylePackage)
 	res := &ResponseWriter{
 		ResponseWriter: w,
 		Logger:         req.Logger,
@@ -190,7 +190,7 @@ func (r *Request) Unmarshal(w *ResponseWriter, body any, templates ...any) bool 
 	if zv == nil {
 		return true
 	}
-	m := sup.NewBSUPUnmarshaler()
+	m := tsup.NewBSUPUnmarshaler()
 	m.Bind(templates...)
 	if err := m.Unmarshal(*zv, body); err != nil {
 		w.Error(srverr.ErrInvalid(err))
@@ -220,7 +220,7 @@ type ResponseWriter struct {
 	Format    string
 	Logger    *zap.Logger
 	zw        vio.PushCloser
-	marshaler *sup.MarshalBSUPContext
+	marshaler *tsup.MarshalBSUPContext
 	request   *Request
 	written   int32
 }

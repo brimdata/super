@@ -4,7 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -53,7 +53,7 @@ func CompileBufferFilter(sctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 		}
 		return nil, nil
 	case *dag.SearchExpr:
-		literal, err := sup.ParseValue(sctx, e.Value)
+		literal, err := tsup.ParseValue(sctx, e.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +85,7 @@ func isFieldEqualOrIn(sctx *super.Context, e *dag.BinaryExpr) (*super.Value, err
 	// expression and compute a super.Value or call eval.
 	if _, ok := e.LHS.(*dag.ThisExpr); ok && e.Op == "==" {
 		if literal, ok := e.RHS.(*dag.PrimitiveExpr); ok {
-			val, err := sup.ParseValue(sctx, literal.Value)
+			val, err := tsup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err
 			}
@@ -93,7 +93,7 @@ func isFieldEqualOrIn(sctx *super.Context, e *dag.BinaryExpr) (*super.Value, err
 		}
 	} else if _, ok := e.RHS.(*dag.ThisExpr); ok && e.Op == "in" {
 		if literal, ok := e.LHS.(*dag.PrimitiveExpr); ok {
-			val, err := sup.ParseValue(sctx, literal.Value)
+			val, err := tsup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err
 			}

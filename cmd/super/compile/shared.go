@@ -20,7 +20,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -112,7 +112,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 }
 
 func (s *Shared) writeValue(ctx context.Context, v any) error {
-	val, err := sup.MarshalBSUP(v)
+	val, err := tsup.MarshalBSUP(v)
 	if err != nil {
 		return err
 	}

@@ -5,14 +5,14 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Reader struct {
 	reader   io.Reader
 	sctx     *super.Context
-	parser   *sup.Parser
-	analyzer *sup.Analyzer
+	parser   *tsup.Parser
+	analyzer *tsup.Analyzer
 	builder  *scode.Builder
 	val      super.Value
 }
@@ -21,14 +21,14 @@ func NewReader(sctx *super.Context, r io.Reader) *Reader {
 	return &Reader{
 		reader:   r,
 		sctx:     sctx,
-		analyzer: sup.NewAnalyzer(sctx),
+		analyzer: tsup.NewAnalyzer(sctx),
 		builder:  scode.NewBuilder(),
 	}
 }
 
 func (r *Reader) Read() (*super.Value, error) {
 	if r.parser == nil {
-		r.parser = sup.NewParser(r.reader)
+		r.parser = tsup.NewParser(r.reader)
 	}
 	ast, err := r.parser.ParseValue()
 	if ast == nil || err != nil {
@@ -38,6 +38,6 @@ func (r *Reader) Read() (*super.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	r.val, err = sup.Build(r.builder, val)
+	r.val, err = tsup.Build(r.builder, val)
 	return &r.val, err
 }

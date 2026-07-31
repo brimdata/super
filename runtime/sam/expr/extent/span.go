@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // For now, we do slow-path stuff here but the interface will allow us
@@ -102,8 +102,8 @@ func (g *Generic) String() string {
 }
 
 func Format(s Span) string {
-	first := sup.FormatValue(s.First())
-	last := sup.FormatValue(s.Last())
+	first := tsup.FormatValue(s.First())
+	last := tsup.FormatValue(s.Last())
 	return fmt.Sprintf("first %s last %s", first, last)
 }
 

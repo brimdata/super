@@ -4,7 +4,7 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -107,7 +107,7 @@ func reorder(union *vector.Union) ([]vector.Any, []uint32) {
 	for inTag, vec := range vecs {
 		localTag := union.Typ.TagOf(vec.Type())
 		if localTag < 0 {
-			panic(sup.String(vec.Type()))
+			panic(tsup.String(vec.Type()))
 		}
 		tagmap[inTag] = uint32(localTag)
 	}

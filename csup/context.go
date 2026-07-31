@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Context struct {
@@ -18,7 +18,7 @@ type Context struct {
 	local  *super.Context // holds the types for the Metadata values
 	metas  []Metadata     // id to Metadata
 	values []super.Value  // id to unmarshaled Metadata
-	uctx   *sup.UnmarshalBSUPContext
+	uctx   *tsup.UnmarshalBSUPContext
 	// The typedefs table is a merge of all the fusion vector subtypes.
 	// Only the typedefs needed are recorded in this table and different vectors
 	// are merged into this shared table by mapping each vector's IDs to the
@@ -69,7 +69,7 @@ func (c *Context) Lookup(id ID) Metadata {
 
 func (c *Context) unmarshal(id ID) error {
 	if c.uctx == nil {
-		c.uctx = sup.NewBSUPUnmarshaler()
+		c.uctx = tsup.NewBSUPUnmarshaler()
 		c.uctx.SetContext(c.local)
 		c.uctx.Bind(Template...)
 	}

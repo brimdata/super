@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func FormatValues(vec Any) string {
@@ -17,13 +17,13 @@ func FormatValues(vec Any) string {
 		if i > 0 {
 			b.WriteString(", ")
 		}
-		b.WriteString(sup.FormatValue(ValueAt(nil, vec, i)))
+		b.WriteString(tsup.FormatValue(ValueAt(nil, vec, i)))
 	}
 	return b.String()
 }
 
 func PrintSlot(vec Any, slot uint32) {
-	fmt.Println(sup.FormatValue(ValueAt(scode.NewBuilder(), vec, slot)))
+	fmt.Println(tsup.FormatValue(ValueAt(scode.NewBuilder(), vec, slot)))
 }
 
 func Println(a ...any) {
@@ -50,7 +50,7 @@ func write(w io.Writer, vec Any, indent, prefix string) {
 	_, goType, _ := strings.Cut(reflect.TypeOf(vec).String(), ".")
 	var typ string
 	if _, ok := vec.(*Dynamic); !ok {
-		typ = " type=" + sup.FormatType(vec.Type())
+		typ = " type=" + tsup.FormatType(vec.Type())
 	}
 	prefix = ""
 	fmt.Fprintf(w, "%s%s%s%s len=%d", indent, prefix, goType, typ, vec.Len())

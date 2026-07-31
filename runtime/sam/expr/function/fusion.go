@@ -3,7 +3,7 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type fusion struct {
@@ -28,7 +28,7 @@ func (f *fusion) Call(args []super.Value) super.Value {
 		panic(err)
 	}
 	if _, ok := f.downcast.Cast(superVal, subType); !ok {
-		return f.sctx.WrapError("fusion: value not a supertype of subtype arg: "+sup.FormatType(subType), superVal)
+		return f.sctx.WrapError("fusion: value not a supertype of subtype arg: "+tsup.FormatType(subType), superVal)
 	}
 	typ := f.sctx.LookupTypeFusion(superVal.Type())
 	var b scode.Builder

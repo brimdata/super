@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 type Direction int
@@ -83,11 +83,11 @@ func (d Direction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
 
-func (d Direction) MarshalBSUP(m *sup.MarshalBSUPContext) (super.Type, error) {
+func (d Direction) MarshalBSUP(m *tsup.MarshalBSUPContext) (super.Type, error) {
 	return m.MarshalValue(d.String())
 }
 
-func (d *Direction) UnmarshalBSUP(u *sup.UnmarshalBSUPContext, val super.Value) error {
+func (d *Direction) UnmarshalBSUP(u *tsup.UnmarshalBSUPContext, val super.Value) error {
 	dir, err := ParseDirection(string(val.Bytes()))
 	if err != nil {
 		return err

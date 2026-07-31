@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
 )
@@ -484,13 +484,13 @@ func (d *Downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vec
 }
 
 func (d *Downcast) errNonOptionNone(vec vector.Any, to super.Type) vector.Any {
-	return vector.NewStringError(d.sctx, "downcast: none value in non-option type: "+sup.FormatType(to), vec.Len())
+	return vector.NewStringError(d.sctx, "downcast: none value in non-option type: "+tsup.FormatType(to), vec.Len())
 }
 
 func (d *Downcast) errMismatch(vec vector.Any, to super.Type) vector.Any {
-	return vector.NewWrappedError(d.sctx, "downcast: type mismatch to "+sup.FormatType(to), vec)
+	return vector.NewWrappedError(d.sctx, "downcast: type mismatch to "+tsup.FormatType(to), vec)
 }
 
 func (d *Downcast) errSubtype(vec vector.Any, to super.Type) vector.Any {
-	return vector.NewWrappedError(d.sctx, "downcast: invalid subtype "+sup.FormatType(to), vec)
+	return vector.NewWrappedError(d.sctx, "downcast: invalid subtype "+tsup.FormatType(to), vec)
 }

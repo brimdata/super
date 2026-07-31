@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
 )
@@ -68,7 +68,7 @@ func (u *Upcast) Call(args ...vector.Any) vector.Any {
 func (u *Upcast) upcastOrError(vec vector.Any, typ super.Type) vector.Any {
 	out := u.upcast(vec, typ)
 	if out == nil {
-		out = vector.NewWrappedError(u.sctx, "upcast: value not a subtype of "+sup.FormatType(typ), vec)
+		out = vector.NewWrappedError(u.sctx, "upcast: value not a subtype of "+tsup.FormatType(typ), vec)
 	}
 	return out
 }
@@ -260,7 +260,7 @@ func (u *Upcast) toEnum(vec vector.Any, to *super.TypeEnum) vector.Any {
 	for i, fromIndex := range enumVec.Uint.Values {
 		symbol, err := enumVec.Typ.Symbol(int(fromIndex))
 		if err != nil {
-			panic(fmt.Sprintf("bad index %d in %s value", fromIndex, sup.FormatType(enumVec.Typ)))
+			panic(fmt.Sprintf("bad index %d in %s value", fromIndex, tsup.FormatType(enumVec.Typ)))
 		}
 		toIndex := to.Lookup(symbol)
 		if toIndex < 0 {

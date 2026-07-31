@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 // Nulls represents the position of nulls in an ordering of values.
@@ -39,13 +39,13 @@ func (n *Nulls) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (n Nulls) MarshalBSUP(m *sup.MarshalBSUPContext) (super.Type, error) {
+func (n Nulls) MarshalBSUP(m *tsup.MarshalBSUPContext) (super.Type, error) {
 	return m.MarshalValue(n.String())
 }
 
-func (n *Nulls) UnmarshalBSUP(u *sup.UnmarshalBSUPContext, val super.Value) error {
+func (n *Nulls) UnmarshalBSUP(u *tsup.UnmarshalBSUPContext, val super.Value) error {
 	if val.Type().ID() != super.IDString {
-		return fmt.Errorf("cannot unmarshal %q into order.Nulls", sup.FormatValue(val))
+		return fmt.Errorf("cannot unmarshal %q into order.Nulls", tsup.FormatValue(val))
 	}
 	return n.UnmarshalText(val.Bytes())
 }

@@ -2,13 +2,13 @@ package queryio
 
 import (
 	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
-var unmarshaler *sup.UnmarshalBSUPContext
+var unmarshaler *tsup.UnmarshalBSUPContext
 
 func init() {
-	unmarshaler = sup.NewBSUPUnmarshaler()
+	unmarshaler = tsup.NewBSUPUnmarshaler()
 	unmarshaler.Bind(
 		api.QueryChannelSet{},
 		api.QueryChannelEnd{},

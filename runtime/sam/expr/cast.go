@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func LookupPrimitiveCaster(sctx *super.Context, typ super.Type) Evaluator {
@@ -56,7 +56,7 @@ type casterIntN struct {
 func (c *casterIntN) Eval(val super.Value) super.Value {
 	v, ok := coerce.ToInt(val, c.typ)
 	if !ok {
-		return c.sctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
+		return c.sctx.WrapError("cannot cast to "+tsup.FormatType(c.typ), val)
 	}
 	return super.NewInt(c.typ, v)
 }
@@ -69,7 +69,7 @@ type casterUintN struct {
 func (c *casterUintN) Eval(val super.Value) super.Value {
 	v, ok := coerce.ToUint(val, c.typ)
 	if !ok {
-		return c.sctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
+		return c.sctx.WrapError("cannot cast to "+tsup.FormatType(c.typ), val)
 	}
 	return super.NewUint(c.typ, v)
 }
@@ -94,7 +94,7 @@ type casterFloat struct {
 func (c *casterFloat) Eval(val super.Value) super.Value {
 	f, ok := coerce.ToFloat(val, c.typ)
 	if !ok {
-		return c.sctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
+		return c.sctx.WrapError("cannot cast to "+tsup.FormatType(c.typ), val)
 	}
 	return super.NewFloat(c.typ, f)
 }
@@ -232,7 +232,7 @@ func (c *casterString) Eval(val super.Value) super.Value {
 	}
 	// Otherwise, we'll use a canonical SUP value for the string rep
 	// of an arbitrary value cast to a string.
-	return super.NewString(sup.FormatValue(val))
+	return super.NewString(tsup.FormatValue(val))
 }
 
 type casterBytes struct {
@@ -258,7 +258,7 @@ func (c *casterType) Eval(val super.Value) super.Value {
 	if id != super.IDString {
 		return c.sctx.WrapError("cannot cast to type", val)
 	}
-	typval, err := sup.ParseValue(c.sctx, val.AsString())
+	typval, err := tsup.ParseValue(c.sctx, val.AsString())
 	if err != nil || typval.Type().ID() != super.IDType {
 		return c.sctx.WrapError("cannot cast to type", val)
 	}
@@ -278,7 +278,7 @@ func (c *casterEnum) Eval(val super.Value) super.Value {
 	s := super.DecodeString(val.Bytes())
 	selector := c.enum.Lookup(s)
 	if selector < 0 {
-		return c.sctx.WrapError(fmt.Sprintf("no such symbol in %s", sup.String(c.enum)), val)
+		return c.sctx.WrapError(fmt.Sprintf("no such symbol in %s", tsup.String(c.enum)), val)
 	}
 	return super.NewValue(c.enum, super.EncodeUint(uint64(selector)))
 }

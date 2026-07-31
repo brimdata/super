@@ -4,7 +4,7 @@
 // representation.  To do so, Parser translats a SUP input to an AST, Analyzer
 // performs semantic type analysis to turn the AST into a Value, and Builder
 // constructs a super.Value from a Value.
-package sup
+package tsup
 
 import (
 	"slices"

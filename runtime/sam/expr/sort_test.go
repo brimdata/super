@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func BenchmarkSort(b *testing.B) {
@@ -22,7 +22,7 @@ func BenchmarkSort(b *testing.B) {
 		{super.TypeTime, func() []byte { return super.EncodeInt(int64(rand.Uint64())) }},
 	}
 	for _, c := range cases {
-		b.Run(sup.FormatType(c.typ), func(b *testing.B) {
+		b.Run(tsup.FormatType(c.typ), func(b *testing.B) {
 			cmp := NewComparator(SortExpr{&This{}, order.Asc, order.NullsLast})
 			vals := make([]super.Value, 1048576)
 			for b.Loop() {

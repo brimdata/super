@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -138,7 +138,7 @@ func (s *Snapshot) Copy() *Snapshot {
 // sequence to meet the requirements of DeleteObject.
 func (s *Snapshot) serialize() ([]byte, error) {
 	zs := bsupbytes.NewSerializer()
-	zs.Decorate(sup.StylePackage)
+	zs.Decorate(tsup.StylePackage)
 	for _, o := range s.objects {
 		if err := zs.Write(&Add{Object: *o}); err != nil {
 			return nil, err

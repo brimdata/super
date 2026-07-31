@@ -21,7 +21,7 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -85,11 +85,11 @@ const recordBatchSize = 1024
 func (w *Writer) Write(val super.Value) error {
 	recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
 	if !ok {
-		return fmt.Errorf("%w: %s", ErrNotRecord, sup.FormatValue(val))
+		return fmt.Errorf("%w: %s", ErrNotRecord, tsup.FormatValue(val))
 	}
 	if w.typ == nil {
 		if isRecursive(recType, make(map[string]struct{})) {
-			return fmt.Errorf("%w: %s", ErrUnsupportedType, sup.FormatType(val.Type()))
+			return fmt.Errorf("%w: %s", ErrUnsupportedType, tsup.FormatType(val.Type()))
 		}
 		w.typ = recType
 		dt, err := w.newArrowDataType(recType)
@@ -104,7 +104,7 @@ func (w *Writer) Write(val super.Value) error {
 			return err
 		}
 	} else if w.typ != recType {
-		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, sup.FormatType(w.typ), sup.FormatType(recType))
+		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, tsup.FormatType(w.typ), tsup.FormatType(recType))
 	}
 	it := val.Bytes().Iter()
 	for i, builder := range w.builder.Fields() {
@@ -295,7 +295,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 	case *super.TypeEnum, *super.TypeError:
 		return arrow.BinaryTypes.String, nil
 	default:
-		return nil, fmt.Errorf("%w: %s", ErrUnsupportedType, sup.FormatType(typ))
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedType, tsup.FormatType(typ))
 	}
 }
 
@@ -375,17 +375,17 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		case *super.TypeOfNet:
 			b.Append(super.DecodeNet(bytes).String())
 		case *super.TypeOfType:
-			b.Append(sup.FormatTypeValue(bytes))
+			b.Append(tsup.FormatTypeValue(bytes))
 		case *super.TypeEnum:
 			s, err := typ.Symbol(int(super.DecodeUint(bytes)))
 			if err != nil {
-				panic(fmt.Sprintf("decoding %s with bytes %s: %s", sup.FormatType(typ), hex.EncodeToString(bytes), err))
+				panic(fmt.Sprintf("decoding %s with bytes %s: %s", tsup.FormatType(typ), hex.EncodeToString(bytes), err))
 			}
 			b.Append(s)
 		case *super.TypeError:
-			b.Append(sup.FormatValue(super.NewValue(typ, bytes)))
+			b.Append(tsup.FormatValue(super.NewValue(typ, bytes)))
 		default:
-			panic(fmt.Sprintf("unexpected type for StringBuilder: %s", sup.FormatType(typ)))
+			panic(fmt.Sprintf("unexpected type for StringBuilder: %s", tsup.FormatType(typ)))
 		}
 	case *array.BinaryBuilder:
 		b.Append(super.DecodeBytes(bytes))
@@ -414,7 +414,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		case "arrow_time32_ms":
 			ts /= nano.Ts(nano.Millisecond)
 		default:
-			panic(fmt.Sprintf("unexpected type name for Time32Builder: %s", sup.FormatType(typ)))
+			panic(fmt.Sprintf("unexpected type name for Time32Builder: %s", tsup.FormatType(typ)))
 		}
 		b.Append(arrow.Time32(ts))
 	case *array.Time64Builder:
