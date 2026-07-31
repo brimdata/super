@@ -38,7 +38,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 )
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
 		if s.IsMissing() {
 			s = sctx.Missing().Ptr()
 		}
-		fmt.Println(sup.String(s))
+		fmt.Println(tsup.String(s))
 	}
 }
 ```
@@ -108,7 +108,7 @@ import (
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/tsup"
 	"github.com/brimdata/super/sbuf"
 )
 
@@ -144,7 +144,7 @@ func main() {
 		if s.IsMissing() {
 			s = sctx.Missing().Ptr()
 		}
-		fmt.Println(sup.String(s))
+		fmt.Println(tsup.String(s))
 	}
 }
 ```
