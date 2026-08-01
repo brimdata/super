@@ -1,7 +1,7 @@
-script: super -s -c "values 1,2,3 | {x:[cross join (from in.sup)]}"
+script: super -s -c "values 1,2,3 | {x:[cross join (from in.tsup)]}"
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       2
       3

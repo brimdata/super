@@ -1,8 +1,8 @@
 script: |
-  super -s -c 'select -a as x from a.sup where -a>=-12 and a<12'
+  super -s -c 'select -a as x from a.tsup where -a>=-12 and a<12'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:11,c:1}
       {a:12,c:2}

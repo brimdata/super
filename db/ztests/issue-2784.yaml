@@ -2,15 +2,15 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q test
-  super db load -q -use test a.sup
-  super db load -q -use test b.sup
+  super db load -q -use test a.tsup
+  super db load -q -use test b.tsup
   super db -s -c "from test@main:objects | sort min | {min:defuse(min),max:defuse(max)}"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {ts:1}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {ts:2}
 

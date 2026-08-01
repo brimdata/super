@@ -1,8 +1,8 @@
 script: |
-  ! yes ' ' | head -c $((11 * 1024 * 1024)) > huge.sup
-  echo 0 >> huge.sup
-  super -s huge.sup
-  ! cat huge.sup | super -s -
+  ! yes ' ' | head -c $((11 * 1024 * 1024)) > huge.tsup
+  echo 0 >> huge.tsup
+  super -s huge.tsup
+  ! cat huge.tsup | super -s -
 
 outputs:
   - name: stdout

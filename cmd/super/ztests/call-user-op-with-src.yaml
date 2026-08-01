@@ -5,9 +5,9 @@ inputs:
   - name: countfile.spq
     data: |
       op countfile: (
-        from test.sup | count()
+        from test.tsup | count()
       )
-  - name: test.sup
+  - name: test.tsup
     data: '{} {} {} {}'
 
 outputs:

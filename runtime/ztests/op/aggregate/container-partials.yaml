@@ -3,11 +3,11 @@
 # an empty input by including a record for key "a" with error("quiet") in the
 # value field.
 script: |
-  super -s -c "union(x) by key with -limit 1 | sort key" in.sup > union.sup
-  super -s -c "collect(x) by key with -limit 1 | sort key" in.sup > collect.sup
+  super -s -c "union(x) by key with -limit 1 | sort key" in.tsup > union.tsup
+  super -s -c "collect(x) by key with -limit 1 | sort key" in.tsup > collect.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {key:"a",x:1::int32}
       {key:"a",x:-1::int32}
@@ -20,11 +20,11 @@ inputs:
       {key:"a",x:error("quiet")}
 
 outputs:
-  - name: union.sup
+  - name: union.tsup
     data: |
       {key:"a",union:set[1::int32,-1::int32,8::int32]}
       {key:"b",union:set[1::int32,2::int32]}
-  - name: collect.sup
+  - name: collect.tsup
     data: |
       {key:"a",collect:[1::int32,-1::int32,8::int32]}
       {key:"b",collect:[2::int32,1::int32,1::int32]}

@@ -1,13 +1,13 @@
 script: |
   source service.sh
   super db create -q test
-  super db load -q -use test in.sup
+  super db load -q -use test in.tsup
   super db -f csv -c "from test"
 
 inputs:
   - name: service.sh
     source: service.sh
-  - name: in.sup
+  - name: in.tsup
     data: |
       {a:"hello",b:{c:"world",d:"goodbye"}}
 

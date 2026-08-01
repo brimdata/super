@@ -1,17 +1,17 @@
 script: |
-  super -f csup -o a.csup a.sup
-  super -f csup -o b.csup b.sup
+  super -f csup -o a.csup a.tsup
+  super -f csup -o b.csup b.tsup
   cat a.csup b.csup > test.csup
   super -s test.csup
   echo // ===
   super dev csup -s -type test.csup
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
       {b:2}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {c:3}
       {d:4}

@@ -1,8 +1,8 @@
 script: |
-  super -s -c 'fork (from a.sup) (pass)' a.sup
+  super -s -c 'fork (from a.tsup) (pass)' a.tsup
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
 

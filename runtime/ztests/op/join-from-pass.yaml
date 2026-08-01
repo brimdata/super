@@ -1,19 +1,19 @@
-script: super -s -I join.spq left.sup
+script: super -s -I join.spq left.tsup
 
 inputs:
   - name: join.spq
     data: |
       fork
         ( pass )
-        ( from right.sup )
+        ( from right.tsup )
       | inner join on left.x=right.y 
       | values {...left,matched:true}
-  - name: left.sup
+  - name: left.tsup
     data: |
       {x:1,s:"one"}
       {x:2,s:"two"}
       {x:3,s:"three"}
-  - name: right.sup
+  - name: right.tsup
     data: |
       {y:2,y:"y-two"}
 

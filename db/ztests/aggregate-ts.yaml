@@ -1,11 +1,11 @@
 script: |
   export SUPER_DB=test
   super db init -q
-  # aggregate-ts.sup contains records over two days, mapping to two partitions, and
+  # aggregate-ts.tsup contains records over two days, mapping to two partitions, and
   # the small target size here causes each partition to have several segments.
   super db create -q -S 256B logs
   # causes parition to have several chunk files.
-  super db load -q -use logs aggregate-ts.sup
+  super db load -q -use logs aggregate-ts.tsup
   echo ===
   super db -s -c 'from logs | head 1'
   echo ===
@@ -18,8 +18,8 @@ script: |
   super db -s -c 'from logs | count:=count() by ts:=bucket(ts, 3600s), g | sort ts, g'
 
 inputs:
-  - name: aggregate-ts.sup
-    source: ../testdata/aggregate-ts.sup
+  - name: aggregate-ts.tsup
+    source: ../testdata/aggregate-ts.tsup
 
 outputs:
   - name: stdout

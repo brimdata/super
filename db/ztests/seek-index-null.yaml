@@ -4,14 +4,14 @@ script: |
   for o in asc desc; do
     echo // $o | tee /dev/stderr
     super db create -q -seekstride 2KB -orderby ts:$o $o
-    super db load -q -use $o babble.sup null.sup
+    super db load -q -use $o babble.tsup null.tsup
     super db -s -stats -c "from $o | ts >= 2020-04-21T23:59:26.063Z and ts <= 2020-04-21T23:59:38.069Z"
   done
 
 inputs:
-  - name: babble.sup
-    source: ../../testdata/babble.sup
-  - name: null.sup
+  - name: babble.tsup
+    source: ../../testdata/babble.tsup
+  - name: null.tsup
     data: |
       {ts:null,s:"foo-bar",v:1}
 

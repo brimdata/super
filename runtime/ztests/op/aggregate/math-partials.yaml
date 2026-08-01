@@ -2,13 +2,13 @@
 # with a single-row limit.  We also make sure the partials consumer can handle
 # an empty input by including a record for key "a" with no value field.
 script: |
-  super -s -c "avg(n) by key with -limit 1 | sort key" in.sup > avg.sup
-  super -s -c "count() by key with -limit 1 | sort key" in.sup > count.sup
-  super -s -c "min(n) by key with -limit 1 | sort key" in.sup > min.sup
-  super -s -c "max(n) by key with -limit 1 | sort key" in.sup > max.sup
+  super -s -c "avg(n) by key with -limit 1 | sort key" in.tsup > avg.tsup
+  super -s -c "count() by key with -limit 1 | sort key" in.tsup > count.tsup
+  super -s -c "min(n) by key with -limit 1 | sort key" in.tsup > min.tsup
+  super -s -c "max(n) by key with -limit 1 | sort key" in.tsup > max.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {key:"a",n:0::int32}
       {key:"a",n:5::int32}
@@ -16,19 +16,19 @@ inputs:
       {key:"a"}
 
 outputs:
-  - name: avg.sup
+  - name: avg.tsup
     data: |
       {key:"a",avg:2.5}
       {key:"b",avg:10.}
-  - name: count.sup
+  - name: count.tsup
     data: |
       {key:"a",count:3}
       {key:"b",count:1}
-  - name: min.sup
+  - name: min.tsup
     data: |
       {key:"a",min:0}
       {key:"b",min:10}
-  - name: max.sup
+  - name: max.tsup
     data: |
       {key:"a",max:5}
       {key:"b",max:10}

@@ -1,12 +1,12 @@
 script: |
-  super -s -I count.spq in.sup
+  super -s -I count.spq in.tsup
 
 inputs:
   - name: count.spq
     data: |
       ?2 | c  := count() --,
           , sum(v) -- moon
-  - name: in.sup
+  - name: in.tsup
     data: |
       {v:1}
       {v:2}

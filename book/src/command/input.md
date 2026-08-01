@@ -55,7 +55,7 @@ for `values 1+1` and emits
 In general, `super` _just works_ when it comes to automatically inferring
 the data formats of its inputs.
 
-For files with a well known extension (like `.json`, `.parquet`, `.sup` etc.),
+For files with a well known extension (like `.json`, `.parquet`, `.tsup` etc.),
 the format is implied by the extension.
 
 For standard input or files without a recognizable extension, `super` attempts

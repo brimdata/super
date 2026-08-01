@@ -1,9 +1,9 @@
 script: |
-  ! super -c 'from sample.sup | count('
+  ! super -c 'from sample.tsup | count('
 
 outputs:
   - name: stderr
     data: |
       parse error at line 1, column 25:
-      from sample.sup | count(
+      from sample.tsup | count(
                           === ^ ===

@@ -2,17 +2,17 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -use -q logs
-  super db load -q babble-split1.sup
-  super db load -q babble-split2.sup
+  super db load -q babble-split1.tsup
+  super db load -q babble-split2.tsup
   super db -S -c "from logs@main:objects | sort -r size | drop id | min:=defuse(min),max:=defuse(max)"
 
 inputs:
-  - name: babble.sup
-    source: ../../testdata/babble.sup
-  - name: babble-split1.sup
-    source: ../../testdata/babble-split1.sup
-  - name: babble-split2.sup
-    source: ../../testdata/babble-split2.sup
+  - name: babble.tsup
+    source: ../../testdata/babble.tsup
+  - name: babble-split1.tsup
+    source: ../../testdata/babble-split1.tsup
+  - name: babble-split2.tsup
+    source: ../../testdata/babble-split2.tsup
 
 outputs:
   - name: stdout

@@ -2,8 +2,8 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -use -q POOL
-  a=$(super db load a.sup | head -1 | awk '{print $1}')
-  b=$(super db load b.sup | head -1 | awk '{print $1}')
+  a=$(super db load a.tsup | head -1 | awk '{print $1}')
+  b=$(super db load b.tsup | head -1 | awk '{print $1}')
   super db -s -c "from POOL | sort this"
   echo === AT a
   super db -s -c "from POOL@$a | sort this"
@@ -16,10 +16,10 @@ script: |
   super db -s -c "from POOL@$b | sort this"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:1}
 

@@ -1,26 +1,26 @@
 script: |
-  super -dynamic -s -c 'from input.sup
-            | values (unnest {outer: this, inner: (from foo.sup)} | where inner.id=outer.id | values inner.name) ||
+  super -dynamic -s -c 'from input.tsup
+            | values (unnest {outer: this, inner: (from foo.tsup)} | where inner.id=outer.id | values inner.name) ||
               "_" ||
-              (unnest {outer: this, inner: (from bar.sup)} | where inner.id=outer.id | values inner.name)'
+              (unnest {outer: this, inner: (from bar.tsup)} | where inner.id=outer.id | values inner.name)'
 
 # enable once we allow unnest expressions in vector runtime.
 # vector: true
 
 inputs:
-  - name: input.sup
+  - name: input.tsup
     data: |
       {id:4}
       {id:1}
       {id:2}
       {id:3}
-  - name: foo.sup
+  - name: foo.tsup
     data: |
       {id:1,name:"foo1"}
       {id:2,name:"foo2"}
       {id:3,name:"foo3"}
       {id:4,name:"foo4"}
-  - name: bar.sup
+  - name: bar.tsup
     data: |
       {id:1,name:"bar1"}
       {id:2,name:"bar2"}

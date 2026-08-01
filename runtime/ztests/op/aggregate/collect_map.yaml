@@ -59,10 +59,10 @@ output: |
 
 # Test partials
 script: |
-  super -s -c 'collect_map(map{key:val}) with -limit 1' in.sup
+  super -s -c 'collect_map(map{key:val}) with -limit 1' in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {key:"k1",val:"v1"}
       {key:"k2",val:"v1"}

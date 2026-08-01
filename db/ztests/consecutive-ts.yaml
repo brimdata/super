@@ -2,11 +2,11 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q -seekstride 11B -orderby ts:desc logs
-  super db load -use logs -q in.sup
+  super db load -use logs -q in.tsup
   super -s -c "min:=defuse(min),max:=defuse(max)" test/*/data/*-seek.bsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {ts:1970-01-01T00:00:00Z}
       {ts:1970-01-01T00:00:02Z}

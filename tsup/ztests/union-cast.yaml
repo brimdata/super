@@ -1,8 +1,8 @@
 script: |
-  super -s -c "by typeof(this) | sort this" in.sup
+  super -s -c "by typeof(this) | sort this" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       type sint=int32|string
       {

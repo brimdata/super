@@ -3,19 +3,19 @@ script: |
   super db create -seekstride 2KB -orderby ts:asc -q asc
   super db create -seekstride 2KB -orderby ts:desc -q desc
   super db use -q asc
-  super -c "tail 900" babble.sup | super db load -q -
-  super -c "head 250" babble.sup | super db load -q -
+  super -c "tail 900" babble.tsup | super db load -q -
+  super -c "head 250" babble.tsup | super db load -q -
   super db -s -stats -c "from asc | count()"
   echo === | tee /dev/stderr
   super db use -q desc
-  super -c "tail 900" babble.sup | super db load -q -
-  super -c "head 250" babble.sup | super db load -q -
+  super -c "tail 900" babble.tsup | super db load -q -
+  super -c "head 250" babble.tsup | super db load -q -
   super db -s -stats -c "from desc | count()"
 
 inputs:
   - name: service.sh
-  - name: babble.sup
-    source: ../../testdata/babble.sup
+  - name: babble.tsup
+    source: ../../testdata/babble.tsup
 
 outputs:
   - name: stdout

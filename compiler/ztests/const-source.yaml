@@ -4,7 +4,7 @@ script: |
   super db create -q test
   super db compile -C -dag 'const POOL = "test" from f"{POOL}"' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"
   echo "==="
-  super compile -C -dag -dynamic 'const FILE = "A.sup" from f"{FILE}"'
+  super compile -C -dag -dynamic 'const FILE = "A.tsup" from f"{FILE}"'
   echo "==="
   super db compile -C -dag 'const URL = "http://brimdata.io" from f"{URL}"'
   ! super db compile -C -dag 'const POOL = 3.14 from f"{POOL}"'
@@ -17,7 +17,7 @@ outputs:
       pool XXX
       | output main
       ===
-      file A.sup format sup
+      file A.tsup format sup
       | output main
       ===
       get http://brimdata.io

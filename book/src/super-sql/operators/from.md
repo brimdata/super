@@ -90,7 +90,7 @@ options apply to every entity matched.
 When reading data from files or URLs, the serialization format of the
 input data is determined by the presence of a
 [well-known extension](../../command/formats.md)
-(e.g., `.json`, `.sup`, etc.) on the file path or URL,
+(e.g., `.json`, `.tsup`, etc.) on the file path or URL,
 or if the extension is not present or unknown, the format is
 [inferred](../../command/input.md#format-detection)
 by inspecting the input data.
@@ -120,7 +120,7 @@ The only allowed option for file entities is the
 Here are some examples of file syntax:
 ```
 from file.json
-from 'file-with-dash.sup'
+from 'file-with-dash.tsup'
 from /path/to/file.csv
 from file*.parq (format parquet)
 ```
@@ -244,8 +244,8 @@ super -s -c 'from hello.json | values greeting'
 
 _Source super-structured from a local file_
 ```mdtest-command
-echo '1 2 {x:1} {s:1::(int64|string)} {s:"hello"::(int64|string)}' > vals.sup
-super -s -c 'from vals.sup'
+echo '1 2 {x:1} {s:1::(int64|string)} {s:"hello"::(int64|string)}' > vals.tsup
+super -s -c 'from vals.tsup'
 ```
 ```mdtest-output
 1
@@ -276,9 +276,9 @@ super -s -c 'from https://api.github.com/repos/brimdata/super | values name'
 _Read from dynamically defined files and add a column_
 
 ```mdtest-command
-echo '{a:1}{a:2}' > a.sup
-echo '{b:3}{b:4}' > b.sup
-echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
+echo '{a:1}{a:2}' > a.tsup
+echo '{b:3}{b:4}' > b.tsup
+echo '"a.tsup" "b.tsup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
 ```
 ```mdtest-output
 {a:1,c:2}
@@ -330,9 +330,9 @@ coinflips@trial
 numbers@main
 ```
 
-The following file `hello.sup` is also used.
+The following file `hello.tsup` is also used.
 
-```mdtest-input hello.sup
+```mdtest-input hello.tsup
 {greeting:"hello world!"}
 ```
 

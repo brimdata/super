@@ -2,12 +2,12 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q test
-  super db load -q -use test babble.sup
+  super db load -q -use test babble.tsup
   super db -s -stats -c "from test | count()"
 
 inputs:
-  - name: babble.sup
-    source: ../../../../testdata/babble.sup
+  - name: babble.tsup
+    source: ../../../../testdata/babble.tsup
 
 outputs:
   - name: stdout

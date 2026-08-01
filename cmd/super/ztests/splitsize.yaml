@@ -1,41 +1,41 @@
 skip: this test splits hairs and not important for now... the pusher interface changed this all
 
 script: |
-  super -s -split 2B -splitsize 2B in.sup
-  super -s -split 4B -splitsize 4B in.sup
-  super -s -split 6B -splitsize 6B in.sup
-  super -s -split 6B-o -splitsize 6B -o prefix in.sup
+  super -s -split 2B -splitsize 2B in.tsup
+  super -s -split 4B -splitsize 4B in.tsup
+  super -s -split 6B -splitsize 6B in.tsup
+  super -s -split 6B-o -splitsize 6B -o prefix in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       0
       1
       2
 
 outputs:
-  - name: 2B/0.sup
+  - name: 2B/0.tsup
     data: |
       0
-  - name: 2B/1.sup
+  - name: 2B/1.tsup
     data: |
       1
-  - name: 2B/2.sup
+  - name: 2B/2.tsup
     data: |
       2
-  - name: 4B/0.sup
-    data: |
-      0
-      1
-  - name: 4B/1.sup
-    data: |
-      2
-  - name: 6B/0.sup
+  - name: 4B/0.tsup
     data: |
       0
       1
+  - name: 4B/1.tsup
+    data: |
       2
-  - name: 6B-o/prefix-0.sup
+  - name: 6B/0.tsup
+    data: |
+      0
+      1
+      2
+  - name: 6B-o/prefix-0.tsup
     data: |
       0
       1

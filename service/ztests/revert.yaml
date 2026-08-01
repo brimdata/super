@@ -1,8 +1,8 @@
 script: |
   source service.sh
   super db create -q test
-  a=$(super db load -use test a.sup | head -1 | awk '{print $1}')
-  b=$(super db load -use test b.sup | head -1 | awk '{print $1}')
+  a=$(super db load -use test a.tsup | head -1 | awk '{print $1}')
+  b=$(super db load -use test b.tsup | head -1 | awk '{print $1}')
   super db -s -c "from test | sort this"
   super db revert -q -use test $a
   echo ===
@@ -12,10 +12,10 @@ script: |
   super db -s -c "from test | sort this"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:1}
   - name: service.sh

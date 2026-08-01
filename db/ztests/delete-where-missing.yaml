@@ -2,14 +2,14 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -use -q test
-  super db load -q in.sup
+  super db load -q in.tsup
   ! super db delete -q -where 'uid==C3UeSqaSOFRReHD68'
   super db -s -c 'from test | count:=count()'
   super db delete -q -where 'uid=="C3UeSqaSOFRReHD68"'
   super db -s -c 'from test | count:=count()'
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {ts:0,uid:"C3UeSqaSOFRReHD68"}
       {ts:1,uid:null}

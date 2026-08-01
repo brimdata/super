@@ -8,8 +8,8 @@ script: |
   super db init -q
   super db create -q -orderby flavor:asc fruit
   super db create -q -orderby likes:asc people
-  super db load -q -use fruit fruit.sup
-  super db load -q -use people people.sup
+  super db load -q -use fruit fruit.tsup
+  super db load -q -use people people.tsup
   super db -s -I test.spq
 
 inputs:
@@ -20,7 +20,7 @@ inputs:
         | inner join ( from eval(rpool) ) on lkey = rkey ldest := rsrc
       )
       test("fruit", "people", flavor, likes, eater, name)
-  - name: fruit.sup
+  - name: fruit.tsup
     data: |
       {name:"apple",color:"red",flavor:"tart"}
       {name:"banana",color:"yellow",flavor:"sweet"}
@@ -28,7 +28,7 @@ inputs:
       {name:"strawberry",color:"red",flavor:"sweet"}
       {name:"dates",color:"brown",flavor:"sweet",note:"in season"}
       {name:"figs",color:"brown",flavor:"plain"}
-  - name: people.sup
+  - name: people.tsup
     data: |
       {name:"morgan",age:61,likes:"tart"}
       {name:"quinn",age:14,likes:"sweet",note:"many kids enjoy sweets"}

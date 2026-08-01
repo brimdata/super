@@ -74,26 +74,26 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&f.jsonPretty, "J", false, "use formatted JSON output independent of -f option")
 	fs.BoolVar(&f.jsonShortcut, "j", false, "use line-oriented JSON output independent of -f option")
 	fs.BoolVar(&f.SUPFusion, "fusion", false, "display fusion values (fusion values are otherwise auto-defused)")
-	fs.BoolVar(&f.supPretty, "S", false, "use formatted Super JSON output independent of -f option")
-	fs.BoolVar(&f.supShortcut, "s", false, "use line-oriented Super JSON output independent of -f option")
+	fs.BoolVar(&f.tsupPretty, "S", false, "use formatted Super JSON output independent of -f option")
+	fs.BoolVar(&f.tsupShortcut, "s", false, "use line-oriented Super JSON output independent of -f option")
 }
 
 func (f *Flags) Init() error {
 	f.JSON.Pretty, f.SUP.Pretty = f.pretty, f.pretty
 	if f.jsonShortcut || f.jsonPretty {
-		if f.Format != f.DefaultFormat || f.supShortcut || f.supPretty {
+		if f.Format != f.DefaultFormat || f.tsupShortcut || f.tsupPretty {
 			return errors.New("cannot use -j or -J with -f, -s, or -S")
 		}
 		f.Format = "json"
 		if !f.jsonPretty {
 			f.JSON.Pretty = 0
 		}
-	} else if f.supShortcut || f.supPretty {
+	} else if f.tsupShortcut || f.tsupPretty {
 		if f.Format != f.DefaultFormat {
 			return errors.New("cannot use -s or -S with -f")
 		}
 		f.Format = "tsup"
-		if !f.supPretty {
+		if !f.tsupPretty {
 			f.SUP.Pretty = 0
 		}
 	}

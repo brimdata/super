@@ -1,23 +1,23 @@
 script: |
-  super -s -c 'select * from "a.sup" | search 13'
+  super -s -c 'select * from "a.tsup" | search 13'
   echo ===
-  super -s -c 'select * from "messy.sup" | search bar or s==4'
+  super -s -c 'select * from "messy.tsup" | search bar or s==4'
   echo ===
-  super -s -c 'select * from "b.sup" | search len(b) >= 3'
+  super -s -c 'select * from "b.tsup" | search len(b) >= 3'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {c:1,a:11}
       {c:2,a:12}
       {c:3,a:13}
       {c:4,a:14}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:[1,2],c:2}
       {b:[3,4,5],c:3}
       {b:[6,7],c:5}
-  - name: messy.sup
+  - name: messy.tsup
     data: |
       {x:1,s:"foo"}
       {x:2,s:"bar"}

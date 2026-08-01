@@ -1,16 +1,16 @@
 script: |
-  super -s -c "cut rec.foo" nested1.sup
+  super -s -c "cut rec.foo" nested1.tsup
   echo ===
-  super -s -c "cut rec.foo,rec['bar']" nested1.sup
+  super -s -c "cut rec.foo,rec['bar']" nested1.tsup
   echo ===
-  super -s -c "cut rec1.sub1.foo,rec1['sub2']['bar'],rec2.foo,foo" nested2.sup
+  super -s -c "cut rec1.sub1.foo,rec1['sub2']['bar'],rec2.foo,foo" nested2.tsup
 
 inputs:
-  - name: nested1.sup
+  - name: nested1.tsup
     data: |
       {rec:{foo:"foo1",bar:"bar1"}}
       {rec:{foo:"foo2",bar:"bar2"}}
-  - name: nested2.sup
+  - name: nested2.tsup
     data: |
       {foo:"outer1",rec1:{sub1:{foo:"foo1.1",bar:"bar1.1"},sub2:{foo:"foo2.1",bar:"bar2.1"}},rec2:{foo:"foo3.1"}}
       {foo:"outer2",rec1:{sub1:{foo:"foo1.2",bar:"bar1.2"},sub2:{foo:"foo2.2",bar:"bar2.2"}},rec2:{foo:"foo3.2"}}

@@ -3,12 +3,12 @@ script: |
   export SUPER_DB=s3://bucket/db
   super db init -q
   super db create -q logs
-  super db load -q -use logs babble.sup
+  super db load -q -use logs babble.tsup
   super db -s -c "from logs | count()"
 
 inputs:
-  - name: babble.sup
-    source: ../../../testdata/babble.sup
+  - name: babble.tsup
+    source: ../../../testdata/babble.tsup
   - name: minio.sh
     source: ../../../testdata/minio.sh
 

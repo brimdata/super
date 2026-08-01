@@ -1,10 +1,10 @@
 script: |
   ! super -c 'select 1 x union all select 1 x, 1 y'
   echo // === >&2
-  ! super -dynamic -c 'select * from a.sup union all select * from a.sup'
+  ! super -dynamic -c 'select * from a.tsup union all select * from a.tsup'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {x:1}
 
@@ -16,8 +16,8 @@ outputs:
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       // ===
       the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
-      select * from a.sup union all select * from a.sup
+      select * from a.tsup union all select * from a.tsup
              ~
       the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 38:
-      select * from a.sup union all select * from a.sup
+      select * from a.tsup union all select * from a.tsup
                                            ~

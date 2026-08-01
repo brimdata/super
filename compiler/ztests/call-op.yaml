@@ -1,12 +1,12 @@
 script: |
-  super -s -c "op foo: (values 10) values {x:(call foo)}" in.sup
+  super -s -c "op foo: (values 10) values {x:(call foo)}" in.tsup
   echo ===
-  super -s -c "op foo: (values 10) values {x:(this.foo)}" in.sup
+  super -s -c "op foo: (values 10) values {x:(this.foo)}" in.tsup
   echo ===
-  super -s -c "let foo = (values 10) values {x:(foo),y:foo,z:[foo]}" in.sup
+  super -s -c "let foo = (values 10) values {x:(foo),y:foo,z:[foo]}" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {foo:1}
 

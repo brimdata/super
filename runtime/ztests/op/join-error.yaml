@@ -1,8 +1,8 @@
 script: |
-  ! super -s -c 'join on left.a=right.b' A.sup
+  ! super -s -c 'join on left.a=right.b' A.tsup
 
 inputs:
-  - name: A.sup
+  - name: A.tsup
     data: |
       {a:1::int32}
       {a:2::int32}

@@ -5,11 +5,11 @@ inputs:
   - name: query.spq
     data: |
       SELECT *
-      FROM a.sup
+      FROM a.tsup
       | fork
         ( pass )
         ( SELECT 1 )
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
 

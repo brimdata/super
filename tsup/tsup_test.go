@@ -21,7 +21,7 @@ func parse(path string) (ast.Value, error) {
 	return tsup.NewParser(file).ParseValue()
 }
 
-const testFile = "test.sup"
+const testFile = "test.tsup"
 
 func TestSUPParser(t *testing.T) {
 	val, err := parse(testFile)

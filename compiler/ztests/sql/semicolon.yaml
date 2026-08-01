@@ -1,8 +1,8 @@
 script: |
-  super -s -c 'select count(a),sum(a) from "a.sup";'
+  super -s -c 'select count(a),sum(a) from "a.tsup";'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
       {a:2}

@@ -2,13 +2,13 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q sample
-  super db load -q -use sample babble.sup
+  super db load -q -use sample babble.tsup
   super db create -q Delta
   super db -s -c 'from sample | s=="Delta-rootstock" | load Delta@main (author "Diane")' | sed -E 's/[0-9a-zA-Z]{42}/xxx/'
 
 inputs:
-  - name: babble.sup
-    source: ../../testdata/babble.sup
+  - name: babble.tsup
+    source: ../../testdata/babble.tsup
 outputs:
   - name: stdout
     data: |

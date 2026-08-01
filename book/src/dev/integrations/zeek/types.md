@@ -85,7 +85,7 @@ T	123	456	123.4560	1592502151.123456	123.456	smile😁smile	\x09\x07\x04	80	127.
 ### Reading the TSV log, outputting as SUP, and saving a copy:
 
 ```mdtest-command
-super -S zeek_types.log | tee zeek_types.sup
+super -S zeek_types.log | tee zeek_types.tsup
 ```
 
 ### Output:
@@ -127,7 +127,7 @@ type zenum = string
 ### Reading the saved SUP output and outputting as Zeek TSV:
 
 ```mdtest-command
-super -f zeek zeek_types.sup
+super -f zeek zeek_types.tsup
 ```
 
 ### Output:
@@ -253,7 +253,7 @@ For instance, revisiting the data from our example, we can output all fields wit
 #### Command:
 
 ```mdtest-command
-super -f zeek -c 'cut my_record' zeek_types.sup
+super -f zeek -c 'cut my_record' zeek_types.tsup
 ```
 
 #### Output:

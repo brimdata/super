@@ -1,16 +1,16 @@
 script: |
   echo // hash join
-  super -s -c 'from a.sup | inner join (from b.sup) on left.a=right.b | values left | sort'
+  super -s -c 'from a.tsup | inner join (from b.tsup) on left.a=right.b | values left | sort'
   echo // nested loop join
-  super -s -c 'from a.sup | inner join (from b.sup) on left.a<right.b | values left | sort'
+  super -s -c 'from a.tsup | inner join (from b.tsup) on left.a<right.b | values left | sort'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}::({a:int64}|{a:string})
       {a:2}::({a:int64}|{a:string})
       {a:"bar"}::({a:int64}|{a:string})
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:1}
       {b:3}

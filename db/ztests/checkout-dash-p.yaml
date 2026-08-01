@@ -3,17 +3,17 @@ script: |
   super db init -q
   super db create -q POOL
   super db use -q POOL
-  super db load -q a.sup
+  super db load -q a.tsup
   super db branch -q child
   super db use -q @child
-  super db load -q b.sup
+  super db load -q b.tsup
   super db -s -c "from POOL"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:1}
 

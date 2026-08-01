@@ -1,17 +1,17 @@
 script: |
   echo === hash join
-  super -dynamic -s -c 'left join (from C.sup) on left.a=right.a | values {...left,hit:right.sc} | sort' A.sup
+  super -dynamic -s -c 'left join (from C.tsup) on left.a=right.a | values {...left,hit:right.sc} | sort' A.tsup
   echo === nested loop join
-  super -dynamic -s -c 'left join (from C.sup) on left.a<right.a | values {...left,hit:right.sc} | sort' A.sup
+  super -dynamic -s -c 'left join (from C.tsup) on left.a<right.a | values {...left,hit:right.sc} | sort' A.tsup
 
 inputs:
-  - name: A.sup
+  - name: A.tsup
     data: |
       {a:10::int32,sa:"a0"}
       {a:20::int32,sa:"a1"}
       {a:30::int32,sa:"a2"}
       {a:40::int32,sa:"a3"}
-  - name: C.sup
+  - name: C.tsup
     data: |
       {c:20::int32,sc:"b20"}
       {c:20::int32,sc:"b20v2"}

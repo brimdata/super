@@ -7,7 +7,7 @@ script: |
 
 inputs:
   - name: stdin
-    source: ../../testdata/babble.sup
+    source: ../../testdata/babble.tsup
   - name: service.sh
 
 outputs:

@@ -1,7 +1,7 @@
-script: super in.sup | super -s -
+script: super in.tsup | super -s -
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: &input |
       {f0:0}
       {f1:1}

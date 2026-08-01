@@ -1,10 +1,10 @@
 script: |
-  super -s -c 'is(this, <"@foo">)' in.sup
+  super -s -c 'is(this, <"@foo">)' in.tsup
   echo ===
-  super -s -c 'type `@foo`={x:int64} const foo = <"@foo"> type `Y Z`={y:"@foo"} const yz = <"Y Z"> is(this, <"Y Z">)' in.sup
+  super -s -c 'type `@foo`={x:int64} const foo = <"@foo"> type `Y Z`={y:"@foo"} const yz = <"Y Z"> is(this, <"Y Z">)' in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       type "@foo"={x:int64}
       {x:1}

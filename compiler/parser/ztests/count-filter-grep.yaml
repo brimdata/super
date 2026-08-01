@@ -1,10 +1,10 @@
 script: |
-  super -s -c 'count() filter ( grep("foo", this) )' in.sup
+  super -s -c 'count() filter ( grep("foo", this) )' in.tsup
   echo ===
-  super -s -c "?foo | count()" in.sup
+  super -s -c "?foo | count()" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {_path:"conn"}
       {_path:"foo"}

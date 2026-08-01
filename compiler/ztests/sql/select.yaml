@@ -1,23 +1,23 @@
 script: |
-  super -s -c 'select a from "a.sup"'
+  super -s -c 'select a from "a.tsup"'
   echo ===
-  super -s -c 'select l.a,r.b from "a.sup" l join "b.sup" r on l.c==r.c'
+  super -s -c 'select l.a,r.b from "a.tsup" l join "b.tsup" r on l.c==r.c'
   echo ===
-  super -s -c 'select l.a,m.s from "a.sup" l join "messy.sup" m on l.c==m.s'
+  super -s -c 'select l.a,m.s from "a.tsup" l join "messy.tsup" m on l.c==m.s'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:11,c:1}
       {a:12,c:2}
       {a:13,c:3}
       {a:14,c:4}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:[1,2],c:2}
       {b:[3,4,5],c:3}
       {b:[6,7],c:5}
-  - name: messy.sup
+  - name: messy.tsup
     data: |
       {x:1,s:"foo"}
       {x:2,s:"bar"}

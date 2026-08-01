@@ -1,8 +1,8 @@
 script: |
-  super -s in.sup
+  super -s in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       type city_schema={city:string,state:string,population:int64}
       {city:"Berkeley",state:"CA",population:121643}::city_schema

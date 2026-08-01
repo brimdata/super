@@ -4,13 +4,13 @@ script: |
 inputs:
   - name: query.sql
     data: |
-      FROM in.sup
+      FROM in.tsup
       | UNNEST [...assignees,assignee]
       | WHERE this IS NOT NULL
       | AGGREGATE count() BY assignee:=login
       | ORDER BY count DESC, assignee DESC 
       | LIMIT 5
-  - name: in.sup
+  - name: in.tsup
     data: |
       {assignees:[{login:"joe"},{login:"fred"}]}
       {assignee:{login:"sue"}}

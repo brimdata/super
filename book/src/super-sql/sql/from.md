@@ -145,9 +145,9 @@ super -s -c "SELECT name FROM https://api.github.com/repos/brimdata/super"
 _Read from dynamically defined files and add a column_
 
 ```mdtest-command
-echo '{a:1}{a:2}' > a.sup
-echo '{b:3}{b:4}' > b.sup
-echo '"a.sup" "b.sup"' | super -s -c "
+echo '{a:1}{a:2}' > a.tsup
+echo '{b:3}{b:4}' > b.tsup
+echo '"a.tsup" "b.tsup"' | super -s -c "
 SELECT this, coalesce(a,b)+1 AS c
 FROM f'{this}'
 " -

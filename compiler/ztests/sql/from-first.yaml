@@ -1,10 +1,10 @@
 script: |
-  super -s -c "from a.sup select c"
+  super -s -c "from a.tsup select c"
   echo ===
-  super -s -c "select * from (from a.sup select c)"
+  super -s -c "select * from (from a.tsup select c)"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:11,c:1}
       {a:12,c:2}

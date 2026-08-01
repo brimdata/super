@@ -1,19 +1,19 @@
 script: |
-  super -s -c 'left join (from B.sup) as {l,r} using (s) | values {...l,...r} | sort' A.sup
+  super -s -c 'left join (from B.tsup) as {l,r} using (s) | values {...l,...r} | sort' A.tsup
   echo ===
-  super -s -c 'left join (from B.sup) as {l,r} on lower(r.s)=l.s | sort' A.sup
+  super -s -c 'left join (from B.tsup) as {l,r} on lower(r.s)=l.s | sort' A.tsup
   echo ===
-  super -s -c 'left join (from B.sup) on (lower(right.s))=(lower(left.s)) | values {...left,b:right.b } | sort' A.sup
+  super -s -c 'left join (from B.tsup) on (lower(right.s))=(lower(left.s)) | values {...left,b:right.b } | sort' A.tsup
   echo === nested loop join
-  super -s -c 'left join (from B.sup) on lower(left.s)<lower(right.s) | values {...left,b:right.b } | sort' A.sup
+  super -s -c 'left join (from B.tsup) on lower(left.s)<lower(right.s) | values {...left,b:right.b } | sort' A.tsup
 
 inputs:
-  - name: A.sup
+  - name: A.tsup
     data: |
       {a:1::int32,s:"a"}
       {a:2::int32,s:"B"}
       {a:3::int32,s:"c"}
-  - name: B.sup
+  - name: B.tsup
     data: |
       {b:4::int32,s:"A"}
       {b:5::int32,s:"b"}

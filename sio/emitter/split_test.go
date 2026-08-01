@@ -30,9 +30,9 @@ func TestDirS3Source(t *testing.T) {
 	defer ctrl.Finish()
 	engine := storagemock.NewMockEngine(ctrl)
 
-	engine.EXPECT().Put(t.Context(), uri.JoinPath("conn.sup")).
+	engine.EXPECT().Put(t.Context(), uri.JoinPath("conn.tsup")).
 		Return(sio.NopCloser(bytes.NewBuffer(nil)), nil)
-	engine.EXPECT().Put(t.Context(), uri.JoinPath("http.sup")).
+	engine.EXPECT().Put(t.Context(), uri.JoinPath("http.tsup")).
 		Return(sio.NopCloser(bytes.NewBuffer(nil)), nil)
 
 	sctx := super.NewContext()

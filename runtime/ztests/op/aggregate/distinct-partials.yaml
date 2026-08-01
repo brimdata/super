@@ -1,6 +1,6 @@
 script: |
   super -s -c '
-    from test.sup
+    from test.tsup
     | aggregate
       avg(distinct n),
       collect(distinct key),
@@ -9,7 +9,7 @@ script: |
     | sort key'
 
 inputs:
-  - name: test.sup
+  - name: test.tsup
     data: |
       {key:"a",n:1}
       {key:"a",n:2}

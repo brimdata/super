@@ -4,11 +4,11 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q -orderby k tmp
-  super db load -q -use tmp in.sup
+  super db load -q -use tmp in.tsup
   super db -s -c "from tmp | !has(k)"
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {k:0,v:"zero"}
       {v:"this one missing"}

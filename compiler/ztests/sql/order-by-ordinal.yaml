@@ -1,9 +1,9 @@
 script: |
-  super -s -c 'SELECT i, SUM(i) FROM in.sup GROUP BY i ORDER BY 1;'
+  super -s -c 'SELECT i, SUM(i) FROM in.tsup GROUP BY i ORDER BY 1;'
   ! super -c 'values {a:1,b:1} | SELECT a, b ORDER BY 3'
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {i:1}
       {i:2}

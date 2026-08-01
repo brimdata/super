@@ -1,11 +1,11 @@
 script: |
-  ! super -s -c "cut rec.sub1,other,rec.sub2" in.sup
-  ! super -s -c "cut rec1.rec2.sub1,other,rec1.sub2" in.sup
-  ! super -s -c "cut rec1.rec2.sub1,other,rec1.rec2.sub2" in.sup
-  ! super -s -c "cut t.rec.sub1,t.other,t.rec.sub2" in.sup
+  ! super -s -c "cut rec.sub1,other,rec.sub2" in.tsup
+  ! super -s -c "cut rec1.rec2.sub1,other,rec1.sub2" in.tsup
+  ! super -s -c "cut rec1.rec2.sub1,other,rec1.rec2.sub2" in.tsup
+  ! super -s -c "cut t.rec.sub1,t.other,t.rec.sub2" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {rec:{sub1:0,sub2:0},other:0,rec1:{rec2:{sub1:0,sub2:0},sub2:0}}
       {t:{rec:{sub1:0,sub2:0},other:0}}

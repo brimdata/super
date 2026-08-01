@@ -1,49 +1,49 @@
 script: |
   echo === forward-sorted ===
-  super -s -c "count() by ts | sort this" in.sup
+  super -s -c "count() by ts | sort this" in.tsup
   echo === forward-sorted-with-null ===
-  super -s -c "count() by ts | sort this" in-with-null.sup
+  super -s -c "count() by ts | sort this" in-with-null.tsup
   echo === forward-sorted-bucket ===
-  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in.sup
+  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in.tsup
   echo === forward-sorted-bucket-null ===
-  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in-with-null.sup
+  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in-with-null.tsup
   echo === forward-sorted-record-key ===
-  super -s -c "count() by foo | sort this" in-record-key.sup
+  super -s -c "count() by foo | sort this" in-record-key.tsup
   echo === forward-sorted-nested-key ===
-  super -s -c "count() by foo.a | sort this" in-record-key.sup
+  super -s -c "count() by foo.a | sort this" in-record-key.tsup
   echo === forward-sorted-record-key-null ===
-  super -s -c "count() by foo | sort this" in-record-key-null.sup
+  super -s -c "count() by foo | sort this" in-record-key-null.tsup
   echo === forward-sorted-nested-key-null ===
-  super -s -c "count() by foo | sort this" in-record-key-null.sup
+  super -s -c "count() by foo | sort this" in-record-key-null.tsup
   echo === reverse-sorted ===
-  super -s -c "count() by ts | sort this" in-rev.sup
+  super -s -c "count() by ts | sort this" in-rev.tsup
   echo === reverse-sorted-null ===
-  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in-rev.sup
+  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in-rev.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {ts:1970-01-01T00:00:01Z}
       {ts:1970-01-01T00:00:01Z}
       {ts:1970-01-01T00:00:02Z}
       {ts:1970-01-01T00:00:03Z}
-  - name: in-with-null.sup
+  - name: in-with-null.tsup
     data: |
       {ts:1970-01-01T00:00:01Z}
       {ts:1970-01-01T00:00:01Z}
       {ts:1970-01-01T00:00:02Z}
       {ts:1970-01-01T00:00:03Z}
       {ts:null}
-  - name: in-record-key.sup
+  - name: in-record-key.tsup
     data: |
       {foo:{a:"aaa"}}
       {foo:{a:"baa"}}
-  - name: in-record-key-null.sup
+  - name: in-record-key-null.tsup
     data: |
       {foo:{a:"aaa"}}
       {foo:{a:"baa"}}
       {foo:{a:null}}
-  - name: in-rev.sup
+  - name: in-rev.tsup
     data: |
       {ts:1970-01-01T00:00:10Z}
       {ts:1970-01-01T00:00:08Z}

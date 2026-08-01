@@ -1,10 +1,10 @@
 # Test that union true values get de-unioned in filter pushdowns.
 script: |
-  super -f bsup in.sup > test.bsup 
+  super -f bsup in.tsup > test.bsup 
   super -s -c 'from test.bsup | where this'
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       true::(bool|null)
       false::(bool|null)

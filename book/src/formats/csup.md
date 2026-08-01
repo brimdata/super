@@ -374,7 +374,7 @@ using the same tag within the union value.
 
 ### Hello, world
 
-Start with this [Super (SUP)](sup.md) file `hello.sup`:
+Start with this [Super (SUP)](sup.md) file `hello.tsup`:
 ```
 {a:"hello",b:"world"}
 {a:"goodnight",b:"gracie"}
@@ -382,7 +382,7 @@ Start with this [Super (SUP)](sup.md) file `hello.sup`:
 
 To convert to CSUP format:
 ```
-super -f csup hello.sup > hello.csup
+super -f csup hello.tsup > hello.csup
 ```
 
 Segments in the CSUP format would be laid out like this:

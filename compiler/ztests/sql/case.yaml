@@ -1,8 +1,8 @@
 script: |
-  super -s -c 'Select * FROM "a.sup" | droP c'
+  super -s -c 'Select * FROM "a.tsup" | droP c'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {c:1,a:11}
       {c:2,a:12}

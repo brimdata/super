@@ -4,12 +4,12 @@ script: |
 inputs:
   - name: test.spq
     data: |
-      const FILE = "A.sup"
+      const FILE = "A.tsup"
       op test path: (
         from f"{path}" | sort a 
       )
       test FILE
-  - name: A.sup
+  - name: A.tsup
     data: |
       {a:5}
       {a:1}

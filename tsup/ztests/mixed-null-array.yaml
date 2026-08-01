@@ -1,8 +1,8 @@
 script: |
-  super -s in.sup
+  super -s in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       [1,null]
       [null,2]

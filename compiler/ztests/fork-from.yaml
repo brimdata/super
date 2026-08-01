@@ -5,13 +5,13 @@ inputs:
   - name: query.spq
     data: |
       fork
-        ( from a.sup )
-        ( from b.sup )
+        ( from a.tsup )
+        ( from b.tsup )
       | sort a
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {a:2}
 

@@ -1,12 +1,12 @@
 script: |
-  ! super -i sup -s in.sup
+  ! super -i sup -s in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       1::(int64|string)::foo
 
 outputs:
   - name: stderr
     data: |
-      in.sup: no such type name: "foo"
+      in.tsup: no such type name: "foo"

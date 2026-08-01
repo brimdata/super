@@ -2,7 +2,7 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -use -q POOL
-  super db load -q in.sup
+  super db load -q in.tsup
   id=$(super db -f line -c 'from POOL@main:objects | values ksuid(id)')
   super db vector add -q $id
   super db -S -c 'from POOL@main:vectors | drop id | min:=defuse(min),max:=defuse(max)'
@@ -12,7 +12,7 @@ script: |
   echo ===
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {x:1}
       {s:"hello",a:[1,2,3]}

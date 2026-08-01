@@ -1,13 +1,13 @@
 script: |
-  super -f bsup a.sup > c.bsup
-  super -f bsup b.sup >> c.bsup
+  super -f bsup a.tsup > c.bsup
+  super -f bsup b.tsup >> c.bsup
   super dev bsup frames -s c.bsup
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:2}
 

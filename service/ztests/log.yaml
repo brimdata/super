@@ -1,17 +1,17 @@
 script: |
   source service.sh
   super db create -use -q test
-  super db load -user testuser -q 1.sup
-  super db load -user testuser -q 2.sup
+  super db load -user testuser -q 1.tsup
+  super db load -user testuser -q 2.tsup
   super db log
 
 inputs:
   - name: service.sh
     source: service.sh
-  - name: 1.sup
+  - name: 1.tsup
     data: |
       {x:1}
-  - name: 2.sup
+  - name: 2.tsup
     data: |
       {x:2}
 

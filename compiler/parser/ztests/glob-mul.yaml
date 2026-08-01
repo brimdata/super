@@ -1,10 +1,10 @@
 script: |
-  super -dynamic -s -c "? a*b" in.sup
+  super -dynamic -s -c "? a*b" in.tsup
   echo ===
-  super -dynamic -s -c "? a*b=s" in.sup
+  super -dynamic -s -c "? a*b=s" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {s:"axb"}
       {s:6,a:2,b:3}

@@ -1,19 +1,19 @@
 script: |
-  super -s -c "select this from a.sup"
+  super -s -c "select this from a.tsup"
   echo ===
-  super -s -c "select this as x from a.sup"
+  super -s -c "select this as x from a.tsup"
   echo ===
-  cat a.sup | super -s -c "select this as x" -
+  cat a.tsup | super -s -c "select this as x" -
   echo ===
-  super -s -c "select x from (select this as x from a.sup) where this={x:2}"
+  super -s -c "select x from (select this as x from a.tsup) where this={x:2}"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       1
       2
       3
-  - name: b.sup
+  - name: b.tsup
     data: |
       2
       3

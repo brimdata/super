@@ -1,10 +1,10 @@
 # Convert SUP to BSUP and back to make sure binary encoding of typevals works.
 
 script: |
-  super -S -c "put t:=typeof(this)" in.sup
+  super -S -c "put t:=typeof(this)" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       type foo=uint8
       {a:"hello",b:"world",n:123::int32,f:[1::foo,2::foo,3::foo]}

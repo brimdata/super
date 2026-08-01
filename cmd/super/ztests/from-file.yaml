@@ -1,14 +1,14 @@
 script: |
-  super -s -c 'from a.sup'
+  super -s -c 'from a.tsup'
   super -s -I query.spq
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
   - name: query.spq
     data: |
-      from a.sup
+      from a.tsup
 
 outputs:
   - name: stdout

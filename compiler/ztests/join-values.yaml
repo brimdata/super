@@ -1,10 +1,10 @@
 script: |
-  super -s -c 'from input.sup
+  super -s -c 'from input.tsup
                | join (values {x:3,y:"a"}, {x:4,y:"b"}) using (y)
                | values left'
 
 inputs:
-  - name: input.sup
+  - name: input.tsup
     data: |
       {x:1,y:"a"}
       {x:2,y:"b"}

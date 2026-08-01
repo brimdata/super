@@ -9,7 +9,7 @@ inputs:
     data: |
       WITH regional_sales AS (
           SELECT region, SUM(amount) AS total_sales
-          FROM orders.sup
+          FROM orders.tsup
           GROUP BY region
       ), top_regions AS (
           SELECT region
@@ -21,10 +21,10 @@ inputs:
           o.amount,
           o.quantity,
           top_regions.region
-      FROM orders.sup o
+      FROM orders.tsup o
       INNER JOIN top_regions ON o.region = top_regions.region
       ORDER BY top_regions.region, order_id
-  - name: orders.sup
+  - name: orders.tsup
     data: |
       {order_id:1001,amount:245.5,quantity:3,region:"North America"}
       {order_id:1002,amount:89.99,quantity:1,region:"Europe"}

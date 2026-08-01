@@ -1,10 +1,10 @@
 script: |
-  super -s -c "_path == 'conn' | count()" in.sup
+  super -s -c "_path == 'conn' | count()" in.tsup
   echo ===
-  super -s -c "count() filter ( _path == 'conn' )" in.sup
+  super -s -c "count() filter ( _path == 'conn' )" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {_path:"conn"}
       {_path:"dns"}

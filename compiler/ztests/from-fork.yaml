@@ -1,8 +1,8 @@
 script: |
-  super -s -c 'fork (from in.sup ) ( from in.sup ) | fork ( count() ) ( count() )'
+  super -s -c 'fork (from in.tsup ) ( from in.tsup ) | fork ( count() ) ( count() )'
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       1
 

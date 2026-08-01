@@ -1,10 +1,10 @@
 script: |
-  super -s -c "typeof(this)" in.sup
+  super -s -c "typeof(this)" in.tsup
   echo ===
   super -s -c 'type foo=int64 typeof([1::foo,"bar"])'
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       type foo=int64
       [1::foo,"bar"]

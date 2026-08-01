@@ -5,15 +5,15 @@ inputs:
     data: |
       const A=1
       fork
-        ( from a.sup | put x:=A+1 )
-        ( from b.sup | put x:=A )
+        ( from a.tsup | put x:=A+1 )
+        ( from b.tsup | put x:=A )
       | sort x
 
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
 
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:2}
 

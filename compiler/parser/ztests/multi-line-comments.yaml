@@ -1,5 +1,5 @@
 script: |
-  super -s -I count.spq in.sup
+  super -s -I count.spq in.tsup
 
 inputs:
   - name: count.spq
@@ -11,7 +11,7 @@ inputs:
           , sum(v) /* moon
              a multi-line comment -- //
              */
-  - name: in.sup
+  - name: in.tsup
     data: |
       {v:1}
       {v:2}

@@ -2,15 +2,15 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -use -q test
-  super db load -q -user testuser 1.sup
-  super db load -q -user testuser 2.sup
+  super db load -q -user testuser 1.tsup
+  super db load -q -user testuser 2.tsup
   super db log
 
 inputs:
-  - name: 1.sup
+  - name: 1.tsup
     data: |
       {x:1}
-  - name: 2.sup
+  - name: 2.tsup
     data: |
       {x:2}
 

@@ -1,14 +1,14 @@
 script: |
-  super -s -c 'c:=COUNT(),d:=Count(),Collect(LoweR(s)) by key | sort key' in.sup
+  super -s -c 'c:=COUNT(),d:=Count(),Collect(LoweR(s)) by key | sort key' in.tsup
   echo ===
-  super -dynamic -s -c 'Grep("G.*", this)' in.sup
+  super -dynamic -s -c 'Grep("G.*", this)' in.tsup
   echo ===
-  super -s -c 'values {s,match:RegEXP("(f|B).*", s)}' in.sup
+  super -s -c 'values {s,match:RegEXP("(f|B).*", s)}' in.tsup
   echo ===
-  super -s -c 'values {s,match:RegEXP_REPLACE(s, "(f|B).*", "smash")}' in.sup
+  super -s -c 'values {s,match:RegEXP_REPLACE(s, "(f|B).*", "smash")}' in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {s:"foo",key:1}
       {s:"Bar",key:2}

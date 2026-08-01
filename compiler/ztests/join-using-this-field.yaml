@@ -1,13 +1,13 @@
 script: |
-  super -s -c "from a.sup | join (from b.sup) using (this)"
+  super -s -c "from a.tsup | join (from b.tsup) using (this)"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1,this:10}
       {a:2,this:10}
       {a:3,this:11}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:1,this:10}
 

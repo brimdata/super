@@ -1,8 +1,8 @@
 script: |
-  super -s -c "select x from (from x.sup | {...this,z:'foo'})"
+  super -s -c "select x from (from x.tsup | {...this,z:'foo'})"
 
 inputs: 
-  - name: x.sup 
+  - name: x.tsup 
     data: |
       {x:1}
 

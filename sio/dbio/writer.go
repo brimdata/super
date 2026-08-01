@@ -76,7 +76,7 @@ func (w *Writer) Close() error {
 }
 
 func (w *Writer) WriteSUP(val super.Value) error {
-	if _, err := io.WriteString(w.writer, w.sup.FormatValue(val)); err != nil {
+	if _, err := io.WriteString(w.writer, w.tsup.FormatValue(val)); err != nil {
 		return err
 	}
 	_, err := io.WriteString(w.writer, "\n")

@@ -1,11 +1,11 @@
 script: |
-  super -j in.sup
-  ! super -j -f tsup in.sup
-  ! super -j -s in.sup
-  ! super -j -S in.sup
+  super -j in.tsup
+  ! super -j -f tsup in.tsup
+  ! super -j -s in.tsup
+  ! super -j -S in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {a:1}
 

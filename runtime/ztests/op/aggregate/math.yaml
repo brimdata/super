@@ -1,40 +1,40 @@
 script: |
-  super -s -c "avg(n)" in.sup > avg.sup
-  super -s -c "count()" in.sup > count.sup
-  super -s -c "dcount(n)" in.sup in.sup > dcount.sup
+  super -s -c "avg(n)" in.tsup > avg.tsup
+  super -s -c "count()" in.tsup > count.tsup
+  super -s -c "dcount(n)" in.tsup in.tsup > dcount.tsup
   # "with -limit 1" exercises the partials paths.
-  super -s -c "dcount(n) with -limit 1" in.sup in.sup > dcount-partials.sup
-  super -s -c "any(n)" in.sup > any.sup
-  super -s -c "min(n)" in.sup > min.sup
-  super -s -c "max(n)" in.sup > max.sup
+  super -s -c "dcount(n) with -limit 1" in.tsup in.tsup > dcount-partials.tsup
+  super -s -c "any(n)" in.tsup > any.tsup
+  super -s -c "min(n)" in.tsup > min.tsup
+  super -s -c "max(n)" in.tsup > max.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {n:0::int32}
       {n:5::int32}
       {n:10::int32}
 
 outputs:
-  - name: avg.sup
+  - name: avg.tsup
     data: |
       5.
-  - name: count.sup
+  - name: count.tsup
     data: |
       3
-  - name: dcount.sup
+  - name: dcount.tsup
     data: |
       3
-  - name: dcount-partials.sup
+  - name: dcount-partials.tsup
     data: |
       3
   # Note: min/max shouldn't be int64 (especially for uint)  Issue #1506.
-  - name: any.sup
+  - name: any.tsup
     data: |
       0::int32
-  - name: min.sup
+  - name: min.tsup
     data: |
       0
-  - name: max.sup
+  - name: max.tsup
     data: |
       10

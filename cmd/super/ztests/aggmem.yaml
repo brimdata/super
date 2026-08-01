@@ -1,11 +1,11 @@
 skip: incorrect output
 
 script: |
-  super -aggmem 1B -s -c 'collect(this)' a.sup
-  ! super -aggmem 0 a.sup
+  super -aggmem 1B -s -c 'collect(this)' a.tsup
+  ! super -aggmem 0 a.tsup
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
 

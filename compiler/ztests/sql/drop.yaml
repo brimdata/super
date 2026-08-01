@@ -1,23 +1,23 @@
 script: |
-  super -s -c 'select * from "a.sup" | drop c'
+  super -s -c 'select * from "a.tsup" | drop c'
   echo ===
-  super -dynamic -s -c 'select this from "messy.sup" | values that | drop s,t'
+  super -dynamic -s -c 'select this from "messy.tsup" | values that | drop s,t'
   echo ===
-  super -s -c 'select * from "b.sup" | drop b'
+  super -s -c 'select * from "b.tsup" | drop b'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {c:1,a:11}
       {c:2,a:12}
       {c:3,a:13}
       {c:4,a:14}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:[1,2],c:2}
       {b:[3,4,5],c:3}
       {b:[6,7],c:5}
-  - name: messy.sup
+  - name: messy.tsup
     data: |
       {x:1,s:"foo"}
       {x:2,s:"bar"}

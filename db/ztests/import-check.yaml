@@ -2,10 +2,10 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q logs
-  ! super db load -q -use logs missingfield.sup
+  ! super db load -q -use logs missingfield.tsup
 
 inputs:
-  - name: missingfield.sup
+  - name: missingfield.tsup
     data: |
       type foo={a:string,b:string}
       {a:"a",b:"b"}::foo

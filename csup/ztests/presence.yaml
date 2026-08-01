@@ -1,18 +1,18 @@
 script: |
-  super -f csup -o o1.csup p1.sup
-  super -s -o o1.sup o1.csup
-  super -f csup -o o2.csup p2.sup
-  super -s -o o2.sup o2.csup
-  super -f csup -o o3.csup p3.sup
-  super -s -o o3.sup o3.csup
-  super -f csup -o o4.csup p4.sup
-  super -s -o o4.sup o4.csup
+  super -f csup -o o1.csup p1.tsup
+  super -s -o o1.tsup o1.csup
+  super -f csup -o o2.csup p2.tsup
+  super -s -o o2.tsup o2.csup
+  super -f csup -o o3.csup p3.tsup
+  super -s -o o3.tsup o3.csup
+  super -f csup -o o4.csup p4.tsup
+  super -s -o o4.tsup o4.csup
 
 inputs:
-  - name: p1.sup
+  - name: p1.tsup
     data: |
       {s:null::(string|null)}
-  - name: p2.sup
+  - name: p2.tsup
     data: |
       {s:null::(string|null)}
       {s:null::(string|null)}
@@ -25,7 +25,7 @@ inputs:
       {s:null::(string|null)}
       {s:null::(string|null)}
       {s:null::(string|null)}
-  - name: p3.sup
+  - name: p3.tsup
     data: |
       {s:null::(string|null)}
       {s:null::(string|null)}
@@ -38,7 +38,7 @@ inputs:
       {s:null::(string|null)}
       {s:null::(string|null)}
       {s:"x"}
-  - name: p4.sup
+  - name: p4.tsup
     data: |
       {s:"x"}
       {s:"x"}
@@ -53,10 +53,10 @@ inputs:
       {s:null::(string|null)}
 
 outputs:
-  - name: o1.sup
+  - name: o1.tsup
     data: |
       {s:null::(string|null)}
-  - name: o2.sup
+  - name: o2.tsup
     data: |
       {s:null::(string|null)}
       {s:null::(string|null)}
@@ -69,7 +69,7 @@ outputs:
       {s:null::(string|null)}
       {s:null::(string|null)}
       {s:null::(string|null)}
-  - name: o3.sup
+  - name: o3.tsup
     data: |
       {s:null::(string|null)}
       {s:null::(string|null)}
@@ -82,7 +82,7 @@ outputs:
       {s:null::(string|null)}
       {s:null::(string|null)}
       {s:"x"}
-  - name: o4.sup
+  - name: o4.tsup
     data: |
       {s:"x"}
       {s:"x"}

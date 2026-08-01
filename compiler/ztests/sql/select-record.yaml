@@ -1,8 +1,8 @@
 script: |
-  super -s -c 'select {x:T.a,y:c,c} as outer from "a.sup" T'
+  super -s -c 'select {x:T.a,y:c,c} as outer from "a.tsup" T'
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {c:1,a:11}
       {c:2,a:12}

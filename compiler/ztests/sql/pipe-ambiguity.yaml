@@ -1,16 +1,16 @@
 script: |
   ! super -s -c "select 1|3" >& err1
-  super -s -c "select x | values x+1" x.sup
+  super -s -c "select x | values x+1" x.tsup
   echo ===
-  super -s -c "select x | x+1" x.sup
+  super -s -c "select x | x+1" x.tsup
   echo ===
-  super -s -c "select x |> x+1" x.sup
+  super -s -c "select x |> x+1" x.tsup
 
 inputs:
-  - name: n1.sup
+  - name: n1.tsup
     data: |
       null
-  - name: x.sup
+  - name: x.tsup
     data: |
       {x:2}
 

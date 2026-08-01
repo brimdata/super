@@ -1,11 +1,11 @@
 script: |
-  super -s -c "select x from (from x.sup | values {x}) join (from y.sup | values {y}) on x=y"
+  super -s -c "select x from (from x.tsup | values {x}) join (from y.tsup | values {y}) on x=y"
 
 inputs:
-  - name: x.sup
+  - name: x.tsup
     data: |
       {x:1}
-  - name: y.sup
+  - name: y.tsup
     data: |
       {y:1}
       {y:2}

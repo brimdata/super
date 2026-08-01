@@ -4,9 +4,9 @@ script: |
 inputs:
   - name: query.spq
     data: |
-      let slurp = (from in.sup | count())
+      let slurp = (from in.tsup | count())
       values {x:slurp}, {y:slurp}
-  - name: in.sup
+  - name: in.tsup
     data: |
       1
       2

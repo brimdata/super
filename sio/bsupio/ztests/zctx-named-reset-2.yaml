@@ -1,11 +1,11 @@
 # Test that type names are properly reset and reusable after stream boundaries.
 script: |
-  super -c "head 1" in.sup > t1.bsup
-  super -c "tail 2" in.sup > t2.bsup
+  super -c "head 1" in.tsup > t1.bsup
+  super -c "tail 2" in.tsup > t2.bsup
   cat t1.bsup t2.bsup | super -s -c "count() by proto:=quiet(proto)" -
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {ts:2015-03-05T14:25:12.963801Z}
       type zenum=string

@@ -1,15 +1,15 @@
 script: |
-  super -o x.parquet -f parquet x.sup
-  super -o y.parquet -f parquet y.sup
+  super -o x.parquet -f parquet x.tsup
+  super -o y.parquet -f parquet y.tsup
   super -s -c "select x from x.parquet join y.parquet on x=y"
-  touch z.sup
-  ! super -s -c "select x from x.parquet join z.sup on x=y"
+  touch z.tsup
+  ! super -s -c "select x from x.parquet join z.tsup on x=y"
 
 inputs:
-  - name: x.sup
+  - name: x.tsup
     data: |
       {x:1}
-  - name: y.sup
+  - name: y.tsup
     data: |
       {y:1}
       {y:2}
@@ -21,11 +21,11 @@ outputs:
   - name: stderr
     data: |
       join on dynamic column "x" requires table-qualified reference at line 1, column 39:
-      select x from x.parquet join z.sup on x=y
+      select x from x.parquet join z.tsup on x=y
                                             ~
       join on dynamic column "y" requires table-qualified reference at line 1, column 41:
-      select x from x.parquet join z.sup on x=y
+      select x from x.parquet join z.tsup on x=y
                                               ~
       join on dynamic column "x" requires table-qualified reference at line 1, column 8:
-      select x from x.parquet join z.sup on x=y
+      select x from x.parquet join z.tsup on x=y
              ~

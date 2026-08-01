@@ -1,15 +1,15 @@
 script: |
-  ! super good.sup bad.sup
+  ! super good.tsup bad.tsup
 
 inputs:
-  - name: good.sup
+  - name: good.tsup
     data: |
       {_path:"conn",ts:1970-01-01T00:00:01Z}
-  - name: bad.sup
+  - name: bad.tsup
     data: |
       This is not a detectable format.
 
 outputs:
   - name: stderr
     regexp: |
-      bad.sup: format detection error.*
+      bad.tsup: format detection error.*

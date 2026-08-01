@@ -6,8 +6,8 @@ script: |
   ! super db log -use logs
 
 inputs:
-  - name: babble.sup
-    source: ../../testdata/babble.sup
+  - name: babble.tsup
+    source: ../../testdata/babble.tsup
 
 outputs:
   - name: stderr

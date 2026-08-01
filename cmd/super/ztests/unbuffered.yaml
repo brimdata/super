@@ -3,14 +3,14 @@ skip: "vectorized json reader does not currently support this"
 script: |
   mkfifo fifo
   # "-i json" avoids reader buffering.
-  super -i json -unbuffered -s fifo > out.sup &
+  super -i json -unbuffered -s fifo > out.tsup &
   # Prevent super from seeing EOF on fifo and exiting before the shell exits.
   exec 10> fifo
   echo 1 > fifo
-  # Wait for out.sup to have size greater than zero.
-  while [ ! -s out.sup -a $((i++)) -lt 50 ]; do sleep 0.1; done
-  # Get out.sup contents now, before super exits.
-  cat out.sup
+  # Wait for out.tsup to have size greater than zero.
+  while [ ! -s out.tsup -a $((i++)) -lt 50 ]; do sleep 0.1; done
+  # Get out.tsup contents now, before super exits.
+  cat out.tsup
 
 outputs:
   - name: stdout

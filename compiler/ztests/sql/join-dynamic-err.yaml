@@ -1,13 +1,13 @@
 script: |
-  ! super -s -c "select * from a.sup t1 join b.sup t2 on t1=t2"
+  ! super -s -c "select * from a.tsup t1 join b.tsup t2 on t1=t2"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       1
       2
       3
-  - name: b.sup
+  - name: b.tsup
     data: |
       2
       3
@@ -17,11 +17,11 @@ outputs:
   - name: stderr
     data: |
       join on dynamic column "t1" requires table-qualified reference at line 1, column 41:
-      select * from a.sup t1 join b.sup t2 on t1=t2
+      select * from a.tsup t1 join b.tsup t2 on t1=t2
                                               ~~
       join on dynamic column "t2" requires table-qualified reference at line 1, column 44:
-      select * from a.sup t1 join b.sup t2 on t1=t2
+      select * from a.tsup t1 join b.tsup t2 on t1=t2
                                                  ~~
       the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
-      select * from a.sup t1 join b.sup t2 on t1=t2
+      select * from a.tsup t1 join b.tsup t2 on t1=t2
              ~

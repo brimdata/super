@@ -53,7 +53,7 @@
 // defining the script, e.g.,
 //
 // inputs:
-//   - name: in1.sup
+//   - name: in1.tsup
 //     data: |
 //     #0:record[i:int64]
 //     0:[1;]
@@ -64,16 +64,16 @@
 //
 // script: |
 //
-//	super -o out.sup in1.sup -
-//	super -o count.sup "count()" out.sup
+//	super -o out.tsup in1.tsup -
+//	super -o count.tsup "count()" out.tsup
 //
 // outputs:
-//   - name: out.sup
+//   - name: out.tsup
 //     data: |
 //     #0:record[i:int64]
 //     0:[1;]
 //     0:[2;]
-//   - name: count.sup
+//   - name: count.tsup
 //     data: |
 //     #0:record[count:uint64]
 //     0:[2;]

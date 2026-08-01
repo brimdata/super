@@ -3,13 +3,13 @@ script: super -s -I query.spq
 inputs:
   - name: query.spq
     data: |
-      values 'a.sup', 'b.sup'
+      values 'a.tsup', 'b.tsup'
       | values (from f"{this}" | collect(this))
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
       {a:2}
-  - name: b.sup
+  - name: b.tsup
     data: |
       {b:3}
 

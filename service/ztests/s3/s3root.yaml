@@ -4,15 +4,15 @@ script: |
   source services.sh s3://bucket/db
   super db new -S 20KiB test
   super db use -q test
-  super db post babble.sup >/dev/null
+  super db post babble.tsup >/dev/null
   echo ===
   super db info | egrep -v 'id'
   echo ===
   super db get -s 's=="harefoot-raucous"'
 
 inputs:
-  - name: babble.sup
-    source: ../../../testdata/babble.sup
+  - name: babble.tsup
+    source: ../../../testdata/babble.tsup
   - name: services.sh
     source: ../services.sh
 

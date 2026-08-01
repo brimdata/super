@@ -1,5 +1,5 @@
 script: |
-  super -s -I count.spq in.sup
+  super -s -I count.spq in.tsup
 
 inputs:
   - name: count.spq
@@ -7,7 +7,7 @@ inputs:
       c
         :=
           count()
-  - name: in.sup
+  - name: in.tsup
     data: |
       {s:"1"}
       {s:"2"}

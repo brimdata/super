@@ -1,10 +1,10 @@
 script: |
-  ! super compile -dag 'count() by this[a] := key' in.sup
-  ! super compile -dag 'this[a] := count() by key' in.sup
-  ! super compile -dag 'this[a] := count()' in.sup
+  ! super compile -dag 'count() by this[a] := key' in.tsup
+  ! super compile -dag 'this[a] := count() by key' in.tsup
+  ! super compile -dag 'this[a] := count()' in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {a:0,key:0}
 

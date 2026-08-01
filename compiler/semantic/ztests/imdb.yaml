@@ -5,11 +5,11 @@ inputs:
   - name: imdb.spq
     data: |
       const titleID = 'tt3890160'
-      let title = (from title.basics.sup | tconst=titleID)
-      op principals : (from title.principals.sup | tconst=titleID)
+      let title = (from title.basics.tsup | tconst=titleID)
+      op principals : (from title.principals.tsup | tconst=titleID)
       op people which : (
           principals
-        | join (from name.basics.sup) as {p,name} on p.nconst=name.nconst
+        | join (from name.basics.tsup) as {p,name} on p.nconst=name.nconst
         | where p.category=which
         | values {...p,name:name.primaryName}
       )
@@ -23,10 +23,10 @@ inputs:
                 | limit 10
                 | collect({name,characters}))
       }
-  - name: title.basics.sup
+  - name: title.basics.tsup
     data: |
       {tconst:"tt3890160",titleType:"movie",primaryTitle:"Baby Driver",originalTitle:"Baby Driver",isAdult:0,startYear:"2017",endYear:null,runtimeMinutes:"113",genres:["Action","Crime","Drama"]}
-  - name: title.principals.sup
+  - name: title.principals.tsup
     data: |
       {tconst:"tt3890160",ordering:1,nconst:"nm5052065",category:"actor",job:"\\N",characters:["Baby"]}
       {tconst:"tt3890160",ordering:2,nconst:"nm1256532",category:"actor",job:"\\N",characters:["Griff"]}
@@ -49,7 +49,7 @@ inputs:
       {tconst:"tt3890160",ordering:19,nconst:"nm0532651",category:"editor",job:"\\N",characters:null}
       {tconst:"tt3890160",ordering:20,nconst:"nm0537892",category:"casting_director",job:"\\N",characters:null}
       {tconst:"tt3890160",ordering:21,nconst:"nm0746721",category:"production_designer",job:"\\N",characters:null}
-  - name: name.basics.sup
+  - name: name.basics.tsup
     data: |
       {nconst:"nm0000228",primaryName:"Kevin Spacey",birthYear:"1959",deathYear:null,primaryProfession:["actor","producer","director"],knownForTitles:["tt0114814","tt0119488","tt0169547","tt0114369"]}
       {nconst:"nm0079677",primaryName:"Tim Bevan",birthYear:"1957",deathYear:null,primaryProfession:["producer","actor","executive"],knownForTitles:["tt1707386","tt17526714","tt0475276","tt0783233"]}

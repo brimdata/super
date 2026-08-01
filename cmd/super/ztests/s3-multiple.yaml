@@ -1,15 +1,15 @@
 script: |
   source minio.sh
-  mv *.sup data/bucket
-  super -s -c "sort ts" s3://bucket/log1.sup s3://bucket/log2.sup
+  mv *.tsup data/bucket
+  super -s -c "sort ts" s3://bucket/log1.tsup s3://bucket/log2.tsup
 
 inputs:
   - name: minio.sh
     source: ../../../testdata/minio.sh
-  - name: log1.sup
+  - name: log1.tsup
     data: |
       {ts:2018-03-24T17:15:21.255387Z,uid:"C8Tful1TvM3Zf5x8fl"}
-  - name: log2.sup
+  - name: log2.tsup
     data: |
       {ts:2018-03-24T17:15:21.411148Z,uid:"CXWfTK3LRdiuQxBbM6"}
 

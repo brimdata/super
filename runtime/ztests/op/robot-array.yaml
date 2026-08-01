@@ -1,18 +1,18 @@
 script: |
-  super -s -c 'from which.sup | values "a"||val::string||".sup","a"||(val+1)::string||".sup" | select s from f"{this}"'
+  super -s -c 'from which.tsup | values "a"||val::string||".tsup","a"||(val+1)::string||".tsup" | select s from f"{this}"'
 
 inputs:
-  - name: which.sup
+  - name: which.tsup
     data: |
       {val:1}
       {val:2}
-  - name: a1.sup
+  - name: a1.tsup
     data: |
       {s:"hello"}
-  - name: a2.sup
+  - name: a2.tsup
     data: |
       {s:"world"}
-  - name: a3.sup
+  - name: a3.tsup
     data: |
       {s:"goodbye"}
 

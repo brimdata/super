@@ -1,6 +1,6 @@
 script: |
-  super -s -I walk.spq in.sup
-  ! super -s -I fail.spq in.sup
+  super -s -I walk.spq in.tsup
+  ! super -s -I fail.spq in.tsup
 
 inputs:
   - name: walk.spq
@@ -24,7 +24,7 @@ inputs:
         when <string> then this+1
         else this+2
         end
-  - name: in.sup
+  - name: in.tsup
     data: |
       {n:1}
 

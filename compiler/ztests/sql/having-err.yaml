@@ -1,9 +1,9 @@
 script: |
-  super -f parquet -o a.parquet a.sup
+  super -f parquet -o a.parquet a.tsup
   ! super -c "select count() from a.parquet having a=1"
 
 inputs:
-  - name: a.sup
+  - name: a.tsup
     data: |
       {a:1}
       {a:2}

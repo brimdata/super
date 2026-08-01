@@ -1,9 +1,9 @@
 script: |
-  super -s -c "union(x)" in.sup > union.sup
-  super -s -c "collect(x)" in.sup > collect.sup
+  super -s -c "union(x)" in.tsup > union.tsup
+  super -s -c "collect(x)" in.tsup > collect.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {x:1::int32}
       {x:-1::int32}
@@ -13,9 +13,9 @@ inputs:
       {x:1::int32}
 
 outputs:
-  - name: union.sup
+  - name: union.tsup
     data: |
       set[1::int32,-1::int32,2::int32,8::int32]
-  - name: collect.sup
+  - name: collect.tsup
     data: |
       [1::int32,-1::int32,2::int32,1::int32,8::int32,1::int32]

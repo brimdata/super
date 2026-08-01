@@ -1,15 +1,15 @@
 script: |
   echo === -1 >&2
-  ! super -samplesize -1 -s -c 'values {a,b,c}' in.sup
+  ! super -samplesize -1 -s -c 'values {a,b,c}' in.tsup
   echo === 0 >&2
-  ! super -samplesize 0 -s -c 'values {a,b,c}' in.sup
+  ! super -samplesize 0 -s -c 'values {a,b,c}' in.tsup
   echo === 1 >&2
-  ! super -samplesize 1 -s -c 'values {a,b,c}' in.sup
+  ! super -samplesize 1 -s -c 'values {a,b,c}' in.tsup
   echo === 2 >&2
-  ! super -samplesize 2 -s -c 'values {a,b,c}' in.sup
+  ! super -samplesize 2 -s -c 'values {a,b,c}' in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {a:1}
       {b:2}

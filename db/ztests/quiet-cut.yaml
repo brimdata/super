@@ -2,11 +2,11 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q logs
-  super db load -q -use logs in.sup
+  super db load -q -use logs in.tsup
   super db -c "from logs | cut notafield"
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       {x:1}
       {x:2}

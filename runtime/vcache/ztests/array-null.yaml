@@ -1,9 +1,9 @@
 script: |
-  super -f csup -o test.csup in.sup
+  super -f csup -o test.csup in.tsup
   super dev vector copy -s test.csup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: &input |
       {a:[1,2]}
       null

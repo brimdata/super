@@ -1,8 +1,8 @@
 script: |
-  super -s -c "count()" in.sup
+  super -s -c "count()" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: | # |- means no newline at end
       {
           c: 23::int32

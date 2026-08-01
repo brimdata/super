@@ -1,12 +1,12 @@
 script: |
-  super -s -c "put x:=p1+1" in.sup
+  super -s -c "put x:=p1+1" in.tsup
   echo ===
-  super -s -c "put x:=p1>p2" in.sup
+  super -s -c "put x:=p1>p2" in.tsup
   echo ===
-  super -s -c "put x:=a+p1+p2" in.sup
+  super -s -c "put x:=a+p1+p2" in.tsup
 
 inputs:
-  - name: in.sup
+  - name: in.tsup
     data: |
       type port=uint16
       {a:1::int32,p1:100::port,p2:200::port}

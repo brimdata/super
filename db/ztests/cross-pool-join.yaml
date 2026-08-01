@@ -3,12 +3,12 @@ script: |
   super db init -q
   super db create -q fruit
   super db create -q person
-  super db load -q -use fruit fruit.sup
-  super db load -q -use person person.sup
+  super db load -q -use fruit fruit.tsup
+  super db load -q -use person person.tsup
   super db -s -I join.spq
 
 inputs:
-  - name: fruit.sup
+  - name: fruit.tsup
     data: |
       type fruit={name:string,color:string,flavor:string}
       {name:"apple",color:"red",flavor:"tart"}::fruit
@@ -17,7 +17,7 @@ inputs:
       {name:"dates",color:"brown",flavor:"sweet"}::fruit
       {name:"figs",color:"brown",flavor:"plain"}::fruit
       {name:"pomegranate",color:"red",flavor:"tart"}::fruit
-  - name: person.sup
+  - name: person.tsup
     data: |
       type person={name:string,likes:string,age:int64}
       {name:"bob",likes:"tart",age:61}::person
