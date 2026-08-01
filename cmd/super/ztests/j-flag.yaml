@@ -1,6 +1,6 @@
 script: |
   super -j in.sup
-  ! super -j -f sup in.sup
+  ! super -j -f tsup in.sup
   ! super -j -s in.sup
   ! super -j -S in.sup
 

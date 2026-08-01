@@ -1,6 +1,6 @@
 spq: "put t:=typeof(s) | put tt:=typeof(t)"
 
-output-flags: -f sup -pretty=4
+output-flags: -f tsup -pretty=4
 
 input: |
   type foo=uint8

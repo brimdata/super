@@ -47,7 +47,7 @@ func TestSPQ(t *testing.T) {
 		//runAllBoomerangs(t, "arrows", data)
 		runAllBoomerangs(t, "csup", data)
 		runAllBoomerangs(t, "parquet", data)
-		runAllBoomerangs(t, "sup", data)
+		runAllBoomerangs(t, "tsup", data)
 		runAllFusionBoomerangs(t, data)
 	})
 
@@ -213,7 +213,7 @@ func runOneFusionBoomerang(t *testing.T, data string) {
 	// Serialize non-fusion values from dataReader to baseline as SUP.
 	r := &fusionRemovingReader{sbuf.PullerReader(sbuf.NewMaterializer(dataPuller)), hasFusion{}}
 	puller := sbuf.NewDematerializer(dataSctx, sbuf.NewPuller(r))
-	baseline, err := serialize(puller, "sup")
+	baseline, err := serialize(puller, "tsup")
 	require.NoError(t, err)
 	if baseline == "" {
 		t.Skip("skipping because data contains no non-fusion values")
@@ -234,7 +234,7 @@ func fuseDefuse(ctx context.Context, s string) (string, error) {
 		return "", err
 	}
 	defer q.Pull(true)
-	return serialize(q, "sup")
+	return serialize(q, "tsup")
 }
 
 func newQuery(ctx context.Context, sctx *super.Context, spq string, p vio.Puller) (vio.Puller, error) {

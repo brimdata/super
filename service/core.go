@@ -28,7 +28,7 @@ import (
 // DefaultFormat is the default data format that the server will assume if the
 // value for a request's "Accept" or "Content-Type" headers are not set or set
 // to "*/*".
-const DefaultFormat = "sup"
+const DefaultFormat = "tsup"
 
 const indexPage = `
 <!DOCTYPE html>

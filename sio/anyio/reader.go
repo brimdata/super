@@ -81,7 +81,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	jsonErr = fmt.Errorf("json: %w", jsonErr)
 	track.Reset()
 
-	supErr := match(supio.NewReader(super.NewContext(), track), "sup", 1)
+	supErr := match(supio.NewReader(super.NewContext(), track), "tsup", 1)
 	if supErr == nil {
 		return newVioPuller(sctx, supio.NewReader(sctx, track.Reader())), nil
 	}

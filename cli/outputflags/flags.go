@@ -92,7 +92,7 @@ func (f *Flags) Init() error {
 		if f.Format != f.DefaultFormat {
 			return errors.New("cannot use -s or -S with -f")
 		}
-		f.Format = "sup"
+		f.Format = "tsup"
 		if !f.supPretty {
 			f.SUP.Pretty = 0
 		}
@@ -102,7 +102,7 @@ func (f *Flags) Init() error {
 	}
 	if f.outputFile == "" && f.split == "" && f.Format == f.DefaultFormat && !f.forceBinary &&
 		terminal.IsTerminalFile(os.Stdout) {
-		f.Format = "sup"
+		f.Format = "tsup"
 		f.SUP.Pretty = 0
 	}
 	if f.unbuffered {

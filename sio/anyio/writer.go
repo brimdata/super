@@ -54,7 +54,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
 		return &nullWriter{}, nil
 	case "parquet":
 		return newDefuser(parquetio.NewWriter(w)), nil
-	case "sup", "":
+	case "tsup", "":
 		w := vio.PushCloser(supio.NewWriter(w, opts.SUP))
 		if !opts.SUPFusion {
 			w = newDefuser(w)

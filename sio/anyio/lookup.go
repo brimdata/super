@@ -44,7 +44,7 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 		return jsonio.NewReader(context.Background(), sctx, r, opts.Pushdown, opts.ConcurrentReaders), nil
 	case "parquet":
 		return parquetio.NewReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
-	case "sup":
+	case "tsup":
 		return newVioPuller(sctx, supio.NewReader(sctx, r)), nil
 	case "tsv":
 		opts.CSV.Delim = '\t'

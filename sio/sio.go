@@ -21,8 +21,8 @@ func Extension(format string) string {
 		return ".json"
 	case "parquet":
 		return ".parquet"
-	case "sup":
-		return ".sup"
+	case "tsup":
+		return ".tsup"
 	case "table":
 		return ".tbl"
 	case "zeek":
@@ -44,8 +44,8 @@ func FormatFromPath(path string) string {
 		return "json"
 	case ".parquet":
 		return "parquet"
-	case ".sup":
-		return "sup"
+	case ".tsup":
+		return "tsup"
 	case ".text", ".txt":
 		return "line"
 	default:
