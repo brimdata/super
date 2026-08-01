@@ -29,8 +29,8 @@ type Flags struct {
 	pretty        int
 	split         string
 	splitSize     auto.Bytes
-	supPretty     bool
-	supShortcut   bool
+	tsupPretty    bool
+	tsupShortcut  bool
 	unbuffered    bool
 }
 

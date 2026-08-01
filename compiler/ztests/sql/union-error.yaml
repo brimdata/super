@@ -20,4 +20,4 @@ outputs:
              ~
       the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 38:
       select * from a.tsup union all select * from a.tsup
-                                           ~
+                                            ~

@@ -458,7 +458,7 @@ func (z *ZTest) runInternal(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	args := []string{"-f=sup", "-pretty=0"}
+	args := []string{"-f=tsup", "-pretty=0"}
 	args = append(args, strings.Fields(z.OutputFlags)...)
 	args = append(args, strings.Fields(z.InputFlags)...)
 	var fs flag.FlagSet

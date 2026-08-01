@@ -18,10 +18,10 @@ outputs:
     data: |
       join on dynamic column "t1" requires table-qualified reference at line 1, column 41:
       select * from a.tsup t1 join b.tsup t2 on t1=t2
-                                              ~~
+                                                ~~
       join on dynamic column "t2" requires table-qualified reference at line 1, column 44:
       select * from a.tsup t1 join b.tsup t2 on t1=t2
-                                                 ~~
+                                                   ~~
       the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
       select * from a.tsup t1 join b.tsup t2 on t1=t2
              ~

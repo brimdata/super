@@ -24,10 +24,10 @@ outputs:
     data: |
       position 5 is not in select list at line 1, column 42:
       select a, b, c, d from test.tsup group by 5, 0
-                                               ~
+                                                ~
       position 0 is not in select list at line 1, column 45:
       select a, b, c, d from test.tsup group by 5, 0
-                                                  ~
+                                                   ~
       column "a" must appear in GROUP BY clause at line 1, column 8:
       select a, b, c, d from test.tsup group by 5, 0
              ~
@@ -43,7 +43,7 @@ outputs:
       // ===
       aggregate function "count" cannot appear in GROUP BY via positional reference at line 1, column 47:
       select count() as c, a from test.tsup group by 1,2
-                                                    ~
+                                                     ~
 
 output: |
   {c:1}

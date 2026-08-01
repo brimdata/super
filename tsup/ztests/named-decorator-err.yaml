@@ -1,5 +1,5 @@
 script: |
-  ! super -i sup -s in.tsup
+  ! super -i tsup -s in.tsup
 
 inputs:
   - name: in.tsup

@@ -18,6 +18,6 @@ outputs:
       	json: line 1: invalid JSON value
       	line: auto-detection not supported
       	parquet: invalid header
-      	sup: buffer exceeded max size trying to infer input format
+      	tsup: buffer exceeded max size trying to infer input format
       	tsv: line 1: delimiter '\t' not found
       	zeek: line 1: bad types/fields definition in zeek header

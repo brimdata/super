@@ -20,7 +20,7 @@ outputs:
       	json: line 1: invalid JSON value
       	line: auto-detection not supported
       	parquet: invalid header
-      	sup: line 1: syntax error
+      	tsup: line 1: syntax error
       	tsv: line 1: delimiter '\t' not found
       	zeek: line 1: bad types/fields definition in zeek header
       status code 400: no records in request

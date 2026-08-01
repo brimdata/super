@@ -12,6 +12,6 @@ outputs:
       	json: line 1: value exceeded max buffer size
       	line: auto-detection not supported
       	parquet: invalid header
-      	sup: short buffer
+      	tsup: short buffer
       	tsv: line 1: bufio: buffer full
       	zeek: line 1: line too long

@@ -17,7 +17,7 @@ outputs:
       pool XXX
       | output main
       ===
-      file A.tsup format sup
+      file A.tsup format tsup
       | output main
       ===
       get http://brimdata.io

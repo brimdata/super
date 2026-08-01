@@ -22,10 +22,10 @@ outputs:
     data: |
       join on dynamic column "x" requires table-qualified reference at line 1, column 39:
       select x from x.parquet join z.tsup on x=y
-                                            ~
+                                             ~
       join on dynamic column "y" requires table-qualified reference at line 1, column 41:
       select x from x.parquet join z.tsup on x=y
-                                              ~
+                                               ~
       join on dynamic column "x" requires table-qualified reference at line 1, column 8:
       select x from x.parquet join z.tsup on x=y
              ~

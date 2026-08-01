@@ -6,4 +6,4 @@ outputs:
     data: |
       parse error at line 1, column 25:
       from sample.tsup | count(
-                          === ^ ===
+                           === ^ ===

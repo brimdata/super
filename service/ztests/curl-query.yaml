@@ -2,7 +2,7 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek} ""; do
+  for accept in text/csv application/{json,x-ndjson,x-tsup,x-zeek} ""; do
     echo === $accept ===
     curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB/query\?ctrl=true
   done
