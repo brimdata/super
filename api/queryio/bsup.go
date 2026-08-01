@@ -7,17 +7,17 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
-	sup "github.com/brimdata/super/tsup"
+	"github.com/brimdata/super/tsup"
 )
 
 type BSUPWriter struct {
 	*bsupio.Writer
-	marshaler *sup.MarshalBSUPContext
+	marshaler *tsup.MarshalBSUPContext
 }
 
 func NewBSUPWriter(w io.Writer) *BSUPWriter {
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StyleSimple)
+	m := tsup.NewBSUPMarshaler()
+	m.Decorate(tsup.StyleSimple)
 	return &BSUPWriter{
 		Writer:    bsupio.NewWriter(sio.NopCloser(w)),
 		marshaler: m,

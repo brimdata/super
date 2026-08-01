@@ -10,7 +10,7 @@ Output is written to standard output by default or, if `-o` is specified,
 to the indicated file or directory.
 
 When writing to stdout and stdout is a terminal, the default
-output format is [SUP](../formats/sup.md).
+output format is [TSUP](../formats/tsup.md).
 Otherwise, the default format is [BSUP](../formats/bsup.md).
 These defaults may be overridden with `-f`, `-s`, or `-S`.
 
@@ -19,8 +19,8 @@ These defaults may be overridden with `-f`, `-s`, or `-S`.
 > CSUP to default after CSUP supports streaming.
 
 Since SUP is a common format choice for interactive use,
-the `-s` flag is shorthand for `-f sup`.
-Also, `-S` is a shortcut for `-f sup` with `-pretty 2` as
+the `-s` flag is shorthand for `-f tsup`.
+Also, `-S` is a shortcut for `-f tsup` with `-pretty 2` as
 [described below](#pretty-printing).
 
 And since plain JSON is another common format choice, the `-j` flag
@@ -47,7 +47,7 @@ super -f arrows -o out.arrows file1.json file2.parquet file3.csv
 
 SUP and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
 the number of spaces to use for indentation.  As this is a common option,
-the `-S` option is a shortcut for `-f sup -pretty 2` and `-J` is a shortcut
+the `-S` option is a shortcut for `-f tsup -pretty 2` and `-J` is a shortcut
 for `-f json -pretty 2`.
 
 For example,
@@ -69,7 +69,7 @@ produces
 ```
 and
 ```mdtest-command
-echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -f sup -pretty 4 -
+echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -f tsup -pretty 4 -
 ```
 produces
 ```mdtest-output
@@ -212,7 +212,7 @@ values formatted as their native character in the output, e.g.,
 | `\f`            | Form feed                               |
 | `\u`            | Unicode escape (e.g., `\u0041` for `A`) |
 
-Non-string values are formatted as [SUP](../formats/sup.md).
+Non-string values are formatted as [TSUP](../formats/tsup.md).
 
 For example:
 

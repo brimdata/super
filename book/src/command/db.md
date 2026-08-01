@@ -442,7 +442,7 @@ pools.
 
 For example, this command
 ```
-super db load sample1.json sample2.bsup sample3.sup
+super db load sample1.json sample2.bsup sample3.tsup
 ```
 loads files of varying formats in a single commit to the working branch.
 
@@ -496,7 +496,7 @@ The `date` field here is used by the database for time travel
 through the branch and pool history, allowing you to see the state of
 branches at any time in their commit history.
 
-Arbitrary metadata expressed as any [SUP value](../formats/sup.md)
+Arbitrary metadata expressed as any [TSUP value](../formats/tsup.md)
 may be attached to a commit via the `-meta` flag.  This allows an application
 or user to transactionally commit metadata alongside committed data for any
 purpose.  This approach allows external applications to implement arbitrary
@@ -687,7 +687,7 @@ super db serve [options]
 * `-auth.enabled` enable authentication checks
 * `-auth.jwkspath` path to JSON Web Key Set file
 * `-cors.origin` CORS allowed origin (may be repeated)
-* `-defaultfmt` default response format (default "sup")
+* `-defaultfmt` default response format (default "tsup")
 * `-l [addr]:port` to listen on (default ":9867")
 * `-log.devmode` development mode (if enabled dpanic level logs will cause a panic)
 * `-log.filemod` logger file write mode (values: append, truncate, rotate)

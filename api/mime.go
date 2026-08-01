@@ -17,7 +17,7 @@ const (
 	MediaTypeLine        = "application/x-line"
 	MediaTypeNDJSON      = "application/x-ndjson"
 	MediaTypeParquet     = "application/x-parquet"
-	MediaTypeSUP         = "application/x-sup"
+	MediaTypeTSUP        = "application/x-tsup"
 	MediaTypeTSV         = "text/tab-separated-values"
 	MediaTypeZeek        = "application/x-zeek"
 )
@@ -59,8 +59,8 @@ func MediaTypeToFormat(s string, dflt string) (string, error) {
 		return "ndjson", nil
 	case MediaTypeParquet:
 		return "parquet", nil
-	case MediaTypeSUP:
-		return "sup", nil
+	case MediaTypeTSUP:
+		return "tsup", nil
 	case MediaTypeTSV:
 		return "tsv", nil
 	case MediaTypeZeek:
@@ -87,8 +87,8 @@ func FormatToMediaType(format string) (string, error) {
 		return MediaTypeNDJSON, nil
 	case "parquet":
 		return MediaTypeParquet, nil
-	case "sup":
-		return MediaTypeSUP, nil
+	case "tsup":
+		return MediaTypeTSUP, nil
 	case "tsv":
 		return MediaTypeTSV, nil
 	case "zeek":

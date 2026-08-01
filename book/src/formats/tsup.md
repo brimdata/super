@@ -1,21 +1,21 @@
-# Super (SUP) Format
+# Super Text (TSUP) Format
 
 ## 1. Introduction
 
-Super (SUP) is the human-readable, text-based serialization format for
+Super Text (TSUP) is the human-readable, text-based serialization format for
 [super-structured data](model.md).
 
-SUP builds upon the elegant simplicity of JSON with [type decorators](#22-type-decorators)
+TSUP builds upon the elegant simplicity of JSON with [type decorators](#22-type-decorators)
 Where the type of a value is not implied by its syntax, a type decorator
 is appended to the value interposed with double colons
 to establish a concrete type for every value expressed in source text.
 
-SUP is also a superset of JSON in that all JSON documents are valid
-SUP values.
+TSUP is also a superset of JSON in that all JSON documents are valid
+TSUP values.
 
-## 2. The SUP Format
+## 2. The TSUP Format
 
-A SUP text is a sequence of UTF-8 characters organized either as a bounded input
+A TSUP text is a sequence of UTF-8 characters organized either as a bounded input
 or an unbounded stream.
 
 The input text is organized as a sequence of one or more values optionally
@@ -29,7 +29,7 @@ If an input text includes data that is not valid UTF-8, then the text is invalid
 
 ### 2.1 Names
 
-SUP _names_ encode record fields, enum symbols, and named types.
+TSUP _names_ encode record fields, enum symbols, and named types.
 A name is either an _identifier_ or a [quoted string](#231-strings).
 Names are referred to as `<name>` below.
 
@@ -226,7 +226,7 @@ A record value has the form:
 ```
 { <name> : <value>, <name> : <value>, ... }
 ```
-where `<name>` is a [SUP name](#21-names) and `<value>` is
+where `<name>` is a [TSUP name](#21-names) and `<value>` is
 any optionally-decorated value inclusive of other records.
 Each name/value pair is called a _field_.
 There may be zero or more fields.
@@ -288,7 +288,7 @@ by an enum type decorator:
 ```
 <string>::enum(<name>[,<name>...])
 ```
-where each `<name>` is [SUP name](#21-names).
+where each `<name>` is [TSUP name](#21-names).
 
 An enum value must appear in a context where the enum type is known, i.e.,
 with an explicit enum type decorator or within a complex type where the
@@ -320,7 +320,7 @@ A _record type_ has the form:
 ```
 { <name> : <type>, <name> : <type>, ... }
 ```
-where `<name>` is a [SUP name](#21-names) and
+where `<name>` is a [TSUP name](#21-names) and
 `<type>` is any type.
 
 The order of the record fields is significant,
@@ -363,7 +363,7 @@ An _enum type_ has the form:
 ```
 enum( <name>, <name>, ... )
 ```
-where `<name>` is a [SUP name](#21-names).
+where `<name>` is a [TSUP name](#21-names).
 Each enum name must be unique and the order is significant, e.g.,
 enum type `enum(HEADS,TAILS)` is not equal to type `enum(TAILS,HEADS)`.
 
@@ -409,7 +409,7 @@ A value of any type can be null.
 
 ## 3. Examples
 
-The simplest SUP value is a single value, perhaps a string like this:
+The simplest TSUP value is a single value, perhaps a string like this:
 ```
 "hello, world"
 ```
@@ -465,7 +465,7 @@ the `nets` field is an array of networks and illustrates the helpful range of
 primitive types.  Note that the syntax here implies
 the type of the array, as it is inferred from the type of the elements.
 
-Finally, there are four more values that show SUP's efficacy for
+Finally, there are four more values that show TSUP's efficacy for
 representing metrics.  Here, there are no type decorators as all of the field
 types are implied by their syntax, and hence, the top-level record type is implied.
 For instance, the `ts` field is an RFC 3339 date and time string,
@@ -476,13 +476,13 @@ record type implied by each of the three variations of type of the `value` field
 
 ## 4. Grammar
 
-Here is a left-recursive pseudo-grammar of SUP.  Note that not all
+Here is a left-recursive pseudo-grammar of TSUP.  Note that not all
 acceptable inputs are semantically valid as type mismatches may arise.
 For example, union and enum values must both appear in a context
 that defines their type.
 
 ```
-<sup> = <sup> <eos> <dec-value> | <sup> <dec-value> | <dec-value>
+<tsup> = <tsup> <eos> <dec-value> | <tsup> <dec-value> | <dec-value>
 
 <eos> = .
 
