@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -36,7 +36,7 @@ func TestDirS3Source(t *testing.T) {
 		Return(sio.NopCloser(bytes.NewBuffer(nil)), nil)
 
 	sctx := super.NewContext()
-	r := supio.NewReader(sctx, strings.NewReader(input))
+	r := tsupio.NewReader(sctx, strings.NewReader(input))
 	require.NoError(t, err)
 	w, err := NewSplit(t.Context(), engine, uri, "", false, anyio.WriterOpts{Format: "tsup"})
 	require.NoError(t, err)

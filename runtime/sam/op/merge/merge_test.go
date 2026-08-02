@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -97,7 +97,7 @@ func TestParallelOrder(t *testing.T) {
 			sctx := super.NewContext()
 			var parents []sbuf.Puller
 			for _, input := range c.inputs {
-				r := supio.NewReader(sctx, strings.NewReader(input))
+				r := tsupio.NewReader(sctx, strings.NewReader(input))
 				parents = append(parents, sbuf.NewPuller(r))
 			}
 			sortExpr := expr.NewSortExpr(expr.NewDottedExpr(sctx, field.Path{c.field}), c.order, order.NullsLast)
@@ -105,7 +105,7 @@ func TestParallelOrder(t *testing.T) {
 			om := merge.New(t.Context(), parents, cmp)
 
 			var sb strings.Builder
-			err := sbuf.CopyPuller(supio.NewWriter(sio.NopCloser(&sb), supio.WriterOpts{}), om)
+			err := sbuf.CopyPuller(tsupio.NewWriter(sio.NopCloser(&sb), tsupio.WriterOpts{}), om)
 			require.NoError(t, err)
 			assert.Equal(t, c.exp, "\n"+sb.String())
 		})

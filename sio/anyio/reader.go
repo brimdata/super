@@ -20,7 +20,7 @@ import (
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/parquetio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/sio/zeekio"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -81,9 +81,9 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	jsonErr = fmt.Errorf("json: %w", jsonErr)
 	track.Reset()
 
-	supErr := match(supio.NewReader(super.NewContext(), track), "tsup", 1)
+	supErr := match(tsupio.NewReader(super.NewContext(), track), "tsup", 1)
 	if supErr == nil {
-		return newVioPuller(sctx, supio.NewReader(sctx, track.Reader())), nil
+		return newVioPuller(sctx, tsupio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 

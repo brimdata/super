@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +29,7 @@ func TestNonRecordDeref(t *testing.T) {
 null
 [1,2,3]
 set[1,2,3]`
-	reader := supio.NewReader(super.NewContext(), strings.NewReader(input))
+	reader := tsupio.NewReader(super.NewContext(), strings.NewReader(input))
 	for {
 		val, err := reader.Read()
 		if val == nil {

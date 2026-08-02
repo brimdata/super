@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/tsup"
 )
 
@@ -87,12 +87,12 @@ func (p *ParseURI) Call(args []super.Value) super.Value {
 type ParseTSUP struct {
 	sctx *super.Context
 	sr   *strings.Reader
-	zr   *supio.Reader
+	zr   *tsupio.Reader
 }
 
 func newParseTSUP(sctx *super.Context) *ParseTSUP {
 	var sr strings.Reader
-	return &ParseTSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
+	return &ParseTSUP{sctx, &sr, tsupio.NewReader(sctx, &sr)}
 }
 
 func (p *ParseTSUP) Call(args []super.Value) super.Value {

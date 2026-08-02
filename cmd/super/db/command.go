@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -81,7 +81,7 @@ func (c *Command) Run(args []string) error {
 	defer query.Pull(true)
 	out := map[string]vio.Pusher{
 		"main":  w,
-		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
+		"debug": tsupio.NewWriter(sio.NopCloser(os.Stderr), tsupio.WriterOpts{}),
 	}
 	err = vio.CopyMux(out, query)
 	if closeErr := w.Close(); err == nil {

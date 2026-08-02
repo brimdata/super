@@ -22,7 +22,7 @@ import (
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/brimdata/super/ztest"
@@ -227,7 +227,7 @@ func runOneFusionBoomerang(t *testing.T, data string) {
 
 func fuseDefuse(ctx context.Context, s string) (string, error) {
 	sctx := super.NewContext()
-	r := supio.NewReader(sctx, strings.NewReader(s))
+	r := tsupio.NewReader(sctx, strings.NewReader(s))
 	p := sbuf.NewDematerializer(sctx, sbuf.NewPuller(r))
 	q, err := newQuery(ctx, sctx, "fuse | defuse(this)", p)
 	if err != nil {

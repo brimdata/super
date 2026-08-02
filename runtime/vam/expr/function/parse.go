@@ -7,7 +7,7 @@ import (
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/vector"
 )
 
@@ -42,12 +42,12 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 type ParseTSUP struct {
 	sctx *super.Context
 	sr   *strings.Reader
-	zr   *supio.Reader
+	zr   *tsupio.Reader
 }
 
 func newParseTSUP(sctx *super.Context) *ParseTSUP {
 	var sr strings.Reader
-	return &ParseTSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
+	return &ParseTSUP{sctx, &sr, tsupio.NewReader(sctx, &sr)}
 }
 
 func (p *ParseTSUP) Call(args ...vector.Any) vector.Any {

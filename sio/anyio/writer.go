@@ -14,8 +14,8 @@ import (
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/lineio"
 	"github.com/brimdata/super/sio/parquetio"
-	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sio/tableio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/sio/zeekio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
@@ -28,7 +28,7 @@ type WriterOpts struct {
 	CSV       csvio.WriterOpts
 	DB        dbio.WriterOpts
 	JSON      jsonio.WriterOpts
-	SUP       supio.WriterOpts
+	SUP       tsupio.WriterOpts
 }
 
 func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
@@ -55,7 +55,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
 	case "parquet":
 		return newDefuser(parquetio.NewWriter(w)), nil
 	case "tsup", "":
-		w := vio.PushCloser(supio.NewWriter(w, opts.SUP))
+		w := vio.PushCloser(tsupio.NewWriter(w, opts.SUP))
 		if !opts.SUPFusion {
 			w = newDefuser(w)
 		}

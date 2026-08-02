@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/tsup"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
@@ -86,7 +86,7 @@ func (c *testClient) TestQuery(query string) string {
 	zr := bsupio.NewReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	var buf bytes.Buffer
-	zw := supio.NewWriter(sio.NopCloser(&buf), supio.WriterOpts{})
+	zw := tsupio.NewWriter(sio.NopCloser(&buf), tsupio.WriterOpts{})
 	require.NoError(c, sio.Copy(zw, zr))
 	return buf.String()
 }

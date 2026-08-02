@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/tsup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ func TestReadOneLineNoEOF(t *testing.T) {
 		// The test needs two records because with a single record the parser
 		// will stall waiting to see if the record has a decorator.
 		reader <- []byte(expected + "\n" + expected)
-		r := supio.NewReader(super.NewContext(), reader)
+		r := tsupio.NewReader(super.NewContext(), reader)
 		rec, err := r.Read()
 		done <- result{val: rec, err: err}
 	}()

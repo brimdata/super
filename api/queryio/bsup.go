@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/tsup"
 )
 
@@ -30,7 +30,7 @@ func (w *BSUPWriter) WriteControl(v any) error {
 		return err
 	}
 	var buf bytes.Buffer
-	err = supio.NewWriter(sio.NopCloser(&buf), supio.WriterOpts{}).Write(val)
+	err = tsupio.NewWriter(sio.NopCloser(&buf), tsupio.WriterOpts{}).Write(val)
 	if err != nil {
 		return err
 	}

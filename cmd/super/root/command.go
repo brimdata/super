@@ -20,7 +20,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -103,7 +103,7 @@ func (c *Command) Run(args []string) error {
 	}
 	out := map[string]vio.Pusher{
 		"main":  writer,
-		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
+		"debug": tsupio.NewWriter(sio.NopCloser(os.Stderr), tsupio.WriterOpts{}),
 	}
 	err = vio.CopyMux(out, query)
 	if closeErr := writer.Close(); err == nil {

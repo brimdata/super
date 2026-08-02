@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tsupio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +27,7 @@ func (o *Output) Close() error {
 // Send logs to SUP reader -> BSUP writer -> BSUP reader -> SUP writer.
 func boomerang(t *testing.T, logs string, compress bool) {
 	in := []byte(strings.TrimSpace(logs) + "\n")
-	supSrc := supio.NewReader(super.NewContext(), bytes.NewReader(in))
+	supSrc := tsupio.NewReader(super.NewContext(), bytes.NewReader(in))
 	var rawBSUP Output
 	rawDst := bsupio.NewWriterWithOpts(&rawBSUP, bsupio.WriterOpts{
 		Compress:    compress,
@@ -39,7 +39,7 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	var out Output
 	rawSrc := bsupio.NewReader(super.NewContext(), &rawBSUP)
 	defer rawSrc.Close()
-	supDst := supio.NewWriter(&out, supio.WriterOpts{})
+	supDst := tsupio.NewWriter(&out, tsupio.WriterOpts{})
 	err := sio.Copy(supDst, rawSrc)
 	if assert.NoError(t, err) {
 		assert.Equal(t, in, out.Bytes())
