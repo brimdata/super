@@ -4,8 +4,8 @@ A named type provides a means to bind a symbolic name to a type
 and conforms to the
 [named type](../../formats/model.md#3-named-type)
 in the super-structured data model.
-The named type [syntax](../../formats/sup.md#258-named-type)
-follows that of [SUP format](../../formats/sup.md), i.e.,
+The named type [syntax](../../formats/tsup.md#258-named-type)
+follows that of [TSUP format](../../formats/tsup.md), i.e.,
 a named type has the form
 ```
 type <name>=<type>

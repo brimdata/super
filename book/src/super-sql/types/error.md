@@ -16,7 +16,7 @@ error ( <value > )
 ```
 where `<value>` is any value.
 
-Error values can also be created by reading external data (SUP files or
+Error values can also be created by reading external data (e.g., TSUP files or
 database data) that contains serialized error values
 or they can arise when any operator or function encounters
 an error and produces an error value to describe the condition.

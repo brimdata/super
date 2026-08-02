@@ -38,7 +38,7 @@ as well as [`jq`](https://jqlang.org/download/).
 ### But JSON
 
 While `super` is based on a new type of [data model](../formats/model.md),
-its human-readable format [Super (SUP)](../formats/sup.md) just so
+its human-readable [Super Text (TSUP)](../formats/tsup) format just so
 happens to be a superset of JSON.
 
 So if all you ever use `super` for is manipulating JSON data,
@@ -53,7 +53,7 @@ and it is usually faster, sometimes
 [much faster](../tutorials/performance.md) than `jq`.
 
 To this end, if you want full JSON compatibility without having to delve into the
-details of SUP, just use the `-j` option with `super` and this will tell it to
+details of TSUP, just use the `-j` option with `super` and this will tell it to
 expect JSON values as input and produce JSON values as output, much like `jq`.
 
 >[!NOTE]
@@ -89,7 +89,7 @@ which also gives
 
 >[!NOTE]
 > We are using the `-s` option with `super` in all of the examples,
-> which formats the output as [SUP](../formats/sup.md).
+> which formats the output as [TSUP](../formats/tsup.md).
 
 ### Search vs Transformation
 
@@ -160,7 +160,7 @@ now gives the same answer as `jq`:
 Cool, but doesn't it seem like search is a better disposition for
 shorthand syntax?  What do you think?
 
-### On to SUP
+### On to TSUP
 
 JSON is super easy and ubiquitous, but it can be limiting and frustrating when
 trying to do high-precision stuff with data.
@@ -168,19 +168,19 @@ trying to do high-precision stuff with data.
 When using `super`, it's handy to operate in the
 domain of [super-structured data](../formats/model.md) and only output to
 JSON when needed. Providing human-readability without losing detail is what
-[SUP](../formats/sup.md) is all about.
+[TSUP](../formats/tsup.md) is all about.
 
-SUP is nice because it has a comprehensive type system and you can
-go from SUP to an efficient binary row format ([Super Binary, BSUP](../formats/bsup.md))
+TSUP is nice because it has a comprehensive type system and you can
+go from TSUP to an efficient binary row format ([Super Binary, BSUP](../formats/bsup.md))
 and columnar ([Super Columnar, CSUP](../formats/csup.md)) --- and vice versa ---
 with complete fidelity and no loss of information.  In this tour,
-we'll stick to SUP, though for large data sets
+we'll stick to TSUP, though for large data sets
 [BSUP is much faster](../tutorials/performance.md).
 
-The first thing you'll notice about SUP is that you don't need
+The first thing you'll notice about TSUP is that you don't need
 quotations around field names.  We can see this by taking some JSON
 as input (the JSON format is auto-detected by `super`) and formatting
-it as pretty-printed SUP with `-S`:
+it as pretty-printed TSUP with `-S`:
 ```mdtest-command
 echo '{"s":"hello","val":1,"a":[1,2],"b":true}' | super -S -
 ```
@@ -197,7 +197,7 @@ which gives
 }
 ```
 `s`, `val`, `a`, and `b` all appear as unquoted identifiers here.
-Of course if you have funny characters in a field name, SUP can handle
+Of course if you have funny characters in a field name, TSUP can handle
 it with quotes just like JSON:
 ```mdtest-command
 echo '{"funny@name":1}' | super -s -
@@ -206,7 +206,7 @@ produces
 ```mdtest-output
 {"funny@name":1}
 ```
-Moreover, SUP is fully compatible with all of JSON's corner cases like empty string
+Moreover, TSUP is fully compatible with all of JSON's corner cases like empty string
 as a field name and empty object as a value, e.g.,
 ```mdtest-command
 echo '{"":{}}' | super -s -
@@ -220,7 +220,7 @@ produces
 
 SUP also has a [comprehensive type system](../formats/model.md).
 
-For example, here is a SUP "record" with a taste of different types
+For example, here is a TSUP "record" with a taste of different types
 of values as record fields:
 ```
 {
@@ -261,7 +261,7 @@ Here, `v1` is a 64-bit IEEE floating-point value just like JSON.
 
 Unlike JSON, `v2` is a 64-bit integer.  And there are other integer
 types as with `v3`,
-which utilizes a [SUP type decorator](../formats/sup.md#22-type-decorators),
+which utilizes a [TSUP type decorator](../formats/tsup.md#22-type-decorators),
 in this case,
 to clarify its specific type of integer as unsigned 8 bits.
 
@@ -430,7 +430,7 @@ of the new
 ### First-class Types
 
 Note that in the type value above, the type is wrapped in angle brackets.
-This is how SUP represents types when expressed as values.
+This is how TSUP represents types when expressed as values.
 In other words, the super data model has
 [first-class](https://en.wikipedia.org/wiki/First-class_citizen) types.
 
@@ -544,7 +544,7 @@ like this in isolation:
 you have no idea what the expected data type of `b` will be.  Maybe it's another
 number?  Or maybe a string?  Or maybe an array or an embedded object?
 
-`super` and SUP don't have this problem because every value (even `null`) is
+`super` and TSUP don't have this problem because every value (even `null`) is
 comprehensively typed.  However, `super` in fact must deal with this thorny problem
 when reading JSON and converting it to super-structured data.
 
@@ -565,7 +565,7 @@ sense, e.g.,
 ```mdtest-command
 echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -s -c blend -
 ```
-produces this transformed and comprehensively-typed SUP output:
+produces this transformed and comprehensively-typed TSUP output:
 ```mdtest-output
 {a:1::(int64|null),b:null::(null|[int64])}
 {a:null::(int64|null),b:[2,3,4]::(null|[int64])}
@@ -681,7 +681,7 @@ super -S -c 'unnest this | shapes' prs.json
 
 >[!NOTE]
 > Here we are using `-S`, which is like `-s`, but instead of formatting each
-> SUP value on its own line, it pretty-prints with vertical
+> TSUP value on its own line, it pretty-prints with vertical
 > formatting like `jq` does for JSON.
 
 Ugh, that output is still pretty big.  It's not 10k lines but it's still

@@ -22,7 +22,7 @@ and this is a value of that type:
 'hearts'::enum(hearts,diamonds,spades,clubs)
 ```
 
-Enum serialization in the SUP format is fairly verbose as the set of
+Enum serialization in the TSUP format is fairly verbose as the set of
 symbols must be enumerated anywhere the type appears.  In the binary formats
 of BSUP and CSUP, the enum symbols are encoded efficiently just once.
 

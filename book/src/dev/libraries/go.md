@@ -25,9 +25,9 @@ go get github.com/brimdata/super@main
 
 ## Examples
 
-### SUP Reader
+### TSUP Reader
 
-Read SUP from stdin, dereference field `s`, and print results:
+Read TSUP from stdin, dereference field `s`, and print results:
 ```mdtest-go-example
 package main
 

@@ -52,7 +52,7 @@ client = superdb.Client()
 
 client.create_pool('TestPool')
 
-# Load some SUP records from a string.  A file-like object also works.
+# Load some TSUP records from a string.  A file-like object also works.
 # Most data formats are detected automatically.
 client.load('TestPool', '{s:"hello"} {s:"world"}')
 

@@ -3,15 +3,15 @@
 Sets conform to the
 [set type](../../formats/model.md#23-set)
 in the super-structured data model and follow the
-[syntax](../../formats/sup.md#253-set-type)
-of sets in the [SUP format](../../formats/sup.md), i.e.,
+[syntax](../../formats/tsup.md#253-set-type)
+of sets in the [TSUP format](../../formats/tsup.md), i.e.,
 a set type has the form
 ```
 set[ <type> ]
 ```
 where `<type>` is any type.
 
-Any SUP text defining a [set value](../../formats/sup.md#243-set-value)
+Any TSUP text defining a [set value](../../formats/tsup.md#243-set-value)
 is a valid set literal in the SuperSQL language.
 
 For example, this is a simple set value
@@ -28,9 +28,8 @@ an empty set type defaults to a set of type none, i.e., `set[none]`,
 unless otherwise cast, e.g., `set[]::set[int64]` represents an empty set
 of integers.
 
-Sets can be created by reading external data (SUP files,
-database data, Parquet values, JSON objects, etc) or by
-constructing instances using
+Sets can be created by reading external data (e..g, TSUP files, database data, etc)
+or by constructing instances using
 [_set expressions_](#set-expressions) or other
 SuperSQL functions that produce sets.
 

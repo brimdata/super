@@ -29,8 +29,8 @@ an empty map type defaults to a map with null types, i.e., `|{null:null}|`,
 unless otherwise cast, e.g., `|{}|::|{string:int64}|` represents an empty
 map of string keys and integer values.
 
-Maps can be created by reading external data (SUP files,
-database data, Parquet values, etc) or by
+Maps can be created by reading external data (e.g., TSUP files,
+database data, Parquet files, etc) or by
 constructing instances using [_map expressions_](#map-expressions) or other
 SuperSQL functions that produce maps.
 

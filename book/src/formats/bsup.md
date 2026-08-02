@@ -444,7 +444,7 @@ this specification to decode all of the data as described herein even if such
 frames provide additional semantics on top of the base BSUP format.
 
 The body of a control frame is a control message and may be JSON,
-SUP, BSUP, arbitrary binary, or UTF-8 text.  The serialization of the control
+TSUP, BSUP, arbitrary binary, or UTF-8 text.  The serialization of the control
 frame body is independent of the stream containing the control frame.
 
 Any control message not known by a BSUP data receiver shall be ignored.
@@ -465,7 +465,7 @@ A control frame has the following form:
 ```
 where
 * `<encoding>` is a single byte indicating whether the body is encoded
-as BSUP (0), JSON (1), SUP (2), an arbitrary UTF-8 string (3), or arbitrary binary data (4),
+as BSUP (0), JSON (1), TSUP (2), an arbitrary UTF-8 string (3), or arbitrary binary data (4),
 * `<len>` is a `uvarint` encoding the length in bytes of the body
 (exclusive of the length 1 encoding byte), and
 * `<body>` is a control message whose semantics are outside the scope of

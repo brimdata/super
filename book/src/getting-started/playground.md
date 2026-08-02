@@ -60,7 +60,7 @@ Here are a few examples to get going.
 ```mdtest-command
 super -s -c "SELECT 'hello, world' as s"
 ```
-produces this SUP output
+produces this TSUP output
 ```mdtest-output
 {s:"hello, world"}
 ```

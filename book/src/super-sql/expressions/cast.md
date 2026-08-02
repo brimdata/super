@@ -53,7 +53,7 @@ in particular may represent typical timestamp formats.  When cast to the
 the result is the byte encoding of the UTF-8 string.  A string may also be cast to
 a [union](#union-types) or [named](#named-types) type.
 To parse a literal
-string that is in the SUP or JSON format without having to specify the target type, use
+string that is in the TSUP or JSON format without having to specify the target type, use
 the [parse_tsup](../functions/parsing/parse_tsup.md) function.
 * A [bool](../types/bool.md) may be cast to
   * a number type where `false` is zero and `true` is `1`,

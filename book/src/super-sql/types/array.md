@@ -11,7 +11,7 @@ an array type has the form
 ```
 where `<type>` is any type.
 
-Any SUP text defining an [array value](../../formats/tsup.md#242-array-value)
+Any TSUP text defining an [array value](../../formats/tsup.md#242-array-value)
 is a valid array literal in the SuperSQL language.
 
 For example, this is a simple array value
@@ -28,8 +28,8 @@ an empty array type defaults to an array of type null, i.e., `[null]`,
 unless otherwise cast, e.g., `[]::[int64]` represents an empty array
 of integers.
 
-Arrays can be created by reading external data (SUP files,
-database data, Parquet values, JSON objects, etc) or by
+Arrays can be created by reading external data (e.g., TSUP files,
+database data, Parquet files, JSON files, etc) or by
 constructing instances using
 [_array expressions_](#array-expressions) or other
 SuperSQL functions that produce arrays.

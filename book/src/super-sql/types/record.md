@@ -3,8 +3,8 @@
 Records conform to the
 [record type](../../formats/model.md#21-record) in the
 super-structured data model and follow the
-[syntax](../../formats/sup.md#251-record-type)
-of records in the [SUP format](../../formats/sup.md), i.e.,
+[syntax](../../formats/tsup.md#251-record-type)
+of records in the [TSUP format](../../formats/tsup.md), i.e.,
 a record type has the form
 ```
 { <name> : <type>, <name> : <type>, ... }
@@ -12,7 +12,7 @@ a record type has the form
 where `<name>` is an identifier or string
 and `<type>` is any type.
 
-Any SUP text defining a [record value](../../formats/sup.md#241-record-value)
+Any TSUP text defining a [record value](../../formats/tsup.md#241-record-value)
 is a valid record literal in the SuperSQL language.
 
 For example, this is a simple record value
@@ -25,8 +25,8 @@ whose type is
 ```
 An empty record value and an empty record type are both represented as `{}`.
 
-Records can be created by reading external data (SUP files,
-database data, Parquet values, JSON objects, etc) or by
+Records can be created by reading external data (e.g., TSUP files,
+database data, Parquet files, JSON objects, etc) or by
 constructing instances using
 [record expressions](#record-expressions) or other
 SuperSQL functions that produce records.

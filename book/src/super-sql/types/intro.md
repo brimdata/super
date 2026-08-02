@@ -15,11 +15,11 @@ The syntax of individual literal values as well as types follows
 the [TSUP format](../../formats/tsup.md) in that any legal
 TSUP value is also a valid SuperSQL literal.
 
-Likewise, any SUP type is also valid type syntax, which may be used
+Likewise, any TSUP type is also valid type syntax, which may be used
 in [cast](../expressions/cast.md) expressions or
 [type declarations](../declarations/types.md).
 
-Note that the type decorators in SUP utilize a double colon (`::`)
+Note that the type decorators in TSUP utilize a double colon (`::`)
 syntax that is compatible with [cast](../expressions/cast.md) expressions.
 
 Arguments to [functions](../functions/intro.md)

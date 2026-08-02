@@ -6,8 +6,8 @@ The union type provides the foundation for
 Unions conform with the definition of the
 [union type](../../formats/model.md#25-union) in the
 super-structured data model and follow the
-[syntax](../../formats/sup.md#255-union-type)
-of unions in the [SUP format](../../formats/sup.md), i.e.,
+[syntax](../../formats/tsup.md#255-union-type)
+of unions in the [TSUP format](../../formats/tsup.md), i.e.,
 a union type has the form
 ```
 <type> | <type>, ...
@@ -26,8 +26,8 @@ To precisely such control coercion, an explicit first cast may be used as in
 ```
 1::int8::(int8|int64|string)
 ```
-Union values can be created by reading external data (SUP files,
-database data, JSON objects, etc),
+Union values can be created by reading external data (e.g., TSUP files,
+database data, JSON files, etc),
 by constructing instances with a [type cast](../expressions/cast.md)
 as above, or with other SuperSQL functions or expressions that produce unions
 like the [`fuse`](../operators/fuse.md) operator.
