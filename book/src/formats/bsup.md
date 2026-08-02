@@ -211,7 +211,7 @@ of the length of the string followed by that many bytes of UTF-8 encoded
 string data.
 
 >[!NOTE]
-> As defined by [Super (SUP)](sup.md), a field name can be any valid UTF-8 string much like JSON
+> As defined by [Super Text (TSUP)](tsup.md), a field name can be any valid UTF-8 string much like JSON
 > objects can be indexed with arbitrary string keys (via index operator)
 > even if the field names available to the dot operator are restricted
 > by language syntax for identifiers.

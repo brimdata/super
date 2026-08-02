@@ -53,14 +53,14 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
 | VALUES {...left,repos:right.repos}
 ```
 
-## Super (SUP) Format
+## Super Formats
 
 Super-structured data is strongly typed and "polymorphic": any value can take on any type
 and sequences of data need not all conform to a predefined schema.  To this end,
 SuperDB extends the JSON format to support super-structured data in a format called
-[Super (SUP)](https://superdb.org/formats/sup.html) where all JSON values
-are also SUP.  Similarly,
-the [Super Binary (BSUP)](https://superdb.org/formats/sup.html) format is an efficient
+[Super Text (TSUP)](https://superdb.org/formats/tsup.html) where all JSON values
+are also TSUP.  Similarly,
+the [Super Binary (BSUP)](https://superdb.org/formats/bsup.html) format is an efficient
 binary representation of SUP (a bit like Avro) and the
 [Super Columnar (CSUP)](https://superdb.org/formats/csup.html) format is a columnar
 representation of SUP (a bit like Parquet).

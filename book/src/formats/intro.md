@@ -4,7 +4,7 @@ This section contains the [data model definition](model.md) for super-structured
 along with a set of concrete formats that all implement this same data model,
 providing a unified approach to row, columnar, and human-readable formats:
 
-* [Super (SUP)](sup.md) is a human-readable format for super-structured data.  All JSON
+* [Super Text (TSUP)](tsup.md) is a human-readable format for super-structured data.  All JSON
 documents are SUP values as the SUP format is a strict superset of the JSON syntax.
 * [Super Binary (BSUP)](bsup.md) is a row-based, binary representation somewhat like
 [Avro](https://avro.apache.org/) but leveraging the super data model to represent

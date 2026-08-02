@@ -266,7 +266,7 @@ The bulk of this shaper consists of detailed per-field data type
 definitions for each record in the default set of JSON logs output by Zeek.
 These type definitions reference the types we defined above, such as `port`
 and `conn_id`. The syntax for defining primitive and complex types follows the
-relevant sections of the [Super (SUP) format](../../../formats/sup.md#2-the-sup-format)
+relevant sections of the [Super Text (TSUP) format](../../../formats/tsup.md#2-the-tsup-format)
 specification.
 
 ```

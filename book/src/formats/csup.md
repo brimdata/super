@@ -374,7 +374,7 @@ using the same tag within the union value.
 
 ### Hello, world
 
-Start with this [Super (SUP)](sup.md) file `hello.tsup`:
+Start with this [Super Text (TSUP)](tsup.md) file `hello.tsup`:
 ```
 {a:"hello",b:"world"}
 {a:"goodnight",b:"gracie"}

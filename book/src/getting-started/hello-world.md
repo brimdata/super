@@ -23,7 +23,7 @@ interpreted as file paths or URLs (or `-` for standard input).
 In this case, the input is read from the implied operator, no further query
 is applied, and the results are emitted to standard output.
 This results in the string value `"hello, world"`,
-serialized in the default [SUP format](../formats/sup.md),
+serialized in the default [TSUP format](../formats/tsup.md),
 which is simply the string literal itself.
 
 ## SQL Version

@@ -176,7 +176,7 @@ by inspecting the beginning of the uploaded stream. This works for most formats:
 
 | Format | MIME type |
 |---|---|
-| SUP | `application/x-sup` |
+| TSUP | `application/x-tsup` |
 | BSUP | `application/x-bsup` |
 | NDJSON | `application/x-ndjson` |
 | JSON | `application/json` |

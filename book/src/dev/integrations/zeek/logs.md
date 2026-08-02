@@ -10,7 +10,7 @@ is Zeek's default output format for logs. This format can be read automatically
 with [super](../../../command/super.md).
 s
 The following example shows a TSV [conn.log](https://docs.zeek.org/en/current/logs/conn.html) being read via `super` and
-output as [Super (SUP)](../../../formats/sup.md).
+output as [Super Text (TSUP)](../../../formats/tsup.md).
 
 ## conn.log
 

@@ -12,7 +12,7 @@ easy to import into other Go projects straight from the GitHub repo.
 Some of the key packages are:
 
 * [super](https://pkg.go.dev/github.com/brimdata/super) - Super values and types
-* [sup](https://pkg.go.dev/github.com/brimdata/super/sup) - SUP support
+* [tsup](https://pkg.go.dev/github.com/brimdata/super/tsup) - TSUP support
 * [sio](https://pkg.go.dev/github.com/brimdata/super/sio) - I/O interfaces for Super data following the Reader/Writer patterns
 * [sio/bsupio](https://pkg.go.dev/github.com/brimdata/super/sio/bsupio) - BSUP reader/writer
 * [sio/supio](https://pkg.go.dev/github.com/brimdata/super/sio/supio) - SUP reader/writer

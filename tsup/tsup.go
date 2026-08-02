@@ -1,7 +1,7 @@
-// Package sup provides fundamental interfaces to the SUP data format comprising
+// Package tsup provides fundamental interfaces to the SUP data format comprising
 // Reader, Writer, Parser, and so forth.  The SUP format includes a type system
 // that requries a semantic analysis to parse an input to its structured data
-// representation.  To do so, Parser translats a SUP input to an AST, Analyzer
+// representation.  To do so, Parser translates a TSUP input to an AST, Analyzer
 // performs semantic type analysis to turn the AST into a Value, and Builder
 // constructs a super.Value from a Value.
 package tsup

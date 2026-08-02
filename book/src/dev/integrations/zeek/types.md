@@ -2,7 +2,7 @@
 
 As the [super-structured data model](../../../formats/model.md) was in many ways inspired by the
 [Zeek TSV log format](https://docs.zeek.org/en/current/log-formats.html#zeek-log-formats),
-SuperDB's rich storage formats ([SUP](../../../formats/sup.md),
+SuperDB's rich storage formats ([TSUP](../../../formats/tsup.md),
 [CSUP](../../../formats/csup.md), etc.) maintain comprehensive interoperability
 with Zeek.
 
@@ -150,7 +150,7 @@ out again in the Zeek TSV log format. Other implementations of the Zed storage
 formats (should they exist) may handle these differently.
 
 Multiple Zeek types discussed below are represented via a
-[type definition](../../../formats/sup.md#22-type-decorators) to one of Zed's
+[type definition](../../../formats/tsup.md#22-type-decorators) to one of Zed's
 [primitive types](../../../formats/model.md#1-primitive-types). The Zed type
 definitions maintain the history of the field's original Zeek type name
 such that `super` may restore it if the field is later output in
@@ -165,7 +165,7 @@ As they do not affect accuracy, "trailing zero" decimal digits on Zeek `double`
 values will _not_ be preserved when they are formatted into a string, such as
 via the `-f tsup|zeek|table` output options in `super` (e.g., `123.4560` becomes
 `123.456`).
-s
+
 ### `enum`
 
 As they're encountered in common programming languages, enum variables

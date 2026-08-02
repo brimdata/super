@@ -189,7 +189,7 @@
 !!    - [For jq Users](tutorials/jq.md)
 - [Formats](formats/intro.md)
     - [Data Model](formats/model.md)
-    - [Super (SUP)](formats/sup.md)
+    - [Super Text (TSUP)](formats/tsup.md)
     - [Super Binary (BSUP)](formats/bsup.md)
     - [Super Column (CSUP)](formats/csup.md)
 !!- [Database](database/intro.md)

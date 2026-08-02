@@ -80,7 +80,7 @@ Likewise, when extracting and
 serializing data from a query, there is never any loss of information as the
 [super-structured formats](formats/intro.md)
 capture all aspects of the strongly-typed data whether in
-[human-readable form](formats/sup.md),
+[human-readable form](formats/tsup.md),
 [binary row-like form](formats/bsup.md),
 or
 [columnar-like form](formats/csup.md).

@@ -28,7 +28,7 @@ and you should get this alternative output in the RESULT panel above:
 {out:"goodbye"}
 ```
 The input in the playground examples are generally formatted as
-[SUP](../formats/sup.md) but the `super` playground command auto-detects
+[TSUP](../formats/tsup.md) but the `super` playground command auto-detects
 the format, so you can experiment with other text-based formats like CSV or JSON.
 For example, if you change the input above to
 ```
@@ -150,7 +150,7 @@ a:=a::int64
 ---
 
 **_Make a schema-rigid Parquet file using blend, then output the Parquet file
-as [SUP](../formats/sup.md)_**
+as [TSUP](../formats/tsup.md)_**
 ```mdtest-command-skip
 echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c blend -
 super -s tmp.parquet

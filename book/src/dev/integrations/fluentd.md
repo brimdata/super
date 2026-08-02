@@ -227,7 +227,7 @@ First we saved the contents of the shaper from
 <match shaped>
   @type http
   endpoint http://127.0.0.1:9867/pool/zeek-shaped/branch/main
-  content_type application/x-sup
+  content_type application/x-tsup
   <format>
     @type single_value
   </format>
@@ -383,7 +383,7 @@ options. Varying these may impact how quickly events appear in the pool and
 the size of the commit objects to which they're initially stored.
 
 2. **BSUP format** - In the [shaping example](#shaping-example) shown above, we
-used the [Super (SUP) format](../../formats/sup.md) format for the shaped data output from
+used the [Super Text (TSUP) format](../../formats/tsup.md) format for the shaped data output from
 [`super`](../../command/super.md). This text format is typically used in contexts
 where human readability is required. Due to its compact nature,
 [Super Binary (BSUP)](../../formats/bsup.md) format would have been preferred, but in our research
