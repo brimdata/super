@@ -130,7 +130,7 @@
             - [base64](super-sql/functions/parsing/base64.md)
             - [grok](super-sql/functions/parsing/grok.md)
             - [hex](super-sql/functions/parsing/hex.md)
-            - [parse_sup](super-sql/functions/parsing/parse_sup.md)
+            - [parse_tsup](super-sql/functions/parsing/parse_tsup.md)
             - [parse_uri](super-sql/functions/parsing/parse_uri.md)
             - [regexp](super-sql/functions/parsing/regexp.md)
             - [regexp_replace](super-sql/functions/parsing/regexp_replace.md)

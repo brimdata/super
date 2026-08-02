@@ -1,4 +1,4 @@
-spq: parse_sup(this)
+spq: parse_tsup(this)
 
 input: |
   "{a:1}"
@@ -9,5 +9,5 @@ input: |
 output: |
   {a:1}
   null
-  error({message:"parse_sup: string arg required",on:{}})
-  error({message:"parse_sup: line 1: syntax error",on:"!"})
+  error({message:"parse_tsup: string arg required",on:{}})
+  error({message:"parse_tsup: line 1: syntax error",on:"!"})

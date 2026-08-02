@@ -54,7 +54,7 @@ the result is the byte encoding of the UTF-8 string.  A string may also be cast 
 a [union](#union-types) or [named](#named-types) type.
 To parse a literal
 string that is in the SUP or JSON format without having to specify the target type, use
-the [parse_sup](../functions/parsing/parse_sup.md) function.
+the [parse_tsup](../functions/parsing/parse_tsup.md) function.
 * A [bool](../types/bool.md) may be cast to
   * a number type where `false` is zero and `true` is `1`,
   * type [string](../types/string.md), or
@@ -91,7 +91,7 @@ The casting rules for complex values are as follows:
     in both the input and target are recursively cast to the target's type of
     that field,
   * a [string](../types/string.md) type where the string is the input value
-    serialized in the [SUP](../../formats/sup.md) format, or
+    serialized in the [TSUP](../../formats/tsup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
 * An [array](../types/array.md) may be cast to
   * an [array](../types/array.md) type where the elements of the input value are

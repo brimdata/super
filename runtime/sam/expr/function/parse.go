@@ -84,29 +84,29 @@ func (p *ParseURI) Call(args []super.Value) super.Value {
 	return out
 }
 
-type ParseSUP struct {
+type ParseTSUP struct {
 	sctx *super.Context
 	sr   *strings.Reader
 	zr   *supio.Reader
 }
 
-func newParseSUP(sctx *super.Context) *ParseSUP {
+func newParseTSUP(sctx *super.Context) *ParseTSUP {
 	var sr strings.Reader
-	return &ParseSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
+	return &ParseTSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
 }
 
-func (p *ParseSUP) Call(args []super.Value) super.Value {
+func (p *ParseTSUP) Call(args []super.Value) super.Value {
 	in := args[0].Under()
 	if in.IsNull() {
 		return super.Null
 	}
 	if !in.IsString() {
-		return p.sctx.WrapError("parse_sup: string arg required", args[0])
+		return p.sctx.WrapError("parse_tsup: string arg required", args[0])
 	}
 	p.sr.Reset(super.DecodeString(in.Bytes()))
 	val, err := p.zr.Read()
 	if err != nil {
-		return p.sctx.WrapError("parse_sup: "+err.Error(), args[0])
+		return p.sctx.WrapError("parse_tsup: "+err.Error(), args[0])
 	}
 	if val == nil {
 		return super.Null

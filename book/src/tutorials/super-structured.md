@@ -15,7 +15,7 @@ typed values.
 > represent a superset of both the dataframe/table model of relational systems and the
 > semi-structured model that is used ubiquitously in development as JSON and by NoSQL
 > data stores.  The Super (SUP) format spec has
-> [a few examples](../formats/sup.md#3-examples).
+> [a few examples](../formats/tsup.md#3-examples).
 
 ## Structured-ness
 
@@ -274,7 +274,7 @@ A set of companion documents define a family of tightly integrated
 serialization formats that all adhere to the same super data model,
 providing a unified approach to row, columnar, and human-readable formats:
 
-* [Super (SUP)](../formats/sup.md) is a human-readable format for super-structured data.  All JSON
+* [Super Text (TSUP)](../formats/tsup.md) is a human-readable format for super-structured data.  All JSON
 documents are SUP values as the SUP format is a strict superset of the JSON syntax.
 * [Super Binary (BSUP)](../formats/bsup.md) is a row-based, binary representation somewhat like
 Avro but leveraging the super data model to represent a sequence of arbitrarily-typed

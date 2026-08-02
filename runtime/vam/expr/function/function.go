@@ -125,8 +125,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "nullif":
 		argmin, argmax = 2, 2
 		f = newNullIf(sctx)
-	case "parse_sup":
-		f = newParseSUP(sctx)
+	case "parse_tsup":
+		f = newParseTSUP(sctx)
 	case "parse_uri":
 		f = newParseURI(sctx)
 	case "position":

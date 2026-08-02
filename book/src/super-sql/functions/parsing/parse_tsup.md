@@ -1,28 +1,28 @@
-# parse_sup
+# parse_tsup
 
-parse SUP or JSON text into a value
+parse TSUP or JSON text into a value
 
 ## Synopsis
 
 ```
-parse_sup(s: string) -> any
+parse_tsup: string) -> any
 ```
 
 ## Description
 
-The `parse_sup` function parses the `s` argument that must be in the form
-of [SUP](../../../formats/sup.md) or JSON into a value of any type.
+The `parse_tsup` function parses the `s` argument that must be in the form
+of [TSUP](../../../formats/tsup.md) or JSON into a value of any type.
 This is analogous to JavaScript's `JSON.parse()` function.
 
 ## Examples
 
 ---
 
-_Parse SUP text_
+_Parse TSUP text_
 
 ```mdtest-spq
 # spq
-foo := parse_sup(foo)
+foo := parse_tsup(foo)
 # input
 {foo:"{a:\"1\",b:2}"}
 # expected output
@@ -35,7 +35,7 @@ _Parse JSON text_
 
 ```mdtest-spq
 # spq
-foo := parse_sup(foo)
+foo := parse_tsup(foo)
 # input
 {"foo": "{\"a\": \"1\", \"b\": 2}"}
 # expected output

@@ -39,24 +39,24 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 	return db.Build(p.sctx)
 }
 
-type ParseSUP struct {
+type ParseTSUP struct {
 	sctx *super.Context
 	sr   *strings.Reader
 	zr   *supio.Reader
 }
 
-func newParseSUP(sctx *super.Context) *ParseSUP {
+func newParseTSUP(sctx *super.Context) *ParseTSUP {
 	var sr strings.Reader
-	return &ParseSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
+	return &ParseTSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
 }
 
-func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
+func (p *ParseTSUP) Call(args ...vector.Any) vector.Any {
 	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
 	vec := vector.Under(args[0])
 	if vec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(p.sctx, "parse_sup: string arg required", args[0])
+		return vector.NewWrappedError(p.sctx, "parse_tsup: string arg required", args[0])
 	}
 	var errs []uint32
 	errMsgs := vector.NewStringEmpty(0)
@@ -67,7 +67,7 @@ func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 		val, err := p.zr.Read()
 		if err != nil {
 			errs = append(errs, i)
-			errMsgs.Append("parse_sup: " + err.Error())
+			errMsgs.Append("parse_tsup: " + err.Error())
 			continue
 		}
 		if val == nil {
