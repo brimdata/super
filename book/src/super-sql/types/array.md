@@ -3,15 +3,15 @@
 Arrays conform to the
 [array type](../../formats/model.md#22-array)
 in the super-structured data model and follow the
-[syntax](../../formats/sup.md#252-array-type)
-of arrays in the [SUP format](../../formats/sup.md), i.e.,
+[syntax](../../formats/tsup.md#252-array-type)
+of arrays in the [TSUP format](../../formats/tsup.md), i.e.,
 an array type has the form
 ```
 [ <type> ]
 ```
 where `<type>` is any type.
 
-Any SUP text defining an [array value](../../formats/sup.md#242-array-value)
+Any SUP text defining an [array value](../../formats/tsup.md#242-array-value)
 is a valid array literal in the SuperSQL language.
 
 For example, this is a simple array value

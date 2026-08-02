@@ -12,8 +12,8 @@ and first-class
 [errors](error.md) and [types](type.md).
 
 The syntax of individual literal values as well as types follows
-the [SUP format](../../formats/sup.md) in that any legal
-SUP value is also a valid SuperSQL literal.
+the [TSUP format](../../formats/tsup.md) in that any legal
+TSUP value is also a valid SuperSQL literal.
 
 Likewise, any SUP type is also valid type syntax, which may be used
 in [cast](../expressions/cast.md) expressions or

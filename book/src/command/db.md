@@ -186,7 +186,7 @@ There are three types of meta-queries:
 sources vary based on level.
 
 For example, a list of pools with configuration data can be obtained
-in the SUP format as follows:
+in the TSUP format as follows:
 ```
 super db -S -c "from :pools"
 ```
@@ -473,7 +473,7 @@ Each load operation creates a single commit,
 which includes:
 * an author and message string,
 * a timestamp computed by the server, and
-* an optional metadata field of any type expressed as a Super (SUP) value.
+* an optional metadata field of any type expressed in the TSUP format.
 This data has the type signature:
 ```
 {

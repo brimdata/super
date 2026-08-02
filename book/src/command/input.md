@@ -83,7 +83,7 @@ then the command
 ```mdtest-command
 super -s sample.csv sample.json
 ```
-would produce this output in the default SUP format
+would produce this output in the default TSUP format
 ```mdtest-output
 {a:1.,b:"foo"}
 {a:2.,b:"bar"}

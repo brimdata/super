@@ -1,4 +1,4 @@
-package supio
+package tsupio
 
 import (
 	"io"

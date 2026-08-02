@@ -5,8 +5,8 @@ categories by name.
 It conforms to the definition of the
 [enum type](../../formats/model.md#26-enum)
 in the super-structured data model and follows the
-[syntax](../../formats/sup.md#256-enum-type)
-of enums in the [SUP format](../../formats/sup.md), i.e.,
+[syntax](../../formats/tsup.md#256-enum-type)
+of enums in the [TSUP format](../../formats/tsup.md), i.e.,
 an enum type has the form
 ```
 enum ( <name>, <name>, ... )

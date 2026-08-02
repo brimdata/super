@@ -25,7 +25,7 @@ to the debugging output.
 
 When running a query with the [super](../../command/super.md) command,
 the debugging output is printed to standard error.
-In this case, debugging output is displayed in the [SUP](../../formats/sup.md) format
+In this case, debugging output is displayed in the [TSUP](../../formats/tsup.md) format
 independent of the `-f` flag.
 
 When running a query in a database service, the debugging output is transmitted

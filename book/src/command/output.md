@@ -18,7 +18,7 @@ These defaults may be overridden with `-f`, `-s`, or `-S`.
 > While BSUP is currently default, a forthcoming release will change
 > CSUP to default after CSUP supports streaming.
 
-Since SUP is a common format choice for interactive use,
+Since TSUP is a common format choice for interactive use,
 the `-s` flag is shorthand for `-f tsup`.
 Also, `-S` is a shortcut for `-f tsup` with `-pretty 2` as
 [described below](#pretty-printing).
@@ -31,7 +31,7 @@ is a shortcut for `-f json` and `-J` is a shortcut for pretty-printing JSON.
 > causes an occasional surprise
 > (e.g., forgetting `-f` or `-s` in a scripted test that works fine on the
 > command line but fails in CI).  However, this avoids problematic performance where a
-> data pipeline deployed to production accidentally uses SUP instead of CSUP.
+> data pipeline deployed to production accidentally uses TSUP instead of CSUP.
 > Since `super` gracefully handles any input, this would be hard to detect.
 > Alternatively, making CSUP always be default would cause much annoyance when
 > binary data is written to the terminal.
@@ -45,7 +45,7 @@ super -f arrows -o out.arrows file1.json file2.parquet file3.csv
 
 ## Pretty Printing
 
-SUP and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
+TSUP and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
 the number of spaces to use for indentation.  As this is a common option,
 the `-S` option is a shortcut for `-f tsup -pretty 2` and `-J` is a shortcut
 for `-f json -pretty 2`.

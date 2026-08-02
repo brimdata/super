@@ -413,7 +413,7 @@ operations on the richly-typed records, the query on the command line
 should begin with a `|`, as this appends it to the pipeline at the bottom of
 the shaper from the included file.
 
-For example, to see a SUP representation of just the errors that may have
+For example, to see a TSUP representation of just the errors that may have
 come from attempting to shape all the logs in the current directory:
 
 ```

@@ -20,7 +20,7 @@ representation of any Zeek data that is read or imported. Therefore, knowing
 the equivalent types will prove useful when performing operations in the
 [SuperSQL](../../../super-sql/intro.md) such as
 [type casting](../../../super-sql/expressions/cast.md) or looking at the data
-when output as SUP.
+when output as TSUP.
 
 ## Equivalent Types
 
@@ -60,7 +60,7 @@ applicable to handling certain types.
 ## Example
 
 The following example shows a TSV log that includes each Zeek data type, how
-it's output as SUP by [`super`](../../../command/super.md), and then how it's written back out again as a Zeek
+it's output as TSUP by [`super`](../../../command/super.md), and then how it's written back out again as a Zeek
 log. You may find it helpful to refer to this example when reading the
 [type-specific details](#type-specific-details).
 
@@ -82,7 +82,7 @@ cat zeek_types.log
 T	123	456	123.4560	1592502151.123456	123.456	smile😁smile	\x09\x07\x04	80	127.0.0.1	10.0.0.0/8	tcp	things,in,a,set	order,is,important	Jeanne	122
 ```
 
-### Reading the TSV log, outputting as SUP, and saving a copy:
+### Reading the TSV log, outputting as TSUP, and saving a copy:
 
 ```mdtest-command
 super -S zeek_types.log | tee zeek_types.tsup
@@ -124,7 +124,7 @@ type zenum = string
 }
 ```
 
-### Reading the saved SUP output and outputting as Zeek TSV:
+### Reading the saved TSUP output and outputting as Zeek TSV:
 
 ```mdtest-command
 super -f zeek zeek_types.tsup
@@ -144,8 +144,8 @@ T	123	456	123.456	1592502151.123456	123.456000	smile😁smile	\x09\x07\x04	80	12
 ## Type-Specific Details
 
 As `super` acts as a reference implementation for SuperDB storage formats such as
-SUP and BSUP, it's helpful to understand how it reads the following Zeek data
-types into readable text equivalents in the SUP format, then writes them back
+TSUP and BSUP, it's helpful to understand how it reads the following Zeek data
+types into readable text equivalents in the TSUP format, then writes them back
 out again in the Zeek TSV log format. Other implementations of the Zed storage
 formats (should they exist) may handle these differently.
 

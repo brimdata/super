@@ -15,7 +15,7 @@ Some of the key packages are:
 * [tsup](https://pkg.go.dev/github.com/brimdata/super/tsup) - TSUP support
 * [sio](https://pkg.go.dev/github.com/brimdata/super/sio) - I/O interfaces for Super data following the Reader/Writer patterns
 * [sio/bsupio](https://pkg.go.dev/github.com/brimdata/super/sio/bsupio) - BSUP reader/writer
-* [sio/supio](https://pkg.go.dev/github.com/brimdata/super/sio/supio) - SUP reader/writer
+* [sio/tsupio](https://pkg.go.dev/github.com/brimdata/super/sio/supio) - TSUP reader/writer
 * [db/api](https://pkg.go.dev/github.com/brimdata/super/db/api) - interact with a SuperDB database
 
 To install in your local Go project, simply run:

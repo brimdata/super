@@ -3,8 +3,8 @@
 Maps conform to the
 [map type](../../formats/model.md#24-map)
 in the super-structured data model and follow the
-[syntax](../../formats/sup.md#254-map-type)
-of maps in the [SUP format](../../formats/sup.md), i.e.,
+[syntax](../../formats/tsup.md#254-map-type)
+of maps in the [TSUP format](../../formats/tsup.md), i.e.,
 a map type has the form
 ```
 map{ <key> : <value> }
@@ -12,7 +12,7 @@ map{ <key> : <value> }
 where `<key>` and `<value>` are any types and represent the keys
 and values types of the map.
 
-Any SUP text defining a [map value](../../formats/sup.md#244-map-value)
+Any TSUP text defining a [map value](../../formats/tup.md#244-map-value)
 is a valid map literal in the SuperSQL language.
 
 For example, this is a simple map value

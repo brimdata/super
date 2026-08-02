@@ -55,8 +55,8 @@ The output command-line options are available to commands that produce output:
 * `-j` shortcut for `-f json -pretty=0`, i.e., line-oriented JSON
 * `-o` write data to output file
 * `-pretty` tab size to pretty print JSON and Super JSON output
-* `-S` shortcut for `-f tsup -pretty`, i.e., multi-line SUP
-* `-s` shortcut for `-f tsup -pretty=0`, i.e., line-oriented SUP
+* `-S` shortcut for `-f tsup -pretty`, i.e., multi-line TSUP
+* `-s` shortcut for `-f tsup -pretty=0`, i.e., line-oriented TSUP
 * `-split split` output into one file per data type in this directory
 * `-splitsize` if >0 and -split is set, split into files at least this big rather than by data type
 * `-unbuffered` disable output buffering

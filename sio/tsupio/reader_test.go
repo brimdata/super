@@ -1,4 +1,4 @@
-package supio_test
+package tsupio_test
 
 import (
 	"io"

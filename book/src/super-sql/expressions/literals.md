@@ -4,7 +4,7 @@ Literal values represent specific instances of a [type](../types/intro.md) embed
 into an [expression](intro.md) like the integer `1`, the record `{x:1.5,y:-4.0}`,
 or the mixed-type array `[1,"foo"]`.
 
-Any valid [SUP](../../formats/sup.md) serialized text is a valid literal in SuperSQL.
+Any valid [TSUP](../../formats/tsup.md) serialized text is a valid literal in SuperSQL.
 In particular, complex-type expressions composed recursively of
 other literal values can be used to construct any complex literal value,
 e.g.,
