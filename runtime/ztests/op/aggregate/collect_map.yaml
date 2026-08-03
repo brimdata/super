@@ -37,11 +37,14 @@ input: |
   {k:127.0.0.1,v:127.0.0.1}
   {k:2.,v:2.}
   {k:["bar","baz"],v:["bar","baz"]}
+  // Fusion
+  {k:fusion("k"::(int64|string),<string>),v:fusion("v"::(null|string),<string>)}
 
 output: |
   type my_string = string
   map{
     1: 1,
+    "k": "v",
     "foo"::my_string: "bar",
     "zoo"::my_string: "zar"::my_string,
     127.0.0.1: 127.0.0.1,

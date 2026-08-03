@@ -62,7 +62,7 @@ func NewPattern(sctx *super.Context, op string, distinct, hasarg bool) (expr.Agg
 		}
 	case "collect_map":
 		pattern = func() expr.AggFunc {
-			return newCollectMap()
+			return newCollectMap(sctx)
 		}
 	case "and":
 		pattern = func() expr.AggFunc {

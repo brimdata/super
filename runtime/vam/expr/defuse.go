@@ -125,8 +125,8 @@ func (d *Defuse) defuseSet(in vector.Any) vector.Any {
 
 func (d *Defuse) defuseMap(in vector.Any) vector.Any {
 	vmap := vector.PushView(in).(*vector.Map)
-	keys := d.eval(vmap.Values)
-	vals := d.eval(vmap.Values)
+	keys := flattenUnions(d.eval(vmap.Keys))
+	vals := flattenUnions(d.eval(vmap.Values))
 	if !vector.IsDynamic(keys) && !vector.IsDynamic(vals) {
 		typ := d.sctx.LookupTypeMap(keys.Type(), vals.Type())
 		return vector.NewMap(typ, vmap.Offsets, keys, vals)
@@ -157,6 +157,13 @@ func (d *Defuse) defuseMap(in vector.Any) vector.Any {
 		return vecs[0]
 	}
 	return vector.NewDynamic(tags, vecs)
+}
+
+func flattenUnions(vec vector.Any) vector.Any {
+	if d, ok := vec.(*vector.Dynamic); ok {
+		return vector.FlattenUnions(d)
+	}
+	return vec
 }
 
 func mergeSameTypes(vec vector.Any) vector.Any {

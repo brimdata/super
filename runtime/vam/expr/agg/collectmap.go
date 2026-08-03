@@ -3,6 +3,7 @@ package agg
 import (
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
@@ -10,15 +11,23 @@ import (
 
 type collectMap struct {
 	samCollectMap *samagg.CollectMap
+	defuse        *expr.Defuse
 }
 
-func newCollectMap() *collectMap {
-	return &collectMap{samagg.NewCollectMap()}
+func newCollectMap(sctx *super.Context) *collectMap {
+	return &collectMap{samagg.NewCollectMap(), expr.NewDefuse(sctx)}
 }
+
+func (*collectMap) NoRip() bool { return true }
 
 func (c *collectMap) Consume(vec vector.Any) {
+	vector.Apply(vector.ApplyRipUnions, c.consume, c.defuse.Eval(vec))
+}
+
+func (c *collectMap) consume(vecs ...vector.Any) vector.Any {
+	vec := vecs[0]
 	if k := vec.Kind(); k == vector.KindNull || k == vector.KindError || k == vector.KindNone {
-		return
+		return vec
 	}
 	typ := vec.Type()
 	var b scode.Builder
@@ -27,6 +36,7 @@ func (c *collectMap) Consume(vec vector.Any) {
 		vec.Serialize(&b, i)
 		c.samCollectMap.Consume(super.NewValue(typ, b.Bytes().Body()))
 	}
+	return vec
 }
 
 func (c *collectMap) Result(sctx *super.Context) vector.Any {
