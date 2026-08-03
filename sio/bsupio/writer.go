@@ -36,7 +36,7 @@ type WriterOpts struct {
 // NewWriter returns a writer to w with reasonable default options.
 // Specifically, it enables compression and sets the frame threshold to
 // DefaultFrameThresh.
-func NewWriter(w io.WriteCloser) *Writer {
+func xNewWriter(w io.WriteCloser) *Writer {
 	return NewWriterWithOpts(w, WriterOpts{
 		Compress:    true,
 		FrameThresh: DefaultFrameThresh,
