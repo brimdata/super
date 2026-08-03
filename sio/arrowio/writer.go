@@ -302,13 +302,9 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 func (w *Writer) newArrowField(name string, typ super.Type) (arrow.Field, error) {
 	opt := super.IsOptionType(typ)
 	var nullable bool
-	if u, ok := nullableUnion(typ); ok {
+	if u, which := nullableUnion(typ); which >= 0 {
 		nullable = true
-		if u.Types[0] != super.TypeNull {
-			typ = u.Types[0]
-		} else {
-			typ = u.Types[1]
-		}
+		typ = u.Types[which]
 	} else {
 		// pqarrow requires that an arrow.NULL field be nullable.
 		nullable = typ == super.TypeNull || typ == super.TypeNone || opt
@@ -326,9 +322,9 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		b.AppendNull()
 		return
 	}
-	if u, ok := nullableUnion(typ); ok {
+	if u, which := nullableUnion(typ); which >= 0 {
 		typ, bytes = u.Untag(bytes)
-		if typ == super.TypeNull {
+		if typ == super.TypeNull || typ == super.TypeNone {
 			b.AppendNull()
 			return
 		}
@@ -507,21 +503,25 @@ func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, by
 }
 
 // nullableUnion returns whether typ is a union representing a nullable Arrow
-// type.  More specifically, it returns whether typ is a union of two types, one
-// of which is null and the other of which is not a union.  (Arrow unions are
+// type.  More specifically, it returns whether typ is a union of two or three types, one
+// or two of which is null or none and the other of which is not a null or none.
 // not nullable.)
-func nullableUnion(typ super.Type) (*super.TypeUnion, bool) {
+func nullableUnion(typ super.Type) (*super.TypeUnion, int) {
 	u, ok := typ.(*super.TypeUnion)
-	if !ok || len(u.Types) != 2 || u.Types[0] != super.TypeNull && u.Types[1] != super.TypeNull {
-		return nil, false
+	if !ok {
+		return nil, -1
 	}
-	if _, ok := u.Types[0].(*super.TypeUnion); ok {
-		return nil, false
+	which := -1
+	for k := range u.Types {
+		if u.Types[k] == super.TypeNull || u.Types[k] == super.TypeNone {
+			continue
+		}
+		if which >= 0 {
+			return nil, -1
+		}
+		which = k
 	}
-	if _, ok := u.Types[1].(*super.TypeUnion); ok {
-		return nil, false
-	}
-	return u, true
+	return u, which
 }
 
 func isRecursive(typ super.Type, seen map[string]struct{}) bool {

@@ -1,0 +1,25 @@
+script: |
+  super -f parquet -o t.parquet a.sup
+  super -s -i parquet t.parquet
+  echo ===
+  super -f parquet -o t.parquet b.sup
+  super -s -i parquet t.parquet
+
+inputs:
+  - name: a.sup
+    data: |
+      {x?:1}
+      {x?:_::int64}
+  - name: b.sup
+    data: |
+      {x?:1::(int64|null)}
+      {x?:_::(int64|null)}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1::(int64|null)}
+      {x:null::(int64|null)}
+      ===
+      {x:1::(int64|null)}
+      {x:null::(int64|null)}
