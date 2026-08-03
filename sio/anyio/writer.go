@@ -6,9 +6,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sio/arrowio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/dbio"
 	"github.com/brimdata/super/sio/jsonio"
@@ -24,11 +24,12 @@ import (
 type WriterOpts struct {
 	Format    string
 	SUPFusion bool
-	BSUP      *bsupio.WriterOpts // Nil means use defaults via bsupio.NewWriter.
-	CSV       csvio.WriterOpts
-	DB        dbio.WriterOpts
-	JSON      jsonio.WriterOpts
-	SUP       supio.WriterOpts
+	//XXX rows: merge into CSUP
+	BSUP *rows.WriterOpts // Nil means use defaults via rows.NewWriter.
+	CSV  csvio.WriterOpts
+	DB   dbio.WriterOpts
+	JSON jsonio.WriterOpts
+	SUP  supio.WriterOpts
 }
 
 func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
@@ -37,9 +38,9 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
 		return newDefuser(arrowio.NewWriter(w)), nil
 	case "bsup":
 		if opts.BSUP == nil {
-			return bsupio.NewWriter(w), nil
+			return rows.NewWriter(w), nil
 		}
-		return bsupio.NewWriterWithOpts(w, *opts.BSUP), nil
+		return rows.NewWriterWithOpts(w, *opts.BSUP), nil
 	case "csup":
 		return csup.NewSerializer(w), nil
 	case "csv":
