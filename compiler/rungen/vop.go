@@ -429,7 +429,7 @@ func (b *Builder) compileVamAgg(agg *dag.AggExpr) (*vamexpr.Aggregator, error) {
 			return nil, err
 		}
 	}
-	pattern, err := vamagg.NewPattern(name, agg.Distinct, agg.Expr != nil)
+	pattern, err := vamagg.NewPattern(b.sctx(), name, agg.Distinct, agg.Expr != nil)
 	if err != nil {
 		return nil, err
 	}

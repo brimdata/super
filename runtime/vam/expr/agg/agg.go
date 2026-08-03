@@ -3,10 +3,11 @@ package agg
 import (
 	"fmt"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 )
 
-func NewPattern(op string, distinct, hasarg bool) (expr.AggPattern, error) {
+func NewPattern(sctx *super.Context, op string, distinct, hasarg bool) (expr.AggPattern, error) {
 	needarg := true
 	var pattern expr.AggPattern
 	switch op {
@@ -25,7 +26,7 @@ func NewPattern(op string, distinct, hasarg bool) (expr.AggPattern, error) {
 		}
 	case "array_agg":
 		pattern = func() expr.AggFunc {
-			return &arrayAgg{}
+			return &arrayAgg{*newCollect(sctx)}
 		}
 	case "blend":
 		pattern = func() expr.AggFunc {
@@ -57,7 +58,7 @@ func NewPattern(op string, distinct, hasarg bool) (expr.AggPattern, error) {
 		}
 	case "collect":
 		pattern = func() expr.AggFunc {
-			return &collect{}
+			return newCollect(sctx)
 		}
 	case "collect_map":
 		pattern = func() expr.AggFunc {

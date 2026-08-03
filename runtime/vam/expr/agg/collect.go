@@ -1,62 +1,37 @@
 package agg
 
 import (
-	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
 )
 
 type collect struct {
 	builder *vbuild.DynamicBuilder
+	defuse  *expr.Defuse
+}
+
+func newCollect(sctx *super.Context) *collect {
+	return &collect{defuse: expr.NewDefuse(sctx)}
 }
 
 func (c *collect) NoRip() bool { return true }
 
 func (c *collect) Consume(vec vector.Any) {
-	vector.Apply(vector.ApplyRipUnions, c.consume, vec)
+	vector.Apply(vector.ApplyRipUnions, c.consume, c.defuse.Eval(vec))
 }
 
 func (c *collect) consume(vecs ...vector.Any) vector.Any {
-	vec := filterNones(vecs[0])
-	if vec.Len() == 0 {
-		return vector.NewNone(vecs[0].Len())
+	vec := vecs[0]
+	if vec.Kind() == vector.KindNone || vec.Len() == 0 {
+		return vector.NewNull(vecs[0].Len())
 	}
 	if c.builder == nil {
 		c.builder = vbuild.NewDynamicBuilder()
 	}
 	c.builder.Write(vec)
 	return vector.NewNone(vecs[0].Len())
-}
-
-func filterNones(vec vector.Any) vector.Any {
-	switch mask := nonesMask(vec); {
-	case mask.IsEmpty():
-		return vec
-	case mask.GetCardinality() == uint64(vec.Len()):
-		return vector.NewNone(0)
-	default:
-		return vector.ReversePick(vec, mask.ToArray())
-	}
-}
-
-func nonesMask(vec vector.Any) *roaring.Bitmap {
-	vec = vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
-		return vecs[0]
-	}, vec)
-	bm := roaring.New()
-	if dynamic, ok := vec.(*vector.Dynamic); ok {
-		for i, vec := range dynamic.Values {
-			if vec.Len() > 0 && vec.Kind() == vector.KindNone {
-				bm.AddMany(dynamic.ReverseTagMap()[i])
-			}
-		}
-		return bm
-	}
-	if vec.Len() > 0 && vec.Kind() == vector.KindNone {
-		bm.AddRange(0, uint64(vec.Len()))
-	}
-	return bm
 }
 
 func (c *collect) Result(sctx *super.Context) vector.Any {

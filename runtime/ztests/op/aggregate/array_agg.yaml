@@ -12,11 +12,9 @@ input: |
   fusion(1::(int64|null),<int64>)
   fusion(null::(int64|null),<null>)
 
-output-flags: -fusion
-
 output: |
   type foo=int64
-  [{a:1},{a:2},null,{b:1.5},error("missing"),1::foo,fusion(1::(int64|null),<int64>),fusion(null::(int64|null),<null>)]
+  [{a:1},{a:2},null,null,{b:1.5},error("missing"),1::foo,1]
 
 ---
 

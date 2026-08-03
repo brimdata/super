@@ -191,11 +191,9 @@ input: |
   [fusion({x?:1,y?:_::int64},<{x:int64}>),fusion({x?:_::int64,y?:2},<{y:int64}>)]
   [1,fusion(2::(int64|null),<int64>)]
 
-output-flags: -fusion
-
 output: |
   {x:1}
-  fusion({x?:1,y?:_::int64},<{x:int64}>)
-  fusion({x?:_::int64,y?:2},<{y:int64}>)
+  {x:1}
+  {y:2}
   1
   2
