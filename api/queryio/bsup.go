@@ -15,11 +15,11 @@ type BSUPWriter struct {
 	marshaler *sup.MarshalBSUPContext
 }
 
-func NewBSUPWriter(w io.Writer) *BSUPWriter {
+func xNewBSUPWriter(w io.Writer) *BSUPWriter {
 	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 	return &BSUPWriter{
-		Writer:    bsupio.NewWriter(sio.NopCloser(w)),
+		//Writer:    bsupio.NewWriter(sio.NopCloser(w)),
 		marshaler: m,
 	}
 }
