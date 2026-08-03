@@ -1,0 +1,27 @@
+script: |
+  super -o a.bsup a.sup
+  super -o b.bsup b.sup
+  cat a.bsup b.bsup > test.bsup
+  super -s test.bsup
+  echo // ===
+  super dev bsup -s -type test.bsup
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:1}
+      {b:2}
+  - name: b.sup
+    data: |
+      {c:3}
+      {d:4}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1}
+      {b:2}
+      {c:3}
+      {d:4}
+      // ===
+      <{c?:int64,d?:int64,a?:int64,b?:int64}>

@@ -15,7 +15,6 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/emitter"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -41,10 +40,6 @@ func (f *Flags) Options() anyio.WriterOpts {
 }
 
 func (f *Flags) setFlags(fs *flag.FlagSet) {
-	f.BSUP = &bsupio.WriterOpts{}
-	fs.BoolVar(&f.BSUP.Compress, "bsup.compress", true, "compress Super Binary frames")
-	fs.IntVar(&f.BSUP.FrameThresh, "bsup.framethresh", bsupio.DefaultFrameThresh,
-		"minimum Super Binary frame size in uncompressed bytes")
 	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -S and db text output")
 	fs.BoolVar(&f.CSV.NoHeader, "noheader", false, "omit header for CSV and TSV output")
 	fs.IntVar(&f.pretty, "pretty", 2,
@@ -69,10 +64,10 @@ func (f *Flags) SetFlagsWithFormat(fs *flag.FlagSet, format string) {
 
 func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	if f.Format == "" {
-		f.Format = "csup"
+		f.Format = "bsup"
 	}
 	fUsage := fmt.Sprintf(
-		"format for output data [arrows,bsup,csup,csv,db,json,line,parquet,sup,table,tsv,zeek] (default %s)",
+		"format for output data [arrows,bsuprows,bsup,csv,db,json,line,parquet,sup,table,tsv,zeek] (default %s)",
 		f.Format)
 	fs.Func("f", fUsage, func(s string) error {
 		f.Format = s
@@ -128,7 +123,7 @@ func (f *Flags) Init() error {
 }
 
 func isBinary(fmt string) bool {
-	return fmt == "arrows" || fmt == "bsup" || fmt == "csup" || fmt == "parquet"
+	return fmt == "arrows" || fmt == "bsuprows" || fmt == "bsup" || fmt == "parquet"
 }
 
 func (f *Flags) FileName() string {

@@ -9,7 +9,7 @@ import (
 )
 
 type Deserializer struct {
-	reader      *bsupio.Reader
+	reader      *bsupio.RowReader
 	unmarshaler *sup.UnmarshalBSUPContext
 }
 
@@ -21,7 +21,7 @@ func NewDeserializerWithContext(sctx *super.Context, reader io.Reader, templates
 	u := sup.NewBSUPUnmarshaler()
 	u.Bind(templates...)
 	return &Deserializer{
-		reader:      bsupio.NewReader(sctx, reader),
+		reader:      bsupio.NewRowReader(sctx, reader),
 		unmarshaler: u,
 	}
 }

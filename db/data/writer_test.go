@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,10 +28,10 @@ func TestDataReaderWriterVector(t *testing.T) {
 	require.NoError(t, w.Write(sup.MustParseValue(sctx, "{a:3,b:6}")))
 	require.NoError(t, w.Close(ctx))
 	require.NoError(t, data.CreateVector(ctx, engine, tmp, object.ID))
-	// Read back the CSUP file and make sure it's the same.
+	// Read back the BSUP file and make sure it's the same.
 	get, err := engine.Get(ctx, object.VectorURI(tmp))
 	require.NoError(t, err)
-	p, err := csupio.NewReader(t.Context(), super.NewContext(), get, nil, 1)
+	p, err := bsupio.NewReader(t.Context(), super.NewContext(), get, nil, 1)
 	require.NoError(t, err)
 	defer p.Pull(true)
 	reader := sbuf.PullerReader(sbuf.NewMaterializer(p))

@@ -1,13 +1,13 @@
 package vcache
 
 import (
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type named struct {
-	meta   *csup.Named
+	meta   *bsup.Named
 	values shadow
 }
 
@@ -15,14 +15,14 @@ func (n *named) length() uint32 {
 	return n.values.length()
 }
 
-func newNamed(meta *csup.Named, values shadow) *named {
+func newNamed(meta *bsup.Named, values shadow) *named {
 	return &named{
 		meta:   meta,
 		values: values,
 	}
 }
 
-func (n *named) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (n *named) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	n.values.unmarshal(cctx, projection)
 }
 

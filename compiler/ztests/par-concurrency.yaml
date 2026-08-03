@@ -1,10 +1,10 @@
 script: |
   echo === -P 2
-  super compile -C -P 2 -dynamic 'fork ( from a.csup | sort b ) ( from c.csup | sort d )'
+  super compile -C -P 2 -dynamic 'fork ( from a.bsup | sort b ) ( from c.bsup | sort d )'
   echo === -P 5
-  super compile -C -P 5 -dynamic 'fork ( from a.csup | sort b ) ( from c.csup | sort d )'
+  super compile -C -P 5 -dynamic 'fork ( from a.bsup | sort b ) ( from c.bsup | sort d )'
   echo === -P 6
-  super compile -C -P 6 -dynamic 'fork ( from a.csup | sort b ) ( from c.csup | sort d )'
+  super compile -C -P 6 -dynamic 'fork ( from a.bsup | sort b ) ( from c.bsup | sort d )'
 
 outputs:
   - name: stdout
@@ -12,7 +12,7 @@ outputs:
       === -P 2
       fork
         (
-          file a.csup format csup unordered
+          file a.bsup format bsup unordered
           | scatter
             (
               sort b asc nulls last
@@ -24,7 +24,7 @@ outputs:
           | output main
         )
         (
-          file c.csup format csup unordered
+          file c.bsup format bsup unordered
           | scatter
             (
               sort d asc nulls last
@@ -38,7 +38,7 @@ outputs:
       === -P 5
       fork
         (
-          file a.csup format csup unordered
+          file a.bsup format bsup unordered
           | scatter
             (
               sort b asc nulls last
@@ -50,7 +50,7 @@ outputs:
           | output main
         )
         (
-          file c.csup format csup unordered
+          file c.bsup format bsup unordered
           | scatter
             (
               sort d asc nulls last
@@ -64,7 +64,7 @@ outputs:
       === -P 6
       fork
         (
-          file a.csup format csup unordered
+          file a.bsup format bsup unordered
           | scatter
             (
               sort b asc nulls last
@@ -79,7 +79,7 @@ outputs:
           | output main
         )
         (
-          file c.csup format csup unordered
+          file c.bsup format bsup unordered
           | scatter
             (
               sort d asc nulls last

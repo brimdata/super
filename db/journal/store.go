@@ -109,7 +109,7 @@ func (s *Store) load(ctx context.Context) error {
 		}
 		at = tail
 	}
-	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), head, at)
+	r, err := s.journal.OpenAsBSUPRows(ctx, super.NewContext(), head, at)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPC
 		return Nil, table, err
 	}
 	defer r.Close()
-	zr := bsupio.NewReader(super.NewContext(), r)
+	zr := bsupio.NewRowReader(super.NewContext(), r)
 	defer zr.Close()
 	val, err := zr.Read()
 	if val == nil || err != nil {
@@ -187,7 +187,7 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPC
 	return at, table, err
 }
 
-func (s *Store) readSnapshot(r *bsupio.Reader, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
+func (s *Store) readSnapshot(r *bsupio.RowReader, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
 	table := make(map[string]Entry)
 	for {
 		val, err := r.Read()
@@ -208,7 +208,7 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	if err != nil {
 		return err
 	}
-	zw := bsupio.NewWriter(w)
+	zw := bsupio.NewRowWriter(w)
 	defer zw.Close()
 	if err := zw.Write(super.NewUint64(uint64(at))); err != nil {
 		return err
@@ -216,7 +216,7 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	return s.writeTable(zw, table)
 }
 
-func (s *Store) writeTable(w *bsupio.Writer, table map[string]Entry) error {
+func (s *Store) writeTable(w *bsupio.RowWriter, table map[string]Entry) error {
 	marshaler := sup.NewBSUPMarshaler()
 	marshaler.Decorate(sup.StylePackage)
 	for _, entry := range table {
@@ -445,7 +445,7 @@ func (s *Store) putBase(ctx context.Context, newBase, tail, oldBase ID) error {
 	if err != nil {
 		return err
 	}
-	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), newBase, tail)
+	r, err := s.journal.OpenAsBSUPRows(ctx, super.NewContext(), newBase, tail)
 	if err != nil {
 		return err
 	}
@@ -468,7 +468,7 @@ func (s *Store) putBase(ctx context.Context, newBase, tail, oldBase ID) error {
 	if err != nil {
 		return err
 	}
-	zw := bsupio.NewWriter(w)
+	zw := bsupio.NewRowWriter(w)
 	defer zw.Close()
 	return s.writeTable(zw, table)
 }
@@ -482,7 +482,7 @@ func (s *Store) loadBase(ctx context.Context, base ID, unmarshaler *sup.Unmarsha
 		return make(map[string]Entry), err
 	}
 	defer r.Close()
-	zr := bsupio.NewReader(super.NewContext(), r)
+	zr := bsupio.NewRowReader(super.NewContext(), r)
 	defer zr.Close()
 	return s.readSnapshot(zr, unmarshaler)
 }

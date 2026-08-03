@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
@@ -14,12 +14,12 @@ import (
 
 type record struct {
 	mu     sync.Mutex
-	meta   *csup.Record
+	meta   *bsup.Record
 	len    uint32
 	fields []shadow
 }
 
-func newRecord(cctx *csup.Context, meta *csup.Record) *record {
+func newRecord(cctx *bsup.Context, meta *bsup.Record) *record {
 	fields := make([]shadow, len(meta.Fields))
 	len := meta.Len(cctx)
 	return &record{
@@ -33,7 +33,7 @@ func (r *record) length() uint32 {
 	return r.len
 }
 
-func (r *record) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (r *record) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if len(projection) == 0 {
@@ -84,8 +84,8 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 	return vector.NewRecord(loader.sctx.MustLookupTypeRecord(fields), valFields, r.length())
 }
 
-func indexOfField(name string, r *csup.Record) int {
-	return slices.IndexFunc(r.Fields, func(f csup.Field) bool {
+func indexOfField(name string, r *bsup.Record) int {
+	return slices.IndexFunc(r.Fields, func(f bsup.Field) bool {
 		return f.Name == name
 	})
 }

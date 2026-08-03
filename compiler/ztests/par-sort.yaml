@@ -1,10 +1,10 @@
 script: |
-  super compile -C -P 2 -dynamic 'from test.csup | sort a, b desc nulls last | values c'
+  super compile -C -P 2 -dynamic 'from test.bsup | sort a, b desc nulls last | values c'
 
 outputs:
   - name: stdout
     data: |
-      file test.csup format csup unordered fields a,b,c
+      file test.bsup format bsup unordered fields a,b,c
       | scatter
         (
           sort a asc nulls last, b desc nulls last

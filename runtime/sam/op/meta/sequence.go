@@ -197,7 +197,7 @@ func newObjectScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, o
 	if err != nil {
 		return nil, err
 	}
-	scanner, err := bsupio.NewReader(sctx, rc).NewScanner(ctx, pushdown)
+	scanner, err := bsupio.NewRowReader(sctx, rc).NewScanner(ctx, pushdown)
 	if err != nil {
 		rc.Close()
 		return nil, err

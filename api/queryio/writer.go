@@ -36,7 +36,7 @@ func NewWriter(sctx *super.Context, w io.WriteCloser, format string, flusher htt
 	}
 	var err error
 	switch format {
-	case "bsup":
+	case "bsuprows":
 		d.writer = NewBSUPWriter(w)
 	case "json":
 		// A JSON response is always an array.

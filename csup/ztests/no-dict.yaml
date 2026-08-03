@@ -1,7 +1,0 @@
-script: |
-  seq 100 | super -o out.csup -c "{x:this}" -
-  super dev csup out.csup | super -s -c "nameof(this)=='Dict'" -
-
-outputs:
-  - name: stdout
-    data: |

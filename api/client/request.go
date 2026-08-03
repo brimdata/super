@@ -100,7 +100,7 @@ func (r *Request) reader() (io.Reader, error) {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	zw := bsupio.NewWriter(sio.NopCloser(&buf))
+	zw := bsupio.NewRowWriter(sio.NopCloser(&buf))
 	if err := zw.Write(val); err != nil {
 		return nil, err
 	}

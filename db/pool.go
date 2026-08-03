@@ -117,8 +117,8 @@ func (p *Pool) OpenCommitLog(ctx context.Context, sctx *super.Context, commit ks
 	return p.commits.OpenCommitLog(ctx, sctx, commit, ksuid.Nil)
 }
 
-func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) (*bsupio.Reader, error) {
-	return p.commits.OpenAsBSUP(ctx, sctx, commit, ksuid.Nil)
+func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) (*bsupio.RowReader, error) {
+	return p.commits.OpenAsBSUPRows(ctx, sctx, commit, ksuid.Nil)
 }
 
 func (p *Pool) Storage() storage.Engine {

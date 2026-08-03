@@ -18,13 +18,13 @@ import (
 var spec = &charm.Spec{
 	Name:  "copy",
 	Usage: "copy [flags] path",
-	Short: "read a CSUP file and copy to the output through the vector cache",
+	Short: "read a BSUP file and copy to the output through the vector cache",
 	Long: `
-The copy command reads CSUP vectors from
-a CSUP storage objects (local files or s3 objects) and outputs
+The copy command reads BSUP vectors from
+a BSUP storage objects (local files or s3 objects) and outputs
 the reconstructed BSUP row data by exercising the vector cache.
 
-This command is most useful for testing the CSUP vector cache.
+This command is most useful for testing the BSUP vector cache.
 `,
 	New: newCommand,
 }
@@ -51,7 +51,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer cleanup()
 	if len(args) != 1 {
-		return errors.New("CSUP read: must be run with a single path argument")
+		return errors.New("must be run with a single path argument")
 	}
 	uri, err := storage.ParseURI(args[0])
 	if err != nil {

@@ -1,0 +1,16 @@
+script: |
+  super -o out.bsup -
+  super dev bsup out.bsup | super -s -c "nameof(this)=='Dict' | count()" -
+
+inputs:
+  - name: stdin
+    data: |
+      {a:"hello",b:1}
+      {a:"world",b:2}
+      {a:"hello",b:1}
+      {a:"world",b:2}
+
+outputs:
+  - name: stdout
+    data: |
+      2

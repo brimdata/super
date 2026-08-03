@@ -3,7 +3,7 @@ package vcache
 import (
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
@@ -11,12 +11,12 @@ import (
 
 type float struct {
 	mu   sync.Mutex
-	meta *csup.Float
+	meta *bsup.Float
 	len  uint32
 	vals []float64
 }
 
-func newFloat(cctx *csup.Context, meta *csup.Float) *float {
+func newFloat(cctx *bsup.Context, meta *bsup.Float) *float {
 	return &float{meta: meta, len: meta.Len(cctx)}
 }
 
@@ -24,7 +24,7 @@ func (f *float) length() uint32 {
 	return f.len
 }
 
-func (*float) unmarshal(*csup.Context, field.Projection) {}
+func (*float) unmarshal(*bsup.Context, field.Projection) {}
 
 func (f *float) project(loader *loader, projection field.Projection) vector.Any {
 	vec := vector.NewFloat(f.meta.Typ, f.load(loader))

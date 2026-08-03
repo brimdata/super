@@ -52,7 +52,7 @@ func (c *testClient) TestPoolList() []pools.Config {
 	require.NoError(c, err)
 	defer r.Body.Close()
 	var confs []pools.Config
-	zr := bsupio.NewReader(super.NewContext(), r.Body)
+	zr := bsupio.NewRowReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	for {
 		rec, err := zr.Read()
@@ -83,7 +83,7 @@ func (c *testClient) TestQuery(query string) string {
 	r, err := c.Connection.Query(c.Context(), srcfiles.Plain(query))
 	require.NoError(c, err)
 	defer r.Body.Close()
-	zr := bsupio.NewReader(super.NewContext(), r.Body)
+	zr := bsupio.NewRowReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	var buf bytes.Buffer
 	zw := supio.NewWriter(sio.NopCloser(&buf), supio.WriterOpts{})

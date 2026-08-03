@@ -15,7 +15,7 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 	var fields []Builder
 	for _, f := range typ.Fields {
 		// XXX when we re-integrate vector.Option, we could have an option builder
-		// here for the fields to compute RLEs, or we can leave it to CSUP to figure
+		// here for the fields to compute RLEs, or we can leave it to BSUP to figure
 		// out when to create thm.
 		fields = append(fields, New(f.Type))
 	}

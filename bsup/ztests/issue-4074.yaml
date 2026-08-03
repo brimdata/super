@@ -1,0 +1,13 @@
+script: |
+  super -o out.bsup -
+  super -s out.bsup
+
+inputs:
+  - name: stdin
+    data: &stdin |
+      {a:{aa:0}}
+      {a:{aa:0},b:[{bb:0}]}
+
+outputs:
+  - name: stdout
+    data: *stdin

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 
+	"github.com/brimdata/super/bsup/rows"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
@@ -11,7 +12,7 @@ import (
 )
 
 type BSUPWriter struct {
-	*bsupio.Writer
+	*bsupio.RowWriter
 	marshaler *sup.MarshalBSUPContext
 }
 
@@ -19,7 +20,7 @@ func NewBSUPWriter(w io.Writer) *BSUPWriter {
 	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 	return &BSUPWriter{
-		Writer:    bsupio.NewWriter(sio.NopCloser(w)),
+		RowWriter: bsupio.NewRowWriter(sio.NopCloser(w)),
 		marshaler: m,
 	}
 }
@@ -34,5 +35,5 @@ func (w *BSUPWriter) WriteControl(v any) error {
 	if err != nil {
 		return err
 	}
-	return w.Writer.WriteControl(buf.Bytes(), bsupio.ControlFormatSUP)
+	return w.Writer.WriteControl(buf.Bytes(), rows.ControlFormatSUP) //XXX rows
 }

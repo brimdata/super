@@ -1,0 +1,16 @@
+script: |
+  super -f bsuprows -i sup - | super -i bsuprows -s -
+
+inputs:
+  - name: stdin
+    data: |
+      1
+      "hello"
+      error("foo")
+
+outputs:
+  - name: stdout
+    data: |
+      1
+      "hello"
+      error("foo")

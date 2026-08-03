@@ -2,134 +2,155 @@ package bsupio
 
 import (
 	"context"
-	"encoding/binary"
-	"fmt"
+	"errors"
 	"io"
-	"runtime"
+	"math"
+	"sync/atomic"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/bsup"
+	"github.com/brimdata/super/bsup/rows"
+	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-)
-
-const (
-	ReadSize  = 512 * 1024
-	MaxSize   = 1024 * 1024 * 1024
-	TypeLimit = 10000
+	"github.com/brimdata/super/vector"
 )
 
 type Reader struct {
-	sctx    *super.Context
-	reader  io.Reader
-	opts    ReaderOpts
-	scanner sbuf.Scanner
-	wrap    sio.Reader
+	ctx  context.Context
+	sctx *super.Context
+
+	activeReaders *atomic.Int64
+	stream        *stream
+	pushdown      sbuf.Pushdown
+	metaFilters   []*metafilter
+	readerAt      io.ReaderAt
+	hasClosed     bool
+	vecs          [][]vector.Any
 }
 
-var _ sbuf.ScannerAble = (*Reader)(nil)
+var _ sio.Typer = (*Reader)(nil)
 
-type ReaderOpts struct {
-	Validate bool
-	Size     int
-	Max      int
-	Threads  int
-}
-
-type Control struct {
-	Format int
-	Bytes  []byte
-}
-
-func NewReader(sctx *super.Context, reader io.Reader) *Reader {
-	return NewReaderWithOpts(sctx, reader, ReaderOpts{})
-}
-
-func NewReaderWithOpts(sctx *super.Context, reader io.Reader, opts ReaderOpts) *Reader {
-	if opts.Size == 0 {
-		opts.Size = ReadSize
+func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*Reader, error) {
+	if concurrentReaders < 1 {
+		panic(concurrentReaders)
 	}
-	if opts.Max == 0 {
-		opts.Max = MaxSize
+	ra, ok := r.(io.ReaderAt)
+	if !ok {
+		return nil, errors.New("BSUP requires a seekable input")
 	}
-	opts.Size = min(opts.Size, opts.Max)
-	if opts.Threads == 0 {
-		opts.Threads = runtime.GOMAXPROCS(0)
+	var buf [1]byte
+	if _, err := ra.ReadAt(buf[:], 0); err != nil && !errors.Is(err, io.EOF) {
+		return nil, errors.New("BSUP requires a seekable input")
 	}
+	var metaFilters []*metafilter
+	if p != nil {
+		filter, _, err := p.MetaFilter()
+		if err != nil {
+			return nil, err
+		}
+		if filter != nil {
+			for range concurrentReaders {
+				filter, projection, err := p.MetaFilter()
+				if err != nil {
+					return nil, err
+				}
+				metaFilters = append(metaFilters, &metafilter{filter, projection})
+			}
+		}
+	}
+	activeReaders := new(atomic.Int64)
+	activeReaders.Store(int64(concurrentReaders))
 	return &Reader{
-		sctx:   sctx,
-		reader: reader,
-		opts:   opts,
-	}
+		ctx:           ctx,
+		sctx:          sctx,
+		activeReaders: activeReaders,
+		stream:        &stream{ctx: ctx, r: ra},
+		pushdown:      p,
+		metaFilters:   metaFilters,
+		readerAt:      ra,
+		vecs:          make([][]vector.Any, concurrentReaders),
+	}, nil
 }
 
-func (r *Reader) NewScanner(ctx context.Context, filter sbuf.Pushdown) (sbuf.Scanner, error) {
-	if r.opts.Threads == 1 {
-		return newScannerSync(ctx, r.sctx, r.reader, filter, r.opts)
-	}
-	return newScanner(ctx, r.sctx, r.reader, filter, r.opts)
+type metafilter struct {
+	filter     expr.Evaluator
+	projection field.Projection
 }
 
-// Close guarantees that the underlying io.Reader is not read after it returns.
-func (r *Reader) Close() error {
-	if r.scanner != nil {
-		r.scanner.Pull(true)
-	}
-	return nil
+func (r *Reader) Pull(done bool) (vector.Any, error) {
+	return r.ConcurrentPull(done, 0)
 }
 
-func (r *Reader) init() error {
-	if r.wrap != nil {
-		return nil
+func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
+	if done {
+		return nil, nil
 	}
-	//XXX ctx... seems like all NewReaders should take ctx so they
-	// can have cancellable goroutines?
-	scanner, err := r.NewScanner(context.TODO(), nil)
-	if err != nil {
-		return err
-	}
-	r.scanner = scanner
-	r.wrap = sbuf.PullerReader(scanner)
-	return nil
-}
-
-func (r *Reader) Read() (*super.Value, error) {
-	// If Read is called, then this Reader is being used as a sio.Reader and
-	// not as a sbuf.Puller.  We just wrap the scanner in a puller to
-	// implement the Reader interface.  If it's used a sbuf.Scanner, then
-	// the NewScanner method will be called and Read will never happen.
-	if err := r.init(); err != nil {
+	if err := r.ctx.Err(); err != nil {
 		return nil, err
 	}
 	for {
-		val, err := r.wrap.Read()
-		if err != nil {
-			if _, ok := err.(*sbuf.Control); ok {
-				continue
-			}
+		if k := len(r.vecs[n]); k > 0 {
+			// Return these last to first so r.vecs gets resued.
+			vec := r.vecs[n][k-1]
+			r.vecs[n] = r.vecs[n][:k-1]
+			return vec, nil
+		}
+		hdr, off, err := r.stream.next()
+		if hdr == nil || err != nil {
 			return nil, err
 		}
-		return val, err
-	}
-}
-
-func (r *Reader) ReadPayload() (*super.Value, *Control, error) {
-	if err := r.init(); err != nil {
-		return nil, nil, err
-	}
-	val, err := r.wrap.Read()
-	if err != nil {
-		if zctrl, ok := err.(*sbuf.Control); ok {
-			ctrl, ok := zctrl.Message.(*Control)
-			if !ok {
-				return nil, nil, fmt.Errorf("bsupio internal error: unknown control type: %T", zctrl.Message)
+		o, err := bsup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
+		if err != nil {
+			return nil, err
+		}
+		// XXX using the query context for the metadata filter unnecessarily
+		// pollutes the type context.  We should use the BSUP local context for
+		// this filtering but this will require a little compiler refactoring to be
+		// able to build runtime expressions that use different type contexts.
+		if len(r.metaFilters) > 0 && pruneObject(r.sctx, r.metaFilters[n], o) {
+			continue
+		}
+		vo := vcache.NewObjectFromBSUP(o)
+		var proj field.Projection
+		if r.pushdown != nil {
+			proj = r.pushdown.Projection()
+		}
+		if r.pushdown != nil && r.pushdown.Unordered() {
+			r.vecs[n], err = vo.FetchUnordered(r.vecs[n][:0], r.sctx, proj)
+			if err != nil {
+				return nil, err
 			}
-			return nil, ctrl, nil
+		} else {
+			vec, err := vo.Fetch(r.sctx, proj)
+			if err != nil {
+				return nil, err
+			}
+			r.vecs[n] = append(r.vecs[n], vec)
 		}
 	}
-	return val, nil, err
 }
 
-func readUvarintAsInt(r io.ByteReader) (int, error) {
-	u64, err := binary.ReadUvarint(r)
-	return int(u64), err
+func pruneObject(sctx *super.Context, mf *metafilter, o *bsup.Object) bool {
+	vals := o.ProjectMetadata(sctx, mf.projection)
+	for _, val := range vals {
+		if !mf.filter.Eval(val).Equal(super.False) {
+			return false
+		}
+	}
+	return true
+}
+
+func (r *Reader) Type() (super.Type, error) {
+	return bsup.FusedType(r.sctx, r.readerAt)
+}
+
+type RowReader struct {
+	*rows.Reader
+}
+
+func NewRowReader(sctx *super.Context, r io.Reader) *RowReader {
+	return &RowReader{rows.NewReader(sctx, r)}
 }

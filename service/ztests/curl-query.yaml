@@ -9,7 +9,7 @@ script: |
   echo === application/vnd.apache.arrow.stream ===
   curl -H 'Accept: application/vnd.apache.arrow.stream' -d '{"query":"from test"}' $SUPER_DB/query |
     super -s -i arrows -
-  for format in parquet csup; do
+  for format in parquet bsup; do
     echo === application/x-$format ===
     curl -H "Accept: application/x-$format" -d '{"query":"from test"}' -o out.$format $SUPER_DB/query
     super -s out.$format
@@ -55,6 +55,6 @@ outputs:
       === application/x-parquet ===
       {a:"hello",b:{c:"world",d:"goodbye"}}
       {a:"one",b:{c:"two",d:"three"}}
-      === application/x-csup ===
+      === application/x-bsup ===
       {a:"hello",b:{c:"world",d:"goodbye"}}
       {a:"one",b:{c:"two",d:"three"}}

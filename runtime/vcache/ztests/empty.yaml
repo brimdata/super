@@ -1,6 +1,6 @@
 script: |
-  super -o test.csup in.sup
-  super dev vector copy -s test.csup
+  super -o test.bsup in.sup
+  super dev vector copy -s test.bsup
 
 inputs:
   - name: in.sup

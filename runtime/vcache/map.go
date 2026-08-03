@@ -3,21 +3,21 @@ package vcache
 import (
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type map_ struct {
 	mu     sync.Mutex
-	meta   *csup.Map
+	meta   *bsup.Map
 	len    uint32
 	offs   []uint32
 	keys   shadow
 	values shadow
 }
 
-func newMap(cctx *csup.Context, meta *csup.Map) *map_ {
+func newMap(cctx *bsup.Context, meta *bsup.Map) *map_ {
 	return &map_{meta: meta, len: meta.Len(cctx)}
 }
 
@@ -25,7 +25,7 @@ func (m *map_) length() uint32 {
 	return m.len
 }
 
-func (m *map_) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (m *map_) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.keys == nil {
@@ -53,7 +53,7 @@ func (m *map_) load(loader *loader) []uint32 {
 	if m.offs != nil {
 		return m.offs
 	}
-	offs, err := csup.ReadUint32s(m.meta.Lengths, loader.r)
+	offs, err := bsup.ReadUint32s(m.meta.Lengths, loader.r)
 	if err != nil {
 		panic(err)
 	}

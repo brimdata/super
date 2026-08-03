@@ -11,12 +11,11 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/parquetio"
@@ -29,7 +28,6 @@ type ReaderOpts struct {
 	Format            string
 	Pushdown          sbuf.Pushdown
 	ConcurrentReaders int
-	BSUP              bsupio.ReaderOpts
 	CSV               csvio.ReaderOpts
 }
 
@@ -43,11 +41,11 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 
 	track := NewTrack(r)
 
-	csupErr := isCSUPStream(track)
-	if csupErr == nil {
-		return csupio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
+	bsupErr := isBSUPStream(track)
+	if bsupErr == nil {
+		return bsupio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
 	}
-	csupErr = fmt.Errorf("csup: %w", csupErr)
+	bsupErr = fmt.Errorf("bsup: %w", bsupErr)
 	track.Reset()
 
 	parquetErr := isParquetStream(ctx, track)
@@ -87,17 +85,18 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	}
 	track.Reset()
 
+	// XXX BSUP row options will be updated in a subsequent PR.
 	// For the matching reader, force validation to true so we are extra
 	// careful about auto-matching BSUP.  Then, once matched, relaxed
 	// validation to the user setting in the actual reader returned.
-	bsupOpts := opts.BSUP
-	bsupOpts.Validate = true
-	bsupReader := bsupio.NewReaderWithOpts(super.NewContext(), track, bsupOpts)
-	bsupErr := match(bsupReader, "bsup", 1)
+	//bsupOpts := opts.BSUP
+	//bsupOpts.Validate = true
+	bsupRowsReader := bsupio.NewRowReader(super.NewContext(), track)
+	bsupRowsErr := match(bsupRowsReader, "bsuprows", 1)
 	// Close bsupReader to ensure that it does not continue to call track.Read.
-	bsupReader.Close()
-	if bsupErr == nil {
-		scanner, err := bsupio.NewReaderWithOpts(sctx, track.Reader(), opts.BSUP).NewScanner(ctx, opts.Pushdown)
+	bsupRowsReader.Close()
+	if bsupRowsErr == nil {
+		scanner, err := bsupio.NewRowReader(sctx, track.Reader()).NewScanner(ctx, opts.Pushdown)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +120,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	return nil, joinErrs([]error{
 		arrowsErr,
 		bsupErr,
-		csupErr,
+		bsupRowsErr,
 		csvErr,
 		jsonErr,
 		lineErr,
@@ -162,15 +161,15 @@ func isArrowStream(track *Track) error {
 	return err
 }
 
-func isCSUPStream(track *Track) error {
-	var buf [csup.HeaderSize]byte
+func isBSUPStream(track *Track) error {
+	var buf [bsup.HeaderSize]byte
 	if _, err := io.ReadFull(track, buf[:]); err != nil {
 		if errors.Is(err, io.ErrUnexpectedEOF) {
 			return errors.New("file size too small")
 		}
 		return err
 	}
-	if err := new(csup.Header{}).Deserialize(buf[:]); err != nil {
+	if err := new(bsup.Header{}).Deserialize(buf[:]); err != nil {
 		return err
 	}
 	if track.recorder != nil {
