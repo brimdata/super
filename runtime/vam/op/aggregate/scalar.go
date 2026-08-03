@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vam/expr"
-	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -18,7 +17,7 @@ type scalarAggregate struct {
 	partialsIn  bool
 	partialsOut bool
 
-	funcs []agg.Func
+	funcs []expr.AggFunc
 }
 
 func NewScalar(parent vio.Puller, sctx *super.Context, aggs []*expr.Aggregator, aggNames []field.Path, aggExprs []expr.Evaluator, partialsIn, partialsOut bool) (vio.Puller, error) {
@@ -81,8 +80,8 @@ func (s *scalarAggregate) consume(vecs ...vector.Any) vector.Any {
 	return vector.NewNull(vecs[0].Len())
 }
 
-func newFuncs(aggs []*expr.Aggregator) []agg.Func {
-	var funcs []agg.Func
+func newFuncs(aggs []*expr.Aggregator) []expr.AggFunc {
+	var funcs []expr.AggFunc
 	for _, agg := range aggs {
 		funcs = append(funcs, agg.Pattern())
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
@@ -26,7 +27,7 @@ func newMathReducer(f *mathFunc) *mathReducer {
 	return &mathReducer{function: f}
 }
 
-var _ Func = (*mathReducer)(nil)
+var _ expr.AggFunc = (*mathReducer)(nil)
 
 func (m *mathReducer) Result(sctx *super.Context) vector.Any {
 	if m.mixedTypesErr {

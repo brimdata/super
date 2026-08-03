@@ -11,6 +11,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
+	vamagg "github.com/brimdata/super/runtime/vam/expr/agg"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/runtime/vam/op/aggregate"
 	"github.com/brimdata/super/sbuf"
@@ -428,5 +429,9 @@ func (b *Builder) compileVamAgg(agg *dag.AggExpr) (*vamexpr.Aggregator, error) {
 			return nil, err
 		}
 	}
-	return vamexpr.NewAggregator(name, agg.Distinct, arg, filter)
+	pattern, err := vamagg.NewPattern(name, agg.Distinct, agg.Expr != nil)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewAggregator(name, agg.Distinct, arg, filter, pattern)
 }

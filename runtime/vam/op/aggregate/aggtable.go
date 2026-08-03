@@ -5,7 +5,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
-	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
@@ -34,7 +33,7 @@ var _ aggTable = (*superTable)(nil)
 
 type aggRow struct {
 	keys  []super.Value
-	funcs []agg.Func
+	funcs []expr.AggFunc
 }
 
 func (s *superTable) update(keys []vector.Any, args []vector.Any) {

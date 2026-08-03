@@ -3,82 +3,72 @@ package agg
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/runtime/vam/expr"
 )
 
-type Func interface {
-	Consume(vector.Any)
-	ConsumeAsPartial(vector.Any)
-	Result(*super.Context) vector.Any
-	ResultAsPartial(*super.Context) vector.Any
-}
-
-type Pattern func() Func
-
-func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
+func NewPattern(op string, distinct, hasarg bool) (expr.AggPattern, error) {
 	needarg := true
-	var pattern Pattern
+	var pattern expr.AggPattern
 	switch op {
 	case "count":
 		needarg = false
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return &count{}
 		}
 	case "any":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return NewAny()
 		}
 	case "avg":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return &avg{}
 		}
 	case "array_agg":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return &arrayAgg{}
 		}
 	case "blend":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newFuse(false)
 		}
 	case "dcount":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newDCount()
 		}
 	case "fuse":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newFuse(true)
 		}
 	case "sum":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newMathReducer(mathSum)
 		}
 	case "min":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newMathReducer(mathMin)
 		}
 	case "max":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newMathReducer(mathMax)
 		}
 	case "union":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newUnion()
 		}
 	case "collect":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return &collect{}
 		}
 	case "collect_map":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return newCollectMap()
 		}
 	case "and":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return &and{}
 		}
 	case "or":
-		pattern = func() Func {
+		pattern = func() expr.AggFunc {
 			return &or{}
 		}
 	default:
@@ -91,7 +81,7 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		switch op {
 		case "avg", "collect", "count", "sum":
 			// Distinct affects only these functions.
-			return func() Func {
+			return func() expr.AggFunc {
 				return newDistinct(pattern())
 			}, nil
 		}

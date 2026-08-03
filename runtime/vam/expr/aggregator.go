@@ -2,12 +2,20 @@ package expr
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
 )
 
+type AggFunc interface {
+	Consume(vector.Any)
+	ConsumeAsPartial(vector.Any)
+	Result(*super.Context) vector.Any
+	ResultAsPartial(*super.Context) vector.Any
+}
+
+type AggPattern func() AggFunc
+
 type Aggregator struct {
-	Pattern  agg.Pattern
+	Pattern  AggPattern
 	Name     string
 	Distinct bool
 	Expr     Evaluator
@@ -15,11 +23,7 @@ type Aggregator struct {
 	NoRip    bool
 }
 
-func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) (*Aggregator, error) {
-	pattern, err := agg.NewPattern(name, distinct, expr != nil)
-	if err != nil {
-		return nil, err
-	}
+func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator, pattern AggPattern) (*Aggregator, error) {
 	var norip bool
 	if fn, ok := pattern().(interface{ NoRip() bool }); ok {
 		norip = fn.NoRip()

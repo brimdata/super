@@ -2,6 +2,7 @@ package agg
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 )
 
@@ -10,7 +11,7 @@ type avg struct {
 	count uint64
 }
 
-var _ Func = (*avg)(nil)
+var _ expr.AggFunc = (*avg)(nil)
 
 func (a *avg) Consume(vec vector.Any) {
 	vec = vector.Under(vec)

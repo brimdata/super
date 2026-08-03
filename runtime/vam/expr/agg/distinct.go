@@ -5,18 +5,19 @@ import (
 
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
 type distinct struct {
-	fun  Func
+	fun  expr.AggFunc
 	buf  []byte
 	seen map[string]struct{}
 }
 
-func newDistinct(f Func) Func {
+func newDistinct(f expr.AggFunc) expr.AggFunc {
 	return &distinct{fun: f, seen: map[string]struct{}{}}
 }
 
