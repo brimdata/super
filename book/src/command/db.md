@@ -151,9 +151,6 @@ We can narrow the span of the query by specifying a filter on the database
 ```
 super db -c 'from logs | ts >= 2018-03-24T17:36:30.090766Z and ts <= 2018-03-24T17:36:30.090758Z'
 ```
-Filters on sort keys are efficiently implemented as the data is laid out
-according to the sort key and seek indexes keyed by the sort key
-are computed for each data object.
 
 When querying data to the [BSUP](../formats/bsup.md) output format,
 output from a pool can be easily piped to other commands like `super`, e.g.,

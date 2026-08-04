@@ -25,7 +25,6 @@ POST /pool
 | name | string | body | **Required.** Name of the pool. Must be unique to lake. |
 | layout.order | string | body | Order of storage by primary key(s) in pool. Possible values: desc, asc. Default: asc. |
 | layout.keys | [[string]] | body | Primary key(s) of pool. The element of each inner string array should reflect the hierarchical ordering of named fields within indexed records. Default: [[ts]]. |
-| thresh | int | body | The size in bytes of each seek index. |
 | Content-Type | string | header | [MIME type](#mime-types) of the request payload. |
 | Accept | string | header | Preferred [MIME type](#mime-types) of the response. |
 

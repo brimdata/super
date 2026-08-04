@@ -20,7 +20,7 @@ func TestDataReaderWriterVector(t *testing.T) {
 	tmp := storage.MustParseURI(t.TempDir())
 	object := data.NewObject()
 	ctx := t.Context()
-	w, err := object.NewWriter(ctx, engine, tmp, order.NewSortKey(order.Asc, field.Path{"a"}), 1000)
+	w, err := object.NewWriter(ctx, engine, tmp, order.NewSortKey(order.Asc, field.Path{"a"}))
 	require.NoError(t, err)
 	sctx := super.NewContext()
 	require.NoError(t, w.Write(sup.MustParseValue(sctx, "{a:1,b:4}")))

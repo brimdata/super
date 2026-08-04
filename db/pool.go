@@ -319,14 +319,6 @@ func (p *Pool) Vacuum(ctx context.Context, commit ksuid.KSUID, dryrun bool) ([]k
 			}
 			return err
 		})
-		// Delete the seek index as well.
-		group.Go(func() error {
-			err := p.engine.Delete(ctx, data.SeekIndexURI(p.DataPath, o.ID))
-			if errors.Is(err, fs.ErrNotExist) {
-				err = nil
-			}
-			return err
-		})
 	}
 	if err := group.Wait(); err != nil {
 		return nil, err

@@ -313,7 +313,7 @@ func (r *Root) RenamePool(ctx context.Context, id ksuid.KSUID, newName string) e
 	return r.pools.Rename(ctx, id, newName)
 }
 
-func (r *Root) CreatePool(ctx context.Context, name string, sortKeys order.SortKeys, seekStride int, thresh int64) (*Pool, error) {
+func (r *Root) CreatePool(ctx context.Context, name string, sortKeys order.SortKeys, thresh int64) (*Pool, error) {
 	if name == "HEAD" {
 		return nil, fmt.Errorf("pool cannot be named %q", name)
 	}
@@ -326,7 +326,7 @@ func (r *Root) CreatePool(ctx context.Context, name string, sortKeys order.SortK
 	if len(sortKeys) > 1 {
 		return nil, errors.New("multiple pool keys not supported")
 	}
-	config := pools.NewConfig(name, sortKeys, thresh, seekStride)
+	config := pools.NewConfig(name, sortKeys, thresh)
 	if err := CreatePool(ctx, r.engine, r.logger, r.path, config); err != nil {
 		return nil, err
 	}

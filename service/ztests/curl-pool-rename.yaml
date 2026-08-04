@@ -31,6 +31,5 @@ outputs:
             ]
           ]
         },
-        seek_stride: 65536,
         threshold: 524288000
       }

@@ -63,11 +63,11 @@ func (l *local) Root() *db.Root {
 	return l.db
 }
 
-func (l *local) CreatePool(ctx context.Context, name string, sortKeys order.SortKeys, seekStride int, thresh int64) (ksuid.KSUID, error) {
+func (l *local) CreatePool(ctx context.Context, name string, sortKeys order.SortKeys, thresh int64) (ksuid.KSUID, error) {
 	if name == "" {
 		return ksuid.Nil, errors.New("no pool name provided")
 	}
-	pool, err := l.db.CreatePool(ctx, name, sortKeys, seekStride, thresh)
+	pool, err := l.db.CreatePool(ctx, name, sortKeys, thresh)
 	if err != nil {
 		return ksuid.Nil, err
 	}

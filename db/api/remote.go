@@ -53,15 +53,14 @@ func (r *remote) CommitObject(ctx context.Context, poolID ksuid.KSUID, branchNam
 	return res.Commit, err
 }
 
-func (r *remote) CreatePool(ctx context.Context, name string, sortKeys order.SortKeys, seekStride int, thresh int64) (ksuid.KSUID, error) {
+func (r *remote) CreatePool(ctx context.Context, name string, sortKeys order.SortKeys, thresh int64) (ksuid.KSUID, error) {
 	res, err := r.conn.CreatePool(ctx, api.PoolPostRequest{
 		Name: name,
 		SortKeys: api.SortKeys{
 			Order: sortKeys.Primary().Order,
 			Keys:  field.List{sortKeys.Primary().Key},
 		},
-		SeekStride: seekStride,
-		Thresh:     thresh,
+		Thresh: thresh,
 	})
 	if err != nil {
 		return ksuid.Nil, err

@@ -13,33 +13,28 @@ import (
 )
 
 type Config struct {
-	Ts         nano.Ts        `super:"ts"`
-	Name       string         `super:"name"`
-	ID         ksuid.KSUID    `super:"id"`
-	SortKeys   order.SortKeys `super:"layout"`
-	SeekStride int            `super:"seek_stride"`
-	Threshold  int64          `super:"threshold"`
+	Ts        nano.Ts        `super:"ts"`
+	Name      string         `super:"name"`
+	ID        ksuid.KSUID    `super:"id"`
+	SortKeys  order.SortKeys `super:"layout"`
+	Threshold int64          `super:"threshold"`
 }
 
 var _ journal.Entry = (*Config)(nil)
 
-func NewConfig(name string, sortKeys order.SortKeys, thresh int64, seekStride int) *Config {
+func NewConfig(name string, sortKeys order.SortKeys, thresh int64) *Config {
 	if sortKeys.IsNil() {
 		sortKeys = order.SortKeys{order.NewSortKey(order.Desc, field.Dotted("ts"))}
 	}
 	if thresh == 0 {
 		thresh = data.DefaultThreshold
 	}
-	if seekStride == 0 {
-		seekStride = data.DefaultSeekStride
-	}
 	return &Config{
-		Ts:         nano.Now(),
-		Name:       name,
-		ID:         ksuid.New(),
-		SortKeys:   sortKeys,
-		SeekStride: seekStride,
-		Threshold:  thresh,
+		Ts:        nano.Now(),
+		Name:      name,
+		ID:        ksuid.New(),
+		SortKeys:  sortKeys,
+		Threshold: thresh,
 	}
 }
 
@@ -55,12 +50,11 @@ func (p *Config) Path(root *storage.URI) *storage.URI {
 // previous versions. At some point we'll do a migration so we don't have to do
 // this.
 type marshalConfig struct {
-	Ts         nano.Ts     `super:"ts"`
-	Name       string      `super:"name"`
-	ID         ksuid.KSUID `super:"id"`
-	SortKey    oldSortKey  `super:"layout"`
-	SeekStride int         `super:"seek_stride"`
-	Threshold  int64       `super:"threshold"`
+	Ts        nano.Ts     `super:"ts"`
+	Name      string      `super:"name"`
+	ID        ksuid.KSUID `super:"id"`
+	SortKey   oldSortKey  `super:"layout"`
+	Threshold int64       `super:"threshold"`
 }
 
 type oldSortKey struct {
@@ -76,11 +70,10 @@ var hackedBindings = []sup.Binding{
 func (p Config) MarshalBSUP(ctx *sup.MarshalBSUPContext) (super.Type, error) {
 	ctx.NamedBindings(hackedBindings)
 	m := marshalConfig{
-		Ts:         p.Ts,
-		Name:       p.Name,
-		ID:         p.ID,
-		SeekStride: p.SeekStride,
-		Threshold:  p.Threshold,
+		Ts:        p.Ts,
+		Name:      p.Name,
+		ID:        p.ID,
+		Threshold: p.Threshold,
 	}
 	if !p.SortKeys.IsNil() {
 		m.SortKey.Order = p.SortKeys[0].Order
@@ -101,7 +94,6 @@ func (p *Config) UnmarshalBSUP(ctx *sup.UnmarshalBSUPContext, val super.Value) e
 	p.Ts = m.Ts
 	p.Name = m.Name
 	p.ID = m.ID
-	p.SeekStride = m.SeekStride
 	p.Threshold = m.Threshold
 	for _, k := range m.SortKey.Keys {
 		p.SortKeys = append(p.SortKeys, order.NewSortKey(m.SortKey.Order, k))

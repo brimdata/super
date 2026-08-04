@@ -77,7 +77,7 @@ resulting object is immutable, there is no possible write concurrency to manage
 with respect to a given object.
 
 A data object is composed of the primary data object stored as one or two objects
-(for sequence and/or vector layout) and an optional seek index.
+(for sequence and/or vector layout).
 
 Data objects may be either in sequence form (i.e., BSUP) or vector form (i.e., CSUP),
 or both forms may be present as a query optimizer may choose to use whatever
@@ -91,18 +91,8 @@ Immutable objects are named as follows:
 |-----------|----|
 |vector data|`<pool-id>/data/<id>.csup`|
 |sequence data|`<pool-id>/data/<id>.bsup`|
-|sequence seek index|`<pool-id>/data/<id>-seek.bsup`|
 
 `<id>` is the KSUID of the data object.
-
-The seek index maps pool key values to seek offsets in the BSUP file thereby
-allowing a scan to do a byte-range retrieval of the BSUP object when
-processing only a subset of data.
-
->[!NOTE]
-> The CSUP format allows individual vector segments to be read in isolation
-> and the in-memory CSUP representation supports random access so there is
-> no need to have a seek index for the vector object.
 
 #### Commit History
 

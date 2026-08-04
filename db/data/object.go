@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	DefaultSeekStride = 64 * 1024
-	DefaultThreshold  = 500 * 1024 * 1024
+	DefaultThreshold = 500 * 1024 * 1024
 )
 
 // A FileKind is the first part of a file name, used to differentiate files
@@ -27,7 +26,6 @@ const (
 	FileKindUnknown  FileKind = ""
 	FileKindData     FileKind = "data"
 	FileKindMetadata FileKind = "meta"
-	FileKindSeek     FileKind = "seek"
 )
 
 func (k FileKind) Description() string {
@@ -36,17 +34,10 @@ func (k FileKind) Description() string {
 		return "data"
 	case FileKindMetadata:
 		return "metadata"
-	case "FileKindSeek":
-		return "seekindex"
 	default:
 		return "unknown"
 	}
 }
-
-//XXX all file types are cacheable but seek index etc is not matched here.
-//and seekindexes really do want to be cached as they are small and
-// eliminate round-trips, especially when you are ready sub-ranges of
-// cached data files!
 
 var fileRegex = regexp.MustCompile(`([0-9A-Za-z]{27}-(data|meta)).bsup$`)
 
@@ -125,14 +116,6 @@ func SequenceURI(path *storage.URI, id ksuid.KSUID) *storage.URI {
 	return path.JoinPath(fmt.Sprintf("%s.bsup", id))
 }
 
-func (o Object) SeekIndexURI(path *storage.URI) *storage.URI {
-	return SeekIndexURI(path, o.ID)
-}
-
-func SeekIndexURI(path *storage.URI, id ksuid.KSUID) *storage.URI {
-	return path.JoinPath(fmt.Sprintf("%s-seek.bsup", id))
-}
-
 func (o Object) VectorURI(path *storage.URI) *storage.URI {
 	return VectorURI(path, o.ID)
 }
@@ -141,7 +124,7 @@ func VectorURI(path *storage.URI, id ksuid.KSUID) *storage.URI {
 	return path.JoinPath(fmt.Sprintf("%s.csup", id))
 }
 
-// Remove deletes the row object and its seek index.
+// Remove deletes the object.
 // Any 'not found' errors are ignored.
 func (o Object) Remove(ctx context.Context, engine storage.Engine, path *storage.URI) error {
 	if err := engine.DeleteByPrefix(ctx, o.ObjectPrefix(path)); err != nil && !errors.Is(err, fs.ErrNotExist) {

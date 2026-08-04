@@ -41,7 +41,6 @@ outputs:
             ]
           ]
         }::order.SortKey,
-        seek_stride: 65536,
         threshold: 524288000
       }
       {
@@ -54,7 +53,6 @@ outputs:
             ]
           ]
         }::order.SortKey,
-        seek_stride: 65536,
         threshold: 524288000
       }
       ===

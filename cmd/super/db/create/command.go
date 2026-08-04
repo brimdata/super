@@ -20,16 +20,14 @@ var spec = &charm.Spec{
 	Long: `
 See https://superdb.org/command/db.html#super-db-create
 `,
-	HiddenFlags: "seekstride",
-	New:         New,
+	New: New,
 }
 
 type Command struct {
 	*db.Command
-	sortKey    string
-	thresh     units.Bytes
-	seekStride units.Bytes
-	use        bool
+	sortKey string
+	thresh  units.Bytes
+	use     bool
 }
 
 func init() {
@@ -37,11 +35,7 @@ func init() {
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	c := &Command{
-		Command:    parent.(*db.Command),
-		seekStride: units.Bytes(data.DefaultSeekStride),
-	}
-	f.Var(&c.seekStride, "seekstride", "size of seek-index unit for BSUP data, as '32KB', '1MB', etc.")
+	c := &Command{Command: parent.(*db.Command)}
 	c.thresh = data.DefaultThreshold
 	f.Var(&c.thresh, "S", "target size of pool data objects, as '10MB' or '4GiB', etc.")
 	f.BoolVar(&c.use, "use", false, "set created pool as the current pool")
@@ -67,7 +61,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	poolName := args[0]
-	id, err := db.CreatePool(ctx, poolName, sortKey, int(c.seekStride), int64(c.thresh))
+	id, err := db.CreatePool(ctx, poolName, sortKey, int64(c.thresh))
 	if err != nil {
 		return err
 	}
