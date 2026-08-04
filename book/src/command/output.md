@@ -129,13 +129,13 @@ echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -
 ```
 causes this error
 ```mdtest-output
-parquetio: encountered multiple types (consider 'fuse'): {x:int64} and {s:string}
+parquetio: encountered multiple types (consider 'blend'): {x:int64} and {s:string}
 ```
 
 To write heterogeneous data to a schema-based file format, you must
 convert the data to a monolithic type.  To handle this,
-you can either [fuse](../super-sql/operators/fuse.md)
-the data into a single fused type or you can specify
+you can either [blend](../super-sql/operators/blend.md)
+the data into a single type or you can specify
 the `-split` flag to indicate a destination directory that receives
 a separate output file for each output type.
 
