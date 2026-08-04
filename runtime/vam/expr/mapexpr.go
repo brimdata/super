@@ -15,12 +15,14 @@ type Entry struct {
 
 type MapExpr struct {
 	sctx    *super.Context
+	defuse  *Defuse
 	entries []Entry
 }
 
 func NewMapExpr(sctx *super.Context, entries []Entry) *MapExpr {
 	return &MapExpr{
 		sctx:    sctx,
+		defuse:  NewDefuse(sctx),
 		entries: entries,
 	}
 }
@@ -34,10 +36,10 @@ func (m *MapExpr) Eval(this vector.Any) vector.Any {
 	}
 	var vecs []vector.Any
 	for _, entry := range m.entries {
-		vecs = append(vecs, entry.Key.Eval(this))
+		vecs = append(vecs, m.defuse.Eval(entry.Key.Eval(this)))
 	}
 	for _, entry := range m.entries {
-		vecs = append(vecs, entry.Val.Eval(this))
+		vecs = append(vecs, m.defuse.Eval(entry.Val.Eval(this)))
 	}
 	return vector.Apply(vector.ApplyNone, m.eval, vecs...)
 }

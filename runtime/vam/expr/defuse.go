@@ -125,7 +125,7 @@ func (d *Defuse) defuseSet(in vector.Any) vector.Any {
 
 func (d *Defuse) defuseMap(in vector.Any) vector.Any {
 	vmap := vector.PushView(in).(*vector.Map)
-	keys := d.eval(vmap.Values)
+	keys := d.eval(vmap.Keys)
 	vals := d.eval(vmap.Values)
 	if !vector.IsDynamic(keys) && !vector.IsDynamic(vals) {
 		typ := d.sctx.LookupTypeMap(keys.Type(), vals.Type())
