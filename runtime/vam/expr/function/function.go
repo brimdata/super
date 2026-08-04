@@ -28,7 +28,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "cast":
 		argmin = 2
 		argmax = 2
-		f = newSamFunc(sctx, function.NewCaster(sctx).(samexpr.Function))
+		f = newCaster(sctx)
 	case "ceil":
 		f = &Ceil{sctx}
 	case "cidr_match":

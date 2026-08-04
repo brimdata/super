@@ -49,6 +49,9 @@ func (d *Defuse) eval(in vector.Any) vector.Any {
 	case vector.KindError:
 		return d.defuseError(in)
 	case vector.KindFusion:
+		if in.Len() == 0 {
+			return vector.NewNone(0)
+		}
 		fusion := vector.PushView(in).(*vector.Fusion)
 		if super.IsTypeAny(fusion.Type()) {
 			return vector.DefuseAny(fusion)
