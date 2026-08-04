@@ -14,8 +14,8 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/sup"
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )
@@ -1106,7 +1106,7 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr, inType super.Type) (sem
 		return nil, t.checker.unknown
 	}
 	nameLower := strings.ToLower(name.Name)
-	if _, err := agg.NewPattern(nameLower, false, true); err != nil {
+	if _, err := agg.NewPattern(t.sctx, nameLower, false, true); err != nil {
 		return nil, t.checker.unknown
 	}
 	if err := function.CheckArgCount(len(call.Args), 0, 1); err != nil {

@@ -1,4 +1,4 @@
-spq: aggregate array_agg(this)
+spq: array_agg(this)
 
 input: |
   {a:1}
