@@ -65,9 +65,11 @@ func (f *Flags) SetFlagsWithFormat(fs *flag.FlagSet, format string) {
 	f.Format = format
 }
 
+const initialDefaultFormat = "csup"
+
 func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	if f.DefaultFormat == "" {
-		f.DefaultFormat = "csup"
+		f.DefaultFormat = initialDefaultFormat
 	}
 	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,db,json,line,parquet,sup,table,tsv,zeek]")
 	fs.BoolVar(&f.forceBinary, "B", false, "allow Super Binary to be sent to a terminal output")
@@ -100,7 +102,7 @@ func (f *Flags) Init() error {
 	if f.outputFile == "-" {
 		f.outputFile = ""
 	}
-	if f.outputFile == "" && f.split == "" && f.Format == f.DefaultFormat && !f.forceBinary &&
+	if f.outputFile == "" && f.split == "" && f.Format == initialDefaultFormat && !f.forceBinary &&
 		terminal.IsTerminalFile(os.Stdout) {
 		f.Format = "sup"
 		f.SUP.Pretty = 0
