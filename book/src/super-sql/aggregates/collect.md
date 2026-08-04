@@ -14,6 +14,10 @@ The _collect_ aggregate function organizes its input into an array.
 If the input values vary in type, the return type will be an array
 of union of the types encountered.
 
+>[!NOTE]
+>See [array_agg](array_agg.md) for a variant that matches PostgreSQL when
+>no values are aggregated.
+
 ## Examples
 
 Simple sequence collected into an array:
@@ -56,4 +60,21 @@ collect(a) by k | sort
 # expected output
 {k:1,collect:[1,2]}
 {k:2,collect:[3,4]}
+```
+
+Contrast `collect` with `array_agg` when no values have been aggregated:
+```mdtest-spq
+# spq
+aggregate
+  collect(a) filter (a > 1),
+  array_agg(a) filter (a > 1)
+  by k
+| sort
+# input
+{a:1,k:1}
+{a:2,k:2}
+{a:3,k:2}
+# expected output
+{k:1,collect:[],array_agg:null}
+{k:2,collect:[2,3],array_agg:[2,3]}
 ```

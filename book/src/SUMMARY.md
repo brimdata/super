@@ -168,6 +168,7 @@
     - [Aggregate Functions](super-sql/aggregates/intro.md)
         - [and](super-sql/aggregates/and.md)
         - [any](super-sql/aggregates/any.md)
+        - [array_agg](super-sql/aggregates/array_agg.md)
         - [avg](super-sql/aggregates/avg.md)
         - [blend](super-sql/aggregates/blend.md)
         - [collect](super-sql/aggregates/collect.md)
