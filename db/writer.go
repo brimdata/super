@@ -208,7 +208,7 @@ again:
 		w.writer, w.vectorWriter = nil, nil
 		goto again
 	}
-	if err := w.writer.WriteWithKey(key, val); err != nil {
+	if err := w.writer.Write(val); err != nil {
 		w.Abort()
 		return err
 	}

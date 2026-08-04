@@ -41,12 +41,8 @@ func (o *Object) NewWriter(ctx context.Context, engine storage.Engine, path *sto
 }
 
 func (w *Writer) Write(val super.Value) error {
-	key := val.DerefPath(w.sortKey.Key).MissingAsNull()
-	return w.WriteWithKey(key, val)
-}
-
-func (w *Writer) WriteWithKey(key, val super.Value) error {
 	w.count++
+<<<<<<< HEAD
 	if err := w.writer.Write(val); err != nil {
 		return err
 	}
@@ -56,6 +52,9 @@ func (w *Writer) WriteWithKey(key, val super.Value) error {
 	}
 	w.object.Max.CopyFrom(key)
 	return nil
+=======
+	return w.writer.Write(val)
+>>>>>>> 282f2ce8d ([no-seek-index])
 }
 
 // Abort is called when an error occurs during write. Errors are ignored
