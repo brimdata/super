@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
@@ -29,9 +30,10 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	in := []byte(strings.TrimSpace(logs) + "\n")
 	supSrc := supio.NewReader(super.NewContext(), bytes.NewReader(in))
 	var rawBSUP Output
-	rawDst := bsupio.NewWriterWithOpts(&rawBSUP, bsupio.WriterOpts{
+	//XXX rows
+	rawDst := rows.NewWriterWithOpts(&rawBSUP, rows.WriterOpts{
 		Compress:    compress,
-		FrameThresh: bsupio.DefaultFrameThresh,
+		FrameThresh: rows.DefaultFrameThresh,
 	})
 	require.NoError(t, sio.Copy(rawDst, supSrc))
 	require.NoError(t, rawDst.Close())

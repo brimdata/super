@@ -1,4 +1,4 @@
-package bsupio
+package rows
 
 import (
 	"errors"

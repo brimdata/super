@@ -12,10 +12,10 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/jsonio"
@@ -29,7 +29,7 @@ type ReaderOpts struct {
 	Format            string
 	Pushdown          sbuf.Pushdown
 	ConcurrentReaders int
-	BSUP              bsupio.ReaderOpts
+	BSUP              rows.ReaderOpts //XXX rows
 	CSV               csvio.ReaderOpts
 }
 
@@ -92,12 +92,14 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	// validation to the user setting in the actual reader returned.
 	bsupOpts := opts.BSUP
 	bsupOpts.Validate = true
-	bsupReader := bsupio.NewReaderWithOpts(super.NewContext(), track, bsupOpts)
+	//XXX rows... csup should handle both rows/cols
+	bsupReader := rows.NewReaderWithOpts(super.NewContext(), track, bsupOpts)
 	bsupErr := match(bsupReader, "bsup", 1)
 	// Close bsupReader to ensure that it does not continue to call track.Read.
 	bsupReader.Close()
 	if bsupErr == nil {
-		scanner, err := bsupio.NewReaderWithOpts(sctx, track.Reader(), opts.BSUP).NewScanner(ctx, opts.Pushdown)
+		//XXX rows
+		scanner, err := rows.NewReaderWithOpts(sctx, track.Reader(), opts.BSUP).NewScanner(ctx, opts.Pushdown)
 		if err != nil {
 			return nil, err
 		}

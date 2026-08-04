@@ -5,10 +5,10 @@ import (
 	"os"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/fs"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
 )
 
 // File provides a means to write a sequence of Super values to temporary
@@ -17,8 +17,8 @@ import (
 // but can be processed in multiple passes.  File implements sio.Reader and
 // sio.Writer.
 type File struct {
-	*bsupio.Reader
-	*bsupio.Writer
+	*rows.Reader //XXX use columns
+	*rows.Writer
 	file *os.File
 }
 
@@ -27,9 +27,10 @@ type File struct {
 // records via the sio.Reader interface.
 func NewFile(f *os.File) *File {
 	return &File{
-		Writer: bsupio.NewWriterWithOpts(bufwriter.New(sio.NopCloser(f)), bsupio.WriterOpts{
+		//XXX rows
+		Writer: rows.NewWriterWithOpts(bufwriter.New(sio.NopCloser(f)), rows.WriterOpts{
 			Compress:    false, // Compression reduces write throughput; see #3973.
-			FrameThresh: bsupio.DefaultFrameThresh,
+			FrameThresh: rows.DefaultFrameThresh,
 		}),
 		file: f,
 	}
@@ -64,7 +65,7 @@ func (f *File) Rewind(sctx *super.Context) error {
 	if f.Reader != nil {
 		f.Reader.Close()
 	}
-	f.Reader = bsupio.NewReader(sctx, bufio.NewReader(f.file))
+	f.Reader = rows.NewReader(sctx, bufio.NewReader(f.file))
 	return nil
 }
 
