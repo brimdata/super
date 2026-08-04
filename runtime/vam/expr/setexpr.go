@@ -7,12 +7,13 @@ import (
 )
 
 type setExpr struct {
-	sctx  *super.Context
-	elems []ListElem
+	sctx   *super.Context
+	defuse *Defuse
+	elems  []ListElem
 }
 
 func NewSetExpr(sctx *super.Context, elems []ListElem) Evaluator {
-	return &setExpr{sctx, elems}
+	return &setExpr{sctx, NewDefuse(sctx), elems}
 }
 
 func (s *setExpr) Eval(this vector.Any) vector.Any {
@@ -24,13 +25,15 @@ func (s *setExpr) Eval(this vector.Any) vector.Any {
 	}
 	var vecs []vector.Any
 	for _, e := range s.elems {
+		var vec vector.Any
 		if e.Spread != nil {
-			vecs = append(vecs, e.Spread.Eval(this))
+			vec = s.defuse.Eval(e.Spread.Eval(this))
 		} else {
-			vecs = append(vecs, vector.AddNoRip(e.Value.Eval(this)))
+			vec = vector.AddNoRip(s.defuse.Eval(e.Value.Eval(this)))
 		}
+		vecs = append(vecs, vec)
 	}
-	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, s.eval, vecs...)
+	return vector.Apply(vector.ApplyRipUnions, s.eval, vecs...)
 }
 
 func (a *setExpr) eval(in ...vector.Any) vector.Any {

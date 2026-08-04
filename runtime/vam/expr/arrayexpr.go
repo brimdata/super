@@ -14,14 +14,16 @@ type ListElem struct {
 }
 
 type ArrayExpr struct {
-	elems []ListElem
-	sctx  *super.Context
+	elems  []ListElem
+	defuse *Defuse
+	sctx   *super.Context
 }
 
 func NewArrayExpr(sctx *super.Context, elems []ListElem) *ArrayExpr {
 	return &ArrayExpr{
-		elems: elems,
-		sctx:  sctx,
+		elems:  elems,
+		defuse: NewDefuse(sctx),
+		sctx:   sctx,
 	}
 }
 
@@ -34,13 +36,15 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 	}
 	var vecs []vector.Any
 	for _, e := range a.elems {
+		var vec vector.Any
 		if e.Spread != nil {
-			vecs = append(vecs, e.Spread.Eval(this))
+			vec = a.defuse.Eval(e.Spread.Eval(this))
 		} else {
-			vecs = append(vecs, vector.AddNoRip(e.Value.Eval(this)))
+			vec = vector.AddNoRip(a.defuse.Eval(e.Value.Eval(this)))
 		}
+		vecs = append(vecs, vec)
 	}
-	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, a.eval, vecs...)
+	return vector.Apply(vector.ApplyRipUnions, a.eval, vecs...)
 }
 
 func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
