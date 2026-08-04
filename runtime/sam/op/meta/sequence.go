@@ -8,7 +8,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/db/seekindex"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/merge"
@@ -133,14 +132,7 @@ func (s *SearchScanner) Pull(done bool) (sbuf.Batch, error) {
 			if b == nil || err != nil {
 				return nil, err
 			}
-			ranges, err := data.RangeFromBitVector(s.rctx.Context, s.pool.Storage(), s.pool.DataPath, o, b)
-			if err != nil {
-				return nil, err
-			}
-			if len(ranges) == 0 {
-				continue
-			}
-			s.scanner, err = newObjectScanner(s.rctx.Context, s.rctx.Sctx, s.pool, o, ranges, s.pushdown, s.progress)
+			s.scanner, err = newObjectScanner(s.rctx.Context, s.rctx.Sctx, s.pool, o, s.pushdown, s.progress)
 			if err != nil {
 				return nil, err
 			}
@@ -187,11 +179,7 @@ func newObjectsScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, 
 		}
 	}
 	for _, object := range objects {
-		ranges, err := data.LookupSeekRange(ctx, pool.Storage(), pool.DataPath, object, pruner)
-		if err != nil {
-			return nil, err
-		}
-		s, err := newObjectScanner(ctx, sctx, pool, object, ranges, pushdown, progress)
+		s, err := newObjectScanner(ctx, sctx, pool, object, pushdown, progress)
 		if err != nil {
 			pullersDone()
 			return nil, err
@@ -204,8 +192,8 @@ func newObjectsScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, 
 	return merge.New(ctx, pullers, db.ImportComparator(sctx, pool).Compare), nil
 }
 
-func newObjectScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, object *data.Object, ranges []seekindex.Range, pushdown sbuf.Pushdown, progress *vio.Progress) (sbuf.Puller, error) {
-	rc, err := object.NewReader(ctx, pool.Storage(), pool.DataPath, ranges)
+func newObjectScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, object *data.Object, pushdown sbuf.Pushdown, progress *vio.Progress) (sbuf.Puller, error) {
+	rc, err := object.NewReader(ctx, pool.Storage(), pool.DataPath)
 	if err != nil {
 		return nil, err
 	}

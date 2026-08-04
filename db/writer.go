@@ -143,7 +143,7 @@ func (w *Writer) writeObject(object *data.Object, recs []super.Value) error {
 			return w.ctx.Err()
 		}
 	}
-	writer, err := object.NewWriter(w.ctx, w.pool.engine, w.pool.DataPath, w.pool.SortKeys.Primary(), w.pool.SeekStride)
+	writer, err := object.NewWriter(w.ctx, w.pool.engine, w.pool.DataPath, w.pool.SortKeys.Primary())
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ again:
 		w.writer, w.vectorWriter = nil, nil
 		goto again
 	}
-	if err := w.writer.WriteWithKey(key, val); err != nil {
+	if err := w.writer.Write(val); err != nil {
 		w.Abort()
 		return err
 	}
@@ -246,7 +246,7 @@ func (w *SortedWriter) Abort() {
 func (w *SortedWriter) newWriter() error {
 	o := data.NewObject()
 	var err error
-	w.writer, err = o.NewWriter(w.ctx, w.pool.engine, w.pool.DataPath, w.sortKey, w.pool.SeekStride)
+	w.writer, err = o.NewWriter(w.ctx, w.pool.engine, w.pool.DataPath, w.sortKey)
 	if err != nil {
 		return err
 	}
