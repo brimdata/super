@@ -119,7 +119,7 @@ type (
 	}
 	ThisExpr struct {
 		ast.Node
-		Path []string
+		Path Path
 	}
 	TypeExpr struct {
 		ast.Node
@@ -219,8 +219,31 @@ type FuncRef struct {
 
 func (*FuncRef) exprNode() {}
 
-func NewThis(n ast.Node, path []string) *ThisExpr {
+func NewThis(n ast.Node, path Path) *ThisExpr {
 	return &ThisExpr{Node: n, Path: path}
+}
+
+type PathElem struct {
+	ID      string
+	Nullish bool
+}
+
+type Path []PathElem
+
+func (p Path) IDs() []string {
+	path := make([]string, 0, len(p))
+	for _, elem := range p {
+		path = append(path, elem.ID)
+	}
+	return path
+}
+
+func NewPath(ids ...string) Path {
+	path := make([]PathElem, 0, len(ids))
+	for _, id := range ids {
+		path = append(path, PathElem{ID: id})
+	}
+	return path
 }
 
 func NewBinaryExpr(n ast.Node, op string, lhs, rhs Expr) *BinaryExpr {

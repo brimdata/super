@@ -175,6 +175,25 @@ func (u *Union) load() {
 	}
 }
 
+func (u *Union) IsNormalizedOption() bool {
+	var cnt int
+	for _, v := range u.Values() {
+		if v.Len() != 0 {
+			cnt++
+		}
+	}
+	return cnt <= 1
+}
+
+func (u *Union) Normalized() Any {
+	for _, v := range u.Values() {
+		if v.Len() != 0 {
+			return v
+		}
+	}
+	panic(u)
+}
+
 func Deunion(vec Any) Any {
 	if u, ok := vec.(*Union); ok {
 		return u.Dynamic()
@@ -292,6 +311,26 @@ func DeoptionWithMissing(sctx *super.Context, vec Any) Any {
 			out := Deunion(vec)
 			out = DeoptionWithMissing(sctx, out)
 			return out
+		}
+	}
+	return vec
+}
+
+func DeoptionWithError(sctx *super.Context, vec, on Any, where string) Any {
+	switch vec := vec.(type) {
+	case *None:
+		return NewWrappedError(sctx, fmt.Sprintf("illegal none value in %s", where), on)
+	case *Dynamic:
+		if hasOptionTypesOrNones(vec.Values) {
+			vecs := make([]Any, 0, len(vec.Values))
+			for _, v := range vec.Values {
+				vecs = append(vecs, DeoptionWithError(sctx, v, on, where))
+			}
+			return stitch(vec.Tags, vecs)
+		}
+	case *Union:
+		if super.IsOptionType(vec.Typ) {
+			return DeoptionWithError(sctx, vec.Dynamic(), on, where)
 		}
 	}
 	return vec

@@ -2,6 +2,8 @@ package vector
 
 import (
 	"iter"
+
+	"github.com/brimdata/super"
 )
 
 type ApplyOpt uint
@@ -10,6 +12,7 @@ const (
 	ApplyNone      ApplyOpt = 0
 	ApplyRipUnions ApplyOpt = 1 << iota
 	ApplyRipFusions
+	ApplyRipOptions
 )
 
 type NoRip struct {
@@ -29,6 +32,15 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 					vecs[k] = DefuseAny(vec.(*Fusion))
 				} else {
 					vecs[k] = Super(vec)
+				}
+			}
+		}
+	}
+	if opt&ApplyRipOptions != 0 {
+		for k, vec := range vecs {
+			if vec, ok := Under(vec).(*Union); ok {
+				if super.IsOptionType(vec.Type()) {
+					vecs[k] = preserveOptionType(vec)
 				}
 			}
 		}
@@ -145,4 +157,19 @@ func AddNoRip(vec Any) Any {
 		return NewDynamic(dynamic.Tags, vals)
 	}
 	return &NoRip{vec}
+}
+
+// Take a union vector that is an option type and break it into a dynamic composed
+// not of the union elements but of the original union type where each component contains
+// exactly one non-zero vector.
+func preserveOptionType(u *Union) Any {
+	if u.IsNormalizedOption() {
+		return u
+	}
+	d := u.Dynamic()
+	vecs := make([]Any, 0, len(d.Values))
+	for _, v := range d.Values {
+		vecs = append(vecs, NewUnionOfOne(u.Typ, v))
+	}
+	return NewDynamic(d.Tags, vecs)
 }

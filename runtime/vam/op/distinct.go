@@ -3,6 +3,7 @@ package op
 import (
 	"encoding/binary"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
@@ -10,6 +11,7 @@ import (
 )
 
 type Distinct struct {
+	sctx   *super.Context
 	parent vio.Puller
 	expr   expr.Evaluator
 
@@ -17,8 +19,8 @@ type Distinct struct {
 	key     []byte
 }
 
-func NewDistinct(parent vio.Puller, expr expr.Evaluator) *Distinct {
-	return &Distinct{parent, expr, map[string]struct{}{}, nil}
+func NewDistinct(sctx *super.Context, parent vio.Puller, expr expr.Evaluator) *Distinct {
+	return &Distinct{sctx, parent, expr, map[string]struct{}{}, nil}
 }
 
 func (d *Distinct) Pull(done bool) (vector.Any, error) {
@@ -31,6 +33,8 @@ func (d *Distinct) Pull(done bool) (vector.Any, error) {
 		var sb scode.Builder
 		var index []uint32
 		keyVec := d.expr.Eval(vec)
+		// XXX In a future PR we will propagate nones as structured errors encountered here; they shouldn't be silently hidden
+		keyVec = vector.DeoptionWithMissing(d.sctx, keyVec)
 		for i := range keyVec.Len() {
 			keyVal := vector.ValueAt(&sb, keyVec, i)
 			d.key = binary.LittleEndian.AppendUint32(d.key[:0], uint32(keyVal.Type().ID()))

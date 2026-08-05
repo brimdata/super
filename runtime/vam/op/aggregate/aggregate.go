@@ -71,7 +71,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 		}
 		var keys, vals []vector.Any
 		for _, e := range a.keyExprs {
-			keys = append(keys, a.defuse.Eval(e.Eval(vec)))
+			keys = append(keys, vector.DeoptionWithMissing(a.sctx, a.defuse.Eval(e.Eval(vec))))
 		}
 		if a.partialsIn {
 			for _, e := range a.aggExprs {
