@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
@@ -62,9 +64,13 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 			optionType := r.sctx.Option(elem.Type)
 			vec = vector.NewOptionNone(r.sctx, optionType, this.Len())
 		case *FieldElem:
+			fmt.Println("REC EXPR", vector.Format(this))
 			vec = elem.Expr.Eval(this)
 			if elem.Opt {
-				vec = vector.NewOptionSome(r.sctx, vec)
+				fmt.Println(vector.Format(vec))
+				if !vector.IsOptionValue(vec) {
+					vec = vector.NewOptionSome(r.sctx, vec)
+				}
 			}
 		case *SpreadElem:
 			vec = r.defuse.Eval(elem.Expr.Eval(this))

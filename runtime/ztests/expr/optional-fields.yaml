@@ -140,3 +140,15 @@ input: |
 
 output: |
   "foo"
+
+---
+
+spq: values {x?:a.b,y:a.b}
+
+input: |
+  {a:{b?:1}}
+  {a:{b?:_::int64}}
+
+output: |
+  {x:1,y:1}
+  {x:_::int64,y:error("missing")}
