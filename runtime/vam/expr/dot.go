@@ -43,9 +43,10 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Record:
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
+			//XXX structured error when we have ?.-operator (since ?. will be missing)
 			return vector.NewMissing(d.sctx, val.Len())
 		}
-		return vector.DeoptionWithMissing(d.sctx, val.Fields[i])
+		return vector.DeoptionWithNone(d.sctx, val.Fields[i])
 	case *vector.TypeValue:
 		var errs []uint32
 		typvals := vector.NewTypeValueEmpty()
