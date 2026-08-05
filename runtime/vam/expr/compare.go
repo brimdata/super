@@ -13,13 +13,14 @@ import (
 
 type Compare struct {
 	sctx   *super.Context
+	defuse *Defuse
 	opCode int
 	lhs    Evaluator
 	rhs    Evaluator
 }
 
 func NewCompare(sctx *super.Context, op string, lhs, rhs Evaluator) *Compare {
-	return &Compare{sctx, vector.CompareOpFromString(op), lhs, rhs}
+	return &Compare{sctx, NewDefuse(sctx), vector.CompareOpFromString(op), lhs, rhs}
 }
 
 func (c *Compare) Compare(vec0, vec1 vector.Any) vector.Any {
@@ -27,7 +28,9 @@ func (c *Compare) Compare(vec0, vec1 vector.Any) vector.Any {
 }
 
 func (c *Compare) Eval(val vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, c.eval, c.lhs.Eval(val), c.rhs.Eval(val))
+	lhs := c.defuse.Eval(c.lhs.Eval(val))
+	rhs := c.defuse.Eval(c.rhs.Eval(val))
+	return vector.Apply(vector.ApplyRipUnions, c.eval, lhs, rhs)
 }
 
 func (c *Compare) eval(vecs ...vector.Any) vector.Any {
