@@ -293,6 +293,24 @@ func DeoptionWithMissing(sctx *super.Context, vec Any) Any {
 			out = DeoptionWithMissing(sctx, out)
 			return out
 		}
+	case *Fusion:
+		if hasOptionTypesOrNones([]Any{vec.Values}) {
+			types := vec.Subtypes.Types()
+			var index []uint32
+			for id, typ := range types {
+				if typ == super.TypeNone {
+					index = append(index, uint32(id))
+				}
+			}
+			if len(index) == 0 {
+				return vec
+			}
+			missing := NewMissing(sctx, uint32(len(index)))
+			if missing.Len() == vec.Len() {
+				return missing
+			}
+			return Combine(vec, index, missing)
+		}
 	}
 	return vec
 }
