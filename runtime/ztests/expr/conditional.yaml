@@ -20,6 +20,7 @@ input: |
   type namedUnion3=int64|bool
   2::namedUnion3
   {x:1}
+  fusion({x?:1,y?:_::int64},<{x:int64}>)
   null
   null::(int64|null)
   type namedNull=null
@@ -51,6 +52,7 @@ output: |
   [error({message:"?-operator: bool predicate required",on:2}),2]::[int64|bool|error({message:string,on:int64})]
   type namedUnion3=int64|bool
   [error({message:"?-operator: bool predicate required",on:2}),2::namedUnion3]
+  [error({message:"?-operator: bool predicate required",on:{x:1}}),{x:1}]
   [error({message:"?-operator: bool predicate required",on:{x:1}}),{x:1}]
   [0,null]
   [0,null]
