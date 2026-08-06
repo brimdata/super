@@ -83,36 +83,47 @@ func listHasError(inner vector.Any, index, offsets []uint32) vector.Any {
 }
 
 type Is struct {
-	sctx *super.Context
+	sctx   *super.Context
+	defuse *expr.Defuse
 }
+
+func newIs(sctx *super.Context) *Is {
+	return &Is{sctx, expr.NewDefuse(sctx)}
+}
+
+func (i *Is) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 func (i *Is) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
-	typeVal := args[1]
+	typeVec := args[1]
 	if len(args) == 3 {
 		vec = args[1]
-		typeVal = args[2]
+		typeVec = args[2]
 	}
-	if typeVal.Type().ID() != super.IDType {
-		return vector.NewWrappedError(i.sctx, "is: type value argument expected", typeVal)
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
+		return i.call(vecs[0], vecs[1])
+	}, i.defuse.Eval(vec), i.defuse.Eval(typeVec))
+}
+
+func (i *Is) call(vec, typeVec vector.Any) vector.Any {
+	if typeVec.Type().ID() != super.IDType {
+		return vector.NewWrappedError(i.sctx, "is: type value argument expected", typeVec)
 	}
-	if _, ok := typeVal.(*vector.Const); ok {
-		typ := vector.TypeValueValue(typeVal, 0)
+	if _, ok := typeVec.(*vector.Const); ok {
+		typ := vector.TypeValueValue(typeVec, 0)
 		v := typ == vec.Type()
 		return vector.NewConstBool(v, vec.Len())
 	}
 	inTyp := vec.Type()
 	out := vector.NewFalse(vec.Len())
 	for k := range vec.Len() {
-		typ := vector.TypeValueValue(typeVal, k)
+		typ := vector.TypeValueValue(typeVec, k)
 		if typ == inTyp {
 			out.Set(k)
 		}
 	}
 	return out
 }
-
-func (i *Is) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 type IsErr struct{}
 
