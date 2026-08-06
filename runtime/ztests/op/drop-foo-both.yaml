@@ -10,8 +10,10 @@ input: |
   {foo:"foo1"}
   {foo:"foo2"}
   {foo:"foo3"}
+  fusion({foo?:_::string,bar:"bar4"},<{bar:string}>)
 
 output: |
   {bar:"bar1"}
   {bar:"bar2"}
   {bar:"bar3"}
+  {bar:"bar4"}

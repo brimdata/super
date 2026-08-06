@@ -11,8 +11,9 @@ import (
 // fields of a nested record, the nested record is dropped.  Dropper does not
 // modify non-records.
 type Dropper struct {
-	sctx *super.Context
-	fm   fieldsMap
+	sctx   *super.Context
+	defuse *Defuse
+	fm     fieldsMap
 }
 
 func NewDropper(sctx *super.Context, fields field.List) *Dropper {
@@ -20,11 +21,11 @@ func NewDropper(sctx *super.Context, fields field.List) *Dropper {
 	for _, f := range fields {
 		fm.Add(f)
 	}
-	return &Dropper{sctx, fm}
+	return &Dropper{sctx, NewDefuse(sctx), fm}
 }
 
 func (d *Dropper) Eval(vec vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyNone, d.eval, vec)
+	return vector.Apply(vector.ApplyNone, d.eval, d.defuse.Eval(vec))
 }
 
 func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
