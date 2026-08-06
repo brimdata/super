@@ -458,7 +458,7 @@ func (t *translator) dottedBaseCase(loc ast.Node, lhs *ast.IDExpr, rhs *ast.IDEx
 func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, nullish bool, inType super.Type) (sem.Expr, super.Type) {
 	typ, _ := t.checker.deref(id, inType, id.Name)
 	if lhs, ok := lhs.(*sem.ThisExpr); ok {
-		lhs.Path = append(lhs.Path, sem.PathComp{ID: id.Name, Nullish: nullish})
+		lhs.Path = append(lhs.Path, sem.PathElem{ID: id.Name, Nullish: nullish})
 		lhs.Node = loc
 		return lhs, typ
 	}
@@ -480,11 +480,11 @@ func (t *translator) idExpr(id *ast.IDExpr, lval bool, inType super.Type) (sem.E
 		}
 		return t.scope.resolve(t, id, []string{id.Name}, inType)
 	}
-	var path []string
+	var path sem.Path
 	if id.Name != "this" {
-		path = []string{id.Name}
+		path = sem.NewPath(id.Name)
 	}
-	this := sem.NewThis(id, pathToComps(path))
+	this := sem.NewThis(id, path)
 	return this, t.checker.this(id, this, inType)
 }
 
@@ -651,7 +651,7 @@ func (t *translator) stringy(loc ast.Node, typ super.Type) {
 func (t *translator) isIndexOfThis(lhs, rhs sem.Expr) *sem.ThisExpr {
 	if this, ok := lhs.(*sem.ThisExpr); ok {
 		if s, ok := t.maybeEvalString(rhs); ok {
-			this.Path = append(this.Path, sem.PathComp{ID: s})
+			this.Path = append(this.Path, sem.PathElem{ID: s})
 			return this
 		}
 	}
@@ -959,7 +959,7 @@ func (t *translator) assignment(assign *ast.Assignment, inType super.Type) (sem.
 	rhs, typ := t.expr(assign.RHS, inType)
 	var lhs sem.Expr
 	if assign.LHS == nil {
-		lhs = sem.NewThis(assign.RHS, pathToComps([]string{deriveNameFromExpr(assign.RHS)}))
+		lhs = sem.NewThis(assign.RHS, sem.NewPath(deriveNameFromExpr(assign.RHS)))
 	} else {
 		lhs = t.lval(assign.LHS)
 	}
@@ -1000,25 +1000,9 @@ func isLval(e sem.Expr) ([]string, bool) {
 		}
 		return path, ok
 	case *sem.ThisExpr:
-		return compsToPath(e.Path), true
+		return e.Path.IDs(), true
 	}
 	return nil, false
-}
-
-func compsToPath(comps []sem.PathComp) []string {
-	path := make([]string, 0, len(comps))
-	for _, comp := range comps {
-		path = append(path, comp.ID)
-	}
-	return path
-}
-
-func pathToComps(path []string) []sem.PathComp {
-	comps := make([]sem.PathComp, 0, len(path))
-	for _, id := range path {
-		comps = append(comps, sem.PathComp{ID: id})
-	}
-	return comps
 }
 
 func deriveNameFromExpr(e ast.Expr) string {
@@ -1203,7 +1187,7 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 			if !ok {
 				return nil
 			}
-			lhs.Path = append(lhs.Path, sem.PathComp{ID: id.Name, Nullish: e.Op == "?."})
+			lhs.Path = append(lhs.Path, sem.PathElem{ID: id.Name, Nullish: e.Op == "?."})
 			return lhs
 		}
 	case *ast.IndexExpr:
@@ -1215,10 +1199,10 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 		if !ok || id.Type != "string" {
 			return nil
 		}
-		this.Path = append(this.Path, sem.PathComp{ID: id.Text})
+		this.Path = append(this.Path, sem.PathElem{ID: id.Text})
 		return this
 	case *ast.IDExpr:
-		return sem.NewThis(e, pathToComps([]string{e.Name}))
+		return sem.NewThis(e, sem.NewPath(e.Name))
 	}
 	// This includes a null Expr, which can happen if the AST is missing
 	// a field or sets it to null.

@@ -471,7 +471,7 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 	case *sem.ThisExpr:
 		return &dag.ThisExpr{
 			Kind: "ThisExpr",
-			Path: compsToPath(e.Path),
+			Path: e.Path.IDs(),
 		}
 	case *sem.TypeExpr:
 		return &dag.TypeExpr{

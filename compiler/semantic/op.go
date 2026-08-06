@@ -746,7 +746,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		var fields field.List
 		for _, a := range assignments {
 			if this, ok := a.LHS.(*sem.ThisExpr); ok {
-				fields = append(fields, compsToPath(this.Path))
+				fields = append(fields, this.Path.IDs())
 			}
 		}
 		if _, err := super.NewRecordBuilder(t.sctx, fields); err != nil {
@@ -897,7 +897,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		var fields field.List
 		for _, a := range assignments {
 			if this, ok := a.LHS.(*sem.ThisExpr); ok {
-				fields = append(fields, compsToPath(this.Path))
+				fields = append(fields, this.Path.IDs())
 			}
 		}
 		if err := checkPutFields(fields); err != nil {
@@ -923,7 +923,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			lhs, lhsOk := assign.LHS.(*sem.ThisExpr)
 			rhs, rhsOk := assign.RHS.(*sem.ThisExpr)
 			if rhsOk && lhsOk {
-				if err := expr.CheckRenameField(compsToPath(lhs.Path), compsToPath(rhs.Path)); err != nil {
+				if err := expr.CheckRenameField(lhs.Path.IDs(), rhs.Path.IDs()); err != nil {
 					t.error(&fa, err)
 				}
 			}

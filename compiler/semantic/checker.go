@@ -673,7 +673,7 @@ func (c *checker) lvalsToPaths(exprs []sem.Expr) []path {
 		if !ok {
 			return nil
 		}
-		paths = append(paths, path{loc: this.Node, elems: compsToPath(this.Path)})
+		paths = append(paths, path{loc: this.Node, elems: this.Path.IDs()})
 	}
 	return paths
 }
