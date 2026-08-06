@@ -12,6 +12,7 @@ import (
 type Aggregate struct {
 	parent vio.Puller
 	sctx   *super.Context
+	defuse *expr.Defuse
 	// XX Abstract this runtime into a generic table computation.
 	// Then the generic interface can execute fast paths for simple scenarios.
 	aggs        []*expr.Aggregator
@@ -35,6 +36,7 @@ func New(parent vio.Puller, sctx *super.Context, aggNames []field.Path, aggExprs
 	return &Aggregate{
 		parent:      parent,
 		sctx:        sctx,
+		defuse:      expr.NewDefuse(sctx),
 		aggs:        aggs,
 		aggExprs:    aggExprs,
 		keyExprs:    keyExprs,
@@ -70,7 +72,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 		}
 		var keys, vals []vector.Any
 		for _, e := range a.keyExprs {
-			keys = append(keys, e.Eval(vec))
+			keys = append(keys, a.defuse.Eval(e.Eval(vec)))
 		}
 		if a.partialsIn {
 			for _, e := range a.aggExprs {

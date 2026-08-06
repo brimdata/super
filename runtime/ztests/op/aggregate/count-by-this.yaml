@@ -6,9 +6,10 @@ input: |
   {y:5}
   {y:5}
   {y:7}
+  fusion({x?:_::int64,y?:7},<{y:int64}>)
 
 output: |
   {val:{y:5},count:2}
-  {val:{y:7},count:1}
+  {val:{y:7},count:2}
   {val:{x:1::int32,s:"foo"},count:1}
   {val:{x:2::int32,s:"Bar"},count:1}
