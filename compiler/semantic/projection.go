@@ -11,12 +11,12 @@ func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr
 	ok := true
 	out := exprWalk(in, func(e sem.Expr) (sem.Expr, bool) {
 		if i := exprMatch(e, groupings); i >= 0 {
-			return sem.NewThis(e, []string{"g", groupTmp(i)}), true
+			return sem.NewThis(e, sem.NewPath("g", groupTmp(i))), true
 		}
 		switch e := e.(type) {
 		case *sem.ThisExpr:
 			if len(e.Path) >= 1 {
-				s := e.Path[0]
+				s := e.Path[0].ID
 				switch s {
 				case "in":
 					ok = false
@@ -33,7 +33,7 @@ func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr
 			// turned into AggRefs before this is called.
 			panic(e)
 		case *sem.AggRef:
-			return sem.NewThis(e.Node, []string{"g", aggTmp(e.Index)}), false
+			return sem.NewThis(e.Node, sem.NewPath("g", aggTmp(e.Index))), false
 		}
 		return e, false
 	})

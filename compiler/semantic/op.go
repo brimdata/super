@@ -983,19 +983,19 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			Aggs: []sem.Assignment{
 				{
 					Node: o,
-					LHS:  sem.NewThis(o, []string{"sample"}),
+					LHS:  sem.NewThis(o, sem.NewPath("sample")),
 					RHS:  &sem.AggFunc{Node: o, Name: "any", Expr: e},
 				},
 			},
 			Keys: []sem.Assignment{
 				{
 					Node: o,
-					LHS:  sem.NewThis(o, []string{"shape"}),
+					LHS:  sem.NewThis(o, sem.NewPath("shape")),
 					RHS:  sem.NewCall(o, "typeof", []sem.Expr{e}),
 				},
 			},
 		})
-		return append(seq, sem.NewValues(o, sem.NewThis(o, []string{"sample"}))), t.checker.unknown
+		return append(seq, sem.NewValues(o, sem.NewThis(o, sem.NewPath("sample")))), t.checker.unknown
 	case *ast.AssertOp:
 		cond, _ := t.expr(o.Expr, inType)
 		// 'assert EXPR' is equivalent to
@@ -1179,8 +1179,8 @@ func (t *translator) pipeJoinCond(cond ast.JoinCond, leftAlias, rightAlias strin
 	case *ast.JoinUsingCond:
 		var exprs []sem.Expr
 		for _, id := range cond.Fields {
-			lhs := sem.NewThis(id, []string{leftAlias, id.Name})
-			rhs := sem.NewThis(id, []string{rightAlias, id.Name})
+			lhs := sem.NewThis(id, sem.NewPath(leftAlias, id.Name))
+			rhs := sem.NewThis(id, sem.NewPath(rightAlias, id.Name))
 			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
 		}
 		return andUsingExprs(cond, exprs)
@@ -1564,12 +1564,12 @@ func (t *translator) maybeCallShortcut(call *ast.CallExpr, seq sem.Seq, inType s
 			Aggs: []sem.Assignment{
 				{
 					Node: call,
-					LHS:  sem.NewThis(f, []string{name}),
+					LHS:  sem.NewThis(f, sem.NewPath(name)),
 					RHS:  agg,
 				},
 			},
 		}
-		values := sem.NewValues(call, sem.NewThis(call, []string{name}))
+		values := sem.NewValues(call, sem.NewThis(call, sem.NewPath(name)))
 		return append(append(seq, aggregate), values), typ
 	}
 	if !function.HasBoolResult(strings.ToLower(name)) {
@@ -1589,12 +1589,12 @@ func (t *translator) aggFuncShortcut(agg *ast.AggFuncExpr, seq sem.Seq, inType s
 		Aggs: []sem.Assignment{
 			{
 				Node: aggFunc,
-				LHS:  sem.NewThis(agg, []string{name}),
+				LHS:  sem.NewThis(agg, sem.NewPath(name)),
 				RHS:  aggFunc,
 			},
 		},
 	}
-	values := sem.NewValues(agg, sem.NewThis(agg, []string{name}))
+	values := sem.NewValues(agg, sem.NewThis(agg, sem.NewPath(name)))
 	return append(seq, aggregate, values), typ
 }
 

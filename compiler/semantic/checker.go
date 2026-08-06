@@ -250,7 +250,7 @@ func (c *checker) assignments(in super.Type, assignments []sem.Assignment) []pat
 	for _, a := range assignments {
 		var path []string
 		if this, ok := a.LHS.(*sem.ThisExpr); ok {
-			path = compsToPath(this.Path)
+			path = this.Path.IDs()
 		}
 		typ := c.expr(in, a.RHS)
 		paths = append(paths, pathType{path, typ})
