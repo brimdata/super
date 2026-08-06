@@ -244,7 +244,7 @@ func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
 		return e
 	}
 	if this, ok := e.(*sem.ThisExpr); ok {
-		return sem.NewThis(n, append(this.Path, rest...))
+		return sem.NewThis(n, append(compsToPath(this.Path), rest...))
 	}
 	out := &sem.DotExpr{
 		Node: n,

@@ -224,8 +224,8 @@ type FuncRef struct {
 
 func (*FuncRef) exprNode() {}
 
-func NewThis(n ast.Node, path []string) *ThisExpr {
-	return &ThisExpr{Node: n, Path: path}
+func NewThis(n ast.Node, comps []PathComp) *ThisExpr {
+	return &ThisExpr{Node: n, Path: comps}
 }
 
 func NewBinaryExpr(n ast.Node, op string, lhs, rhs Expr) *BinaryExpr {

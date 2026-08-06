@@ -258,14 +258,6 @@ func (c *checker) assignments(in super.Type, assignments []sem.Assignment) []pat
 	return paths
 }
 
-func compsToPath(comps []sem.PathComp) []string {
-	path := make([]string, 0, len(comps))
-	for _, comp := range comps {
-		path = append(path, comp.ID)
-	}
-	return path
-}
-
 func (c *checker) sortExprs(typ super.Type, exprs []sem.SortExpr) {
 	for _, se := range exprs {
 		c.expr(typ, se.Expr)

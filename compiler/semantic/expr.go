@@ -426,38 +426,39 @@ func (t *translator) dot(e *ast.BinaryExpr, inType super.Type) (sem.Expr, super.
 		t.error(e, errors.New("RHS of dot operator is not an identifier"))
 		return badExpr, badType
 	}
+	nullish := e.Op == "?."
 	if lhs, ok := e.LHS.(*ast.IDExpr); ok {
 		// Check for plain-ID this (not double quoted) and resolve accordingly.
 		if lhs.Name == "this" && t.scope.sql != nil {
 			this, typ := t.scope.resolveThis(t, lhs, inType)
-			return t.deref(e, this, id, typ)
+			return t.deref(e, this, id, nullish, typ)
 		}
-		return t.dottedBaseCase(e, lhs, id, inType)
+		return t.dottedBaseCase(e, lhs, id, nullish, inType)
 	}
 	// Handle SQL double-quoted IDs without checking for this.
 	if lhs, ok := e.LHS.(*ast.DoubleQuoteExpr); ok && t.scope.sql != nil {
 		lhsID := &ast.IDExpr{ID: ast.ID{Name: lhs.Text, Loc: lhs.Loc}}
-		return t.dottedBaseCase(e, lhsID, id, inType)
+		return t.dottedBaseCase(e, lhsID, id, nullish, inType)
 	}
 	lhs, typ := t.expr(e.LHS, inType)
-	return t.deref(e, lhs, id, typ)
+	return t.deref(e, lhs, id, nullish, typ)
 }
 
-func (t *translator) dottedBaseCase(loc ast.Node, lhs *ast.IDExpr, rhs *ast.IDExpr, inType super.Type) (sem.Expr, super.Type) {
+func (t *translator) dottedBaseCase(loc ast.Node, lhs *ast.IDExpr, rhs *ast.IDExpr, nullish bool, inType super.Type) (sem.Expr, super.Type) {
 	if e, typ := t.idExpand(lhs, false, inType); e != nil {
-		return t.deref(loc, e, rhs, typ)
+		return t.deref(loc, e, rhs, nullish, typ)
 	}
 	if t.scope.sql != nil {
 		return t.scope.resolve(t, loc, []string{lhs.Name, rhs.Name}, inType)
 	}
 	id, typ := t.idExpr(lhs, false, inType)
-	return t.deref(loc, id, rhs, typ)
+	return t.deref(loc, id, rhs, nullish, typ)
 }
 
-func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, inType super.Type) (sem.Expr, super.Type) {
+func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, nullish bool, inType super.Type) (sem.Expr, super.Type) {
 	typ, _ := t.checker.deref(id, inType, id.Name)
 	if lhs, ok := lhs.(*sem.ThisExpr); ok {
-		lhs.Path = append(lhs.Path, id.Name)
+		lhs.Path = append(lhs.Path, sem.PathComp{ID: id.Name, Nullish: nullish})
 		lhs.Node = loc
 		return lhs, typ
 	}
@@ -465,6 +466,7 @@ func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, inType su
 		Node: loc,
 		LHS:  lhs,
 		RHS:  id.Name,
+		//XXX nullish
 	}, typ
 }
 
@@ -482,7 +484,7 @@ func (t *translator) idExpr(id *ast.IDExpr, lval bool, inType super.Type) (sem.E
 	if id.Name != "this" {
 		path = []string{id.Name}
 	}
-	this := sem.NewThis(id, path)
+	this := sem.NewThis(id, pathToComps(path))
 	return this, t.checker.this(id, this, inType)
 }
 
@@ -649,7 +651,7 @@ func (t *translator) stringy(loc ast.Node, typ super.Type) {
 func (t *translator) isIndexOfThis(lhs, rhs sem.Expr) *sem.ThisExpr {
 	if this, ok := lhs.(*sem.ThisExpr); ok {
 		if s, ok := t.maybeEvalString(rhs); ok {
-			this.Path = append(this.Path, s)
+			this.Path = append(this.Path, sem.PathComp{ID: s})
 			return this
 		}
 	}
@@ -957,7 +959,7 @@ func (t *translator) assignment(assign *ast.Assignment, inType super.Type) (sem.
 	rhs, typ := t.expr(assign.RHS, inType)
 	var lhs sem.Expr
 	if assign.LHS == nil {
-		lhs = sem.NewThis(assign.RHS, []string{deriveNameFromExpr(assign.RHS)})
+		lhs = sem.NewThis(assign.RHS, pathToComps([]string{deriveNameFromExpr(assign.RHS)}))
 	} else {
 		lhs = t.lval(assign.LHS)
 	}
@@ -998,9 +1000,25 @@ func isLval(e sem.Expr) ([]string, bool) {
 		}
 		return path, ok
 	case *sem.ThisExpr:
-		return e.Path, true
+		return compsToPath(e.Path), true
 	}
 	return nil, false
+}
+
+func compsToPath(comps []sem.PathComp) []string {
+	path := make([]string, 0, len(comps))
+	for _, comp := range comps {
+		path = append(path, comp.ID)
+	}
+	return path
+}
+
+func pathToComps(path []string) []sem.PathComp {
+	comps := make([]sem.PathComp, 0, len(path))
+	for _, id := range path {
+		comps = append(comps, sem.PathComp{ID: id})
+	}
+	return comps
 }
 
 func deriveNameFromExpr(e ast.Expr) string {
@@ -1176,7 +1194,7 @@ func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, filter ast.E
 func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 	switch e := e.(type) {
 	case *ast.BinaryExpr:
-		if e.Op == "." {
+		if e.Op == "." || e.Op == "?." {
 			lhs := DotExprToFieldPath(e.LHS)
 			if lhs == nil {
 				return nil
@@ -1185,7 +1203,7 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 			if !ok {
 				return nil
 			}
-			lhs.Path = append(lhs.Path, id.Name)
+			lhs.Path = append(lhs.Path, sem.PathComp{ID: id.Name, Nullish: e.Op == "?."})
 			return lhs
 		}
 	case *ast.IndexExpr:
@@ -1197,10 +1215,10 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 		if !ok || id.Type != "string" {
 			return nil
 		}
-		this.Path = append(this.Path, id.Text)
+		this.Path = append(this.Path, sem.PathComp{ID: id.Text})
 		return this
 	case *ast.IDExpr:
-		return sem.NewThis(e, []string{e.Name})
+		return sem.NewThis(e, pathToComps([]string{e.Name}))
 	}
 	// This includes a null Expr, which can happen if the AST is missing
 	// a field or sets it to null.

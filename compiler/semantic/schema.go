@@ -412,7 +412,7 @@ func (j *joinUsingScope) filterAppend(out []*sem.ThisExpr, rs relScope, n ast.No
 		return nil, err
 	}
 	for _, this := range exprs {
-		if _, skip := j.skip[this.Path[len(this.Path)-1]]; !skip {
+		if _, skip := j.skip[this.Path[len(this.Path)-1].ID]; !skip {
 			out = append(out, this)
 		}
 	}
