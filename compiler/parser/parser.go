@@ -21067,7 +21067,7 @@ func (p *parser) callonAssignment1() (any, error) {
 
 func (c *current) onCondExpr1(cond, opt any) (any, error) {
 	if opt != nil {
-		t, e := opt.([]any)[3], opt.([]any)[7]
+		t, e := opt.([]any)[4], opt.([]any)[8]
 		return &ast.CondExpr{
 			Kind: "CondExpr",
 			Cond: cond.(ast.Expr),

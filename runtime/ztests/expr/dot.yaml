@@ -25,7 +25,7 @@ output: |
 ---
 
 # Test deoption on dot expressions.
-spq: 'values {x:a.b}'
+spq: 'values {x?:a.b}'
 
 input: |
   {a:{b?:1}}

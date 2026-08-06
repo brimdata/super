@@ -624,6 +624,15 @@ func (t *translator) binaryExpr(e *ast.BinaryExpr, inType super.Type) (sem.Expr,
 			Tag:  "concat",
 			Args: []sem.Expr{lhs, rhs},
 		}, super.TypeString
+	case "??":
+		t.noneish(e.LHS, lhsType)
+		t.expr(e.RHS, rhsType)
+		//XXX use a dedicated none check in the runtime?
+		return &sem.CallExpr{
+			Node: e,
+			Tag:  "coalesce",
+			Args: []sem.Expr{lhs, rhs},
+		}, t.checker.unknown //XXX this should be union of LHS and RHS
 	case "not in":
 		t.checker.in(e, e.LHS, e.RHS, lhsType, rhsType)
 		return sem.NewUnaryExpr(e, "!", sem.NewBinaryExpr(e, "in", lhs, rhs)), super.TypeBool
@@ -645,6 +654,12 @@ func (t *translator) binaryExpr(e *ast.BinaryExpr, inType super.Type) (sem.Expr,
 func (t *translator) stringy(loc ast.Node, typ super.Type) {
 	if !hasString(typ) {
 		t.error(loc, errors.New("expected type string"))
+	}
+}
+
+func (t *translator) noneish(loc ast.Node, typ super.Type) {
+	if !hasNone(typ) {
+		t.error(loc, errors.New("none check used with expression that cannot be none"))
 	}
 }
 

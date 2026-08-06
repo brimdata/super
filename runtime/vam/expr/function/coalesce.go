@@ -65,7 +65,7 @@ Loop:
 
 func containsNullOrError(vec vector.Any) bool {
 	switch vec := vector.Under(vec).(type) {
-	case *vector.Null:
+	case *vector.Null, *vector.None:
 		return true
 	case *vector.Union:
 		return slices.ContainsFunc(vec.Values(), containsNullOrError)

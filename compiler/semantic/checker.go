@@ -949,6 +949,18 @@ func hasString(typ super.Type) bool {
 	return false
 }
 
+func hasNone(typ super.Type) bool {
+	switch typ := super.TypeUnder(typ).(type) {
+	case *super.TypeError:
+		return isUnknown(typ)
+	case *super.TypeOfNone:
+		return true
+	case *super.TypeUnion:
+		return slices.ContainsFunc(typ.Types, hasNone)
+	}
+	return false
+}
+
 func isUnknown(typ super.Type) bool {
 	if err, ok := super.TypeUnder(typ).(*super.TypeError); ok {
 		if rec, ok := err.Type.(*super.TypeRecord); ok {

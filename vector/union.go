@@ -301,6 +301,11 @@ func DeoptionWithMissing(sctx *super.Context, vec Any) Any {
 func DeoptionWithNone(sctx *super.Context, vec Any) Any {
 	switch vec := vec.(type) {
 	case *Dynamic:
+		//XXX check for a pure none and strip the union type
+		// XXX we should do this in the union case I think
+		if none := isPureNone(vec); none != nil {
+			return none
+		}
 		if hasOptionTypesOrNones(vec.Values) {
 			vecs := make([]Any, 0, len(vec.Values))
 			for _, v := range vec.Values {
@@ -314,6 +319,21 @@ func DeoptionWithNone(sctx *super.Context, vec Any) Any {
 		}
 	}
 	return vec
+}
+
+func isPureNone(d *Dynamic) *None {
+	var none *None
+	for _, v := range d.Values {
+		if v.Len() == 0 {
+			continue
+		}
+		if n, ok := v.(*None); ok {
+			none = n
+			continue
+		}
+		return nil
+	}
+	return none
 }
 
 func hasOptionTypesOrNones(vecs []Any) bool {

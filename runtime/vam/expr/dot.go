@@ -40,6 +40,8 @@ func (d *DotExpr) Eval(vec vector.Any) vector.Any {
 
 func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	switch val := vector.Under(vector.Super(vecs[0])).(type) {
+	case *vector.None:
+		return val
 	case *vector.Record:
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
