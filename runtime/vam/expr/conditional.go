@@ -23,7 +23,7 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 }
 
 func (c *conditional) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, c.eval, c.predicate.Eval(this), &vector.NoRip{Any: this})
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, c.eval, c.predicate.Eval(this), &vector.NoRip{Any: this})
 }
 
 func (c *conditional) eval(vecs ...vector.Any) vector.Any {
