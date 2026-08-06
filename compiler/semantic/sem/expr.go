@@ -119,7 +119,7 @@ type (
 	}
 	ThisExpr struct {
 		ast.Node
-		Path []string
+		Path []PathComp
 	}
 	TypeExpr struct {
 		ast.Node
@@ -131,6 +131,11 @@ type (
 		Operand Expr
 	}
 )
+
+type PathComp struct {
+	ID      string
+	Nullish bool
+}
 
 // Support structures embedded in Expr nodes
 

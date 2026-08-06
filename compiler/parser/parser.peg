@@ -939,7 +939,7 @@ Assignment
 Expr = CondExpr
 
 CondExpr
-  = cond:LogicalOrExpr opt:(__ "?" __ Expr __ ":" __ Expr)? {
+  = cond:NoneishExpr opt:(__ "?" !"?" __ Expr __ ":" __ Expr)? {
       if opt != nil {
         t, e := opt.([]any)[3], opt.([]any)[7]
         return &ast.CondExpr{
@@ -951,6 +951,12 @@ CondExpr
         }, nil
       }
       return cond, nil
+    }
+
+NoneishExpr
+  = first:LogicalOrExpr
+    rest:(__ "??" __ expr:LogicalOrExpr { return []any{"??", expr}, nil })* {
+        return makeBinaryExprChain(first, rest, c), nil
     }
 
 LogicalOrExpr
@@ -1084,10 +1090,10 @@ DerefExpr
         Loc: loc(c),
       }, nil
     }
-  / expr:DerefExpr "." id:DerefKey {
+  / expr:DerefExpr op:DotOp id:DerefKey {
       return &ast.BinaryExpr{
         Kind: "BinaryExpr",
-        Op: ".",
+        Op: op.(string),
         LHS: expr.(ast.Expr),
         RHS: id.(ast.Expr),
         Loc: loc(c),
@@ -1096,6 +1102,10 @@ DerefExpr
   / CaseExpr
   / Function
   / Primary
+
+DotOp
+  = "."  { return ".", nil}
+  / "?." { return "?.", nil }
 
 DerefKey
   = id:Identifier           { return &ast.IDExpr{Kind: "IDExpr", ID: *(id.(*ast.ID)) }, nil }

@@ -250,12 +250,20 @@ func (c *checker) assignments(in super.Type, assignments []sem.Assignment) []pat
 	for _, a := range assignments {
 		var path []string
 		if this, ok := a.LHS.(*sem.ThisExpr); ok {
-			path = this.Path
+			path = compsToPath(this.Path)
 		}
 		typ := c.expr(in, a.RHS)
 		paths = append(paths, pathType{path, typ})
 	}
 	return paths
+}
+
+func compsToPath(comps []sem.PathComp) []string {
+	path := make([]string, 0, len(comps))
+	for _, comp := range comps {
+		path = append(path, comp.ID)
+	}
+	return path
 }
 
 func (c *checker) sortExprs(typ super.Type, exprs []sem.SortExpr) {
@@ -448,8 +456,9 @@ func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Typ
 }
 
 func (c *checker) this(loc ast.Node, this *sem.ThisExpr, typ super.Type) super.Type {
-	for _, field := range this.Path {
-		typ, _ = c.deref(loc, typ, field)
+	for _, comp := range this.Path {
+		//XXX type check should use comp.Nullish too
+		typ, _ = c.deref(loc, typ, comp.ID)
 	}
 	return typ
 }
@@ -672,7 +681,7 @@ func (c *checker) lvalsToPaths(exprs []sem.Expr) []path {
 		if !ok {
 			return nil
 		}
-		paths = append(paths, path{loc: this.Node, elems: this.Path})
+		paths = append(paths, path{loc: this.Node, elems: compsToPath(this.Path)})
 	}
 	return paths
 }
