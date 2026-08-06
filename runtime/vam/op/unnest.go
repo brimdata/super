@@ -11,6 +11,7 @@ import (
 
 type Unnest struct {
 	sctx   *super.Context
+	defuse *expr.Defuse
 	parent vio.Puller
 	expr   expr.Evaluator
 
@@ -18,11 +19,12 @@ type Unnest struct {
 	idx uint32
 }
 
-func NewUnnest(sctx *super.Context, parent vio.Puller, expr expr.Evaluator) *Unnest {
+func NewUnnest(sctx *super.Context, parent vio.Puller, e expr.Evaluator) *Unnest {
 	return &Unnest{
 		sctx:   sctx,
+		defuse: expr.NewDefuse(sctx),
 		parent: parent,
-		expr:   expr,
+		expr:   e,
 	}
 }
 
@@ -37,7 +39,7 @@ func (u *Unnest) Pull(done bool) (vector.Any, error) {
 			if vec == nil || err != nil {
 				return nil, err
 			}
-			u.vec = u.expr.Eval(vec)
+			u.vec = u.defuse.Eval(u.expr.Eval(vec))
 			u.idx = 0
 		}
 		out := u.flatten(u.vec, u.idx)
@@ -51,8 +53,6 @@ func (u *Unnest) Pull(done bool) (vector.Any, error) {
 
 func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 	switch vec := vector.Under(vec).(type) {
-	case *vector.Fusion:
-		return u.flatten(vec.Values, slot)
 	case *vector.Dynamic:
 		return u.flatten(vec.Values[vec.Tags[slot]], vec.ForwardTagMap()[slot])
 	case *vector.View:

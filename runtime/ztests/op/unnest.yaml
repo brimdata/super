@@ -10,8 +10,6 @@ input: |
   fusion([null,1,"a"],<[int64|string|null]>)
   null
 
-output-flags: -fusion
-
 output: |
   1
   2
@@ -25,7 +23,7 @@ output: |
   type foo=int64
   10::foo
   11::foo
-  fusion(12::(int64|string),<int64>)
+  12
   "13"
   null
   1
@@ -46,3 +44,17 @@ output: |
   12
   22
   32
+
+---
+
+# Unnest on fusion values
+spq: unnest this
+
+input: |
+  fusion({x:"foo",y:[1,2],z?:_::int64},<{x:string,y:[int64]}>)
+  fusion({x:"foo",y:[1,2],z?:3},<{x:string,y:[int64],z:int64}>)
+
+output: |
+  {x:"foo",y:1}
+  {x:"foo",y:2}
+  error({message:"unnest: encountered record without two fields",on:{x:"foo",y:[1,2],z:3}})
