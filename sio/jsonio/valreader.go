@@ -72,8 +72,8 @@ func (r *valReader) Next() ([]byte, error) {
 func (r *valReader) fill() error {
 	// copy rest of cursor to buf
 	cc := copy(r.buf, r.cursor)
-	n, err := r.r.Read(r.buf[cc:])
-	if errors.Is(err, io.EOF) {
+	n, err := io.ReadFull(r.r, r.buf[cc:])
+	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 		r.EOF = true
 		err = nil
 	}

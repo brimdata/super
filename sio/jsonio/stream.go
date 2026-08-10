@@ -92,12 +92,17 @@ func newBytesTable() *vector.BytesTable {
 func readBatch(r *valReader) (*vector.BytesTable, int, error) {
 	t := newBytesTable()
 	start := r.lineNumber()
+	var err error
 	for range VecBatchSize {
-		b, err := r.Next()
-		if err != nil {
-			return t, start, err
+		var b []byte
+		if b, err = r.Next(); err != nil {
+			break
 		}
 		t.Append(b)
 	}
-	return t, start, nil
+	if t.Len() == 0 {
+		bytesTablePool.Put(t)
+		t = nil
+	}
+	return t, start, err
 }
