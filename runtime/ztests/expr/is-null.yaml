@@ -6,7 +6,7 @@ input: |
   fusion("foo"::(string|null),<string>)
   null
   null::(int64|null)
-  fusion(null::(int64|null),<string>)
+  fusion(null::(int64|null),<null>)
   error("missing")
   error("foo")
 
