@@ -48,16 +48,14 @@ func (f *Fusion) Serialize(b *scode.Builder, slot uint32) {
 
 func Super(vec Any) Any {
 	if vec.Kind() == KindFusion {
-		var index []uint32
-		if view, ok := vec.(*View); ok {
-			index = view.Index
-			vec = view.Any
+		switch vec := vec.(type) {
+		case *View:
+			return Pick(Super(vec.Any), vec.Index)
+		case *Empty:
+			return vec
+		case *Fusion:
+			return vec.Values
 		}
-		vals := vec.(*Fusion).Values
-		if index != nil {
-			vals = Pick(vals, index)
-		}
-		return vals
 	}
 	return vec
 }
