@@ -34,7 +34,7 @@ input: |
   set[1,2,3]::(null|set[int64])
   "food"::(null|string)
   fusion("foo"::(string|[int64]),<string>)
-  fusion([1,2,3]::(string|[int64]),<string>)
+  fusion([1,2,3]::(string|[int64]),<[int64]>)
 
 
 output: |
