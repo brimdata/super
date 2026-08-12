@@ -73,6 +73,7 @@ input: |
   "b"::enum(b,c)
   "b"::enum(b,d)
   [{a:1},[2],set[3],map{4:4},"b"::enum(b,c)]
+  fusion([fusion(2::(int64|{a:int64}),<int64>)],<[int64]>)
 
 output: |
   true
@@ -85,6 +86,7 @@ output: |
   false
   true
   false
+  true
   true
 
 ---

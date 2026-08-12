@@ -201,17 +201,20 @@ func FlattenBool(vec vector.Any) *vector.Bool {
 }
 
 type In struct {
-	lhs Evaluator
-	rhs Evaluator
-	pw  *PredicateWalk
+	lhs    Evaluator
+	rhs    Evaluator
+	defuse *Defuse
+	pw     *PredicateWalk
 }
 
 func NewIn(sctx *super.Context, lhs, rhs Evaluator) *In {
-	return &In{lhs, rhs, NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
+	return &In{lhs, rhs, NewDefuse(sctx), NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, i.eval, i.lhs.Eval(this), i.rhs.Eval(this))
+	lhs := i.defuse.Eval(i.lhs.Eval(this))
+	rhs := i.defuse.Eval(i.rhs.Eval(this))
+	return vector.Apply(vector.ApplyRipUnions, i.eval, lhs, rhs)
 }
 
 func (i *In) eval(vecs ...vector.Any) vector.Any {
