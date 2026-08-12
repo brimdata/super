@@ -5,6 +5,7 @@ input: |
   set["foo","bar",null]
   "invalid"
   ["foo","bar"]::([string]|int64)
+  fusion(["foo","bar",null]::(string|[string|null]),<[string|null]>)
   null
 
 output: |
@@ -12,6 +13,7 @@ output: |
   set[null,"BAR","FOO"]
   error({message:"map: expected array or set value",on:"invalid"})
   ["FOO","BAR"]
+  ["FOO","BAR",null]
   null
   
 ---
