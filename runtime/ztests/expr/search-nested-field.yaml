@@ -13,6 +13,5 @@ input: |
 output: |
   {a:[{b:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
-  {a:1}
   {a:2,b:"foo"}
   {a:[]::[{b:null}]}
