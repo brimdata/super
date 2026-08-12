@@ -71,10 +71,10 @@ func containsNullOrError(vec vector.Any) bool {
 		return slices.ContainsFunc(vec.Values(), containsNullOrError)
 	case *vector.Error:
 		return true
-	case *vector.Fusion:
-		return containsNullOrError(vec.Values)
 	case *vector.Named:
 		return containsNullOrError(vec.Any)
+	case *vector.Fusion:
+		return containsNullOrError(vec.Values)
 	case *vector.Const:
 		return containsNullOrError(vec.Any)
 	case *vector.Dict:
@@ -106,6 +106,8 @@ func slotIsNullOrError(vec vector.Any, slot uint32) bool {
 		return slotIsNullOrError(vec.Values[tag], vec.ForwardTagMap()[slot])
 	case *vector.View:
 		return slotIsNullOrError(vec.Any, vec.Index[slot])
+	case *vector.Fusion:
+		return slotIsNullOrError(vec.Values, slot)
 	}
 	return false
 }
