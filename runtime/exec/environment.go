@@ -102,6 +102,13 @@ func (e *Environment) readerOpts(p sbuf.Pushdown, format string, concurrentReade
 	return o
 }
 
+// FileReaderOpts returns the options Open uses for a scan of the given format
+// so that anything reading a file ahead of the scan, like type inference, reads
+// it the same way the scan will.
+func (e *Environment) FileReaderOpts(format string) anyio.ReaderOpts {
+	return e.readerOpts(nil, format, 0)
+}
+
 func (e *Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, p sbuf.Pushdown) (vio.Puller, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {

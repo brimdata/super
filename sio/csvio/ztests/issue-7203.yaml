@@ -1,0 +1,25 @@
+script: |
+  super -s -i csv -csv.delim ';' semi.csv
+  echo // standard input
+  cat semi.csv | super -s -i csv -csv.delim ';' -
+  echo // default delimiter
+  super -s -i csv comma.csv
+
+inputs:
+  - name: semi.csv
+    data: |
+      h1;h2;h3
+      x;a,b;y
+  - name: comma.csv
+    data: |
+      h1,h2,h3
+      x,"a;b",y
+
+outputs:
+  - name: stdout
+    data: |
+      {h1:"x",h2:"a,b",h3:"y"}
+      // standard input
+      {h1:"x",h2:"a,b",h3:"y"}
+      // default delimiter
+      {h1:"x",h2:"a;b",h3:"y"}
