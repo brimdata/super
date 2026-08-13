@@ -58,8 +58,8 @@ outputs:
       ===
       {
         nameof: "data.Object",
-        min: 1::any,
-        max: 2::any,
+        min: 1,
+        max: 2,
         count: 2::uint64,
         size: 20
       }
