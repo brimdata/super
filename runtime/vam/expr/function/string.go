@@ -44,10 +44,24 @@ func (c *Concat) Call(args ...vector.Any) vector.Any {
 }
 
 type Join struct {
-	sctx *super.Context
+	sctx   *super.Context
+	defuse *expr.Defuse
 }
 
+func newJoin(sctx *super.Context) *Join {
+	return &Join{sctx, expr.NewDefuse(sctx)}
+}
+
+func (j *Join) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+
 func (j *Join) Call(args ...vector.Any) vector.Any {
+	for i, arg := range args {
+		args[i] = j.defuse.Eval(arg)
+	}
+	return vector.Apply(vector.ApplyRipUnions, j.call, args...)
+}
+
+func (j *Join) call(args ...vector.Any) vector.Any {
 	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
