@@ -114,7 +114,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "nameof":
 		f = &NameOf{sctx: sctx}
 	case "nest_dotted":
-		f = &NestDotted{sctx}
+		f = newNestDotted(sctx)
 	case "now":
 		argmax = 0
 		argmin = 0

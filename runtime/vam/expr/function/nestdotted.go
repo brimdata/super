@@ -3,14 +3,26 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 )
 
 type NestDotted struct {
-	sctx *super.Context
+	sctx   *super.Context
+	defuse *expr.Defuse
 }
 
+func newNestDotted(sctx *super.Context) *NestDotted {
+	return &NestDotted{sctx, expr.NewDefuse(sctx)}
+}
+
+func (n *NestDotted) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+
 func (n *NestDotted) Call(args ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipUnions, n.call, n.defuse.Eval(args[0]))
+}
+
+func (n *NestDotted) call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[len(args)-1])
 	if vec.Type().ID() == super.IDNull {
 		return vec

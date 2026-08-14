@@ -8,6 +8,7 @@ input: |
   null
   {"a.b":1::(int64|null)}
   {"a.b":null::(int64|null)}
+  fusion({"a.a":1,"a.b":2,"a.c"?:_::int64},<{"a.a":int64,"a.b":int64,}>)
   "foo"
 
 output: |
@@ -18,4 +19,5 @@ output: |
   null
   {a:{b:1::(int64|null)}}
   {a:{b:null::(int64|null)}}
+  {a:{a:1,b:2}}
   error({message:"nest_dotted: non-record value",on:"foo"})
