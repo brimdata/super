@@ -70,6 +70,9 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 			return vector.NewWrappedError(u.sctx, "unnest: encountered record without an array/set type for second field", vec)
 		}
 		right := u.flatten(fields[1], slot)
+		if right == nil {
+			return nil
+		}
 		lindex := make([]uint32, right.Len())
 		for i := range lindex {
 			lindex[i] = slot

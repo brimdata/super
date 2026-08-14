@@ -36,6 +36,7 @@ spq: unnest {a,b} | values a+b
 input: |
   {a:1,b:[1,2,3]}
   {a:2,b:[10,20,30]}
+  {a:1,b:[]}
 
 output: |
   2
