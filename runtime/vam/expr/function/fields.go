@@ -8,6 +8,7 @@ import (
 
 type Fields struct {
 	sctx     *super.Context
+	defuse   *expr.Defuse
 	innerTyp *super.TypeArray
 	outerTyp *super.TypeArray
 }
@@ -16,12 +17,18 @@ func NewFields(sctx *super.Context) *Fields {
 	inner := sctx.LookupTypeArray(super.TypeString)
 	return &Fields{
 		sctx:     sctx,
+		defuse:   expr.NewDefuse(sctx),
 		innerTyp: inner,
 		outerTyp: sctx.LookupTypeArray(inner),
 	}
 }
 
+func (f *Fields) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+
 func (f *Fields) Call(args ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipUnions, f.call, f.defuse.Eval(args[0]))
+}
+func (f *Fields) call(args ...vector.Any) vector.Any {
 	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
