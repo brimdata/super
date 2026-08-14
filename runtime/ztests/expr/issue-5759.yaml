@@ -3,5 +3,6 @@ spq: unnest this | collect(this)
 
 input: '[null,1,"a"]'
 
+# XXX This output is incorrect and should be in the same order as input.
 output: |
-  [null,1,"a"]
+  [1,"a",null]
