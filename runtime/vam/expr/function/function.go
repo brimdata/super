@@ -91,7 +91,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmax = 2
 		f = &Join{sctx: sctx}
 	case "kind":
-		f = &Kind{sctx: sctx}
+		f = NewKind(sctx)
 	case "ksuid":
 		argmin = 0
 		argmax = 1

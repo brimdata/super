@@ -215,14 +215,21 @@ func (e *Error) Call(args ...vector.Any) vector.Any {
 func (e *Error) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 type Kind struct {
-	sctx *super.Context
+	sctx   *super.Context
+	defuse *expr.Defuse
 }
 
 func NewKind(sctx *super.Context) *Kind {
-	return &Kind{sctx}
+	return &Kind{sctx, expr.NewDefuse(sctx)}
 }
 
+func (*Kind) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+
 func (k *Kind) Call(args ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, k.call, k.defuse.Eval(args[0]))
+}
+
+func (k *Kind) call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	switch vec.Kind() {
 	case vector.KindType:
@@ -232,14 +239,10 @@ func (k *Kind) Call(args ...vector.Any) vector.Any {
 			out.Append(typ.Kind().String())
 		}
 		return out
-	case vector.KindFusion:
-		return k.Call(vector.PushView(vec).(*vector.Fusion).Subtypes)
 	default:
 		return vector.NewConstString(vec.Type().Kind().String(), vec.Len())
 	}
 }
-
-func (*Kind) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 type Unblend struct {
 	sctx *super.Context

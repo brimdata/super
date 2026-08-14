@@ -19,6 +19,7 @@ input: |
   map{1:1,2:2}
   "heads"::enum(heads,tails)
   fusion({x?:1}::(int64|{x?:int64}),<{x:int64}>)
+  fusion(<{x:string}>::(type|{}),<type>)
 
 output: |
   {val:null,kind:"primitive"}
@@ -39,3 +40,4 @@ output: |
   {val:map{1:1,2:2},kind:"map"}
   {val:"heads"::enum(heads,tails),kind:"enum"}
   {val:{x:1},kind:"record"}
+  {val:<{x:string}>,kind:"record"}
