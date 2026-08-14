@@ -29,7 +29,7 @@ func (l *Len) Call(args ...vector.Any) vector.Any {
 		// XXX This defuse is necessary because fused records will have
 		// different lengths based on their concrete type. Ideally we handle
 		// this here without the call to defuse but for now just defuse.
-		return vector.Apply(vector.ApplyNone, l.Call, l.defuse.Eval(val))
+		return vector.Apply(vector.ApplyRipUnions, l.Call, l.defuse.Eval(val))
 	}
 	out := vector.NewIntEmpty(super.TypeInt64, val.Len())
 	switch typ := val.Type().(type) {
