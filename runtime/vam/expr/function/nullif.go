@@ -10,22 +10,27 @@ import (
 
 type NullIf struct {
 	compare *expr.Compare
+	defuse  *expr.Defuse
 }
 
 func newNullIf(sctx *super.Context) *NullIf {
-	return &NullIf{expr.NewCompare(sctx, "==", nil, nil)}
+	return &NullIf{expr.NewCompare(sctx, "==", nil, nil), expr.NewDefuse(sctx)}
 }
 
 func (n *NullIf) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 func (n *NullIf) Call(vecs ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyNone, n.call, n.defuse.Eval(vecs[0]), n.defuse.Eval(vecs[1]))
+}
+
+func (n *NullIf) call(vecs ...vector.Any) vector.Any {
 	if k := vecs[0].Kind(); k == vector.KindNull || k == vector.KindError {
 		return vecs[0]
 	}
 	if vecs[1].Kind() == vector.KindError {
 		return vecs[1]
 	}
-	bools, _ := expr.BoolMask(vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, func(vecs ...vector.Any) vector.Any {
+	bools, _ := expr.BoolMask(vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		return n.compare.Compare(vecs[0], vecs[1])
 	}, slices.Clone(vecs)...))
 	if bools.IsEmpty() {
