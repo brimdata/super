@@ -3,20 +3,28 @@ package function
 import (
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
 type flatten struct {
-	sctx *super.Context
-	fn   *samfunc.Flatten
+	sctx   *super.Context
+	defuse *expr.Defuse
+	fn     *samfunc.Flatten
 }
 
 func newFlatten(sctx *super.Context) *flatten {
-	return &flatten{sctx, samfunc.NewFlatten(sctx)}
+	return &flatten{sctx, expr.NewDefuse(sctx), samfunc.NewFlatten(sctx)}
 }
 
+func (f *flatten) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+
 func (f *flatten) Call(args ...vector.Any) vector.Any {
+	return vector.Apply(vector.ApplyRipUnions, f.call, f.defuse.Eval(args[0]))
+}
+
+func (f *flatten) call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	rtyp := super.TypeRecordOf(vec.Type())
 	if rtyp == nil {
