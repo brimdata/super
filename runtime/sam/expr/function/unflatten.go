@@ -28,7 +28,7 @@ func NewUnflatten(sctx *super.Context) *Unflatten {
 }
 
 func (u *Unflatten) Call(args []super.Value) super.Value {
-	val := args[0]
+	val := args[0].SuperDeunion()
 	array, ok := super.TypeUnder(val.Type()).(*super.TypeArray)
 	if !ok {
 		return val
@@ -67,37 +67,24 @@ func (u *Unflatten) Call(args []super.Value) super.Value {
 }
 
 func (u *Unflatten) parseElem(inner super.Type, vb scode.Bytes) (field.Path, super.Type, scode.Bytes, error) {
-	if union, ok := super.TypeUnder(inner).(*super.TypeUnion); ok {
-		inner, vb = union.Untag(vb)
-	}
-	typ := super.TypeRecordOf(inner)
+	elem := super.NewValue(inner, vb).SuperDeunion()
+	typ := super.TypeRecordOf(elem.Type())
 	if typ == nil || len(typ.Fields) != 2 {
 		return nil, nil, nil, nil
 	}
-	nkey, ok := typ.IndexOfField("key")
-	if !ok {
+	key, val := elem.Deref("key"), elem.Deref("value")
+	if key == nil || val == nil {
 		return nil, nil, nil, nil
 	}
-
-	vtyp, ok := typ.TypeOfField("value")
-	if !ok {
-		return nil, nil, nil, nil
+	key = key.SuperDeunion().Ptr()
+	if key.Type().ID() == super.IDString {
+		u.path = append(u.path[:0], super.DecodeString(key.Bytes()))
+		return u.path, val.Type(), val.Bytes(), nil
 	}
-	it := vb.Iter()
-	kbytes := it.Next()
-	vbytes := it.Next()
-	if nkey == 1 {
-		kbytes, vbytes = vbytes, kbytes
+	if a, ok := super.TypeUnder(key.Type()).(*super.TypeArray); ok && a.Type.ID() == super.IDString {
+		return u.decodeKey(key.Bytes()), val.Type(), val.Bytes(), nil
 	}
-	ktyp := typ.Fields[nkey].Type
-	if ktyp.ID() == super.IDString {
-		u.path = append(u.path[:0], super.DecodeString(kbytes))
-		return u.path, vtyp, vbytes, nil
-	}
-	if a, ok := super.TypeUnder(ktyp).(*super.TypeArray); ok && a.Type.ID() == super.IDString {
-		return u.decodeKey(kbytes), vtyp, vbytes, nil
-	}
-	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", sup.FormatType(ktyp))
+	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", sup.FormatType(key.Type()))
 }
 
 func (u *Unflatten) decodeKey(b scode.Bytes) field.Path {

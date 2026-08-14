@@ -42,6 +42,8 @@ func newUnflatten(sctx *super.Context) *unflatten {
 	return &unflatten{sctx, samfunc.NewUnflatten(sctx)}
 }
 
+func (u *unflatten) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipFusions }
+
 func (u *unflatten) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	typ := vec.Type()
