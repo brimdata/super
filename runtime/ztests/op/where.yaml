@@ -5,12 +5,14 @@ input: |
   null
   true
   true::(bool|null)
+  fusion(true::(bool|null),<bool>)
   error("divide by zero")
   error("missing")
 
 output: |
   true
   true::(bool|null)
+  true
 
 ---
 

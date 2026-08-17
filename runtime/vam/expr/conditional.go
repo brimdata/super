@@ -74,7 +74,7 @@ func (c *conditional) eval(vecs ...vector.Any) vector.Any {
 }
 
 func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap) {
-	mask = vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
+	mask = vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		return vecs[0]
 	}, mask)
 	bools := roaring.New()
