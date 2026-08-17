@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
 
@@ -29,18 +30,26 @@ func CheckForNullThenError(vecs []vector.Any) (vector.Any, bool) {
 
 type Call struct {
 	fn       Function
+	defuse   *Defuse
 	exprs    []Evaluator
 	applyOpt vector.ApplyOpt
 	args     []vector.Any
 }
 
-func NewCall(fn Function, exprs []Evaluator) *Call {
-	opt := vector.ApplyRipUnions | vector.ApplyRipFusions
+func NewCall(sctx *super.Context, fn Function, exprs []Evaluator) *Call {
+	opt := vector.ApplyRipUnions
 	if fn, ok := fn.(interface{ ApplyOpt() vector.ApplyOpt }); ok {
 		opt = fn.ApplyOpt()
 	}
+	defuse := NewDefuse(sctx)
+	if fn, ok := fn.(interface{ NoDefuse() bool }); ok {
+		if fn.NoDefuse() {
+			defuse = nil
+		}
+	}
 	return &Call{
 		fn:       fn,
+		defuse:   defuse,
 		exprs:    exprs,
 		applyOpt: opt,
 		args:     make([]vector.Any, len(exprs)),
@@ -49,7 +58,11 @@ func NewCall(fn Function, exprs []Evaluator) *Call {
 
 func (c *Call) Eval(this vector.Any) vector.Any {
 	for k, e := range c.exprs {
-		c.args[k] = e.Eval(this)
+		vec := e.Eval(this)
+		if c.defuse != nil {
+			vec = c.defuse.Eval(vec)
+		}
+		c.args[k] = vec
 	}
 	return vector.Apply(c.applyOpt, c.fn.Call, c.args...)
 }

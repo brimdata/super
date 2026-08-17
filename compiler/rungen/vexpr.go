@@ -220,7 +220,7 @@ func (b *Builder) compileVamCall(call *dag.CallExpr) (vamexpr.Evaluator, error) 
 	if _, ok := fn.(vamfunction.NeedsInput); ok || len(exprs) == 0 {
 		exprs = slices.Insert(exprs, 0, vamexpr.NewDottedExpr(b.sctx(), nil))
 	}
-	return vamexpr.NewCall(fn, exprs), nil
+	return vamexpr.NewCall(b.rctx.Sctx, fn, exprs), nil
 }
 
 func (b *Builder) compileVamUDFCall(tag string, f *dag.FuncDef) (vamexpr.Function, error) {

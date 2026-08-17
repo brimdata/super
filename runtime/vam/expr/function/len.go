@@ -5,32 +5,19 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 )
 
 type Len struct {
-	sctx   *super.Context
-	defuse *expr.Defuse
+	sctx *super.Context
 }
 
 func newLen(sctx *super.Context) *Len {
-	return &Len{
-		sctx:   sctx,
-		defuse: expr.NewDefuse(sctx),
-	}
+	return &Len{sctx: sctx}
 }
-
-func (*Len) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipUnions }
 
 func (l *Len) Call(args ...vector.Any) vector.Any {
 	val := vector.Under(args[0])
-	if val.Kind() == vector.KindFusion {
-		// XXX This defuse is necessary because fused records will have
-		// different lengths based on their concrete type. Ideally we handle
-		// this here without the call to defuse but for now just defuse.
-		return vector.Apply(vector.ApplyNone, l.Call, l.defuse.Eval(val))
-	}
 	out := vector.NewIntEmpty(super.TypeInt64, val.Len())
 	switch typ := val.Type().(type) {
 	case *super.TypeOfNull:

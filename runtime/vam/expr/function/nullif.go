@@ -1,8 +1,6 @@
 package function
 
 import (
-	"slices"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
@@ -16,7 +14,7 @@ func newNullIf(sctx *super.Context) *NullIf {
 	return &NullIf{expr.NewCompare(sctx, "==", nil, nil)}
 }
 
-func (n *NullIf) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+func (*NullIf) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 func (n *NullIf) Call(vecs ...vector.Any) vector.Any {
 	if k := vecs[0].Kind(); k == vector.KindNull || k == vector.KindError {
@@ -25,9 +23,9 @@ func (n *NullIf) Call(vecs ...vector.Any) vector.Any {
 	if vecs[1].Kind() == vector.KindError {
 		return vecs[1]
 	}
-	bools, _ := expr.BoolMask(vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, func(vecs ...vector.Any) vector.Any {
+	bools, _ := expr.BoolMask(vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
 		return n.compare.Compare(vecs[0], vecs[1])
-	}, slices.Clone(vecs)...))
+	}, vecs[0], vecs[1]))
 	if bools.IsEmpty() {
 		return vecs[0]
 	}

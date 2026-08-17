@@ -10,16 +10,14 @@ import (
 
 type caster struct {
 	caster *samFunc
-	defuse *expr.Defuse
-}
-
-func newCaster(sctx *super.Context) expr.Function {
-	fn := newSamFunc(sctx, function.NewCaster(sctx).(samexpr.Function))
-	return &caster{fn, expr.NewDefuse(sctx)}
 }
 
 func (c *caster) ApplyOpts() vector.ApplyOpt { return vector.ApplyRipUnions }
 
+func newCaster(sctx *super.Context) expr.Function {
+	return &caster{newSamFunc(sctx, function.NewCaster(sctx).(samexpr.Function))}
+}
+
 func (c *caster) Call(vecs ...vector.Any) vector.Any {
-	return c.caster.Call(c.defuse.Eval(vecs[0]), c.defuse.Eval(vecs[1]))
+	return c.caster.Call(vecs[0], vecs[1])
 }

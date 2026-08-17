@@ -24,6 +24,9 @@ type Missing struct {
 	sctx *super.Context
 }
 
+func (*Missing) NoDefuse() bool            { return true }
+func (*Missing) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipFusions | vector.ApplyRipUnions }
+
 func (m *Missing) Call(args ...vector.Any) vector.Any {
 	for _, vec := range args {
 		if vec.Kind() == vector.KindNull {

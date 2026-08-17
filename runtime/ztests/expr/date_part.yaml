@@ -34,8 +34,10 @@ input: |
   {a:"hour",b:2001-10-09T01:46:40Z::(time|null)}
   {a:"hour",b:null::(time|null)}
   {a:null,b:2001-10-09T01:46:40Z::(time|null)}
+  {a:"hour",b:fusion({x:1,y?:_::int64},<{x:int64}>)}
 
 output: |
   1
   null
   null
+  error({message:"date_part: time value required for time argument",on:{x:1}})

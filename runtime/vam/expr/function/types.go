@@ -83,15 +83,10 @@ func listHasError(inner vector.Any, index, offsets []uint32) vector.Any {
 }
 
 type Is struct {
-	sctx   *super.Context
-	defuse *expr.Defuse
+	sctx *super.Context
 }
 
-func newIs(sctx *super.Context) *Is {
-	return &Is{sctx, expr.NewDefuse(sctx)}
-}
-
-func (i *Is) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
+func (*Is) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 func (i *Is) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
@@ -100,12 +95,6 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 		vec = args[1]
 		typeVec = args[2]
 	}
-	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
-		return i.call(vecs[0], vecs[1])
-	}, i.defuse.Eval(vec), i.defuse.Eval(typeVec))
-}
-
-func (i *Is) call(vec, typeVec vector.Any) vector.Any {
 	if typeVec.Type().ID() != super.IDType {
 		return vector.NewWrappedError(i.sctx, "is: type value argument expected", typeVec)
 	}
@@ -162,20 +151,13 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 }
 
 type TypeOf struct {
-	sctx   *super.Context
-	defuse *expr.Defuse
-}
-
-func newTypeOf(sctx *super.Context) *TypeOf {
-	return &TypeOf{sctx, expr.NewDefuse(sctx)}
+	sctx *super.Context
 }
 
 func (t *TypeOf) ApplyOpt() vector.ApplyOpt { return vector.ApplyNone }
 
 func (t *TypeOf) Call(args ...vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipFusions, func(vecs ...vector.Any) vector.Any {
-		return vector.NewConstType(t.sctx, vecs[0].Type(), vecs[0].Len())
-	}, t.defuse.Eval(args[0]))
+	return vector.NewConstType(t.sctx, args[0].Type(), args[0].Len())
 }
 
 type TypeName struct {
