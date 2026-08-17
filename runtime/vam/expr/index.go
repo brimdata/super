@@ -163,7 +163,7 @@ func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	}
 	var valIndexes, errs []uint32
 	cmp := NewCompare(sctx, "==", nil, nil).eval
-	hits := vector.Apply(vector.ApplyRipUnions, cmp, vector.Pick(indexVec, pick), m.Keys)
+	hits := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, cmp, vector.Pick(indexVec, pick), m.Keys)
 	bits := FlattenBool(hits).Bits
 	for i := range vec.Len() {
 		selected := -1
