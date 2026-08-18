@@ -80,7 +80,7 @@ func NewPattern(sctx *super.Context, op string, distinct, hasarg bool) (expr.Agg
 	}
 	if distinct {
 		switch op {
-		case "avg", "collect", "count", "sum":
+		case "array_agg", "avg", "collect", "count", "sum":
 			// Distinct affects only these functions.
 			return func() expr.AggFunc {
 				return newDistinct(pattern())

@@ -2,6 +2,7 @@ script: |
   super -s -c '
     from test.sup
     | aggregate
+      array_agg(distinct key),
       avg(distinct n),
       collect(distinct key),
       count(distinct n),
@@ -20,5 +21,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {key:"a",avg:1.5,collect:["a"],count:2,sum:3}
-      {key:"b",avg:0.5,collect:["b"],count:2,sum:1}
+      {key:"a",array_agg:["a"],avg:1.5,collect:["a"],count:2,sum:3}
+      {key:"b",array_agg:["b"],avg:0.5,collect:["b"],count:2,sum:1}
