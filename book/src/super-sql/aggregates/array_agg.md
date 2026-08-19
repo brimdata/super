@@ -15,7 +15,7 @@ If the input values vary in type, the return type will be an array
 of union of the types encountered.
 
 >[!NOTE]
->_array_agg_ is like [collect](collect.md) but matches PostgreSQL in returning
+>_array_agg_ is like [collect](collect.md) but follows the SQL standard in returning
 >`null`, rather than an empty array, when no values are aggregated.
 
 ## Examples
