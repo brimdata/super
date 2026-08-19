@@ -72,9 +72,6 @@ func (s *stream) run() {
 
 func (s *stream) close() error {
 	close(s.done)
-	// drain channel
-	for range s.ch {
-	}
 	return nil
 }
 
