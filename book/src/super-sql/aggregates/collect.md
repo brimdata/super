@@ -11,12 +11,13 @@ collect(any) -> [any]
 ## Description
 
 The _collect_ aggregate function organizes its input into an array.
-If the input values vary in type, the return type will be an array
-of union of the types encountered.
+If the aggregated values vary in type, the return type will be an array
+of union of the types encountered.  If no values are aggregated, the
+return value is an empty array.
 
 >[!NOTE]
->See [array_agg](array_agg.md) for a variant that matches PostgreSQL when
->no values are aggregated.
+>See [array_agg](array_agg.md) for a variant that returns `null` when no values
+>are aggregated, following the SQL standard.
 
 ## Examples
 

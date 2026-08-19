@@ -11,12 +11,13 @@ array_agg(any) -> [any]|null
 ## Description
 
 The _array_agg_ aggregate function organizes its input into an array.
-If the input values vary in type, the return type will be an array
-of union of the types encountered.
+If the aggregated values vary in type, the return type will be an array
+of union of the types encountered.  If no values are aggregated, the
+return value is `null`.
 
 >[!NOTE]
->_array_agg_ is like [collect](collect.md) but follows the SQL standard in returning
->`null`, rather than an empty array, when no values are aggregated.
+>See [collect](collect.md) for a variant that returns an empty array when no
+>values are aggregated.  The `null` return follows the SQL standard.
 
 ## Examples
 
