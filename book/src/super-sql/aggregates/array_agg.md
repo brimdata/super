@@ -5,7 +5,7 @@ aggregate values into array
 ## Synopsis
 
 ```
-array_agg(any) -> [any]
+array_agg(any) -> [any]|null
 ```
 
 ## Description
