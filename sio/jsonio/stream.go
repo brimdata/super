@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"runtime"
 	"sync"
 
 	"github.com/brimdata/super/vector"
@@ -34,45 +33,35 @@ type result struct {
 }
 
 func (s *stream) next() (*vector.BytesTable, int, error) {
-	s.once.Do(func() {
-		s.ch = make(chan result, runtime.GOMAXPROCS(0))
-		go s.run()
-	})
+	s.once.Do(func() { go s.run() })
 	select {
-	case r, ok := <-s.ch:
-		if errors.Is(r.err, io.EOF) {
-			r.err = nil
-		}
-		if !ok || r.err != nil {
-			return nil, -1, r.err
-		}
-		return r.bytes, r.startLineNum, nil
+	case r := <-s.ch:
+		return r.bytes, r.startLineNum, r.err
 	case <-s.ctx.Done():
 		return nil, -1, s.ctx.Err()
-	case <-s.done:
-		return nil, -1, nil
 	}
 }
 
 func (s *stream) run() {
+	defer close(s.ch)
 	r := NewValReader(s.r)
 	for {
 		batch, startLineNum, err := readBatch(r)
 		select {
 		case s.ch <- result{batch, startLineNum, err}:
+			if batch == nil || err != nil {
+				return
+			}
+		case <-s.done:
+			return
 		case <-s.ctx.Done():
 			return
-		}
-		if err != nil {
-			close(s.ch)
-			break
 		}
 	}
 }
 
-func (s *stream) close() error {
+func (s *stream) close() {
 	close(s.done)
-	return nil
 }
 
 var bytesTablePool sync.Pool
@@ -100,6 +89,9 @@ func readBatch(r *valReader) (*vector.BytesTable, int, error) {
 	if t.Len() == 0 {
 		bytesTablePool.Put(t)
 		t = nil
+	}
+	if errors.Is(err, io.EOF) {
+		err = nil
 	}
 	return t, start, err
 }

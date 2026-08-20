@@ -87,7 +87,7 @@ func (r *Reader) newBuilder() jsonvec.Builder {
 
 func (r *Reader) close() error {
 	if r.hasClosed.CompareAndSwap(false, true) {
-		return r.stream.close()
+		r.stream.close()
 	}
 	return nil
 }
