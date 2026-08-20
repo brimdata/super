@@ -41,13 +41,10 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 
 type ParseSUP struct {
 	sctx *super.Context
-	sr   *strings.Reader
-	zr   *supio.Reader
 }
 
 func newParseSUP(sctx *super.Context) *ParseSUP {
-	var sr strings.Reader
-	return &ParseSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
+	return &ParseSUP{sctx}
 }
 
 func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
@@ -63,8 +60,8 @@ func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 	builder := vector.NewDynamicValueBuilder()
 	for i := range vec.Len() {
 		s := vector.StringValue(vec, i)
-		p.sr.Reset(s)
-		val, err := p.zr.Read()
+		zr := supio.NewReader(p.sctx, strings.NewReader(s))
+		val, err := zr.Read()
 		if err != nil {
 			errs = append(errs, i)
 			errMsgs.Append("parse_sup: " + err.Error())

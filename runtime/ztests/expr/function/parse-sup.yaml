@@ -2,6 +2,8 @@ spq: parse_sup(this)
 
 input: |
   "{a:1}"
+  ""
+  " "
   null
   {}
   "!"
@@ -9,5 +11,37 @@ input: |
 output: |
   {a:1}
   null
+  null
+  null
   error({message:"parse_sup: string arg required",on:{}})
   error({message:"parse_sup: line 1: syntax error",on:"!"})
+
+---
+
+spq: parse_sup(this)
+
+input: |
+  "{a:1}"
+  ","
+  "{b:2}"
+  "{c:3}"
+
+output: |
+  {a:1}
+  error({message:"parse_sup: line 1: syntax error",on:","})
+  {b:2}
+  {c:3}
+
+---
+
+spq: parse_sup(this)
+
+input: |
+  "{a:{b:1}}"
+  "{a:{b:2}]"
+  "{a:{b:3}}"
+
+output: |
+  {a:{b:1}}
+  error({message:"parse_sup: line 1: parse error: mismatched braces while parsing record type",on:"{a:{b:2}]"})
+  {a:{b:3}}

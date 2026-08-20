@@ -86,13 +86,10 @@ func (p *ParseURI) Call(args []super.Value) super.Value {
 
 type ParseSUP struct {
 	sctx *super.Context
-	sr   *strings.Reader
-	zr   *supio.Reader
 }
 
 func newParseSUP(sctx *super.Context) *ParseSUP {
-	var sr strings.Reader
-	return &ParseSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
+	return &ParseSUP{sctx}
 }
 
 func (p *ParseSUP) Call(args []super.Value) super.Value {
@@ -103,8 +100,8 @@ func (p *ParseSUP) Call(args []super.Value) super.Value {
 	if !in.IsString() {
 		return p.sctx.WrapError("parse_sup: string arg required", args[0])
 	}
-	p.sr.Reset(super.DecodeString(in.Bytes()))
-	val, err := p.zr.Read()
+	zr := supio.NewReader(p.sctx, strings.NewReader(super.DecodeString(in.Bytes())))
+	val, err := zr.Read()
 	if err != nil {
 		return p.sctx.WrapError("parse_sup: "+err.Error(), args[0])
 	}
