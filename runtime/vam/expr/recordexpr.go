@@ -64,7 +64,7 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 			optionType := r.sctx.Option(elem.Type)
 			vec = vector.NewOptionNone(r.sctx, optionType, this.Len())
 		case *FieldElem:
-			fmt.Println("REC EXPR", vector.Format(this))
+			//fmt.Println("REC EXPR", vector.Format(this))
 			vec = elem.Expr.Eval(this)
 			if elem.Opt {
 				fmt.Println(vector.Format(vec))

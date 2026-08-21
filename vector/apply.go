@@ -1,7 +1,6 @@
 package vector
 
 import (
-	"fmt"
 	"iter"
 
 	"github.com/brimdata/super"
@@ -37,9 +36,9 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	if opt&ApplyRipUnions != 0 {
 		for k, vec := range vecs {
-			fmt.Println("CHECK", Format(vec))
+			//fmt.Println("CHECK", Format(vec))
 			if vec, ok := Under(vec).(*Union); ok {
-				fmt.Println("RIP UNION")
+				//fmt.Println("RIP UNION")
 				if opt&ApplyNones != 0 {
 					vecs[k] = preserveNones(vec)
 				} else {
@@ -159,7 +158,7 @@ func ClearNoRips(vecs []Any) {
 }
 
 func preserveNones(u *Union) Any {
-	fmt.Println("PRESERVE NONES")
+	//fmt.Println("PRESERVE NONES")
 	d := u.Dynamic()
 	if !hasNone(d) {
 		return d

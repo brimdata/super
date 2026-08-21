@@ -1,8 +1,6 @@
 package expr
 
 import (
-	"fmt"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
@@ -37,9 +35,7 @@ func NewDottedExpr(sctx *super.Context, f field.Path) Evaluator {
 }
 
 func (d *DotExpr) Eval(vec vector.Any) vector.Any {
-	out := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions|vector.ApplyNones, d.eval, d.record.Eval(vec))
-	fmt.Println("EVAL OUT", vector.Format(out))
-	return out
+	return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, d.eval, d.record.Eval(vec))
 }
 
 func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
@@ -47,7 +43,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.None:
 		return val
 	case *vector.Record:
-		fmt.Println("DOT", vector.Format(val))
+		//fmt.Println("DOT", vector.Format(val))
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
 			//XXX structured error when we have ?.-operator (since ?. will be missing)
@@ -55,7 +51,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 		}
 		//out := vector.DeoptionWithNone(d.sctx, val.Fields[i])
 		out := val.Fields[i]
-		fmt.Println("DOT OUT", vector.Format(out))
+		//fmt.Println("DOT OUT", vector.Format(out))
 		return out
 	case *vector.TypeValue:
 		var errs []uint32
@@ -80,7 +76,6 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:
-		fmt.Println("DOT DEFAULT")
 		return vector.NewMissing(d.sctx, val.Len())
 	}
 }
