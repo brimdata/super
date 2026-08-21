@@ -61,9 +61,6 @@ func (d *Dropper) Eval(in super.Value) super.Value {
 	if dropType == typ {
 		return in
 	}
-	if dropType == d.emptyType {
-		return d.sctx.Quiet()
-	}
 	b := &d.builder
 	b.Reset()
 	d.recode(b, typ, in.Bytes(), dropType, d.dropMap)

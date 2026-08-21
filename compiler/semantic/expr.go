@@ -1008,14 +1008,11 @@ func deriveNameFromExpr(e ast.Expr) string {
 	case *ast.AggFuncExpr:
 		return e.Name
 	case *ast.CallExpr:
-		var name string
-		if f, ok := e.Func.(*ast.FuncNameExpr); ok {
-			name = f.Name
+		f, ok := e.Func.(*ast.FuncNameExpr)
+		if !ok {
+			return ""
 		}
-		if strings.ToLower(name) == "quiet" && len(e.Args) > 0 {
-			return deriveNameFromExpr(e.Args[0])
-		}
-		return name
+		return f.Name
 	case *ast.BinaryExpr:
 		if name, ok := dottedName(e); ok {
 			return name

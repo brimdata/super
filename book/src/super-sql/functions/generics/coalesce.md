@@ -32,7 +32,7 @@ values coalesce(null, error("missing"), error({x:"foo"}), this)
 # spq
 values coalesce(null, error({x:"foo"}), this)
 # input
-error("quiet")
+error("bar")
 # expected output
 null
 ```

@@ -31,12 +31,7 @@ func (v *Values) Pull(done bool) (vector.Any, error) {
 		}
 		vals := make([]vector.Any, 0, len(v.exprs))
 		for _, e := range v.exprs {
-			vec := e.Eval(val)
-			vec = vector.DeoptionWithMissing(v.sctx, vec)
-			vec = filterQuiet(vec)
-			if vec != nil {
-				vals = append(vals, vec)
-			}
+			vals = append(vals, vector.DeoptionWithMissing(v.sctx, e.Eval(val)))
 		}
 		if len(vals) == 1 {
 			return vals[0], nil
@@ -60,18 +55,4 @@ func interleave(vals []vector.Any) vector.Any {
 
 	}
 	return vector.NewDynamic(tags, vals)
-}
-
-func filterQuiet(vec vector.Any) vector.Any {
-	var filtered bool
-	mask := vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
-		mask, hasfiltered := expr.QuietMask(vecs[0])
-		filtered = filtered || hasfiltered
-		return mask
-	}, vec)
-	if !filtered {
-		return vec
-	}
-	masked, _ := applyMask(vec, mask)
-	return masked
 }

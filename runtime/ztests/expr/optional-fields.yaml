@@ -15,20 +15,6 @@ output: |
 
 ---
 
-spq: values quiet(b)
-
-input: |
-  {a:1,b?:"foo"}
-  {a:1,b?:_::string}
-  {a:1,b:1}
-  {a:1,c:1}
-
-output: |
-  "foo"
-  1
-
----
-
 spq: values flatten(this)
 
 input: |

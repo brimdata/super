@@ -6,7 +6,7 @@ script: |
   echo === expression
   super compile -C 'values (unnest a | ?b)'
   echo === function
-  super compile -C 'quiet((unnest a | ?b))'
+  super compile -C 'typeof((unnest a | ?b))'
   echo === grep
   super compile -C 'grep("regexp", (unnest a | ?b))'
 
@@ -30,7 +30,7 @@ outputs:
         | search b
       )
       === function
-      quiet((
+      typeof((
         unnest a
         | search b
       ))

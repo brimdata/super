@@ -123,18 +123,6 @@ func (h HasError) hasError(t super.Type, b scode.Bytes) bool {
 	}
 }
 
-type Quiet struct {
-	sctx *super.Context
-}
-
-func (q *Quiet) Call(args []super.Value) super.Value {
-	val := args[0]
-	if val.IsMissing() || val.IsNone() {
-		return q.sctx.Quiet()
-	}
-	return val
-}
-
 type Kind struct {
 	sctx *super.Context
 }

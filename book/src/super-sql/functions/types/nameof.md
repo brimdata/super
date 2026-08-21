@@ -30,18 +30,3 @@ type port=int16
 "port"
 error("missing")
 ```
-
----
-
-_The missing value can be ignored with quiet_
-
-```mdtest-spq
-# spq
-values quiet(nameof(this))
-# input
-type port=int16
-80::port
-80
-# expected output
-"port"
-```

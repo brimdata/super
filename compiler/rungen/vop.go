@@ -205,7 +205,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		e = vamexpr.NewDequiet(b.sctx(), e)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{e}), nil
 	case *dag.DebugOp:
 		e, err := b.compileVamExpr(o.Expr)
@@ -268,7 +267,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		e = vamexpr.NewDequiet(b.sctx(), e)
 		putter := vamexpr.NewPutter(b.sctx(), e)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{putter}), nil
 	case *dag.RenameOp:

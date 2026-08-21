@@ -143,8 +143,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 2
 		argmax = 2
 		f = &Pow{sctx: sctx}
-	case "quiet":
-		f = &Quiet{sctx: sctx}
 	case "regexp":
 		argmin, argmax = 2, 2
 		f = &Regexp{sctx: sctx}

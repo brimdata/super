@@ -37,7 +37,7 @@ func (m *Missing) Call(args ...vector.Any) vector.Any {
 	for _, vec := range args {
 		vec = vector.DeoptionWithMissing(m.sctx, vec)
 		if err, ok := vec.(*vector.Error); ok {
-			b := missingOrQuiet(err)
+			b := isMissing(err)
 			if b.IsEmpty() {
 				return err
 			}
@@ -54,7 +54,7 @@ func (m *Missing) Call(args ...vector.Any) vector.Any {
 	return vector.NewConstBool(false, args[0].Len())
 }
 
-func missingOrQuiet(verr *vector.Error) *roaring.Bitmap {
+func isMissing(verr *vector.Error) *roaring.Bitmap {
 	b := roaring.New()
 	inner := verr.Vals
 	if inner.Type() != super.TypeString {
@@ -63,14 +63,14 @@ func missingOrQuiet(verr *vector.Error) *roaring.Bitmap {
 	switch inner := inner.(type) {
 	case *vector.Const:
 		s := vector.StringValue(inner, 0)
-		if s == "missing" || s == "quiet" {
+		if s == "missing" {
 			b.AddRange(0, uint64(inner.Len()))
 		}
 	case *vector.View:
 		vec := inner.Any.(*vector.String)
 		for i := range inner.Len() {
 			s := vec.Value(inner.Index[i])
-			if s == "missing" || s == "quiet" {
+			if s == "missing" {
 				b.Add(i)
 			}
 		}
@@ -78,14 +78,14 @@ func missingOrQuiet(verr *vector.Error) *roaring.Bitmap {
 		vec := inner.Any.(*vector.String)
 		for i := range inner.Len() {
 			s := vec.Value(uint32(inner.Index[i]))
-			if s == "missing" || s == "quiet" {
+			if s == "missing" {
 				b.Add(i)
 			}
 		}
 	case *vector.String:
 		for i := range inner.Len() {
 			s := inner.Value(i)
-			if s == "missing" || s == "quiet" {
+			if s == "missing" {
 				b.Add(i)
 			}
 		}

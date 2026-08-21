@@ -21,7 +21,6 @@ input: |
   {key:"b",n:1,b:true}
   {key:"b",n:0,b:true}
   {key:"c",n:error("missing"),b:error("missing")}
-  {key:"c",n:error("quiet"),b:error("quiet")}
 
 output: |
   {key:"a",and:false,any:1,array_agg:["a"],avg:1.5,collect:["a"],count:2,dcount:2,max:2,min:1,or:true,sum:3,union:set[1,2]}

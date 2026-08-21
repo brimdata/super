@@ -92,7 +92,7 @@ but having a first-class data type to manage them all while allowing them to
 peacefully coexist with valid production data is a novel and
 useful approach that SuperSQL enables.
 
-## Missing and Quiet
+## Missing
 
 SuperDB's heterogeneous data model allows for queries
 that operate over different types of data whose structure and type
@@ -146,16 +146,6 @@ values x
 error("missing")
 ```
 
-Sometimes you want missing errors to show up and sometimes you don't.
-The [`quiet`](../functions/errors/quiet.md) function transforms missing errors into
-"quiet errors".  A quiet error is the value `error("quiet")` and is ignored
-by most operators, in particular,
-[`values`](../operators/values.md), e.g.,
-```
-values error("quiet")
-```
-produces no output.
-
 ## Examples
 
 ---
@@ -201,20 +191,6 @@ typeof(1/this)
 0
 # expected output
 <error(string)>
-```
-
----
-
-_The `quiet` function suppresses error values_
-
-```mdtest-spq
-# spq
-values quiet(x)
-# input
-{x:1}
-{y:2}
-# expected output
-1
 ```
 
 ---

@@ -7,7 +7,7 @@ import (
 )
 
 // Dropper drops one or more fields in a record.  If it drops all fields of a
-// top-level record, the record is replaced by error("quiet").  If it drops all
+// top-level record, the record is replaced by an empty record.  If it drops all
 // fields of a nested record, the nested record is dropped.  Dropper does not
 // modify non-records.
 type Dropper struct {
@@ -36,7 +36,7 @@ func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
 	if vec2, ok := d.drop(vec, d.fm); ok {
 		if vec2 == nil {
 			// Dropped all fields.
-			return vector.NewStringError(d.sctx, "quiet", vec.Len())
+			return vector.NewRecord(d.sctx.MustLookupTypeRecord(nil), nil, vec.Len())
 		}
 		return vec2
 	}

@@ -650,12 +650,6 @@ func (c *Context) Missing() Value {
 	return NewValue(c.StringTypeError(), Missing)
 }
 
-func (c *Context) Quiet() Value {
-	return NewValue(c.StringTypeError(), Quiet)
-}
-
-// batch/allocator should handle these?
-
 func (c *Context) NewErrorf(format string, args ...any) Value {
 	return NewValue(c.StringTypeError(), fmt.Appendf(nil, format, args...))
 }

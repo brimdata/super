@@ -276,13 +276,6 @@ func (v *Value) IsMissing() bool {
 	return false
 }
 
-func (v Value) IsQuiet() bool {
-	if typ, ok := v.Type().(*TypeError); ok {
-		return typ.IsQuiet(v.Bytes())
-	}
-	return false
-}
-
 // Equal reports whether p and v have the same type and the same BSUP
 // representation.
 func (v Value) Equal(p Value) bool {

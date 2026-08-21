@@ -39,8 +39,5 @@ func (a *Aggregator) Apply(sctx *super.Context, f agg.Function, this super.Value
 			return
 		}
 	}
-	v := a.expr.Eval(this)
-	if !v.IsQuiet() {
-		f.Consume(v)
-	}
+	f.Consume(a.expr.Eval(this))
 }

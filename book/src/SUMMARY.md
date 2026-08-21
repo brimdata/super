@@ -106,7 +106,6 @@
             - [has_error](super-sql/functions/errors/has_error.md)
             - [is_error](super-sql/functions/errors/is_error.md)
             - [missing](super-sql/functions/errors/missing.md)
-            - [quiet](super-sql/functions/errors/quiet.md)
         - [Generics](super-sql/functions/generics/intro.md)
             - [coalesce](super-sql/functions/generics/coalesce.md)
             - [compare](super-sql/functions/generics/compare.md)

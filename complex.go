@@ -39,7 +39,6 @@ var ErrMissing = errors.New("missing")
 // each operator has clearly defined semantics with respect to the Missing value.
 // For example, "true AND MISSING" is MISSING.
 var Missing = scode.Bytes("missing")
-var Quiet = scode.Bytes("quiet")
 
 type TypeError struct {
 	id   int
@@ -60,10 +59,6 @@ func (t *TypeError) Kind() Kind {
 
 func (t *TypeError) IsMissing(zv scode.Bytes) bool {
 	return t.Type == TypeString && bytes.Equal(zv, Missing)
-}
-
-func (t *TypeError) IsQuiet(zv scode.Bytes) bool {
-	return t.Type == TypeString && bytes.Equal(zv, Quiet)
 }
 
 type TypeEnum struct {

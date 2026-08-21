@@ -280,7 +280,7 @@ func (f *fusionRemovingReader) Read() (*super.Value, error) {
 	for {
 		val, err := f.r.Read()
 		if val != nil && err == nil {
-			if val.IsQuiet() || f.h.hasFusion(val.Type()) {
+			if f.h.hasFusion(val.Type()) {
 				continue
 			}
 		}

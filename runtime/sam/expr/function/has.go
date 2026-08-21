@@ -15,7 +15,7 @@ func (h *Has) Call(args []super.Value) super.Value {
 	}
 	for _, val := range args {
 		if val.IsError() {
-			if val.IsMissing() || val.IsQuiet() {
+			if val.IsMissing() {
 				return super.False
 			}
 			return val

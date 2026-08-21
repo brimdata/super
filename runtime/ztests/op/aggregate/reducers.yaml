@@ -5,7 +5,6 @@ input: |
   {key1:"a",key2:"y",n:2::int32}
   {key1:"b",key2:"z",n:1::int32}
   {key1:"c",key2:"0",n:error("missing")}
-  {key1:"c",key2:"1",n:error("quiet")}
 
 output: |
   {key1:"a",any:1::int32,sum:3,avg:1.5,min:1,max:2}

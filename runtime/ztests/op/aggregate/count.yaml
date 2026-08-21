@@ -12,7 +12,6 @@ input: |
   {_path:"conn",foo:"9"}
   {_path:"conn",foo:"10"}
   error("missing")
-  error("quiet")
 
 output: |
-  {count:12}
+  {count:11}

@@ -1,7 +1,6 @@
 package aggregate
 
 import (
-	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -95,8 +94,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
 	vector.ClearNoRips(keys)
 	vector.ClearNoRips(vals)
-	keys, vals, ok := removeQuietRows(keys, vals)
-	if !ok || keys[0].Len() == 0 {
+	if keys[0].Len() == 0 {
 		return
 	}
 	var keyTypes []super.Type
@@ -110,69 +108,6 @@ func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
 		a.tables[tableID] = table
 	}
 	table.update(keys, vals)
-}
-
-// removeQuietRows removes rows in which any key is error("quiet").  It returns
-// false if all rows are removed.
-func removeQuietRows(keys, vals []vector.Any) ([]vector.Any, []vector.Any, bool) {
-	if index, ok := notQuietIndex(keys...); ok {
-		if len(index) == 0 {
-			// All slots are quiet.
-			return nil, nil, false
-		}
-		for i, k := range keys {
-			keys[i] = vector.Pick(k, index)
-		}
-		for i, v := range vals {
-			vals[i] = vector.Pick(v, index)
-		}
-	}
-	return keys, vals, true
-}
-
-// notQuietIndex returns the slots that are not quiet across vecs (i.e., the
-// slot's value is not error("quiet") in any of vecs).  It returns nil, true if
-// all slots are quiet and false if no slots are quiet.
-func notQuietIndex(vecs ...vector.Any) ([]uint32, bool) {
-	rb := quietBitmap(vecs...)
-	if rb.IsEmpty() {
-		// No slots are quiet.
-		return nil, false
-	}
-	len := uint64(vecs[0].Len())
-	if rb.GetCardinality() == len {
-		// All slots are quiet.
-		return nil, true
-	}
-	rb.Flip(0, len)
-	return rb.ToArray(), true
-}
-
-// quietBitmap returns a bitmap in which the bit for each slot is set if the
-// slot's value is error("quiet") in any of vecs.
-func quietBitmap(vecs ...vector.Any) *roaring.Bitmap {
-	var rb roaring.Bitmap
-	for _, vec := range vecs {
-		errVec, ok := vec.(*vector.Error)
-		if !ok || errVec.Vals.Kind() != vector.KindString {
-			continue
-		}
-		valsVec := errVec.Vals
-		if _, ok := valsVec.(*vector.Const); ok {
-			if vector.StringValue(valsVec, 0) == string(super.Quiet) {
-				// Every slot is error("quiet").
-				rb.AddRange(0, uint64(valsVec.Len()))
-				return &rb
-			}
-			continue
-		}
-		for i := range valsVec.Len() {
-			if vector.StringValue(valsVec, i) == string(super.Quiet) {
-				rb.Add(i)
-			}
-		}
-	}
-	return &rb
 }
 
 func (a *Aggregate) newAggTable(keyTypes []super.Type) aggTable {

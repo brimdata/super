@@ -1,7 +1,7 @@
 spq: values [a,b,c]
 
 input: |
-  {a:error("missing"),b:error("quiet"),c:null}
+  {a:error("missing"),b:error(0),c:null}
   {a:[1,2],b:null,c:[3,4]}
   {a:[1,"foo"],b:[2,"bar"],c:[3,"baz"]}
   {a:set[1,2],b:null,c:set[3,4]}
@@ -13,7 +13,7 @@ input: |
   {a:0,b:1,c:fusion([2]::(null|[int64]),<[int64]>)}
 
 output: |
-  [error("missing"),error("quiet"),null]
+  [error("missing"),error(0),null]
   [[1,2],null,[3,4]]
   [[1,"foo"],[2,"bar"],[3,"baz"]]
   [set[1,2],null,set[3,4]]

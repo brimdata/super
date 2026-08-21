@@ -378,17 +378,6 @@ produces
 {val:1}
 {val:error("missing")}
 ```
-Sometimes you expect "missing" errors to occur sporadically and just want
-to ignore them, which can you easily do with the
-[quiet](../super-sql/functions/errors/quiet.md) function, e.g.,
-```mdtest-command
-echo '{s:"foo", val:1}{s:"bar"}' | super -s -c 'cut quiet(val)' -
-```
-produces
-```mdtest-output
-{val:1}
-{}
-```
 
 ### Union Types
 

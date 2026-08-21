@@ -6,7 +6,6 @@ input: |
   null
   {b:1.5}
   error("missing")
-  error("quiet")
   type foo=int64
   1::foo
   fusion(1::(int64|null),<int64>)

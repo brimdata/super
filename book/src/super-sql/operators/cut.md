@@ -31,9 +31,6 @@ simple field references, the _cut_ operation resembles the Unix shell command, e
 ```
 ... | cut a,c | ...
 ```
-If an expression results in `error("quiet")`, the corresponding field is omitted
-from the output.  This allows you to wrap expressions in a `quiet()` function
-to filter out missing errors.
 
 If an input value to cut is not a record, then cut still operates as defined
 resulting in `error("missing")` for expressions that reference fields of `this`.
@@ -70,18 +67,6 @@ cut a,d
 {a:1,b:2,c:3}
 # expected output
 {a:1,d:error("missing")}
-```
-
----
-
-_The missing fields can be ignored with quiet_
-```mdtest-spq
-# spq
-cut a:=quiet(a),d:=quiet(d)
-# input
-{a:1,b:2,c:3}
-# expected output
-{a:1}
 ```
 
 ---
