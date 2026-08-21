@@ -37,7 +37,9 @@ func NewDottedExpr(sctx *super.Context, f field.Path) Evaluator {
 }
 
 func (d *DotExpr) Eval(vec vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, d.eval, d.record.Eval(vec))
+	out := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions|vector.ApplyNones, d.eval, d.record.Eval(vec))
+	fmt.Println("EVAL OUT", vector.Format(out))
+	return out
 }
 
 func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
@@ -51,7 +53,8 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			//XXX structured error when we have ?.-operator (since ?. will be missing)
 			return vector.NewMissing(d.sctx, val.Len())
 		}
-		out := vector.DeoptionWithNone(d.sctx, val.Fields[i])
+		//out := vector.DeoptionWithNone(d.sctx, val.Fields[i])
+		out := val.Fields[i]
 		fmt.Println("DOT OUT", vector.Format(out))
 		return out
 	case *vector.TypeValue:
@@ -77,6 +80,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:
+		fmt.Println("DOT DEFAULT")
 		return vector.NewMissing(d.sctx, val.Len())
 	}
 }

@@ -297,7 +297,9 @@ func DeoptionWithMissing(sctx *super.Context, vec Any) Any {
 	return vec
 }
 
-// XXX do we need to do this?
+// XXX do we need to do this? => no, we shouldn't do this because we
+// want dot to just return the option value in its union form.  It's up to
+// the everything else that receives such values to deoption them...
 func DeoptionWithNone(sctx *super.Context, vec Any) Any {
 	switch vec := vec.(type) {
 	case *Dynamic:

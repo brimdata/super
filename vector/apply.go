@@ -1,7 +1,10 @@
 package vector
 
 import (
+	"fmt"
 	"iter"
+
+	"github.com/brimdata/super"
 )
 
 type ApplyOpt uint
@@ -10,6 +13,7 @@ const (
 	ApplyNone      ApplyOpt = 0
 	ApplyRipUnions ApplyOpt = 1 << iota
 	ApplyRipFusions
+	ApplyNones
 )
 
 type NoRip struct {
@@ -33,8 +37,14 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	if opt&ApplyRipUnions != 0 {
 		for k, vec := range vecs {
+			fmt.Println("CHECK", Format(vec))
 			if vec, ok := Under(vec).(*Union); ok {
-				vecs[k] = vec.Dynamic()
+				fmt.Println("RIP UNION")
+				if opt&ApplyNones != 0 {
+					vecs[k] = preserveNones(vec)
+				} else {
+					vecs[k] = vec.Dynamic()
+				}
 			}
 		}
 	}
@@ -146,4 +156,30 @@ func ClearNoRips(vecs []Any) {
 			vecs[i] = norip.Any
 		}
 	}
+}
+
+func preserveNones(u *Union) Any {
+	fmt.Println("PRESERVE NONES")
+	d := u.Dynamic()
+	if !hasNone(d) {
+		return d
+	}
+	vecs := make([]Any, 0, len(d.Values))
+	for _, v := range d.Values {
+		if v.Type() == super.TypeNone && v.Len() != 0 {
+			vecs = append(vecs, NewUnionOfOne(u.Typ, v))
+		} else {
+			vecs = append(vecs, v)
+		}
+	}
+	return NewDynamic(d.Tags, vecs)
+}
+
+func hasNone(d *Dynamic) bool {
+	for _, v := range d.Values {
+		if v.Type() == super.TypeNone && v.Len() != 0 {
+			return true
+		}
+	}
+	return false
 }
