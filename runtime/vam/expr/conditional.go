@@ -29,7 +29,7 @@ func (c *conditional) Eval(this vector.Any) vector.Any {
 }
 
 func (c *conditional) eval(vecs ...vector.Any) vector.Any {
-	predVec, thisVec := vecs[0], vecs[1].(*vector.NoRip).Any
+	predVec, thisVec := vecs[0], vecs[1]
 	switch predVec.Kind() {
 	case vector.KindBool:
 	case vector.KindNull:

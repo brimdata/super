@@ -37,7 +37,6 @@ func (s *setExpr) Eval(this vector.Any) vector.Any {
 }
 
 func (a *setExpr) eval(in ...vector.Any) vector.Any {
-	vector.ClearNoRips(in)
 	offsets, inner := buildList(a.sctx, a.elems, in)
 	// Dedupe list elems
 	vb := vector.NewValueBuilder(a.sctx.LookupTypeSet(inner.Type()))
