@@ -3,6 +3,7 @@ dirs:
 useGitIgnore: true
 excludedDirs:
   - node_modules
+userAgent: 'linkspector (+https://github.com/brimdata/super; docs link check)'
 
 ignorePatterns:
 
@@ -19,3 +20,8 @@ ignorePatterns:
 
 # Not crawling the following due to persistent HTTP 503 errors
   - pattern: '^https://sqlite.org'
+
+# Not crawling the following due to a Cloudflare challenge that causes HTTP
+# 429/403 errors during link checking
+# See https://github.com/zeek/zeek/issues/5819
+  - pattern: '^https://docs\.zeek\.org'
