@@ -440,7 +440,7 @@ and improved ergonomics can reside in the pipe operators, e.g.,
 are case sensitive in pipe operators,
 * complex scoping rules for table aliases and column references are required in
 relational SQL while binding from names to data in pipe operators is managed
-in a uniform and simple way as derefenced paths on [this](super-sql/intro.md#pipe-scoping),
+in a uniform and simple way as dereferenced paths on [this](super-sql/intro.md#pipe-scoping),
 * the syntactic structure of SQL clauses means all data must conform to a table
 whereas pipe operators can emit any data type desired in a varying fashion, and
 * [sum types](super-sql/types/union.md) are integral to piped data allowing mix-typed data processing

@@ -11,7 +11,7 @@ To support the client-facing SuperDB access
 implemented by the [`super db` command](../command/db.md), we are developing
 an open specification for the database format described in this document.
 
-This format is somewhat analagous the emerging
+This format is somewhat analogous to the emerging
 cloud table formats like [Iceberg](https://iceberg.apache.org/spec/),
 but differs but differs in a fundamental way: there are no tables in SuperDB.
 
@@ -26,7 +26,7 @@ to provide a universal data representation for all of these different approaches
 > aren't present in the database**
 
 Also, while we are not currently focused on building a SQL engine for the SuperDB database,
-it is most certainly possible to do so, as a Super record type is analagous to
+it is most certainly possible to do so, as a Super record type is analogous to
 a SQL table definition.  SQL tables can essentially be dynamically projected
 via a table virtualization layer built on top of the SuperDB model.
 

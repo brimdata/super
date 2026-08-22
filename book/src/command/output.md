@@ -159,7 +159,7 @@ to conform to a single type.
 Also, data fusion can sometimes involve sum types that are not
 representable in a format like Parquet.  While a bit cumbersome,
 you could write a query that adjusts the output by renaming columns
-so that heterogenous data column types are avoided.   This modified
+so that heterogeneous data column types are avoided.  This modified
 data could then be fused without sum types and output to Parquet.
 
 ## Splitting Schemas

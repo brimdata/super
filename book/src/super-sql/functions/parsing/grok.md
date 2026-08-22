@@ -80,7 +80,7 @@ the use of the `grok` function, review the tips below.
    [Logstash docs](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_custom_patterns)
    ([super/4899](https://github.com/brimdata/super/issues/4899)).
 
-   Instead use the the approach shown later in that section of the Logstash
+   Instead use the approach shown later in that section of the Logstash
    docs by including a custom pattern in the `definitions` argument, e.g.,
 
    ```mdtest-spq {data-layout="stacked"}

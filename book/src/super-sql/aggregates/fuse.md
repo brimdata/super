@@ -13,7 +13,7 @@ fuse(any) -> type
 The _fuse_ aggregate function applies [type fusion](../type-fusion.md)
 to its input and returns the fused type.  A fused type differs
 from a [blended type](blend.md) as it includes fusion types in the nested type hierarchy
-whereever type changes were made to combine types in the type fusion process.
+wherever type changes were made to combine types in the type fusion process.
 
 ## Examples
 
