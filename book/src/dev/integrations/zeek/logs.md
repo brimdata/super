@@ -4,12 +4,12 @@ SuperDB can read both of the common Zeek log formats. This section
 provides guidance for what to expect when reading logs of these formats using
 the [super](../../../command/super.md) command.
 
-[Zeek TSV](https://docs.zeek.org/en/current/log-formats.html#zeek-log-formats)
+[Zeek TSV](https://docs.zeek.org/en/current/tutorial/logs.html#zeek-log-formats)
 is Zeek's default output format for logs. This format can be read automatically
 (i.e., no `-i` command line flag is necessary to indicate the input format)
 with [super](../../../command/super.md).
 s
-The following example shows a TSV [conn.log](https://docs.zeek.org/en/current/logs/conn.html) being read via `super` and
+The following example shows a TSV [conn.log](https://docs.zeek.org/en/current/reference/logs/conn.html) being read via `super` and
 output as [Super (SUP)](../../../formats/sup.md).
 
 ## conn.log
@@ -74,7 +74,7 @@ equivalent [super-structured types](../../../formats/model.md#1-primitive-types)
 ## The Role of `_path`
 
 Zeek's `_path` field plays an important role in differentiating between its
-different [log types](https://docs.zeek.org/en/current/script-reference/log-files.html)
+different [log types](https://docs.zeek.org/en/current/reference/zeekscript/log-files.html)
 (`conn`, `dns`, etc.) For instance,
 [shaping Zeek JSON](shaping.md) relies on the value of
 the `_path` field to know which type to apply to an input JSON
