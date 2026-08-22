@@ -85,10 +85,9 @@ func (r *Reader) Pull(done bool) (vector.Any, error) {
 
 func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 	if done {
-		return nil, r.close()
+		return nil, nil
 	}
 	if err := r.ctx.Err(); err != nil {
-		r.close()
 		return nil, err
 	}
 	for {
@@ -99,16 +98,11 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 			return vec, nil
 		}
 		hdr, off, err := r.stream.next()
-		if err != nil {
-			r.close()
+		if hdr == nil || err != nil {
 			return nil, err
-		}
-		if hdr == nil {
-			return nil, r.close()
 		}
 		o, err := csup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
 		if err != nil {
-			r.close()
 			return nil, err
 		}
 		// XXX using the query context for the metadata filter unnecessarily
@@ -126,13 +120,11 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 		if r.pushdown != nil && r.pushdown.Unordered() {
 			r.vecs[n], err = vo.FetchUnordered(r.vecs[n][:0], r.sctx, proj)
 			if err != nil {
-				r.close()
 				return nil, err
 			}
 		} else {
 			vec, err := vo.Fetch(r.sctx, proj)
 			if err != nil {
-				r.close()
 				return nil, err
 			}
 			r.vecs[n] = append(r.vecs[n], vec)
@@ -152,13 +144,4 @@ func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 
 func (r *Reader) Type() (super.Type, error) {
 	return csup.FusedType(r.sctx, r.readerAt)
-}
-
-func (r *Reader) close() error {
-	if r.activeReaders.Add(-1) == 0 {
-		if closer, ok := r.readerAt.(io.Closer); ok {
-			return closer.Close()
-		}
-	}
-	return nil
 }
