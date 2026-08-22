@@ -1,0 +1,18 @@
+/*
+ * Inline code inside a hyperlink.
+ *
+ * mdbook's book.js adds the "hljs" class to every <code> element, including
+ * inline ones, and the highlight stylesheet paints that class with a grey
+ * background.  Inside a link that background stacks with the link color,
+ * giving the text two competing visual treatments.
+ *
+ * mdbook already special-cases this in its chrome.css, where
+ * ":not(pre):not(a) > .hljs" withholds the inline code color from code inside
+ * a link and "a > .hljs" applies the link color instead.  This rule finishes
+ * that job by dropping the background box as well, so a construct such as
+ * [`from`](from.md) renders as monospace in the link color, with no box.
+ */
+.content a > code.hljs {
+    background: none;
+    padding: 0;
+}

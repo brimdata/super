@@ -29,7 +29,7 @@ providing a convenient means to derive arbitrary output values as a function
 of each input value.
 
 The [`fork`](fork.md) operator copies its input to parallel
-branches of a pipeline, while the [`switch` operator](switch.md)
+branches of a pipeline, while the [`switch`](switch.md) operator
 routes each input value to only one corresponding branch
 (or drops the value) based on the switch clauses.
 
@@ -112,10 +112,10 @@ exploring data interactively as compared to a "coding style" of query writing.
 
 Shortcuts allow certain operator names to be optionally omitted when
 they can be inferred from context and are available for:
-* [aggregate](aggregate.md),
-* [put](put.md),
-* [values](values.md), and
-* [where](where.md).
+* [`aggregate`](aggregate.md),
+* [`put`](put.md),
+* [`values`](values.md), and
+* [`where`](where.md).
 
 For example, the SQL expression
 ```
@@ -129,11 +129,11 @@ but even more succinctly expressed as
 ```
 count() by type
 ```
-Here, the syntax of the [aggregate](aggregate.md) operator is unambiguous so
+Here, the syntax of the [`aggregate`](aggregate.md) operator is unambiguous so
 the `aggregate` keyword may be dropped.
 
 Similarly, an [expression](../expressions/intro.md) situated in the position
-of a pipe operator implies a [values](values.md) shortcut, e.g.,
+of a pipe operator implies a [`values`](values.md) shortcut, e.g.,
 ```
 {a:x+1,b:y-1}
 ```
@@ -146,8 +146,8 @@ values {a:x+1,b:y-1}
 > The values shortcut means SuperSQL provides a calculator experience, e.g.,
 > the command `super -c '1+1'` emits the value `2`.
 
-When the expression is Boolean-valued, however, the shortcut is [where](where.md)
-instead of [values](values.md) providing a convenient means to filter values.
+When the expression is Boolean-valued, however, the shortcut is [`where`](where.md)
+instead of [`values`](values.md) providing a convenient means to filter values.
 For example
 ```
 x >= 1
@@ -157,7 +157,7 @@ is shorthand for
 where x >= 1
 ```
 
-Finally the [put](put.md) operator can be used as a shortcut where a list
+Finally the [`put`](put.md) operator can be used as a shortcut where a list
 of [field assignments](#field-assignment) may omit the `put` keyword.
 
 For example, the operation
