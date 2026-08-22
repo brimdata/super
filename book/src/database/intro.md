@@ -4,7 +4,7 @@
 
 ## Data Pools
 
-## Commitish
+## Committish
 
 >[!NOTE]
 > While `super` and its accompanying formats
@@ -263,30 +263,30 @@ workflows, the `use` command is convenient but for automated workflows
 in scripts, it is good practice to explicitly specify the branch in each
 command invocation with the `-use` option.
 
-#### Commitish
+#### Committish
 
 Many `super db` commands operate with respect to a commit object.
 While commit objects are always referenceable by their commit ID, it is also convenient
 to refer to the commit object at the tip of a branch.
 
-The entity that represents either a commit ID or a branch is called a _commitish_.
-A commitish is always relative to the pool and has the form:
+The entity that represents either a commit ID or a branch is called a _committish_.
+A committish is always relative to the pool and has the form:
 * `<pool>@<id>` or
 * `<pool>@<branch>`
 
 where `<pool>` is a pool name or pool ID, `<id>` is a commit object ID,
 and `<branch>` is a branch name.
 
-In particular, the working branch set by the [`use` command](../command/db.md#super-db-use) is a commitish.
+In particular, the working branch set by the [`use` command](../command/db.md#super-db-use) is a committish.
 
-A commitish may be abbreviated in several ways where the missing detail is
-obtained from the working-branch commitish, e.g.,
-* `<pool>` - When just a pool name is given, then the commitish is assumed to be
+A committish may be abbreviated in several ways where the missing detail is
+obtained from the working-branch committish, e.g.,
+* `<pool>` - When just a pool name is given, then the committish is assumed to be
 `<pool>@main`.
-* `@<id>` or `<id>`- When an ID is given (optionally with the `@` prefix), then the commitish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch commitish.
-* `@<branch>` - When a branch name is given with the `@` prefix, then the commitish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch commitish.
+* `@<id>` or `<id>`- When an ID is given (optionally with the `@` prefix), then the committish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch committish.
+* `@<branch>` - When a branch name is given with the `@` prefix, then the committish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch committish.
 
-An argument to a command that takes a commit object is called a _commitish_
+An argument to a command that takes a commit object is called a _committish_
 since it can be expressed as a branch or as a commit ID.
 
 #### Pool Key
