@@ -47,7 +47,7 @@ Two edits were then performed to the configuration:
 removed to uncomment `@load packages`, which allows the JSON Streaming Logs
 package to be activated when Zeek starts.
 
-2. The file `/opt/zeek/etc/node.cfg` was edited to to change the `interface`
+2. The file `/opt/zeek/etc/node.cfg` was edited to change the `interface`
 setting to reflect the network source from which Zeek should sniff live
 traffic, which in our instance was `enX0`.
 

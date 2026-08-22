@@ -49,7 +49,7 @@ When processing mixed-type tables or non-table inputs, the effect
 of union can be achieved by simply combining pipe queries using
 [fork](../operators/fork.md).
 
-When it is desirable to have a homogenous output for such data,
+When it is desirable to have a homogeneous output for such data,
 data can be fused into one type with the [fuse](../operators/fuse.md) or
 [blend](../operators/blend.md) operators,
 which resembles the _union-by-name_ variation available in some SQL dialects.

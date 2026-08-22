@@ -109,7 +109,7 @@ frame length is compressed and has the form:
 <format><size><compressed payload>
 ```
 where
-* `<format>` is a single byte indicating the compression format of the the compressed payload,
+* `<format>` is a single byte indicating the compression format of the compressed payload,
 * `<size>` is a `uvarint` encoding the size of the uncompressed payload, and
 * `<compressed payload>` is a bytes sequence whose length equals
 the outer frame length less 1 byte for the compression format and the encoded length

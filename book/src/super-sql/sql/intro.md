@@ -191,7 +191,7 @@ part of the input scope for the `SELECT` operation in which it appears.
 While identifiers in SQL expressions typically resolve to columns in table,
 they may also refer to lexically-scoped
 [declarations](../declarations/intro.md) for constants, named queries,
-and so forth.  These bindings have a precedence higher than than relational
+and so forth.  These bindings have a precedence higher than relational
 bindings so an identifier is first resolved via
 [lexical binding](../expressions/intro.md#identifier-resolution).
 

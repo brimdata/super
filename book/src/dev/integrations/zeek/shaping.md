@@ -301,7 +301,7 @@ values nest_dotted(this)
                       case true => values _shaped
                       case false => values {_original, _shaped, _cropped}
                       | switch _error_if_cropped (
-                          case true => values error({msg: "shaper error: one ore more fields were cropped", _original, _shaped, _cropped})
+                          case true => values error({msg: "shaper error: one or more fields were cropped", _original, _shaped, _cropped})
                           case false => values _cropped
                         )
                   )

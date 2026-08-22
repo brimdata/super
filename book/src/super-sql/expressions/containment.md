@@ -1,6 +1,6 @@
 # Containment
 
-A containment expression expression tests for the existence of
+A containment expression tests for the existence of
 a value in another value and has the form
 ```
 <item> in <target>

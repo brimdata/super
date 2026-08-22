@@ -112,7 +112,7 @@ A grouped projection occurs when either or both occur:
 
 In a grouped projection, the `HAVING` clause, `ORDER BY` clause, and
 the projection may refer only to inputs that are aggregate functions
-(where the function arguments are bound to the input scope and colum
+(where the function arguments are bound to the input scope and column
 aliases) or to expressions or combination of expressions that appear
 in the `GROUP BY` clause.
 

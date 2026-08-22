@@ -617,7 +617,7 @@ super db merge -use logs@updates <branch>
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Output](options.md#output)
-* [Commmit](options.md#commit)
+* [Commit](options.md#commit)
 
 Data is merged from one branch into another with the `merge` command, e.g.,
 ```
