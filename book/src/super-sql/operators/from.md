@@ -135,11 +135,11 @@ The only allowed option for a pool is the commit argument having the form
 ```
 commit <commitsh>
 ```
-where `<commitish>` specifies a specific
+where `<committish>` specifies a specific
 commit in the pool's log thereby allowing time travel.
 
 The the commit argument may be abbreviated by appending to the pool name
-an `@` character followed by the commitish, e.g.,
+an `@` character followed by the committish, e.g.,
 ```
 from Pool (commit 36AwHUt9s8usF7pi9x3l6LOl8IB)
 ```

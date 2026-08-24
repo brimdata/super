@@ -78,14 +78,14 @@ In the case of a service endpoint, authentication may be performed with the
 > A future release of SuperDB will introduce `db connect` and `db disconnect` commands,
 > which will include optional authentication and replace `db auth`.
 
-### Commitish
+### Committish
 
 Many `super db` commands operate with respect to a commit.
 While commit objects are always referenceable by their commit ID, it is also convenient
 to refer to the commit object at the tip of a branch.
 
-The entity that represents either a commit ID or a branch is called a _commitish_.
-A commitish is always relative to the pool and has the form:
+The entity that represents either a commit ID or a branch is called a _committish_.
+A committish is always relative to the pool and has the form:
 * `<pool>@<id>` or
 * `<pool>@<branch>`
 
@@ -93,14 +93,14 @@ where `<pool>` is a pool name or pool ID, `<id>` is a commit ID,
 and `<branch>` is a branch name.
 
 In particular, the working branch set by the [use](#super-db-use) sub-command
-is a commitish.
+is a committish.
 
-A commitish may be abbreviated in several ways where the missing detail is
-obtained from the working-branch commitish, e.g.,
-* `<pool>` - When just a pool name is given, then the commitish is assumed to be
+A committish may be abbreviated in several ways where the missing detail is
+obtained from the working-branch committish, e.g.,
+* `<pool>` - When just a pool name is given, then the committish is assumed to be
 `<pool>@main`.
-* `@<id>` or `<id>`- When an ID is given (optionally with the `@` prefix), then the commitish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch commitish.
-* `@<branch>` - When a branch name is given with the `@` prefix, then the commitish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch commitish.
+* `@<id>` or `<id>`- When an ID is given (optionally with the `@` prefix), then the committish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch committish.
+* `@<branch>` - When a branch name is given with the `@` prefix, then the committish is assumed to be `<pool>@<id>` where `<pool>` is obtained from the working-branch committish.
 
 ### Sort Key
 
@@ -256,7 +256,7 @@ super db auth login|logout|method|verify
 ```
 super db branch [options] [name]
 ```
-* `-use <commitish>` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-use <committish>` commit to use, i.e., pool, pool@branch, or pool@commit
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Output](options.md#output)
@@ -345,7 +345,7 @@ A newly created pool is initialized with a branch called `main`.
 super db delete [options] <id> [<id>...]
 super db delete [options] -where <filter>
 ```
-* `-use commitish` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-use committish` commit to use, i.e., pool, pool@branch, or pool@commit
 * `-where predicate` delete by any SuperSQL predicate
 * [Global](options.md#global)
 * [Database](options.md#database)
@@ -406,7 +406,7 @@ storage path to create a new, empty database at the specified path.
 ```
 super db load [options] input [input ...]
 ```
-* `-use <commitish>` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-use <committish>` commit to use, i.e., pool, pool@branch, or pool@commit
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Input](options.md#input)
@@ -511,14 +511,14 @@ super db log -f bsup | super -c 'has(meta) | values {id,meta}' -
 ### super db log
 
 ```
-super db log [options] [commitish]
+super db log [options] [committish]
 ```
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Output](options.md#output)
 
 The `log` command, like `git log`, displays a history of the commits
-starting from any commit, expressed as a [commitish](#commitish).  If no argument is
+starting from any commit, expressed as a [committish](#committish).  If no argument is
 given, the tip of the working branch is used.
 
 Run `super db log -h` for a list of command-line options.
@@ -613,7 +613,7 @@ tasks run at the specified interval by the service process.
 super db merge -use logs@updates <branch>
 ```
 * `-f` force merge of main into a target (default "false")
-* `-use <commitish>` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-use <committish>` commit to use, i.e., pool, pool@branch, or pool@commit
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Output](options.md#output)
@@ -657,9 +657,9 @@ pool `<existing>`, which may be referenced by its ID or its previous name.
 ### super db revert
 
 ```
-super db revert commitish
+super db revert committish
 ```
-* `-use <commitish>` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-use <committish>` commit to use, i.e., pool, pool@branch, or pool@commit
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Query](options.md#query)
@@ -711,12 +711,12 @@ normally performed via the [manage](#super-db-manage) sub-command.
 ### super db use
 
 ```
-super db use [ <commitish> ]
+super db use [ <committish> ]
 ```
 * [Global](options.md#global)
 * [Database](options.md#database)
 
-The `use` command sets the working branch to the indicated commitish.
+The `use` command sets the working branch to the indicated committish.
 When run with no argument, it displays the working branch and
 [database connection](#database-connection).
 
@@ -750,10 +750,10 @@ For example,
 ```
 super db use logs
 ```
-provides a "pool-only" commitish that sets the working branch to `logs@main`.
+provides a "pool-only" committish that sets the working branch to `logs@main`.
 
 If an `@branch` or commit ID are given without a pool prefix, then the pool of
-the commitish previously in use is presumed.  For example, if you are on
+the committish previously in use is presumed.  For example, if you are on
 `logs@main` then run this command:
 ```
 super db use @test
@@ -773,7 +773,7 @@ This command stores the working branch in `$HOME/.super_head`.
 super db vacate [options] [timestamp]
 ```
 **Options**
-* `-use <commitish>` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-use <committish>` commit to use, i.e., pool, pool@branch, or pool@commit
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Output](options.md#output)
@@ -782,7 +782,7 @@ super db vacate [options] [timestamp]
 The `vacate` command truncates a pool's commit history by removing old commits.
 
 If `-use` is specified, all commits timestamped older than that of the
-given commitish will be deleted. If the optional `timestamp` argument is
+given committish will be deleted. If the optional `timestamp` argument is
 supplied, all commits older than that timestamp will be deleted. If
 neither `-use` nor `timestamp` is given, only the most recent commit in the
 history will be kept and all others deleted.
@@ -801,7 +801,7 @@ super db vacuum [ options ]
 ```
 * `-dryrun` run vacuum without deleting anything
 * `-f` do not prompt for confirmation
-* `-use <commitish>` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-use <committish>` commit to use, i.e., pool, pool@branch, or pool@commit
 * [Global](options.md#global)
 * [Database](options.md#database)
 * [Output](options.md#output)
