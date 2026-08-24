@@ -308,7 +308,9 @@ func (t *translator) fileType(path, format string) (super.Type, error) {
 	if engine == nil {
 		return t.checker.unknown, nil
 	}
-	return anyio.FileType(t.ctx, t.sctx, engine, path, anyio.ReaderOpts{Format: format}, t.env.SampleSize)
+	opts := t.env.ReaderOpts
+	opts.Format = format
+	return anyio.FileType(t.ctx, t.sctx, engine, path, opts, t.env.SampleSize)
 }
 
 func (t *translator) fromFileGlob(globLoc ast.Node, pattern string, args []ast.OpArg) sem.Op {

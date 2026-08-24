@@ -1,0 +1,14 @@
+# Read from a file so the semantic pass runs.
+script: |
+  super -s -i csv -csv.delim ';' a.csv
+
+inputs:
+  - name: a.csv
+    data: |
+      a;b;c
+      x;y,y;z
+
+outputs:
+  - name: stdout
+    data: |
+      {a:"x",b:"y,y",c:"z"}
