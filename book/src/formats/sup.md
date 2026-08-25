@@ -419,7 +419,7 @@ A relational table might look like this:
 ```
 { city: "Berkeley", state: "CA", population: 121643::uint32 }::=city_schema
 { city: "Broad Cove", state: "ME", population: 806::uint32 }::=city_schema
-{ city: "Baton Rouge", state: "LA", population: 221599::uint32 }::=city_schema
+{ city: "Sioux Falls", state: "SD", population: 192517::uint32 }::=city_schema
 ```
 The text here depicts three record values.  It defines a type called `city_schema`
 and the inferred type of the `city_schema` has the signature:
