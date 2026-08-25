@@ -6,27 +6,27 @@ import (
 	"strings"
 )
 
-type Commitish struct {
+type Committish struct {
 	Pool   string `super:"pool"`
 	Branch string `super:"branch"`
 }
 
-func ParseCommitish(commitish string) (*Commitish, error) {
-	if commitish == "" {
+func ParseCommittish(committish string) (*Committish, error) {
+	if committish == "" {
 		return nil, errors.New("empty pool and branch")
 	}
-	if strings.IndexByte(commitish, '\'') >= 0 {
+	if strings.IndexByte(committish, '\'') >= 0 {
 		return nil, errors.New("pool and branch names may not contain single quote characters")
 	}
-	if i := strings.LastIndexByte(commitish, '@'); i > -1 {
-		return &Commitish{Pool: commitish[:i], Branch: commitish[i+1:]}, nil
+	if i := strings.LastIndexByte(committish, '@'); i > -1 {
+		return &Committish{Pool: committish[:i], Branch: committish[i+1:]}, nil
 	}
-	return &Commitish{Pool: commitish}, nil
+	return &Committish{Pool: committish}, nil
 }
 
 var ErrNoPool = errors.New("no pool")
 
-func (c *Commitish) FromSpec(meta string) (string, error) {
+func (c *Committish) FromSpec(meta string) (string, error) {
 	if c.Pool == "" {
 		return "", ErrNoPool
 	}
@@ -42,10 +42,10 @@ func (c *Commitish) FromSpec(meta string) (string, error) {
 	return s, nil
 }
 
-func (c *Commitish) String() string {
+func (c *Committish) String() string {
 	return fmt.Sprintf("%s@%s", c.Pool, c.Branch)
 }
 
-func (c *Commitish) IsZero() bool {
+func (c *Committish) IsZero() bool {
 	return c.Pool == "" && c.Branch == ""
 }

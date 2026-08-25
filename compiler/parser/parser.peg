@@ -685,7 +685,7 @@ AssignmentOp
     }
 
 LoadOp
-  = LOAD _ pool:Text args:CommitishOpArgs? {
+  = LOAD _ pool:Text args:CommittishOpArgs? {
       return &ast.LoadOp{
         Kind: "LoadOp",
         Pool: pool.(*ast.Text),
@@ -790,7 +790,7 @@ SQLTableExpr
     }
 
 FromItem
-  = source:FromSource args:CommitishOpArgs? {
+  = source:FromSource args:CommittishOpArgs? {
       return &ast.FromItem{
         Source: source.(ast.FromSource),
         Args: sliceOf[ast.OpArg](args),
@@ -831,17 +831,17 @@ SimpleURL =
 TextChars
   = (IdentifierRest / "." / "/")+ { return string(c.text), nil }
 
-CommitishOpArgs
-  = __ commit:MetaCommitish? __ args:OpArgs {
+CommittishOpArgs
+  = __ commit:MetaCommittish? __ args:OpArgs {
       if commit != nil {
         args = append(commit.([]any), args.([]any)...)
       }
       return args, nil
     }
-  / __ commit:MetaCommitish { return commit, nil }
+  / __ commit:MetaCommittish { return commit, nil }
 
-MetaCommitish
-  = commit:Commitish meta:ColonName? {
+MetaCommittish
+  = commit:Committish meta:ColonName? {
       out := []any{commit}
       if meta != nil {
         out = append(out, &ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: meta.(*ast.Text).Loc})
@@ -852,7 +852,7 @@ MetaCommitish
       return []any{&ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: loc(c)}}, nil
     }
 
-Commitish
+Committish
   = "@" text:CommitText  {
       return &ast.ArgText{Kind:"ArgText", Key: "commit", Value: text.(*ast.Text), Loc: text.(*ast.Text).Loc}, nil
     }

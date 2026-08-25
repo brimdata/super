@@ -105,7 +105,7 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]vio.Puller, chans *
 	}
 }
 
-func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *dbid.Commitish) (sbuf.Puller, error) {
+func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *dbid.Committish) (sbuf.Puller, error) {
 	// Eventually the semantic analyzer + rungen will resolve the pool but
 	// for now just do this manually.
 	if !env.IsAttached() {

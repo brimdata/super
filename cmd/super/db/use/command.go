@@ -58,36 +58,36 @@ func (c *Command) Run(args []string) error {
 		}
 		return nil
 	}
-	commitish, err := dbid.ParseCommitish(args[0])
+	committish, err := dbid.ParseCommittish(args[0])
 	if err != nil {
 		return err
 	}
-	if commitish.Pool == "" {
+	if committish.Pool == "" {
 		head, err := c.poolFlags.HEAD()
 		if err != nil {
 			return errors.New("default pool unset")
 		}
-		commitish.Pool = head.Pool
+		committish.Pool = head.Pool
 	}
-	if commitish.Branch == "" {
-		commitish.Branch = "main"
+	if committish.Branch == "" {
+		committish.Branch = "main"
 	}
 	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
-	poolID, err := db.PoolID(ctx, commitish.Pool)
+	poolID, err := db.PoolID(ctx, committish.Pool)
 	if err != nil {
 		return err
 	}
-	if _, err = db.CommitObject(ctx, poolID, commitish.Branch); err != nil {
+	if _, err = db.CommitObject(ctx, poolID, committish.Branch); err != nil {
 		return err
 	}
-	if err := poolflags.WriteHead(commitish.Pool, commitish.Branch); err != nil {
+	if err := poolflags.WriteHead(committish.Pool, committish.Branch); err != nil {
 		return err
 	}
 	if !c.DBFlags.Quiet {
-		fmt.Printf("Switched to branch %q on pool %q\n", commitish.Branch, commitish.Pool)
+		fmt.Printf("Switched to branch %q on pool %q\n", committish.Branch, committish.Pool)
 	}
 	return nil
 }

@@ -37,7 +37,7 @@ func newBranch(c Config, pool *pools.Config, db dbapi.Interface, logger *zap.Log
 
 func (b *branch) run(ctx context.Context) error {
 	b.logger.Debug("compaction started")
-	head := dbid.Commitish{Pool: b.pool.Name, Branch: b.config.Branch}
+	head := dbid.Committish{Pool: b.pool.Name, Branch: b.config.Branch}
 	it, err := newObjectIterator(ctx, b.db, &head)
 	if err != nil {
 		return err

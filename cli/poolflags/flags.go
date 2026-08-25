@@ -16,12 +16,12 @@ func (l *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.StringVar(&l.defaultHead, "use", defaultHead, "commit to use, i.e., pool, pool@branch, or pool@commit")
 }
 
-func (f *Flags) HEAD() (*dbid.Commitish, error) {
+func (f *Flags) HEAD() (*dbid.Committish, error) {
 	if f.defaultHead == "" {
 		return nil, errors.New(`pool and branch are unspecified
 (specify with -use flag or "super db use" command)`)
 	}
-	c, err := dbid.ParseCommitish(f.defaultHead)
+	c, err := dbid.ParseCommittish(f.defaultHead)
 	if err != nil {
 		return nil, err
 	}
