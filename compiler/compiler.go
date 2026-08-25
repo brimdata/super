@@ -42,7 +42,7 @@ func (c *compiler) NewQuery(rctx *runtime.Context, ast *parser.AST, readers []vi
 	return CompileWithAST(rctx, ast, c.env, true, parallelism, readers)
 }
 
-func (l *compiler) NewDeleteQuery(rctx *runtime.Context, ast *parser.AST, head *dbid.Commitish) (runtime.DeleteQuery, error) {
+func (l *compiler) NewDeleteQuery(rctx *runtime.Context, ast *parser.AST, head *dbid.Committish) (runtime.DeleteQuery, error) {
 	if err := ast.ConvertToDeleteWhere(head.Pool, head.Branch); err != nil {
 		return nil, err
 	}

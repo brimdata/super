@@ -63,7 +63,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) > 0 {
 		ts, err = nano.ParseRFC3339Nano([]byte(args[0]))
 	} else {
-		ts, err = c.getTsFromCommitish(ctx, db, at)
+		ts, err = c.getTsFromCommittish(ctx, db, at)
 	}
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (c *Command) Run(args []string) error {
 	return nil
 }
 
-func (c *Command) getTsFromCommitish(ctx context.Context, db api.Interface, at *dbid.Commitish) (nano.Ts, error) {
+func (c *Command) getTsFromCommittish(ctx context.Context, db api.Interface, at *dbid.Committish) (nano.Ts, error) {
 	commit, err := api.GetCommit(ctx, db, at.Pool, at.Branch)
 	if err != nil {
 		return 0, err

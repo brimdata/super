@@ -12,7 +12,7 @@ import (
 
 type Compiler interface {
 	NewQuery(*Context, *parser.AST, []vio.Puller, int) (Query, error)
-	NewDeleteQuery(*Context, *parser.AST, *dbid.Commitish) (DeleteQuery, error)
+	NewDeleteQuery(*Context, *parser.AST, *dbid.Committish) (DeleteQuery, error)
 }
 
 type Query interface {

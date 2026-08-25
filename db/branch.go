@@ -142,11 +142,11 @@ func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parse
 		// into c.NewDeleteQuery since we have to load the snapshot later
 		// anyways. Unfortunately there's quite a few layers of plumbing needed
 		// to get this working in compiler.
-		commitish := &dbid.Commitish{
+		committish := &dbid.Committish{
 			Pool:   b.pool.Name,
 			Branch: parent.Commit.String(),
 		}
-		query, err := c.NewDeleteQuery(rctx, ast, commitish)
+		query, err := c.NewDeleteQuery(rctx, ast, committish)
 		if err != nil {
 			return nil, err
 		}
