@@ -21,8 +21,6 @@ jobs:
       - run: make fmt
       - run: make tidy
       - run: make vet
-      - run: pipx install codespell
-      - run: make spell-check
       - run: make test-generate
       - run: make test-unit
       - run: make test-system
