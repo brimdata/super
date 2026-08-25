@@ -1,0 +1,2 @@
+[codespell]
+skip = */node_modules/*,book/book/*,*.bundle.js,*/package-lock.json,book/src/tutorials/prs.json
