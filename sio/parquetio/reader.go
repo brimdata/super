@@ -15,7 +15,6 @@ import (
 	"github.com/apache/arrow-go/v18/parquet"
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
-	"github.com/apache/arrow-go/v18/parquet/schema"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/field"
@@ -84,7 +83,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 				// Trim trailing "max" or "min".
 				paths[i] = p[:len(p)-1]
 			}
-			colIndexes := columnIndexes(pr.MetaData().Schema, paths)
+			colIndexes := columnIndexes(schemaManifest, paths)
 			// Remove duplicates created above by trimming "max" and "min".
 			metadataColIndexes = slices.Compact(colIndexes)
 			for range concurrentReaders {
@@ -104,7 +103,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 		ctx:                ctx,
 		sctx:               sctx,
 		fr:                 fr,
-		colIndexes:         columnIndexes(prmd.Schema, fields),
+		colIndexes:         columnIndexes(schemaManifest, fields),
 		colIndexToField:    schemaManifest.ColIndexToField,
 		metadataColIndexes: metadataColIndexes,
 		metadataFilters:    metadataFilters,
@@ -114,12 +113,32 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 	}, nil
 }
 
-func columnIndexes(schema *schema.Schema, fields []field.Path) []int {
+func columnIndexes(sm *pqarrow.SchemaManifest, fields []field.Path) []int {
 	var indexes []int
 	for _, f := range fields {
-		if i := schema.ColumnIndexByName(f.String()); i >= 0 {
-			indexes = append(indexes, i)
+		indexes = appendColumnIndexesForField(indexes, sm.Fields, f)
+	}
+	return indexes
+}
+
+func appendColumnIndexesForField(indexes []int, sfs []pqarrow.SchemaField, f field.Path) []int {
+	for _, sf := range sfs {
+		if sf.Field.Name == f[0] {
+			if len(f) == 1 {
+				return appendColumnIndexes(indexes, &sf)
+			}
+			return appendColumnIndexesForField(indexes, sf.Children, f[1:])
 		}
+	}
+	return indexes
+}
+
+func appendColumnIndexes(indexes []int, sf *pqarrow.SchemaField) []int {
+	if sf.IsLeaf() {
+		return append(indexes, sf.ColIndex)
+	}
+	for _, sf := range sf.Children {
+		indexes = appendColumnIndexes(indexes, &sf)
 	}
 	return indexes
 }

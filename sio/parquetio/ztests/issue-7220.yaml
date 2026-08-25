@@ -1,0 +1,14 @@
+# Verify that projection pushdown works with nested logical types.
+
+script: |
+  super -f parquet -o a.parquet -
+  super -s -c 'from a.parquet | values {a,b,c}'
+
+inputs:
+  - name: stdin
+    data: &stdin |
+      {a:1,b:[2],c:map{"cc":3}}
+
+outputs:
+  - name: stdout
+    data: *stdin
