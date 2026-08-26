@@ -3,7 +3,5 @@ spq: |
   | join using (a)
   | values left
 
-input: &input |
+input: |
   {a:null}
-
-output: *input
