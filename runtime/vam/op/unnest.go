@@ -14,9 +14,6 @@ type Unnest struct {
 	defuse *expr.Defuse
 	parent vio.Puller
 	expr   expr.Evaluator
-
-	vec vector.Any
-	idx uint32
 }
 
 func NewUnnest(sctx *super.Context, parent vio.Puller, e expr.Evaluator) *Unnest {
@@ -29,93 +26,110 @@ func NewUnnest(sctx *super.Context, parent vio.Puller, e expr.Evaluator) *Unnest
 }
 
 func (u *Unnest) Pull(done bool) (vector.Any, error) {
-	if done {
-		u.vec = nil
-		return u.parent.Pull(true)
-	}
 	for {
-		if u.vec == nil || u.idx >= u.vec.Len() {
-			vec, err := u.parent.Pull(done)
-			if vec == nil || err != nil {
-				return nil, err
-			}
-			u.vec = u.defuse.Eval(u.expr.Eval(vec))
-			u.idx = 0
+		vec, err := u.parent.Pull(done)
+		if vec == nil || err != nil {
+			return nil, err
 		}
-		out := u.flatten(u.vec, u.idx)
-		u.idx++
-		if out != nil {
-			return out, nil
+		// deeply deunion
+		vec = vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
+			return vecs[0]
+		}, u.defuse.Eval(u.expr.Eval(vec)))
+		if vec, _ = u.flatten(vec); vec != nil {
+			return vec, nil
 		}
-
 	}
 }
 
-func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
-	switch vec := vector.Under(vec).(type) {
-	case *vector.Dynamic:
-		return u.flatten(vec.Values[vec.Tags[slot]], vec.ForwardTagMap()[slot])
-	case *vector.View:
-		return u.flatten(vec.Any, vec.Index[slot])
-	case *vector.Array:
-		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
-	case *vector.Set:
-		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
-	case *vector.Record:
-		fields := vec.Fields
-		if len(fields) != 2 {
-			return vector.NewWrappedError(u.sctx, "unnest: encountered record without two fields", vec)
-		}
-		if super.InnerType(deunionTypeOf(fields[1], slot)) == nil {
-			return vector.NewWrappedError(u.sctx, "unnest: encountered record without an array/set type for second field", vec)
-		}
-		right := u.flatten(fields[1], slot)
-		if right == nil {
-			return nil
-		}
-		lindex := make([]uint32, right.Len())
-		for i := range lindex {
-			lindex[i] = slot
-		}
-		left := vector.Pick(fields[0], lindex)
-		return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
-			fields := slices.Clone(vec.Typ.Fields)
-			fields[1].Type = vecs[1].Type()
-			typ := u.sctx.MustLookupTypeRecord(fields)
-			return vector.NewRecord(typ, vecs, vecs[0].Len())
-		}, left, right)
-	case *vector.Union:
-		return u.flatten(vec.Dynamic(), slot)
+func (u *Unnest) flatten(vec vector.Any) (vector.Any, []uint32) {
+	if dynamic, ok := vec.(*vector.Dynamic); ok {
+		return u.flattenDynamic(dynamic)
+	}
+	vec = vector.Under(vec)
+	switch vec.Kind() {
+	case vector.KindNull:
+		return nil, nil
+	case vector.KindRecord:
+		return u.flattenRecord(vector.PushView(vec).(*vector.Record))
+	case vector.KindArray:
+		array := vector.PushView(vec).(*vector.Array)
+		return vector.Deunion(array.Values), array.Offsets
+	case vector.KindSet:
+		set := vector.PushView(vec).(*vector.Set)
+		return vector.Deunion(set.Values), set.Offsets
 	default:
-		if vec.Kind() == vector.KindNull {
-			return nil
+		return vector.NewWrappedError(u.sctx, "unnest: encountered non-array value", vec), nil
+	}
+}
+
+func (u *Unnest) flattenDynamic(vec *vector.Dynamic) (vector.Any, []uint32) {
+	vecs := make([]vector.Any, len(vec.Values))
+	vecOffsets := make([][]uint32, len(vec.Values))
+	for i, vec := range vec.Values {
+		if vec == nil {
+			continue
 		}
-		slotVec := vector.Pick(vec, []uint32{slot})
-		return vector.NewWrappedError(u.sctx, "unnest: encountered non-array value", slotVec)
+		vecs[i], vecOffsets[i] = u.flatten(vec)
 	}
+	// rebuild tag map
+	counts := make([]uint32, len(vec.Values))
+	offsets := []uint32{0}
+	var length uint32
+	var tags []uint32
+	for _, tag := range vec.Tags {
+		if vecs[tag] == nil {
+			continue
+		}
+		if offsets := vecOffsets[tag]; offsets != nil {
+			start := counts[tag]
+			for range offsets[start+1] - offsets[start] {
+				tags = append(tags, tag)
+				length++
+			}
+			counts[tag]++
+		} else {
+			tags = append(tags, tag)
+			length++
+		}
+		offsets = append(offsets, length)
+	}
+	return vector.NewDynamic(tags, vecs), offsets
 }
 
-func flattenArrayOrSet(vec vector.Any, offsets []uint32, slot uint32) vector.Any {
-	var index []uint32
-	for i := offsets[slot]; i < offsets[slot+1]; i++ {
-		index = append(index, i)
+func (u *Unnest) flattenRecord(vec *vector.Record) (vector.Any, []uint32) {
+	fields := vec.Fields
+	if len(fields) != 2 {
+		return vector.NewWrappedError(u.sctx, "unnest: encountered record without two fields", vec), nil
 	}
-	if len(index) == 0 {
-		return nil
+	if union, ok := fields[1].(*vector.Union); ok {
+		dynamic := union.Dynamic()
+		rtags := dynamic.ReverseTagMap()
+		left := fields[0]
+		var vals []vector.Any
+		for i, right := range dynamic.Values {
+			fields := slices.Clone(vec.Typ.Fields)
+			fields[1].Type = right.Type()
+			typ := u.sctx.MustLookupTypeRecord(fields)
+			left := vector.Pick(left, rtags[i])
+			vals = append(vals, vector.NewRecord(typ, []vector.Any{left, right}, right.Len()))
+		}
+		return u.flattenDynamic(vector.NewDynamic(dynamic.Tags, vals))
 	}
-	// Deunion deeply.
-	vec = vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any { return vecs[0] }, vec)
-	return vector.Pick(vec, index)
-}
-
-// deunionTypeOf returns the type of the value beneath any unions at slot in
-// vec.  deunionTypeOf never returns a union type.
-func deunionTypeOf(vec vector.Any, slot uint32) super.Type {
-	switch vec := vector.Under(vec).(type) {
-	case *vector.Union:
-		return deunionTypeOf(vec.Dynamic(), slot)
-	case *vector.Dynamic:
-		return deunionTypeOf(vec.Values[vec.Tags[slot]], vec.ForwardTagMap()[slot])
+	right, offsets := u.flatten(fields[1])
+	if offsets == nil {
+		return vector.NewWrappedError(u.sctx, "unnest: encountered record without an array/set type for second field", vec), nil
 	}
-	return vec.Type()
+	lindex := make([]uint32, 0, right.Len())
+	for slot := range vec.Len() {
+		for range offsets[slot+1] - offsets[slot] {
+			lindex = append(lindex, slot)
+		}
+	}
+	left := vector.Pick(fields[0], lindex)
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
+		fields := slices.Clone(vec.Typ.Fields)
+		fields[1].Type = vecs[1].Type()
+		typ := u.sctx.MustLookupTypeRecord(fields)
+		return vector.NewRecord(typ, vecs, vecs[0].Len())
+	}, left, right), offsets
 }
