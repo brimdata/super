@@ -199,7 +199,7 @@ func (o *Optimizer) OptimizeDeleter(main *dag.Main, replicas int) error {
 }
 
 func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
-	return walkEntries(seq, func(seq dag.Seq) (dag.Seq, error) {
+	err := dag.WalkTWithError(reflect.ValueOf(&seq), func(seq dag.Seq) (dag.Seq, error) {
 		if len(seq) == 0 {
 			return nil, errors.New("internal error: optimizer encountered empty sequential operator")
 		}
@@ -275,6 +275,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 		}
 		return seq, nil
 	})
+	return seq, err
 }
 
 func (o *Optimizer) SortKeys(seq dag.Seq) ([]order.SortKeys, error) {

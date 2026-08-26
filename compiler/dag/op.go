@@ -410,3 +410,32 @@ func WalkT[T any](v reflect.Value, post func(T) T) {
 		}
 	}
 }
+
+func WalkTWithError[T any](v reflect.Value, post func(T) (T, error)) error {
+	switch v.Kind() {
+	case reflect.Array, reflect.Slice:
+		for i := range v.Len() {
+			if err := WalkTWithError(v.Index(i), post); err != nil {
+				return err
+			}
+		}
+	case reflect.Interface, reflect.Pointer:
+		return WalkTWithError(v.Elem(), post)
+	case reflect.Struct:
+		for _, field := range v.Fields() {
+			if err := WalkTWithError(field, post); err != nil {
+				return err
+			}
+		}
+	}
+	if v.CanSet() {
+		if t, ok := v.Interface().(T); ok {
+			r, err := post(t)
+			if err != nil {
+				return err
+			}
+			v.Set(reflect.ValueOf(r))
+		}
+	}
+	return nil
+}
