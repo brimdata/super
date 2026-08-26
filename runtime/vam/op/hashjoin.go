@@ -192,9 +192,12 @@ func (j *hashJoin) probeLeft() (vector.Any, error) {
 			if keyVal.IsMissing() {
 				continue
 			}
-			key := hashKey(keyVal)
+			var rightVals []super.Value
+			var ok bool
+			if !keyVal.IsNull() {
+				rightVals, ok = j.table[hashKey(keyVal)]
+			}
 			leftVal := vector.ValueAt(&sb, vec, i)
-			rightVals, ok := j.table[key]
 			if !ok {
 				if j.style != "inner" {
 					b.Write(j.wrap(leftVal.Ptr(), nil))
@@ -235,10 +238,14 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 			if keyVal.IsMissing() {
 				continue
 			}
-			key := hashKey(keyVal)
-			leftVals, ok := j.table[key]
-			if ok {
-				j.hits[key] = true
+			var leftVals []super.Value
+			if !keyVal.IsNull() {
+				key := hashKey(keyVal)
+				var ok bool
+				leftVals, ok = j.table[key]
+				if ok {
+					j.hits[key] = true
+				}
 			}
 			if j.style == "anti" {
 				continue
