@@ -55,14 +55,9 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 	if err != nil {
 		return nil, err
 	}
-	prmd := pr.MetaData()
 	pqprops := pqarrow.ArrowReadProperties{
 		Parallel:  true,
 		BatchSize: 16184,
-	}
-	schemaManifest, err := pqarrow.NewSchemaManifest(prmd.Schema, prmd.KeyValueMetadata(), &pqprops)
-	if err != nil {
-		return nil, err
 	}
 	fr, err := pqarrow.NewFileReader(pr, pqprops, memory.NewGoAllocator())
 	if err != nil {
@@ -83,7 +78,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 				// Trim trailing "max" or "min".
 				paths[i] = p[:len(p)-1]
 			}
-			colIndexes := columnIndexes(schemaManifest, paths)
+			colIndexes := columnIndexes(fr.Manifest, paths)
 			// Remove duplicates created above by trimming "max" and "min".
 			metadataColIndexes = slices.Compact(colIndexes)
 			for range concurrentReaders {
@@ -103,8 +98,8 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 		ctx:                ctx,
 		sctx:               sctx,
 		fr:                 fr,
-		colIndexes:         columnIndexes(schemaManifest, fields),
-		colIndexToField:    schemaManifest.ColIndexToField,
+		colIndexes:         columnIndexes(fr.Manifest, fields),
+		colIndexToField:    fr.Manifest.ColIndexToField,
 		metadataColIndexes: metadataColIndexes,
 		metadataFilters:    metadataFilters,
 		nextRowGroup:       &atomic.Int64{},
