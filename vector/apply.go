@@ -168,8 +168,8 @@ func preserveOptionType(u *Union) Any {
 	}
 	d := u.Dynamic()
 	vecs := make([]Any, 0, len(d.Values))
-	for _, v := range d.Values {
-		vecs = append(vecs, NewUnionOfOne(u.Typ, v))
+	for _, vec := range d.Values {
+		vecs = append(vecs, NewUnionOfOne(u.Typ, vec))
 	}
 	return NewDynamic(d.Tags, vecs)
 }

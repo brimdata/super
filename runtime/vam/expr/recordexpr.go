@@ -110,11 +110,11 @@ func deoptionFieldValue(sctx *super.Context, u *vector.Union, name string) vecto
 	if !super.IsOptionType(u.Type()) {
 		return u
 	}
-	v := u.Normalized()
-	if _, ok := v.(*vector.None); ok {
+	vec := u.Normalized()
+	if _, ok := vec.(*vector.None); ok {
 		return vector.NewWrappedError(sctx, fmt.Sprintf("none assigned to non-optional field %s", name), u)
 	}
-	return v
+	return vec
 }
 
 func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {

@@ -89,9 +89,9 @@ func containsNullOrError(vec vector.Any) bool {
 
 func slotIsNullOrError(vec vector.Any, slot uint32) bool {
 	switch vec := vec.(type) {
-	case *vector.None:
-		return true
 	case *vector.Null:
+		return true
+	case *vector.None:
 		return true
 	case *vector.Union:
 		return slotIsNullOrError(vec.Dynamic(), slot)

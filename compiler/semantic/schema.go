@@ -430,7 +430,7 @@ func (s *staticTable) star(n ast.Node, table string, path field.Path) ([]*sem.Th
 	var out []*sem.ThisExpr
 	if table == "" || s.table == table {
 		for _, col := range s.typ.Fields {
-			path := sem.NewPath(append(slices.Clone(path), col.Name)...)
+			path := append(sem.NewPath(path...), sem.PathElem{ID: col.Name})
 			out = append(out, sem.NewThis(n, path))
 		}
 	}

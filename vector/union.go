@@ -177,8 +177,8 @@ func (u *Union) load() {
 
 func (u *Union) IsNormalizedOption() bool {
 	var cnt int
-	for _, v := range u.Values() {
-		if v.Len() != 0 {
+	for _, vec := range u.Values() {
+		if vec.Len() != 0 {
 			cnt++
 		}
 	}
@@ -186,9 +186,9 @@ func (u *Union) IsNormalizedOption() bool {
 }
 
 func (u *Union) Normalized() Any {
-	for _, v := range u.Values() {
-		if v.Len() != 0 {
-			return v
+	for _, vec := range u.Values() {
+		if vec.Len() != 0 {
+			return vec
 		}
 	}
 	panic(u)
