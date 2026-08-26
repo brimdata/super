@@ -718,12 +718,20 @@ func (t *translator) resolveOrdinalOuter(ts tableScope, n ast.Node, prefix strin
 }
 
 func dedup(scores map[string]int, s string) string {
-	cnt := scores[s]
-	scores[s] = cnt + 1
-	if cnt != 0 {
-		s = fmt.Sprintf("%s_%d", s, cnt)
+	score, ok := scores[s]
+	if !ok {
+		scores[s] = 0
+		return s
 	}
-	return s
+	for {
+		score++
+		s2 := fmt.Sprintf("%s_%d", s, score)
+		if _, ok := scores[s2]; !ok {
+			scores[s] = score
+			scores[s2] = 0
+			return s2
+		}
+	}
 }
 
 func valuesExpr(e sem.Expr, seq sem.Seq) sem.Seq {
