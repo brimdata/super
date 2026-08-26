@@ -14,3 +14,11 @@ node_modules:
 
 vet:
 	GOOS=js GOARCH=wasm go vet super-example/main.go
+
+.PHONY: codespell
+codespell:
+	@command -v codespell >/dev/null || { \
+		echo "codespell not found; install it with 'brew install codespell'"; \
+		exit 1; \
+	}
+	git ls-files -c -o --exclude-standard | xargs codespell -S src/tutorials/prs.json

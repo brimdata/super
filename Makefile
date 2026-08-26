@@ -83,17 +83,13 @@ markdown-lint:
 	@npm install --no-save markdownlint-cli@0.35.0
 	@npx markdownlint --ignore-path .gitignore .
 
-.PHONY: spell-check
-spell-check:
-	@command -v codespell >/dev/null || { \
-		echo "codespell not found; install it with 'brew install codespell'"; \
-		exit 1; \
-	}
-	@codespell book
+.PHONY: codespell
+codespell:
+	$(MAKE) -C book $@
 
 # CI performs these actions individually since that looks nicer in the UI;
 # this is a shortcut so that a local dev can easily run everything.
-test-ci: fmt tidy vet spell-check test-generate test-unit test-system test-heavy
+test-ci: fmt tidy vet codespell test-generate test-unit test-system test-heavy
 
 clean:
 	@rm -rf dist

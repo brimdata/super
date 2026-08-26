@@ -46,9 +46,3 @@ System tests require Python 3.3 or better.  To run them, execute:
 ```
 make test-system
 ```
-
-Spell checking of the book docs requires
-[codespell](https://github.com/codespell-project/codespell).  To run it, execute:
-```
-make spell-check
-```
