@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
@@ -63,9 +65,6 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 			vec = vector.NewOptionNone(r.sctx, optionType, this.Len())
 		case *FieldElem:
 			vec = elem.Expr.Eval(this)
-			if elem.Opt {
-				vec = vector.NewOptionSome(r.sctx, vec)
-			}
 		case *SpreadElem:
 			vec = r.defuse.Eval(elem.Expr.Eval(this))
 		default:
@@ -73,7 +72,7 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 		}
 		r.elemVecs = append(r.elemVecs, vec)
 	}
-	return vector.Apply(vector.ApplyNone, r.eval, r.elemVecs...)
+	return vector.Apply(vector.ApplyRipOptions, r.eval, r.elemVecs...)
 }
 
 func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
@@ -87,6 +86,15 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 			optionType := r.sctx.Option(elem.Type)
 			r.addOrUpdateNone(elem.Name, optionType, length)
 		case *FieldElem:
+			if elem.Opt {
+				if !super.IsOptionType(vec.Type()) {
+					vec = vector.NewOptionSome(r.sctx, vec)
+				}
+			} else {
+				if u, ok := vec.(*vector.Union); ok {
+					vec = deoptionFieldValue(r.sctx, u, elem.Name)
+				}
+			}
 			r.addOrUpdateField(elem.Name, vec)
 		case *SpreadElem:
 			r.spread(vec)
@@ -96,6 +104,17 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 	}
 	typ := r.sctx.MustLookupTypeRecord(r.fields)
 	return vector.NewRecord(typ, r.fieldVecs, vecs[0].Len())
+}
+
+func deoptionFieldValue(sctx *super.Context, u *vector.Union, name string) vector.Any {
+	if !super.IsOptionType(u.Type()) {
+		return u
+	}
+	vec := u.Normalized()
+	if _, ok := vec.(*vector.None); ok {
+		return vector.NewWrappedError(sctx, fmt.Sprintf("none assigned to non-optional field %s", name), u)
+	}
+	return vec
 }
 
 func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {

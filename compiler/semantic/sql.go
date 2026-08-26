@@ -11,7 +11,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/pkg/field"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
@@ -123,7 +122,7 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 		}
 	}
 	if sel.Distinct {
-		seq = t.genDistinct(sem.NewThis(sel, []string{"out"}), seq)
+		seq = t.genDistinct(sem.NewThis(sel, sem.NewPath("out")), seq)
 	}
 	return seq, scope
 }
@@ -177,7 +176,7 @@ func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr, inTy
 			}
 			for _, p := range paths {
 				typ := t.checker.this(star, p, inType)
-				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Path)), semExpr: p, typ: typ, astExpr: as.Expr})
+				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Path.IDs())), semExpr: p, typ: typ, astExpr: as.Expr})
 			}
 			continue
 		}
@@ -243,7 +242,7 @@ func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq)
 			&sem.FieldElem{
 				Node:  loc,
 				Name:  in,
-				Value: sem.NewThis(loc, field.Path{in}),
+				Value: sem.NewThis(loc, sem.NewPath(in)),
 			},
 			&sem.FieldElem{
 				Node: loc,
@@ -264,7 +263,7 @@ func (t *translator) genAggregate(loc ast.Loc, scope *selectScope, seq sem.Seq) 
 	for k, agg := range scope.aggs {
 		a := sem.Assignment{
 			Node: agg.Node,
-			LHS:  sem.NewThis(agg.Node, []string{aggTmp(k)}),
+			LHS:  sem.NewThis(agg.Node, sem.NewPath(aggTmp(k))),
 			RHS:  agg,
 		}
 		aggCols = append(aggCols, a)
@@ -273,7 +272,7 @@ func (t *translator) genAggregate(loc ast.Loc, scope *selectScope, seq sem.Seq) 
 	for k, e := range scope.groupings {
 		keyCols = append(keyCols, sem.Assignment{
 			Node: e.loc,
-			LHS:  sem.NewThis(loc, []string{groupTmp(k)}),
+			LHS:  sem.NewThis(loc, sem.NewPath(groupTmp(k))),
 			RHS:  e.expr,
 		})
 	}
@@ -413,7 +412,7 @@ func mapColumns(sctx *super.Context, in *super.TypeRecord, alias *ast.TableAlias
 			elems = append(elems, &sem.FieldElem{
 				Node:  alias.Columns[k],
 				Name:  out[k],
-				Value: sem.NewThis(alias.Columns[k], []string{in.Fields[k].Name}),
+				Value: sem.NewThis(alias.Columns[k], sem.NewPath(in.Fields[k].Name)),
 			})
 			fields = append(fields, super.NewField(out[k], in.Fields[k].Type))
 		}
@@ -634,8 +633,8 @@ func (t *translator) sqlJoinCond(cond ast.JoinCond, typ super.Type) sem.Expr {
 				t.error(id, fmt.Errorf("column %q in USING clause does not exist in right table", id.Name))
 				continue
 			}
-			lhs := sem.NewThis(id, append([]string{"left"}, left...))
-			rhs := sem.NewThis(id, append([]string{"right"}, right...))
+			lhs := sem.NewThis(id, sem.NewPath(append([]string{"left"}, left...)...))
+			rhs := sem.NewThis(id, sem.NewPath(append([]string{"right"}, right...)...))
 			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
 		}
 		if len(exprs) == 0 {
@@ -711,7 +710,7 @@ func (t *translator) resolveOrdinalOuter(ts tableScope, n ast.Node, prefix strin
 		} else {
 			path = []string{ts.typ.Fields[col-1].Name}
 		}
-		return sem.NewThis(n, path)
+		return sem.NewThis(n, sem.NewPath(path...))
 	default:
 		panic(ts)
 	}

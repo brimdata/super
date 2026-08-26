@@ -74,3 +74,14 @@ func NewOptionSome(sctx *super.Context, vec Any) Any {
 	}
 	return NewUnion(optionType, make([]uint32, vec.Len()), []Any{vec, NewNone(0)})
 }
+
+func IsOptionValue(vec Any) bool {
+	if d, ok := vec.(*Dynamic); ok {
+		for _, vec := range d.Values {
+			if _, ok := vec.(*None); ok {
+				return true
+			}
+		}
+	}
+	return false
+}

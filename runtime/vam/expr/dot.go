@@ -40,12 +40,15 @@ func (d *DotExpr) Eval(vec vector.Any) vector.Any {
 
 func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	switch val := vector.Under(vector.Super(vecs[0])).(type) {
+	case *vector.None:
+		return val
 	case *vector.Record:
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
+			//XXX in a subsequent PR, we will have a structured error here
 			return vector.NewMissing(d.sctx, val.Len())
 		}
-		return vector.DeoptionWithMissing(d.sctx, val.Fields[i])
+		return val.Fields[i]
 	case *vector.TypeValue:
 		var errs []uint32
 		typvals := vector.NewTypeValueEmpty()
