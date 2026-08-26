@@ -14,3 +14,7 @@ node_modules:
 
 vet:
 	GOOS=js GOARCH=wasm go vet super-example/main.go
+
+.PHONY: codespell
+codespell:
+	git ls-files -c -o --exclude-standard | xargs codespell -S src/tutorials/prs.json

@@ -7,14 +7,18 @@ on:
   pull_request:
     paths:
       - '**.md'
+      - 'book/**'
 
 jobs:
-  markdown-link:
+  markdown-lint:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Lint
       run: make markdown-lint
+
+    - name: Spell check
+      run: pip install codespell && make -C book codespell
 
     - id: setup-chrome
       uses: browser-actions/setup-chrome@v2
@@ -29,13 +33,13 @@ jobs:
         fail_on_error: true
         filter_mode: nofilter
 
-    - name: Inform Slack users of link check failures
+    - name: Inform Slack users of check failures
       uses: tiloio/slack-webhook-action@v1.1.2
       if: failure() && github.ref_name == 'main'
       with:
         slack_web_hook_url: ${{ secrets.SLACK_WEBHOOK_BRIMLABS_DOCS }}
         slack_json: |
           {
-            "username": "markdown-link",
-            "text": "Markdown link check failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "username": "markdown-lint",
+            "text": "Markdown lint check failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           }

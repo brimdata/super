@@ -32,6 +32,17 @@ After editing any JavaScript or Go files run `make` in this directory.
 This will update the Wasm file so playground examples use a version of
 SuperDB built from Go source files in the local repository.
 
+The docs are spell checked with [codespell](https://github.com/codespell-project/codespell).
+Install it with Homebrew:
+```sh
+brew install codespell
+```
+then check your work with
+```sh
+make codespell
+```
+This also runs as part of `make test-ci` and in CI.
+
 ## Conventions
 
 The following is an evolving set of style conventions we've adopted when

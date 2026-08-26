@@ -86,6 +86,7 @@ markdown-lint:
 # CI performs these actions individually since that looks nicer in the UI;
 # this is a shortcut so that a local dev can easily run everything.
 test-ci: fmt tidy vet test-generate test-unit test-system test-heavy
+	$(MAKE) -C book codespell
 
 clean:
 	@rm -rf dist
