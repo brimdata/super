@@ -18,7 +18,7 @@ jobs:
       run: make markdown-lint
 
     - name: Spell check
-      run: pipx install codespell && make codespell
+      run: pipx install codespell && make -C book codespell
 
     - id: setup-chrome
       uses: browser-actions/setup-chrome@v2
