@@ -132,8 +132,7 @@ func (o *Optimizer) Optimize(main *dag.Main) error {
 	seq = replaceSortAndHeadOrTailWithTop(seq)
 	o.optimizeParallels(seq)
 	seq = mergeFilters(seq)
-	seq, err := o.optimizeSourcePaths(seq)
-	if err != nil {
+	if err := o.optimizeSourcePaths(&seq); err != nil {
 		return err
 	}
 	seq = removePassOps(seq)
@@ -198,8 +197,8 @@ func (o *Optimizer) OptimizeDeleter(main *dag.Main, replicas int) error {
 	return nil
 }
 
-func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
-	return walkEntries(seq, func(seq dag.Seq) (dag.Seq, error) {
+func (o *Optimizer) optimizeSourcePaths(seq *dag.Seq) error {
+	return dag.WalkTWithError(reflect.ValueOf(seq), func(seq dag.Seq) (dag.Seq, error) {
 		if len(seq) == 0 {
 			return nil, errors.New("internal error: optimizer encountered empty sequential operator")
 		}
