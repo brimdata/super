@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
-	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/vector"
 )
 
@@ -54,7 +53,7 @@ func (f *fuse) Result(sctx *super.Context) vector.Any {
 	if len(f.types)+len(f.partials) == 0 {
 		return vector.NewNull(1)
 	}
-	fuser := samagg.NewFuser(sctx, f.complete)
+	fuser := super.NewFuser(sctx, f.complete)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {

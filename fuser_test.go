@@ -1,4 +1,4 @@
-package agg
+package super_test
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestFuserSamePrimitiveTypeTwice(t *testing.T) {
-	s := NewFuser(super.NewContext(), false)
+	s := super.NewFuser(super.NewContext(), false)
 	typ := super.TypeInt64
 	s.Fuse(typ)
 	s.Fuse(typ)

@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/sup"
 )
 
@@ -1155,11 +1154,11 @@ func (c *checker) error(loc ast.Node, err error) {
 func (c *checker) newFuser() *fuser {
 	//XXX "complete" option will be true when we have dual support for fusion
 	// and static types
-	return &fuser{agg.NewFuser(c.t.sctx, false), c.unknown}
+	return &fuser{super.NewFuser(c.t.sctx, false), c.unknown}
 }
 
 type fuser struct {
-	fuser   *agg.Fuser
+	fuser   *super.Fuser
 	unknown super.Type
 }
 
