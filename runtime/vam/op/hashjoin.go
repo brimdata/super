@@ -280,7 +280,7 @@ func (j *hashJoin) wrap(l, r *super.Value) super.Value {
 	if j.style == "right" {
 		l, r = r, l
 	}
-	j.builder.Reset()
+	j.builder.Truncate()
 	var fields []super.Field
 	if l != nil {
 		left := l.Deunion()
