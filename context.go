@@ -52,7 +52,7 @@ func (c *Context) Reset() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.byID = make(map[uint32]Type)
-	c.typedefs = NewTypeDefs()
+	c.typedefs.Reset()
 	c.toValue = nil
 	c.toType = nil
 	c.named = nil
@@ -812,12 +812,14 @@ type TypeDefs struct {
 	offsets []uint32
 	bytes   []byte
 	lut     map[string]uint32
+	toID    map[Type]uint32
 }
 
 func NewTypeDefs() *TypeDefs {
 	return &TypeDefs{
 		offsets: make([]uint32, 1),
 		lut:     make(map[string]uint32),
+		toID:    make(map[Type]uint32),
 	}
 }
 
@@ -825,6 +827,7 @@ func (t *TypeDefs) Reset() {
 	t.bytes = t.bytes[:0]
 	t.offsets = t.offsets[:1]
 	t.lut = make(map[string]uint32)
+	clear(t.toID)
 }
 
 func (t *TypeDefs) Bytes() []byte {
@@ -878,28 +881,34 @@ func (t *TypeDefs) LookupType(ext Type) uint32 {
 	if id := TypeID(ext); id < IDTypeComplex {
 		return uint32(id)
 	}
+	id, ok := t.toID[ext]
+	if ok {
+		return id
+	}
 	switch ext := ext.(type) {
 	case *TypeRecord:
-		return t.LookupTypeRecord(ext.Fields)
+		id = t.LookupTypeRecord(ext.Fields)
 	case *TypeArray:
-		return t.LookupTypeWrapped(TypeDefArray, ext.Type)
+		id = t.LookupTypeWrapped(TypeDefArray, ext.Type)
 	case *TypeSet:
-		return t.LookupTypeWrapped(TypeDefSet, ext.Type)
+		id = t.LookupTypeWrapped(TypeDefSet, ext.Type)
 	case *TypeMap:
-		return t.LookupTypeMap(ext.KeyType, ext.ValType)
+		id = t.LookupTypeMap(ext.KeyType, ext.ValType)
 	case *TypeUnion:
-		return t.LookupTypeUnion(ext.Types)
+		id = t.LookupTypeUnion(ext.Types)
 	case *TypeEnum:
-		return t.LookupTypeEnum(ext.Symbols)
+		id = t.LookupTypeEnum(ext.Symbols)
 	case *TypeError:
-		return t.LookupTypeWrapped(TypeDefError, ext.Type)
+		id = t.LookupTypeWrapped(TypeDefError, ext.Type)
 	case *TypeNamed:
-		return t.LookupTypeNamed(ext.Name, ext.Type)
+		id = t.LookupTypeNamed(ext.Name, ext.Type)
 	case *TypeFusion:
-		return t.LookupTypeWrapped(TypeDefFusion, ext.Type)
+		id = t.LookupTypeWrapped(TypeDefFusion, ext.Type)
 	default:
 		panic(ext)
 	}
+	t.toID[ext] = id
+	return id
 }
 
 func (t *TypeDefs) LookupTypeRecord(fields []Field) uint32 {
