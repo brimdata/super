@@ -79,10 +79,10 @@ func (h *HashJoin) tableInit() error {
 	var table map[string][]super.Value
 	var left, right vio.Puller
 	if rightBuf.EOS {
-		table, err = buildTable(rightBuf, h.rightKey)
+		table = buildTable(rightBuf.vecs, h.rightKey)
 		left = leftBuf
 	} else {
-		table, err = buildTable(leftBuf, h.leftKey)
+		table = buildTable(leftBuf.vecs, h.leftKey)
 		right = rightBuf
 	}
 	h.hashJoin = &hashJoin{
@@ -97,17 +97,17 @@ func (h *HashJoin) tableInit() error {
 		rightKey:   h.rightKey,
 		hits:       make(map[string]bool),
 	}
-	return err
+	return nil
 }
 
-func buildTable(p vio.Puller, key expr.Evaluator) (map[string][]super.Value, error) {
+func buildTable(vecs []vector.Any, key expr.Evaluator) map[string][]super.Value {
+	var n int
+	for _, vec := range vecs {
+		n += int(vec.Len())
+	}
+	table := make(map[string][]super.Value, n)
 	var sb scode.Builder
-	table := map[string][]super.Value{}
-	for {
-		vec, err := p.Pull(false)
-		if vec == nil || err != nil {
-			return table, err
-		}
+	for _, vec := range vecs {
 		rightKeyVec := key.Eval(vec)
 		for i := range vec.Len() {
 			keyVal := vector.ValueAt(&sb, rightKeyVec, i)
@@ -118,6 +118,7 @@ func buildTable(p vio.Puller, key expr.Evaluator) (map[string][]super.Value, err
 			table[key] = append(table[key], vector.ValueAt(&sb, vec, i).Copy())
 		}
 	}
+	return table
 }
 
 // pullRace pulls from a and b concurrently until one reaches EOS.  It returns
