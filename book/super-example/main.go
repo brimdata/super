@@ -6,7 +6,9 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"runtime/debug"
 	"slices"
 	"strings"
 	"syscall/js"
@@ -45,7 +47,12 @@ type chunk struct {
 var errInvalidInput = errors.New("only string or ReadableStream accept as input")
 
 func run(opts opts) wasm.Promise {
-	return wasm.NewPromise(func() (interface{}, error) {
+	return wasm.NewPromise(func() (v interface{}, err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = fmt.Errorf("panic: %+v\n\n%s\n", r, debug.Stack())
+			}
+		}()
 		flowgraph, err := parser.ParseText(opts.Program)
 		if err != nil {
 			return "", err
