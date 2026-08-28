@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
@@ -22,7 +21,7 @@ var maxObjectSize uint32 = 120_000
 type Serializer struct {
 	writer    io.WriteCloser
 	dynamic   *vbuild.DynamicBuilder
-	fuser     *agg.Fuser
+	fuser     *super.Fuser
 	fuserSctx *super.Context
 	size      uint64
 }
@@ -118,7 +117,7 @@ func (w *Serializer) finalizeObject() error {
 func (w *Serializer) fuse(dynamic *vector.Dynamic) {
 	if w.fuser == nil {
 		w.fuserSctx = super.NewContext()
-		w.fuser = agg.NewFuser(w.fuserSctx, false)
+		w.fuser = super.NewFuser(w.fuserSctx, false)
 	}
 	for _, vec := range dynamic.Values {
 		typ, err := w.fuserSctx.TranslateType(vec.Type())

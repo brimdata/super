@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
 )
 
 func FusedType(sctx *super.Context, r io.ReaderAt) (super.Type, error) {
@@ -21,7 +20,7 @@ func FusedType(sctx *super.Context, r io.ReaderAt) (super.Type, error) {
 	if _, err := s.Seek(0, io.SeekStart); err != nil {
 		return nil, err
 	}
-	fuser := agg.NewFuser(super.NewContext(), false)
+	fuser := super.NewFuser(super.NewContext(), false)
 	for size > 0 {
 		typ, n, err := readPart(sctx, r, size)
 		if err != nil {
