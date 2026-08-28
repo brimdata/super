@@ -295,7 +295,7 @@ func noneLength(runlens []uint32) uint32 {
 }
 
 func DeoptionWithMissing(sctx *super.Context, vec Any) Any {
-	switch vec := vec.(type) {
+	switch vec := Super(vec).(type) {
 	case *None:
 		return NewMissing(sctx, vec.Len())
 	case *Dynamic:
@@ -347,7 +347,11 @@ func hasOptionTypesOrNones(vecs []Any) bool {
 		if vec, ok := vec.(*Dynamic); ok {
 			return hasOptionTypesOrNones(vec.Values)
 		}
-		return super.IsOptionType(vec.Type()) || vec.Type() == super.TypeNone
+		typ := vec.Type()
+		if fusion, ok := typ.(*super.TypeFusion); ok {
+			typ = fusion.Type
+		}
+		return super.IsOptionType(typ) || typ == super.TypeNone
 	}) >= 0
 }
 
