@@ -45,8 +45,8 @@ spq: |
 
 output: |
   type List={val:string,next?:List}
-  {val:"1",next?:_::List}::List
-  {val:"2",next?:{val:"3",next?:_::List}::List}::List
+  {val:"1",next?:none::List}::List
+  {val:"2",next?:{val:"3",next?:none::List}::List}::List
 
 ---
 
@@ -55,10 +55,10 @@ spq: |
 
 input: |
   type List={val:string,next?:List}
-  {val:"1",next?:_::List}::List
-  {val:"2",next?:{val:"3",next?:_::List}::List}::List
+  {val:"1",next?:none::List}::List
+  {val:"2",next?:{val:"3",next?:none::List}::List}::List
 
 output: |
   error("missing")
   type List={val:string,next?:List}
-  {val:"3",next?:_::List}::List
+  {val:"3",next?:none::List}::List

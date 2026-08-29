@@ -476,8 +476,8 @@ blend
 {y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x?:1,y?:_::string}
-{x?:_::int64,y?:"foo"}
+{x?:1,y?:none::string}
+{x?:none::int64,y?:"foo"}
 {x?:2,y?:"bar"}
 ```
 

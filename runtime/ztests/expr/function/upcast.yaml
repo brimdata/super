@@ -101,14 +101,14 @@ output: |
 spq: upcast(this, <{y?:int64,z?:int64}>)
 
 input: |
-  {z?:_::int64}
+  {z?:none::int64}
 
 output: |
-  {y?:_::int64,z?:_::int64}
+  {y?:none::int64,z?:none::int64}
 
 ---
 
-spq: upcast({x?:_::int64},<{x?:int64}>)
+spq: upcast({x?:none::int64},<{x?:int64}>)
 
 output: |
-  {x?:_::int64}
+  {x?:none::int64}

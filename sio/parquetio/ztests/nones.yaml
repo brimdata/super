@@ -9,11 +9,11 @@ inputs:
   - name: a.sup
     data: |
       {x?:1}
-      {x?:_::int64}
+      {x?:none::int64}
   - name: b.sup
     data: |
       {x?:1::(int64|null)}
-      {x?:_::(int64|null)}
+      {x?:none::(int64|null)}
 
 outputs:
   - name: stdout

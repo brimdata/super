@@ -6,7 +6,7 @@ inputs:
   - name: stdin
     data: |
       {a:1,b?:1}
-      {a:2,b?:_::int64}
+      {a:2,b?:none::int64}
 
 outputs:
   - name: stdout

@@ -184,10 +184,10 @@ fork
 # input
 
 # expected output
-{x?:1,y?:2,z?:_::int64}
-{x?:3,y?:4,z?:_::int64}
-{x?:5,y?:6,z?:_::int64}
-{x?:_::int64,y?:_::int64,z?:2}
-{x?:_::int64,y?:_::int64,z?:3}
+{x?:1,y?:2,z?:none::int64}
+{x?:3,y?:4,z?:none::int64}
+{x?:5,y?:6,z?:none::int64}
+{x?:none::int64,y?:none::int64,z?:2}
+{x?:none::int64,y?:none::int64,z?:3}
 ```
 ---

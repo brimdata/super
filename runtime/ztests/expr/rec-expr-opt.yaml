@@ -5,51 +5,51 @@ output: |
 
 ---
 
-spq: values {x?:_::string}
+spq: values {x?:none::string}
 
 output: |
-  {x?:_::string}
+  {x?:none::string}
 
 ---
 
-spq: values {x?:1,y?:_::string}
+spq: values {x?:1,y?:none::string}
 
 output: |
-  {x?:1,y?:_::string}
+  {x?:1,y?:none::string}
 
 
 ---
 
-spq: values {x?:1,y?:_::string,z:1}
+spq: values {x?:1,y?:none::string,z:1}
 
 output: |
-  {x?:1,y?:_::string,z:1}
+  {x?:1,y?:none::string,z:1}
 
 ---
 
-spq: values {x?:1,y?:_::string,z:1} | values {...this}
+spq: values {x?:1,y?:none::string,z:1} | values {...this}
 
 output: |
-  {x?:1,y?:_::string,z:1}
+  {x?:1,y?:none::string,z:1}
 
 ---
 
-spq: values {x?:1,y?:_::string,z:1} | values {a:1,...this,b:1}
+spq: values {x?:1,y?:none::string,z:1} | values {a:1,...this,b:1}
 
 output: |
-  {a:1,x?:1,y?:_::string,z:1,b:1}
+  {a:1,x?:1,y?:none::string,z:1,b:1}
 
 ---
 
-spq: values {x?:1,y?:_::string,z:1} | values {a?:1,...this,b?:1}
+spq: values {x?:1,y?:none::string,z:1} | values {a?:1,...this,b?:1}
 
 output: |
-  {a?:1,x?:1,y?:_::string,z:1,b?:1}
+  {a?:1,x?:1,y?:none::string,z:1,b?:1}
 
 ---
 
-spq: values {x?:1,y:{x?:_::string},z:1} | values {a?:1,...y,b?:1}
+spq: values {x?:1,y:{x?:none::string},z:1} | values {a?:1,...y,b?:1}
 
 output: |
-  {a?:1,x?:_::string,b?:1}
+  {a?:1,x?:none::string,b?:1}
 
