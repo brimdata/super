@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
@@ -13,23 +15,25 @@ func (*This) Eval(val vector.Any) vector.Any {
 }
 
 type DotExpr struct {
-	sctx   *super.Context
-	record Evaluator
-	field  string
+	sctx    *super.Context
+	record  Evaluator
+	field   string
+	noneish bool
 }
 
-func NewDotExpr(sctx *super.Context, record Evaluator, field string) *DotExpr {
+func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish bool) *DotExpr {
 	return &DotExpr{
-		sctx:   sctx,
-		record: record,
-		field:  field,
+		sctx:    sctx,
+		record:  record,
+		field:   field,
+		noneish: noneish,
 	}
 }
 
-func NewDottedExpr(sctx *super.Context, f field.Path) Evaluator {
+func NewDottedExpr(sctx *super.Context, f field.Chain) Evaluator {
 	ret := Evaluator(&This{})
-	for _, name := range f {
-		ret = NewDotExpr(sctx, ret, name)
+	for _, elem := range f {
+		ret = NewDotExpr(sctx, ret, elem.ID, elem.Noneish)
 	}
 	return ret
 }
@@ -45,8 +49,10 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Record:
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
-			//XXX in a subsequent PR, we will have a structured error here
-			return vector.NewMissing(d.sctx, val.Len())
+			if d.noneish {
+				return vector.NewNone(val.Len())
+			}
+			return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", d.field), val)
 		}
 		return val.Fields[i]
 	case *vector.TypeValue:
@@ -63,6 +69,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			errs = append(errs, i)
 		}
 		if len(errs) > 0 {
+			//XXX need to build error vector above with each field-missing message
 			return vector.Combine(typvals, errs, vector.NewMissing(d.sctx, uint32(len(errs))))
 		}
 		return typvals
@@ -72,6 +79,6 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:
-		return vector.NewMissing(d.sctx, val.Len())
+		return vector.NewWrappedError(d.sctx, "dot operator on non-record", vecs[0])
 	}
 }

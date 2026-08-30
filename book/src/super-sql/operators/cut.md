@@ -59,19 +59,19 @@ cut a,c
 
 ---
 
-_Missing fields show up as missing errors_
+_Missing fields show up as errors_
 ```mdtest-spq
 # spq
 cut a,d
 # input
 {a:1,b:2,c:3}
 # expected output
-{a:1,d:error("missing")}
+{a:1,d:error({message:"no such field d",on:{a:1,b:2,c:3}})}
 ```
 
 ---
 
-_Non-record values generate missing errors for fields not present in a non-record `this`_
+_Non-record values generate errors for fields not present in a non-record `this`_
 ```mdtest-spq {data-layout="stacked"}
 # spq
 cut a,b
@@ -79,7 +79,7 @@ cut a,b
 1
 {a:1,b:2,c:3}
 # expected output
-{a:error("missing"),b:error("missing")}
+{a:error({message:"dot operator on non-record",on:1}),b:error({message:"dot operator on non-record",on:1})}
 {a:1,b:2}
 ```
 

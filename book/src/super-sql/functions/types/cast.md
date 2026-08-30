@@ -91,7 +91,7 @@ _Derive type names from the properties of data_
 
 ```mdtest-spq
 # spq
-values cast(this, has(x) ? "point" : "radius")
+values cast(this, x.is_ok() ? "point" : "radius")
 # input
 {x:1,y:2}
 {r:3}

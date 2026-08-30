@@ -368,7 +368,7 @@ produces the very same output:
 Finally, it's worth mentioning that errors in the super data model are
 [first class](https://en.wikipedia.org/wiki/First-class_citizen).
 This means they can just show up in the data as values.  In particular,
-a common error is `error("missing")` which occurs most often when referencing
+a common error pattern occurs when referencing
 a field that does not exist, e.g.,
 ```mdtest-command
 echo '{s:"foo", val:1}{s:"bar"}' | super -s -c 'cut val' -
@@ -376,7 +376,7 @@ echo '{s:"foo", val:1}{s:"bar"}' | super -s -c 'cut val' -
 produces
 ```mdtest-output
 {val:1}
-{val:error("missing")}
+{val:error({message:"no such field val",on:{s:"bar"}})}
 ```
 
 ### Union Types

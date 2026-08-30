@@ -791,6 +791,17 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 	nargs := len(args)
 	nameLower := strings.ToLower(name)
 	switch {
+	case nameLower == "is_ok":
+		if err := function.CheckArgCount(nargs, 1, 1); err != nil {
+			t.error(call, err)
+			return badExpr, t.checker.unknown
+		}
+		return &sem.BinaryExpr{
+			Node: call,
+			Op:   "!=",
+			LHS:  sem.NewCall(call, "ok", args),
+			RHS:  sem.NewLiteral(call, super.NewValue(super.TypeNone, nil), t.defs),
+		}, super.TypeBool
 	case nameLower == "map":
 		return t.semMapCall(call, args, argTypes)
 	case nameLower == "grep":
@@ -993,7 +1004,11 @@ func deriveNameFromExpr(e ast.Expr) string {
 		return e.Name
 	case *ast.CallExpr:
 		if f, ok := e.Func.(*ast.FuncNameExpr); ok {
-			return f.Name
+			name := f.Name
+			if (strings.ToLower(name) == "ok" || strings.ToLower(name) == "is_ok") && len(e.Args) > 0 {
+				return deriveNameFromExpr(e.Args[0])
+			}
+			return name
 		}
 	case *ast.BinaryExpr:
 		if name, ok := dottedName(e); ok {
@@ -1013,6 +1028,9 @@ func deriveNameFromExpr(e ast.Expr) string {
 }
 
 func dottedName(e *ast.BinaryExpr) (string, bool) {
+	if e.Op == "??" {
+		return deriveNameFromExpr(e.LHS), true
+	}
 	if e.Op != "." {
 		return "", false
 	}

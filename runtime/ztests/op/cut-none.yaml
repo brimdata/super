@@ -6,6 +6,6 @@ input: |
   {x?:2,z?:3}
 
 output: |
-  {z:error("missing"),q:1}
+  {z:error({message:"no such field z",on:{}}),q:1}
   {z:3,q:1}
   {z:3,q:1}

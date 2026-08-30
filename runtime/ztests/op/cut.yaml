@@ -13,5 +13,5 @@ output: |
   {foo:2}
   {foo:1::(int64|null)}
   {foo:null::(int64|null)}
-  {foo:error("missing")}
-  {foo:error("missing")}
+  {foo:error({message:"no such field foo",on:{bar:"three"}})}
+  {foo:error({message:"dot operator on non-record",on:null})}

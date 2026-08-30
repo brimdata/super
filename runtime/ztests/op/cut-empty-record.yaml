@@ -6,6 +6,6 @@ input: |
   {a:{},b:{}}
 
 output: |
-  {a:error("missing"),b:error("missing")}
-  {a:{},b:error("missing")}
+  {a:error({message:"no such field a",on:{}}),b:error({message:"no such field b",on:{}})}
+  {a:{},b:error({message:"no such field b",on:{a:{}}})}
   {a:{},b:{}}

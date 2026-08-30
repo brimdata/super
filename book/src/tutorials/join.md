@@ -96,7 +96,7 @@ super -s -I left-join.spq
 produces
 ```mdtest-output
 {name:"figs",color:"brown",flavor:"plain",eater:"jessie",age:30}
-{name:"avocado",color:"green",flavor:"savory",eater:error("missing"),age:error("missing")}
+{name:"avocado",color:"green",flavor:"savory",eater:error({message:"dot operator on non-record",on:error({message:"no such field p",on:{f:{name:"avocado",color:"green",flavor:"savory"}}})}),age:error({message:"dot operator on non-record",on:error({message:"no such field p",on:{f:{name:"avocado",color:"green",flavor:"savory"}}})})}
 {name:"banana",color:"yellow",flavor:"sweet",eater:"quinn",age:14}
 {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn",age:14}
 {name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn",age:14}
@@ -258,8 +258,8 @@ The query `inner-join-streamed.spq`:
 
 ```mdtest-input inner-join-streamed.spq
 switch
-  case has(color) ( pass )
-  case has(age) ( pass )
+  case color.is_ok() ( pass )
+  case age.is_ok() ( pass )
 | inner join as {fruit,people} on fruit.flavor=people.likes
 | values {...fruit, eater:people.name}
 | sort flavor

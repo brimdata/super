@@ -9,4 +9,4 @@ input: |
 output: |
   {a:0,b:1}
   {a:error("missing"),b:1}
-  {a:error("missing"),b:error("missing")}
+  {a:error("missing"),b:error({message:"dot operator on non-record",on:"b"})}

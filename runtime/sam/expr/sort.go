@@ -108,25 +108,6 @@ func NewComparator(exprs ...SortExpr) *Comparator {
 	return &Comparator{slices.Clone(exprs)}
 }
 
-// WithMissingAsNull returns the receiver after modifying it to treat missing
-// values as the null value in comparisons.
-func (c *Comparator) WithMissingAsNull() *Comparator {
-	for i, k := range c.exprs {
-		c.exprs[i].Evaluator = &missingAsNull{k}
-	}
-	return c
-}
-
-type missingAsNull struct{ Evaluator }
-
-func (m *missingAsNull) Eval(val super.Value) super.Value {
-	val = m.Evaluator.Eval(val)
-	if val.IsMissing() {
-		return super.Null
-	}
-	return val
-}
-
 // Compare returns an interger comparing two values according to the receiver's
 // configuration.  The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 func (c *Comparator) Compare(a, b super.Value) int {

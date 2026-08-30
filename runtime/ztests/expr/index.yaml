@@ -101,9 +101,11 @@ input: |
   
 output: |
   2
-  error("missing")
+  type foo=[int64]
+  error({message:"dot operator on non-record",on:[1,2,3]::foo})
   5
-  error("missing")
+  type bar=set[int64]
+  error({message:"dot operator on non-record",on:set[4,5,6]::bar})
   "foo"
   error("missing")
   error("missing")
@@ -118,6 +120,8 @@ input: |
   {val:fusion(2::(int64|[int64|{r:int64}]),<int64>)}
   {val:fusion([1,{r:3}]::(int64|[int64|{r:int64}]),<[int64|{r:int64}]>)}
 
+# XXX fix this should not be error missing... should be structured
+
 output: |
-  error("missing")
+  error({message:"dot operator on non-record",on:error("missing")})
   3

@@ -7,5 +7,5 @@ input: |
 
 output: |
   {a:"s",b:null,eq:null,ne:null}
-  {a:"s",eq:error("missing"),ne:error("missing")}
-  {b:null,eq:null,ne:null}
+  {a:"s",eq:error({message:"==: error value encountered",on:error({message:"no such field b",on:{a:"s"}})}),ne:error({message:"!=: error value encountered",on:error({message:"no such field b",on:{a:"s"}})})}
+  {b:null,eq:error({message:"==: error value encountered",on:error({message:"no such field a",on:{b:null}})}),ne:error({message:"!=: error value encountered",on:error({message:"no such field a",on:{b:null}})})}

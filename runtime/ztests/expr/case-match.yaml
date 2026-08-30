@@ -13,4 +13,4 @@ output: |
   "foo"
   "bar"
   {y:12}
-  error("missing")
+  error({message:"==: error value encountered",on:error({message:"dot operator on non-record",on:1})})

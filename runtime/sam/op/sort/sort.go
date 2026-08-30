@@ -197,7 +197,7 @@ func NewComparator(sctx *super.Context, exprs []expr.SortExpr, guessVal super.Va
 		}
 		exprs = []expr.SortExpr{expr.NewSortExpr(e, o, order.NullsLast)}
 	}
-	return expr.NewComparator(exprs...).WithMissingAsNull()
+	return expr.NewComparator(exprs...)
 }
 
 func GuessSortKey(val super.Value) field.Path {

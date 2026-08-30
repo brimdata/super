@@ -82,9 +82,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "grok":
 		argmin, argmax = 2, 3
 		f = newGrok(sctx)
-	case "has":
-		argmax = -1
-		f = newHas(sctx)
 	case "has_error":
 		f = HasError{sctx}
 	case "hex":
@@ -116,9 +113,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &Log{sctx}
 	case "lower":
 		f = &ToLower{sctx}
-	case "missing":
-		argmax = -1
-		f = &Missing{sctx}
 	case "nameof":
 		f = &NameOf{sctx: sctx}
 	case "nest_dotted":
@@ -133,6 +127,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "nullif":
 		argmin, argmax = 2, 2
 		f = newNullIf(sctx)
+	case "ok":
+		f = newOk(sctx)
 	case "parse_sup":
 		f = newParseSUP(sctx)
 	case "parse_uri":
@@ -144,8 +140,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 2
 		argmax = 2
 		f = &Pow{sctx}
-	case "quiet":
-		f = newQuiet(sctx)
 	case "regexp":
 		argmin, argmax = 2, 2
 		f = &Regexp{sctx: sctx}
@@ -245,7 +239,7 @@ func (f *samFunc) Call(args ...vector.Any) vector.Any {
 // signatures so the return type can be introspected.
 func HasBoolResult(name string) bool {
 	switch name {
-	case "grep", "has", "has_error", "is_error", "is", "missing", "cidr_match":
+	case "grep", "has_error", "is_error", "is", "is_ok", "missing", "cidr_match":
 		return true
 	}
 	return false

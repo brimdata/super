@@ -81,7 +81,7 @@ output: |
   2
   3
   "foo"
-  error("missing")
+  none
 
 ---
 
@@ -162,3 +162,40 @@ input: |
 output: |
   1
   none
+
+---
+
+spq: values this?.x
+
+input: |
+  none
+  none::int64
+  {x:1}
+  {x?:1}
+
+output: |
+  none
+  none
+  1
+  1::(int64|none)
+
+---
+
+spq: values this?.x?.y
+
+input: |
+  none
+  none::int64
+  {x:1}
+  {x?:1}
+  {x:{y?:1}}
+  {x:{y?:none::int64}}
+
+output: |
+  none
+  none
+  error({message:"dot operator on non-record",on:1})
+  error({message:"dot operator on non-record",on:1})
+  1::(int64|none)
+  none::(int64|none)
+

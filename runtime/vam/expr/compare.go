@@ -17,10 +17,11 @@ type Compare struct {
 	opCode int
 	lhs    Evaluator
 	rhs    Evaluator
+	msg    string
 }
 
 func NewCompare(sctx *super.Context, op string, lhs, rhs Evaluator) *Compare {
-	return &Compare{sctx, NewDefuse(sctx), vector.CompareOpFromString(op), lhs, rhs}
+	return &Compare{sctx, NewDefuse(sctx), vector.CompareOpFromString(op), lhs, rhs, op}
 }
 
 func (c *Compare) Compare(vec0, vec1 vector.Any) vector.Any {
@@ -34,11 +35,17 @@ func (c *Compare) Eval(val vector.Any) vector.Any {
 }
 
 func (c *Compare) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(vecs); ok {
+	if vec, ok := CheckForErrorThenNull(c.sctx, vecs, c.msg); ok {
 		return vec
 	}
 	lhs := vector.Under(vector.Super(vecs[0]))
 	rhs := vector.Under(vector.Super(vecs[1]))
+	if which, ok := compareNones(lhs, rhs); ok {
+		if c.opCode == vector.CompNE {
+			which = !which
+		}
+		return vector.NewConstBool(which, lhs.Len())
+	}
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
 		// Incompatible types so return true for != and false otherwise.
@@ -78,6 +85,19 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		return vector.NewConstBool(false, lhs.Len())
 	}
 	return f(lhs, rhs)
+}
+
+func compareNones(a, b vector.Any) (bool, bool) {
+	if a.Kind() == vector.KindNone {
+		if b.Kind() == vector.KindNone {
+			return true, true
+		}
+		return false, true
+	}
+	if b.Kind() == vector.KindNone {
+		return false, true
+	}
+	return false, false
 }
 
 func (c *Compare) compareBool(lhs, rhs vector.Any) vector.Any {
