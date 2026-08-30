@@ -6,6 +6,6 @@ input: |
   {s:1}
 
 output: |
-  error("missing")
-  error("other")
+  error({message:"error on left-hand side of /",on:error({message:"no such field s",on:{}})})
+  error({message:"error on left-hand side of /",on:error("other")})
   error("divide by zero")

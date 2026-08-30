@@ -9,7 +9,7 @@ input: |
 
 output: |
   {s:null}
-  {}
   {s:"a"}
   {s:"b"}
   {s:"c"}
+  {}

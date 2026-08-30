@@ -59,7 +59,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vio.Puller) ([]vio.Puller, erro
 		if err != nil {
 			return nil, err
 		}
-		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
+		cmp := expr.NewComparator(exprs...)
 		return []vio.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
 	case *dag.ScatterOp:
 		return b.compileVamScatter(o, parents)

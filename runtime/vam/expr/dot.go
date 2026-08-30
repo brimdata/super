@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
@@ -45,8 +47,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Record:
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
-			//XXX in a subsequent PR, we will have a structured error here
-			return vector.NewMissing(d.sctx, val.Len())
+			return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", d.field), val)
 		}
 		return val.Fields[i]
 	case *vector.TypeValue:

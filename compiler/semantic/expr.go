@@ -992,9 +992,14 @@ func deriveNameFromExpr(e ast.Expr) string {
 	case *ast.AggFuncExpr:
 		return e.Name
 	case *ast.CallExpr:
+		var name string
 		if f, ok := e.Func.(*ast.FuncNameExpr); ok {
-			return f.Name
+			name = f.Name
 		}
+		if strings.ToLower(name) == "quiet" && len(e.Args) > 0 {
+			return deriveNameFromExpr(e.Args[0])
+		}
+		return name
 	case *ast.BinaryExpr:
 		if name, ok := dottedName(e); ok {
 			return name
@@ -1013,6 +1018,9 @@ func deriveNameFromExpr(e ast.Expr) string {
 }
 
 func dottedName(e *ast.BinaryExpr) (string, bool) {
+	if e.Op == "??" {
+		return deriveNameFromExpr(e.LHS), true
+	}
 	if e.Op != "." {
 		return "", false
 	}

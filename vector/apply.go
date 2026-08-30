@@ -173,3 +173,37 @@ func preserveOptionType(u *Union) Any {
 	}
 	return NewDynamic(d.Tags, vecs)
 }
+
+type ApplierBinary interface {
+	Apply(lhs, rhs Any) Any
+	ErrorLHS(Any) Any
+	ErrorRHS(Any) Any
+}
+
+func ApplyBinary(opt ApplyOpt, applier ApplierBinary, lhs, rhs Any) Any {
+	eval := func(vecs ...Any) Any {
+		lhs := vecs[0]
+		rhs := vecs[1]
+		if isErrorOrNone(lhs) {
+			return applier.ErrorLHS(lhs)
+		}
+		if isErrorOrNone(rhs) {
+			return applier.ErrorRHS(rhs)
+		}
+		//XXX this should coerce the pure null to a typed null of the other side
+		// or at least retain the typed null if it came from a rip
+		if k := lhs.Kind(); k == KindNull {
+			return lhs
+		}
+		if k := rhs.Kind(); k == KindNull {
+			return rhs
+		}
+		return applier.Apply(vecs[0], vecs[1])
+	}
+	return Apply(opt, eval, []Any{lhs, rhs}...)
+}
+
+func isErrorOrNone(vec Any) bool {
+	k := vec.Kind()
+	return k == KindError || k == KindNone
+}

@@ -8,7 +8,7 @@ input: |
 output: |
   1
   123
-  error("missing")
+  error({message:"no such field a",on:{b:1}})
   123
   [3,2,1,0]
   123

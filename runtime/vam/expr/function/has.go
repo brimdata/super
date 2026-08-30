@@ -1,7 +1,6 @@
 package function
 
 import (
-	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
@@ -28,69 +27,12 @@ func (*Missing) NoDefuse() bool            { return true }
 func (*Missing) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipFusions | vector.ApplyRipUnions }
 
 func (m *Missing) Call(args ...vector.Any) vector.Any {
-	for _, vec := range args {
-		if vec.Kind() == vector.KindNull {
-			return vec
-		}
-	}
 	n := args[0].Len()
 	for _, vec := range args {
-		vec = vector.DeoptionWithMissing(m.sctx, vec)
-		if err, ok := vec.(*vector.Error); ok {
-			b := isMissing(err)
-			if b.IsEmpty() {
-				return err
-			}
-			if b.GetCardinality() == uint64(n) {
-				return vector.NewConstBool(true, vec.Len())
-			}
-			// Mix of errors and trues.
-			index := b.ToArray()
-			errIndex := roaring.Flip(b, 0, uint64(n)).ToArray()
-			trueVec := vector.NewConstBool(true, uint32(len(index)))
-			return vector.Combine(trueVec, errIndex, vector.Pick(err, errIndex))
+		vec = vector.DeoptionWithNone(m.sctx, vec)
+		if _, ok := vec.(*vector.None); ok {
+			return vector.NewConstBool(true, n)
 		}
 	}
-	return vector.NewConstBool(false, args[0].Len())
-}
-
-func isMissing(verr *vector.Error) *roaring.Bitmap {
-	b := roaring.New()
-	inner := verr.Vals
-	if inner.Type() != super.TypeString {
-		return b
-	}
-	switch inner := inner.(type) {
-	case *vector.Const:
-		s := vector.StringValue(inner, 0)
-		if s == "missing" {
-			b.AddRange(0, uint64(inner.Len()))
-		}
-	case *vector.View:
-		vec := inner.Any.(*vector.String)
-		for i := range inner.Len() {
-			s := vec.Value(inner.Index[i])
-			if s == "missing" {
-				b.Add(i)
-			}
-		}
-	case *vector.Dict:
-		vec := inner.Any.(*vector.String)
-		for i := range inner.Len() {
-			s := vec.Value(uint32(inner.Index[i]))
-			if s == "missing" {
-				b.Add(i)
-			}
-		}
-	case *vector.String:
-		for i := range inner.Len() {
-			s := inner.Value(i)
-			if s == "missing" {
-				b.Add(i)
-			}
-		}
-	default:
-		panic(inner)
-	}
-	return b
+	return vector.NewConstBool(false, n)
 }

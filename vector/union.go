@@ -294,22 +294,22 @@ func noneLength(runlens []uint32) uint32 {
 	return noneLen
 }
 
-func DeoptionWithMissing(sctx *super.Context, vec Any) Any {
+func DeoptionWithNone(sctx *super.Context, vec Any) Any {
 	switch vec := Super(vec).(type) {
 	case *None:
-		return NewMissing(sctx, vec.Len())
+		return vec
 	case *Dynamic:
 		if hasOptionTypesOrNones(vec.Values) {
 			vecs := make([]Any, 0, len(vec.Values))
 			for _, v := range vec.Values {
-				vecs = append(vecs, DeoptionWithMissing(sctx, v))
+				vecs = append(vecs, DeoptionWithNone(sctx, v))
 			}
 			return stitch(vec.Tags, vecs)
 		}
 	case *Union:
 		if super.IsOptionType(vec.Typ) {
 			out := Deunion(vec)
-			out = DeoptionWithMissing(sctx, out)
+			out = DeoptionWithNone(sctx, out)
 			return out
 		}
 	}

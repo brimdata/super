@@ -48,4 +48,4 @@ input: |
 
 output: |
   {a:1,b:1}
-  {b:error("missing")}
+  {b:error({message:"no such field x",on:{y:1}})}

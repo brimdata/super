@@ -18,4 +18,4 @@ output: |
   null
   null
   error({message:"split: string arg required",on:1.})
-  error("missing")
+  error({message:"no such field s",on:{sep:""}})

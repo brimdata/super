@@ -11,5 +11,5 @@ output: |
   {s:"a"}
   {s:"b"}
   {s:"c"}
-  {s:null}
   {}
+  {s:null}

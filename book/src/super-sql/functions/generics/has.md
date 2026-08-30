@@ -10,7 +10,7 @@ has(val: any [, ... val: any]) -> bool
 
 ## Description
 
-The `has` function returns false if any of its arguments are `error("missing")`
+The `has` function returns false if any of its arguments are `none`
 and otherwise returns true.
 `has(e)` is a shortcut for [`!missing(e)`](../errors/missing.md).
 
