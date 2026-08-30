@@ -41,8 +41,8 @@ values
 # input
 
 # expected output
-{x:1,y?:_::string}
-{x:1,y?:_::(string|null|none)}
+{x:1,y?:none::string}
+{x:1,y?:none::(string|null|none)}
 ```
 
 ---

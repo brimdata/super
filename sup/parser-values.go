@@ -257,9 +257,10 @@ func (p *Parser) matchString() (string, bool, error) {
 
 func (p *Parser) matchNone() (*ast.None, error) {
 	l := p.lexer
-	if ok, err := l.match('_'); !ok || err != nil {
+	if lookahead, err := l.peek(4); err != nil || lookahead == "" || lookahead[:4] != "none" {
 		return nil, noEOF(err)
 	}
+	l.skip(4)
 	if ok, err := l.match(':'); !ok || err != nil {
 		if err == nil {
 			err = p.error("none value (_) must include type decorator")
@@ -360,7 +361,7 @@ func (p *Parser) matchField() (*ast.Field, error) {
 		return nil, err
 	}
 	if isNone(val) && !opt && !isOption(val) {
-		return nil, p.errorf("_ cannot appear in non-optional field %q", name)
+		return nil, p.errorf("none cannot appear in non-optional field %q", name)
 	}
 	return &ast.Field{
 		Name:  name,

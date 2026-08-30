@@ -2,12 +2,12 @@ spq: distinct b
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:"foo"}
 
 output: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
 
 ---
 
@@ -15,12 +15,12 @@ spq: drop a
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:"foo"}
 
 output: |
   {b?:"foo"}
-  {b?:_::string}
+  {b?:none::string}
   {b:"foo"}
 
 ---
@@ -29,7 +29,7 @@ spq: drop b
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:"foo"}
 
 output: |
@@ -43,10 +43,10 @@ spq: rename c:=b
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a?:1,b:"foo"}
 
 output: |
   {a:1,c?:"foo"}
-  {a:1,c?:_::string}
+  {a:1,c?:none::string}
   {a?:1,c:"foo"}

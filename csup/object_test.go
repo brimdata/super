@@ -42,7 +42,7 @@ func TestObjectProjectMetadataForUnion(t *testing.T) {
 	sctx := super.NewContext()
 	supValues := []string{
 		"{a:1::(int64|string),b?:2,c:3::(int64|null),d?:{e:4}}",
-		`{a:"s"::(int64|string),b?:_::int64,c:null::(int64|null),d?:_::{e:int64}}`,
+		`{a:"s"::(int64|string),b?:none::int64,c:null::(int64|null),d?:none::{e:int64}}`,
 	}
 	builder := vector.NewDynamicValueBuilder()
 	for _, s := range supValues {

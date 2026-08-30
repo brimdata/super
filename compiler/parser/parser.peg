@@ -1289,7 +1289,7 @@ FieldElem
     }
 
 NoneElem
-  = name:Name __ "?" __ ":" __ "_" __ "::" __ typ:ComponentType {
+  = name:Name __ "?" __ ":" __ "none" __ "::" __ typ:ComponentType {
       return &ast.NoneElem{
         Kind: "NoneElem",
         Name: name.(*ast.Text),
