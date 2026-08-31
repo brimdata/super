@@ -62,9 +62,10 @@ type (
 		Else Expr   `json:"else"`
 	}
 	DotExpr struct {
-		Kind string `json:"kind" unpack:""`
-		LHS  Expr   `json:"lhs"`
-		RHS  string `json:"rhs"`
+		Kind    string `json:"kind" unpack:""`
+		LHS     Expr   `json:"lhs"`
+		RHS     string `json:"rhs"`
+		Noneish bool   `json:"noneish"`
 	}
 	IndexExpr struct {
 		Kind  string `json:"kind" unpack:""`

@@ -398,9 +398,10 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 		}
 	case *sem.DotExpr:
 		return &dag.DotExpr{
-			Kind: "DotExpr",
-			LHS:  d.expr(e.LHS),
-			RHS:  e.RHS,
+			Kind:    "DotExpr",
+			LHS:     d.expr(e.LHS),
+			RHS:     e.RHS,
+			Noneish: e.Noneish,
 		}
 	case *sem.IndexExpr:
 		return &dag.IndexExpr{
