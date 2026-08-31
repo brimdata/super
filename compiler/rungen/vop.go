@@ -262,7 +262,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		mergeRecordExprWithPath(rec, nil)
+		mergeRecordExprWithChain(rec, nil)
 		e, err := b.compileVamRecordExpr(rec)
 		if err != nil {
 			return nil, err
@@ -324,12 +324,12 @@ func newRecordExprFromAssignments(assignments []dag.Assignment) (*dag.RecordExpr
 		if !ok {
 			return nil, fmt.Errorf("internal error: dynamic field name not supported: %#v", a.LHS)
 		}
-		addPathToRecordExpr(rec, lhs.Chain, a.RHS)
+		addChainToRecordExpr(rec, lhs.Chain, a.RHS)
 	}
 	return rec, nil
 }
 
-func addPathToRecordExpr(rec *dag.RecordExpr, chain field.Chain, expr dag.Expr) {
+func addChainToRecordExpr(rec *dag.RecordExpr, chain field.Chain, expr dag.Expr) {
 	if len(chain) == 1 {
 		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: chain[0].ID, Value: expr})
 		return
@@ -342,16 +342,16 @@ func addPathToRecordExpr(rec *dag.RecordExpr, chain field.Chain, expr dag.Expr) 
 		i = len(rec.Elems)
 		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: chain[0].ID, Value: &dag.RecordExpr{Kind: "RecordExpr"}})
 	}
-	addPathToRecordExpr(rec.Elems[i].(*dag.Field).Value.(*dag.RecordExpr), chain[1:], expr)
+	addChainToRecordExpr(rec.Elems[i].(*dag.Field).Value.(*dag.RecordExpr), chain[1:], expr)
 }
 
-func mergeRecordExprWithPath(rec *dag.RecordExpr, chain field.Chain) {
+func mergeRecordExprWithChain(rec *dag.RecordExpr, chain field.Chain) {
 	spread := &dag.Spread{Kind: "Spread", Expr: dag.NewThis(chain)}
 	rec.Elems = append([]dag.RecordElem{spread}, rec.Elems...)
 	for _, elem := range rec.Elems {
 		if field, ok := elem.(*dag.Field); ok {
 			if childrec, ok := field.Value.(*dag.RecordExpr); ok {
-				mergeRecordExprWithPath(childrec, chain.Append(field.Name, false))
+				mergeRecordExprWithChain(childrec, chain.Append(field.Name, false))
 			}
 		}
 	}

@@ -8,11 +8,11 @@ type ChainElem struct {
 type Chain []ChainElem
 
 func NewChain(ids ...string) Chain {
-	path := make([]ChainElem, 0, len(ids))
+	chain := make([]ChainElem, 0, len(ids))
 	for _, id := range ids {
-		path = append(path, ChainElem{ID: id})
+		chain = append(chain, ChainElem{ID: id})
 	}
-	return path
+	return chain
 }
 
 func (c Chain) Append(id string, noneish bool) Chain {
