@@ -198,7 +198,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path, inType super
 				return badExpr, t.checker.unknown
 			}
 		}
-		this := sem.NewThis(n, sem.NewPath(append(out, path[1:]...)...))
+		this := sem.NewThis(n, field.NewChain(append(out, path[1:]...)...))
 		return this, t.checker.this(n, this, inType)
 	}
 	if scope, ok := scope.(*selectScope); ok && scope.lateral && inputFirst {
@@ -227,7 +227,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path, inType super
 			return badExpr, t.checker.unknown
 		}
 		if out != nil {
-			this := sem.NewThis(n, sem.NewPath(append(out, path[2:]...)...))
+			this := sem.NewThis(n, field.NewChain(append(out, path[2:]...)...))
 			return this, t.checker.this(n, this, inType)
 		}
 		if p, _, _ := scope.resolveTable(n, path[0], nil); p != nil {
@@ -244,7 +244,7 @@ func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
 		return e
 	}
 	if this, ok := e.(*sem.ThisExpr); ok {
-		return sem.NewThis(n, sem.NewPath(append(this.Path.IDs(), rest...)...))
+		return sem.NewThis(n, append(this.Chain, field.NewChain(rest...)...))
 	}
 	out := &sem.DotExpr{
 		Node: n,

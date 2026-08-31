@@ -270,11 +270,11 @@ func eqExpr(aexpr, bexpr sem.Expr) bool {
 		return ok && a.Correlated == b.Correlated && a.Array == b.Array && eqSeq(a.Body, b.Body)
 	case *sem.ThisExpr:
 		b, ok := bexpr.(*sem.ThisExpr)
-		if !ok || len(a.Path) != len(b.Path) {
+		if !ok || len(a.Chain) != len(b.Chain) {
 			return false
 		}
-		for k := range a.Path {
-			if a.Path[k] != b.Path[k] {
+		for k := range a.Chain {
+			if a.Chain[k] != b.Chain[k] {
 				return false
 			}
 		}

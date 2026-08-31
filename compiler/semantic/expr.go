@@ -11,6 +11,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/compiler/sfmt"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
@@ -454,18 +455,18 @@ func (t *translator) dottedBaseCase(loc ast.Node, lhs *ast.IDExpr, rhs *ast.IDEx
 	return t.deref(loc, id, rhs, nullish, typ)
 }
 
-func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, nullish bool, inType super.Type) (sem.Expr, super.Type) {
+func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, noneish bool, inType super.Type) (sem.Expr, super.Type) {
 	typ, _ := t.checker.deref(id, inType, id.Name)
 	if lhs, ok := lhs.(*sem.ThisExpr); ok {
-		lhs.Path = append(lhs.Path, sem.PathElem{ID: id.Name, Nullish: nullish})
+		lhs.Chain = lhs.Chain.Append(id.Name, noneish)
 		lhs.Node = loc
 		return lhs, typ
 	}
 	return &sem.DotExpr{
-		Node: loc,
-		LHS:  lhs,
-		RHS:  id.Name,
-		//XXX nullish
+		Node:    loc,
+		LHS:     lhs,
+		RHS:     id.Name,
+		Noneish: noneish,
 	}, typ
 }
 
@@ -479,11 +480,11 @@ func (t *translator) idExpr(id *ast.IDExpr, lval bool, inType super.Type) (sem.E
 		}
 		return t.scope.resolve(t, id, []string{id.Name}, inType)
 	}
-	var path sem.Path
+	var chain field.Chain
 	if id.Name != "this" {
-		path = sem.NewPath(id.Name)
+		chain = field.NewChain(id.Name)
 	}
-	this := sem.NewThis(id, path)
+	this := sem.NewThis(id, chain)
 	return this, t.checker.this(id, this, inType)
 }
 
@@ -665,7 +666,7 @@ func (t *translator) noneish(loc ast.Node, typ super.Type) {
 func (t *translator) isIndexOfThis(lhs, rhs sem.Expr) *sem.ThisExpr {
 	if this, ok := lhs.(*sem.ThisExpr); ok {
 		if s, ok := t.maybeEvalString(rhs); ok {
-			this.Path = append(this.Path, sem.PathElem{ID: s})
+			this.Chain = this.Chain.Append(s, false)
 			return this
 		}
 	}
@@ -973,7 +974,7 @@ func (t *translator) assignment(assign *ast.Assignment, inType super.Type) (sem.
 	rhs, typ := t.expr(assign.RHS, inType)
 	var lhs sem.Expr
 	if assign.LHS == nil {
-		lhs = sem.NewThis(assign.RHS, sem.NewPath(deriveNameFromExpr(assign.RHS)))
+		lhs = sem.NewThis(assign.RHS, field.NewChain(deriveNameFromExpr(assign.RHS)))
 	} else {
 		lhs = t.lval(assign.LHS)
 	}
@@ -982,7 +983,7 @@ func (t *translator) assignment(assign *ast.Assignment, inType super.Type) (sem.
 		t.error(assign, errors.New("illegal left-hand side of assignment"))
 		lhs = badExpr
 	}
-	if this, ok := lhs.(*sem.ThisExpr); ok && len(this.Path) == 0 {
+	if this, ok := lhs.(*sem.ThisExpr); ok && len(this.Chain) == 0 {
 		t.error(assign, errors.New("cannot assign to 'this'"))
 		lhs = badExpr
 	}
@@ -1014,7 +1015,7 @@ func isLval(e sem.Expr) ([]string, bool) {
 		}
 		return path, ok
 	case *sem.ThisExpr:
-		return e.Path.IDs(), true
+		return e.Chain.Path(), true
 	}
 	return nil, false
 }
@@ -1100,7 +1101,7 @@ func (t *translator) field(f ast.Expr, inType super.Type) (sem.Expr, super.Type)
 	e, typ := t.expr(f, inType)
 	switch e := e.(type) {
 	case *sem.ThisExpr:
-		if len(e.Path) == 0 {
+		if len(e.Chain) == 0 {
 			t.error(f, errors.New("cannot use 'this' as a field reference"))
 			return badExpr, t.checker.unknown
 		}
@@ -1198,7 +1199,7 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 			if !ok {
 				return nil
 			}
-			lhs.Path = append(lhs.Path, sem.PathElem{ID: id.Name, Nullish: e.Op == "?."})
+			lhs.Chain = lhs.Chain.Append(id.Name, e.Op == "?.")
 			return lhs
 		}
 	case *ast.IndexExpr:
@@ -1210,10 +1211,10 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 		if !ok || id.Type != "string" {
 			return nil
 		}
-		this.Path = append(this.Path, sem.PathElem{ID: id.Text})
+		this.Chain = this.Chain.Append(id.Text, false)
 		return this
 	case *ast.IDExpr:
-		return sem.NewThis(e, sem.NewPath(e.Name))
+		return sem.NewThis(e, field.NewChain(e.Name))
 	}
 	// This includes a null Expr, which can happen if the AST is missing
 	// a field or sets it to null.

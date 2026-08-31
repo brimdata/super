@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/semantic/sem"
+	"github.com/brimdata/super/pkg/field"
 )
 
 type dagen struct {
@@ -470,8 +471,8 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 		return d.subquery(e)
 	case *sem.ThisExpr:
 		return &dag.ThisExpr{
-			Kind: "ThisExpr",
-			Path: e.Path.IDs(),
+			Kind:  "ThisExpr",
+			Chain: e.Chain,
 		}
 	case *sem.TypeExpr:
 		return &dag.TypeExpr{
@@ -550,7 +551,7 @@ func (d *dagen) subquery(e *sem.SubqueryExpr) *dag.SubqueryExpr {
 func collectThis(seq dag.Seq) dag.Seq {
 	collect := dag.Assignment{
 		Kind: "Assignment",
-		LHS:  dag.NewThis([]string{"collect"}),
+		LHS:  dag.NewThis(field.NewChain("collect")),
 		RHS:  &dag.AggExpr{Kind: "AggExpr", Name: "collect", Expr: dag.NewThis(nil)},
 	}
 	aggOp := &dag.AggregateOp{
@@ -559,7 +560,7 @@ func collectThis(seq dag.Seq) dag.Seq {
 	}
 	emitOp := &dag.ValuesOp{
 		Kind:  "ValuesOp",
-		Exprs: []dag.Expr{dag.NewThis([]string{"collect"})},
+		Exprs: []dag.Expr{dag.NewThis(field.NewChain("collect"))},
 	}
 	seq = append(seq, aggOp)
 	return append(seq, emitOp)

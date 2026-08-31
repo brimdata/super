@@ -131,8 +131,8 @@ type (
 		Body       Seq    `json:"body"`
 	}
 	ThisExpr struct {
-		Kind string   `json:"kind" unpack:""`
-		Path []string `json:"path"`
+		Kind  string      `json:"kind" unpack:""`
+		Chain field.Chain `json:"chain"`
 	}
 	TypeExpr struct {
 		Kind string `json:"kind" unpack:""`
@@ -219,12 +219,12 @@ func NewCall(tag string, args []Expr) *CallExpr {
 	}
 }
 
-func NewThis(path []string) *ThisExpr {
-	return &ThisExpr{"ThisExpr", path}
+func NewThis(chain field.Chain) *ThisExpr {
+	return &ThisExpr{"ThisExpr", chain}
 }
 
 func (t *ThisExpr) String() string {
-	return field.Path(t.Path).String()
+	return t.Chain.String()
 }
 
 func NewUnaryExpr(op string, e Expr) *UnaryExpr {

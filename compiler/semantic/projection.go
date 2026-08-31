@@ -5,22 +5,23 @@ import (
 	"slices"
 
 	"github.com/brimdata/super/compiler/semantic/sem"
+	"github.com/brimdata/super/pkg/field"
 )
 
 func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr, bool) {
 	ok := true
 	out := exprWalk(in, func(e sem.Expr) (sem.Expr, bool) {
 		if i := exprMatch(e, groupings); i >= 0 {
-			return sem.NewThis(e, sem.NewPath("g", groupTmp(i))), true
+			return sem.NewThis(e, field.NewChain("g", groupTmp(i))), true
 		}
 		switch e := e.(type) {
 		case *sem.ThisExpr:
-			if len(e.Path) >= 1 {
-				s := e.Path[0].ID
+			if len(e.Chain) >= 1 {
+				s := e.Chain[0].ID
 				switch s {
 				case "in":
 					ok = false
-					t.error(e, fmt.Errorf("column %q must appear in GROUP BY clause", e.Path[len(e.Path)-1].ID))
+					t.error(e, fmt.Errorf("column %q must appear in GROUP BY clause", e.Chain[len(e.Chain)-1].ID))
 					return e, true
 				case "out", "g":
 				default:
@@ -33,7 +34,7 @@ func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr
 			// turned into AggRefs before this is called.
 			panic(e)
 		case *sem.AggRef:
-			return sem.NewThis(e.Node, sem.NewPath("g", aggTmp(e.Index))), false
+			return sem.NewThis(e.Node, field.NewChain("g", aggTmp(e.Index))), false
 		}
 		return e, false
 	})
