@@ -11,6 +11,7 @@ import (
 	"github.com/brimdata/super/compiler/optimizer/demand"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/segmentio/ksuid"
 )
@@ -188,7 +189,7 @@ func (o *Optimizer) OptimizeDeleter(main *dag.Main, replicas int) error {
 		merge = &dag.MergeOp{
 			Kind: "MergeOp",
 			Exprs: []dag.SortExpr{{
-				Key:   dag.NewThis(sortKey.Key),
+				Key:   dag.NewThis(sortKey.Key.Chain()),
 				Order: sortKey.Order,
 				Nulls: sortKey.Order.NullsMax(true),
 			}},
@@ -345,7 +346,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 		var sortKeys order.SortKeys
 		sortExpr := op.Exprs[0]
 		if this, ok := sortExpr.Key.(*dag.ThisExpr); ok {
-			sortKeys = append(sortKeys, order.NewSortKey(sortExpr.Order, this.Path))
+			sortKeys = append(sortKeys, order.NewSortKey(sortExpr.Order, this.Chain.Path()))
 		}
 		if !sortKeys.Equal(parent) {
 			sortKeys = nil
@@ -534,10 +535,10 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 	} else if t, ok := e.RHS.(*dag.ThisExpr); ok && isConst(e.LHS) {
 		this, c = t, e.LHS
 	}
-	if c == nil || this == nil || len(this.Path) < 1 || this.Path[0] != alias {
+	if c == nil || this == nil || len(this.Chain) < 1 || this.Chain[0].ID != alias {
 		return nil, false
 	}
-	path := slices.Clone(this.Path[1:])
+	path := slices.Clone(this.Chain[1:])
 	return dag.NewBinaryExpr(e.Op, dag.NewThis(path), c), true
 }
 
@@ -592,17 +593,17 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 				if !ok {
 					return e
 				}
-				e1, ok := fields[this.Path[0]]
+				e1, ok := fields[this.Chain[0].ID]
 				if !ok {
 					if spread == nil {
 						return newErrorMissing()
 					}
 					// Copy spread so f and y don't share dag.Exprs.
-					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Path)
+					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Chain.Path())
 					return e
 				}
 				// Copy e1 so f and y don't share dag.Exprs.
-				e, liftOK = addPathToExpr(dag.CopyExpr(e1), this.Path[1:])
+				e, liftOK = addPathToExpr(dag.CopyExpr(e1), this.Chain.Path()[1:])
 				return e
 			})
 			if liftOK {
@@ -638,15 +639,15 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 				if !ok {
 					return e
 				}
-				v1Expr, ok := v1TopLevelFields[this.Path[0]]
+				v1Expr, ok := v1TopLevelFields[this.Chain.Path()[0]]
 				if !ok {
 					if v1TopLevelSpread == nil {
 						return newErrorMissing()
 					}
-					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Path)
+					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Chain.Path())
 					return e
 				}
-				e, mergeOK = addPathToExpr(v1Expr, this.Path[1:])
+				e, mergeOK = addPathToExpr(v1Expr, this.Chain.Path()[1:])
 				return e
 			}
 			var mergedOp dag.Op
@@ -681,7 +682,7 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 func hasThisWithEmptyPath(v any) bool {
 	var found bool
 	walkT(reflect.ValueOf(v), func(this *dag.ThisExpr) *dag.ThisExpr {
-		if len(this.Path) < 1 {
+		if len(this.Chain) < 1 {
 			found = true
 		}
 		return this
@@ -733,7 +734,7 @@ func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
 		}
 		return addPathToExpr(spread.Expr, path)
 	case *dag.ThisExpr:
-		return dag.NewThis(slices.Concat(e.Path, path)), true
+		return dag.NewThis(slices.Concat(e.Chain, field.NewChain(path...))), true
 	}
 	for _, elem := range path {
 		e = &dag.DotExpr{Kind: "DotExpr", LHS: e, RHS: elem}

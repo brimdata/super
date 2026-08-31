@@ -55,8 +55,8 @@ func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
 		return container, nil
 	case *dag.ThisExpr:
 		var elems []expr.LvalElem
-		for _, elem := range e.Path {
-			elems = append(elems, &expr.StaticLvalElem{Name: elem})
+		for _, elem := range e.Chain {
+			elems = append(elems, &expr.StaticLvalElem{Name: elem.ID})
 		}
 		return expr.NewLval(elems), nil
 	}

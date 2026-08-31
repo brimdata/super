@@ -2,6 +2,7 @@ package sfmt
 
 import (
 	"github.com/brimdata/super/compiler/ast"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
 )
 
@@ -22,22 +23,25 @@ func (s *shared) literal(e ast.Primitive) {
 	}
 }
 
-func (s *shared) fieldpath(path []string) {
-	if len(path) == 0 {
+func (s *shared) fieldchain(chain field.Chain) {
+	if len(chain) == 0 {
 		s.write("this")
 		return
 	}
-	for k, elem := range path {
-		if sup.IsIdentifier(elem) {
+	for k, elem := range chain {
+		if elem.Noneish {
+			s.write("?")
+		}
+		if sup.IsIdentifier(elem.ID) {
 			if k != 0 {
 				s.write(".")
 			}
-			s.write(elem)
+			s.write(elem.ID)
 		} else {
 			if k == 0 {
 				s.write("this")
 			}
-			s.write("[%q]", elem)
+			s.write("[%q]", elem.ID)
 		}
 	}
 }

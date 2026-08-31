@@ -395,7 +395,7 @@ func (j *joinUsingScope) star(n ast.Node, table string, path field.Path) ([]*sem
 			return nil, err
 		}
 		p := append(append(path, "left"), left...)
-		this := sem.NewThis(n, sem.NewPath(p...))
+		this := sem.NewThis(n, field.NewChain(p...))
 		out = append(out, this)
 	}
 	var err error
@@ -412,7 +412,7 @@ func (j *joinUsingScope) filterAppend(out []*sem.ThisExpr, rs relScope, n ast.No
 		return nil, err
 	}
 	for _, this := range exprs {
-		if _, skip := j.skip[this.Path[len(this.Path)-1].ID]; !skip {
+		if _, skip := j.skip[this.Chain[len(this.Chain)-1].ID]; !skip {
 			out = append(out, this)
 		}
 	}
@@ -430,7 +430,7 @@ func (s *staticTable) star(n ast.Node, table string, path field.Path) ([]*sem.Th
 	var out []*sem.ThisExpr
 	if table == "" || s.table == table {
 		for _, col := range s.typ.Fields {
-			path := append(sem.NewPath(path...), sem.PathElem{ID: col.Name})
+			path := field.NewChain(path...).Append(col.Name, false)
 			out = append(out, sem.NewThis(n, path))
 		}
 	}
@@ -468,7 +468,7 @@ func (s *selectScope) endScope(n ast.Node, seq sem.Seq) (sem.Seq, *staticTable) 
 	if s.out == nil {
 		return seq, badTable
 	}
-	return valuesExpr(sem.NewThis(n, sem.NewPath("out")), seq), s.out
+	return valuesExpr(sem.NewThis(n, field.NewChain("out")), seq), s.out
 }
 
 func (s *staticTable) endScope(n ast.Node, seq sem.Seq) (sem.Seq, *staticTable) {
@@ -476,7 +476,7 @@ func (s *staticTable) endScope(n ast.Node, seq sem.Seq) (sem.Seq, *staticTable) 
 }
 
 func (d *dynamicTable) this(n ast.Node, path []string) sem.Expr {
-	return sem.NewThis(n, sem.NewPath(path...))
+	return sem.NewThis(n, field.NewChain(path...))
 }
 
 func (j *joinScope) this(n ast.Node, path []string) sem.Expr {
@@ -493,7 +493,7 @@ func (s *selectScope) this(n ast.Node, path []string) sem.Expr {
 }
 
 func (s *staticTable) this(n ast.Node, path []string) sem.Expr {
-	return sem.NewThis(n, sem.NewPath(path...))
+	return sem.NewThis(n, field.NewChain(path...))
 }
 
 func (s *subqueryScope) this(n ast.Node, path []string) sem.Expr {
@@ -531,7 +531,7 @@ func (s *selectScope) resolveTable(n ast.Node, name string, path []string) (sem.
 
 func (s *staticTable) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
 	if s.table == table {
-		return sem.NewThis(n, sem.NewPath(path...)), false, nil
+		return sem.NewThis(n, field.NewChain(path...)), false, nil
 	}
 	return nil, false, nil
 }

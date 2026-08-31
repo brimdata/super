@@ -7,7 +7,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
@@ -61,7 +60,7 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	case *dag.SubqueryExpr:
 		return b.compileVamSubquery(e)
 	case *dag.ThisExpr:
-		return vamexpr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
+		return vamexpr.NewDottedExpr(b.sctx(), e.Chain.Path()), nil
 	case *dag.TypeExpr:
 		typ, err := b.lookupType(e.ID)
 		if err != nil {

@@ -206,8 +206,8 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 		return demand.Union(DemandForSeq(expr.Body, demand.All())...)
 	case *dag.ThisExpr:
 		d := demand.All()
-		for i := len(expr.Path) - 1; i >= 0; i-- {
-			d = demand.Key(expr.Path[i], d)
+		for i := len(expr.Chain) - 1; i >= 0; i-- {
+			d = demand.Key(expr.Chain[i].ID, d)
 		}
 		return d
 	case *dag.UnaryExpr:

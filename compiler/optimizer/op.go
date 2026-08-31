@@ -212,7 +212,7 @@ func fieldKey(f field.Path) string {
 
 func fieldOf(e dag.Expr) field.Path {
 	if this, ok := e.(*dag.ThisExpr); ok {
-		return this.Path
+		return this.Chain.Path()
 	}
 	return nil
 }
@@ -225,7 +225,7 @@ func FieldsOf(e dag.Expr) (field.List, bool) {
 	case *dag.SearchExpr, *dag.PrimitiveExpr:
 		return nil, true
 	case *dag.ThisExpr:
-		return field.List{e.Path}, true
+		return field.List{e.Chain.Path()}, true
 	case *dag.UnaryExpr:
 		return FieldsOf(e.Operand)
 	case *dag.BinaryExpr:

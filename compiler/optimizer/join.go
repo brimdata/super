@@ -162,9 +162,9 @@ func equiJoinKeyExprs(e dag.Expr, leftAlias, rightAlias string) (left, right dag
 func firstThisPathComponent(e dag.Expr) (prefix string, ok bool) {
 	walkT(reflect.ValueOf(e), func(t dag.ThisExpr) dag.ThisExpr {
 		if prefix == "" {
-			prefix = t.Path[0]
+			prefix = t.Chain[0].ID
 			ok = true
-		} else if prefix != t.Path[0] {
+		} else if prefix != t.Chain[0].ID {
 			ok = false
 		}
 		return t
@@ -175,7 +175,7 @@ func firstThisPathComponent(e dag.Expr) (prefix string, ok bool) {
 // stripFirstThisPathComponent removes the first component of every dag.This.Path in e.
 func stripFirstThisPathComponent(e dag.Expr) {
 	walkT(reflect.ValueOf(e), func(t dag.ThisExpr) dag.ThisExpr {
-		t.Path = t.Path[1:]
+		t.Chain = t.Chain[1:]
 		return t
 	})
 }

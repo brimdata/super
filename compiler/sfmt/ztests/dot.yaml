@@ -1,10 +1,15 @@
 script: |
   super compile -C -dag 'values {nested:[{field:1}]} | nested[1].field == 1'
-
+  echo ===
+  super compile -C -dag 'values x?.y' -
 outputs:
   - name: stdout
     data: |
       null
       | values {nested:[{field:1}]}
       | where nested[1]["field"]==1
+      | output main
+      ===
+      file stdio:stdin
+      | values x?.y
       | output main

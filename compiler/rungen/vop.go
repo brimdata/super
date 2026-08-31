@@ -226,7 +226,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 	case *dag.DropOp:
 		fields := make(field.List, 0, len(o.Args))
 		for _, e := range o.Args {
-			fields = append(fields, e.(*dag.ThisExpr).Path)
+			fields = append(fields, e.(*dag.ThisExpr).Chain.Path())
 		}
 		dropper := vamexpr.NewDropper(b.sctx(), fields)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{dropper}), nil
@@ -262,7 +262,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		mergeRecordExprWithPath(rec, nil)
+		mergeRecordExprWithChain(rec, nil)
 		e, err := b.compileVamRecordExpr(rec)
 		if err != nil {
 			return nil, err
@@ -324,34 +324,34 @@ func newRecordExprFromAssignments(assignments []dag.Assignment) (*dag.RecordExpr
 		if !ok {
 			return nil, fmt.Errorf("internal error: dynamic field name not supported: %#v", a.LHS)
 		}
-		addPathToRecordExpr(rec, lhs.Path, a.RHS)
+		addChainToRecordExpr(rec, lhs.Chain, a.RHS)
 	}
 	return rec, nil
 }
 
-func addPathToRecordExpr(rec *dag.RecordExpr, path []string, expr dag.Expr) {
-	if len(path) == 1 {
-		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: path[0], Value: expr})
+func addChainToRecordExpr(rec *dag.RecordExpr, chain field.Chain, expr dag.Expr) {
+	if len(chain) == 1 {
+		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: chain[0].ID, Value: expr})
 		return
 	}
 	i := slices.IndexFunc(rec.Elems, func(elem dag.RecordElem) bool {
 		f, ok := elem.(*dag.Field)
-		return ok && f.Name == path[0]
+		return ok && f.Name == chain[0].ID
 	})
 	if i == -1 {
 		i = len(rec.Elems)
-		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: path[0], Value: &dag.RecordExpr{Kind: "RecordExpr"}})
+		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: chain[0].ID, Value: &dag.RecordExpr{Kind: "RecordExpr"}})
 	}
-	addPathToRecordExpr(rec.Elems[i].(*dag.Field).Value.(*dag.RecordExpr), path[1:], expr)
+	addChainToRecordExpr(rec.Elems[i].(*dag.Field).Value.(*dag.RecordExpr), chain[1:], expr)
 }
 
-func mergeRecordExprWithPath(rec *dag.RecordExpr, path []string) {
-	spread := &dag.Spread{Kind: "Spread", Expr: dag.NewThis(path)}
+func mergeRecordExprWithChain(rec *dag.RecordExpr, chain field.Chain) {
+	spread := &dag.Spread{Kind: "Spread", Expr: dag.NewThis(chain)}
 	rec.Elems = append([]dag.RecordElem{spread}, rec.Elems...)
 	for _, elem := range rec.Elems {
 		if field, ok := elem.(*dag.Field); ok {
 			if childrec, ok := field.Value.(*dag.RecordExpr); ok {
-				mergeRecordExprWithPath(childrec, append(path, field.Name))
+				mergeRecordExprWithChain(childrec, chain.Append(field.Name, false))
 			}
 		}
 	}
@@ -374,7 +374,7 @@ func (b *Builder) compileVamAggregate(s *dag.AggregateOp, parent vio.Puller) (vi
 	var aggExprs []vamexpr.Evaluator
 	var aggs []*vamexpr.Aggregator
 	for _, assignment := range s.Aggs {
-		aggNames = append(aggNames, assignment.LHS.(*dag.ThisExpr).Path)
+		aggNames = append(aggNames, assignment.LHS.(*dag.ThisExpr).Chain.Path())
 		agg, err := b.compileVamAgg(assignment.RHS.(*dag.AggExpr))
 		if err != nil {
 			return nil, err
@@ -401,7 +401,7 @@ func (b *Builder) compileVamAggregate(s *dag.AggregateOp, parent vio.Puller) (vi
 		if err != nil {
 			return nil, err
 		}
-		keyNames = append(keyNames, lhs.Path)
+		keyNames = append(keyNames, lhs.Chain.Path())
 		keyExprs = append(keyExprs, rhs)
 	}
 	if len(keyExprs) == 0 {

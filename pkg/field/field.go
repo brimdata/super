@@ -51,6 +51,10 @@ func (p Path) HasPrefixIn(set []Path) bool {
 	return slices.ContainsFunc(set, p.HasPrefix)
 }
 
+func (p Path) Chain() Chain {
+	return NewChain([]string(p)...)
+}
+
 func Dotted(s string) Path {
 	return strings.Split(s, ".")
 }

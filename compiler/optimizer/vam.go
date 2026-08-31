@@ -16,7 +16,7 @@ func IsCountByString(o dag.Op) (string, bool) {
 
 func isCount(a dag.Assignment) bool {
 	this, ok := a.LHS.(*dag.ThisExpr)
-	if !ok || len(this.Path) != 1 || this.Path[0] != "count" {
+	if !ok || len(this.Chain) != 1 || this.Chain[0].ID != "count" {
 		return false
 	}
 	agg, ok := a.RHS.(*dag.AggExpr)
