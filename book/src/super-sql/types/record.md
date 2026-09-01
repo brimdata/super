@@ -62,8 +62,18 @@ When an expression is present without a field name,
 the field name is derived from the expression text as follows:
 * for a dotted path expression, the name is the last element of the path;
 * for a function or aggregate function, the name is the name of the function;
+* for a double-quoted token, the name is the text between the quotes;
 * for `this`, the name is `that`;
 * otherwise, the name is the expression text formatted in a canonical form.
+
+>[!NOTE]
+> The double-quote rule follows from the dual meaning of double quotes for
+> [string types](string.md): in a SQL expression a double-quoted token is a field
+> identifier, while in a pipe expression it is a string. The derived field name
+> comes from the quoted text in both cases. A consequence in pipe expressions
+> is that a double-quoted string and a single-quoted string of equal value
+> derive different names, since only the former matches this rule and the
+> latter falls through to the canonical form.
 
 ## Examples
 
@@ -113,26 +123,27 @@ type CustomString=string
 
 ---
 
-_A record expression with an unnamed expression_
+_Various derived field names_
 
-```mdtest-spq
+```mdtest-spq {data-layout="stacked"}
 # spq
-values {1+2*3}
+values {a.b,upper(a.b),"x y",'x y',this,a.b || "d"}
 # input
-
+{a:{b:"c"}}
 # expected output
-{"1+2*3":7}
+{b:"c",upper:"C","x y":"x y","\"x y\"":"x y",that:{a:{b:"c"}},"a.b||\"d\"":"cd"}
 ```
 
 ---
 
-_Selecting a record expression with an unnamed expression_
+_Derived field names inside a SELECT_
 
 ```mdtest-spq
 # spq
-select {1+2*3} as x
+select {1+2*3} as x,sum(a)
 # input
-
+{a:1}
+{a:2}
 # expected output
-{x:{"1+2*3":7}}
+{x:{"1+2*3":7},sum:3}
 ```
