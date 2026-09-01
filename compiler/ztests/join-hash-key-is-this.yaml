@@ -1,0 +1,60 @@
+# A join key expression containing a bare "this" has no common first path
+# component, so the join must not be converted to a hash join.  The first query
+# is the panic from issue 6971; the second mixes a bare "this" with a chained
+# one in the same key expression, which panics in stripFirstThisPathComponent
+# unless firstThisPathComponent latches the bare case.
+#
+# Both expected DAGs show a named query used as a SQL table inlined into the ON
+# expression as a subquery, which is the issue 6622 binding bug and is not fixed
+# here; they will need regenerating when it is.
+script: |
+  super compile -O -C "
+    let a = (values [{id:1}] | unnest this)
+    let b = (values [{id:2}] | unnest this)
+    SELECT a.id FROM a JOIN b ON a.id = b.id
+  "
+  echo // ===
+  super compile -O -C "
+    let c = (values [{id:1}] | unnest this)
+    let t1 = (values {id:1})
+    let t2 = (values {id:1})
+    SELECT p.id FROM t1 AS p JOIN t2 AS q ON p.id = c.id + q.id
+  "
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | fork
+        (
+          values [{id:1}]
+          | unnest this
+        )
+        (
+          values [{id:2}]
+          | unnest this
+        )
+      | inner join as {left,right} on (
+          values [{id:1}]
+          | unnest this)["id"]==(
+          values [{id:2}]
+          | unnest this)["id"]
+      | values {in:this}
+      | values {id:(
+        values [{id:1}]
+        | unnest this)["id"]}
+      | output main
+      // ===
+      null
+      | fork
+        (
+          values {id:1}
+        )
+        (
+          values {id:1}
+        )
+      | inner join as {left,right} on left.id==(
+          values [{id:1}]
+          | unnest this)["id"]+right.id
+      | values {id:left.id}
+      | output main
