@@ -12,8 +12,8 @@ inputs:
       {x?:none::int64}
   - name: b.sup
     data: |
-      {x?:1::(int64|null)}
-      {x?:none::(int64|null)}
+      {x?:1::(int64|null|none)}
+      {x?:none::(int64|null|none)}
 
 outputs:
   - name: stdout

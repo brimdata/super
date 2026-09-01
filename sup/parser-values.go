@@ -44,7 +44,7 @@ func noEOF(err error) error {
 func (p *Parser) matchOuterValue() (ast.Value, error) {
 	var decls []ast.TypeDecl
 	for {
-		val, decl, err := p.matchValueOrDecl(false)
+		val, decl, err := p.matchValueOrDecl()
 		if err != nil {
 			return nil, err
 		}
@@ -66,8 +66,8 @@ func (p *Parser) matchOuterValue() (ast.Value, error) {
 	}
 }
 
-func (p *Parser) matchValue(allowNone bool) (ast.Value, error) {
-	val, decl, err := p.matchValueOrDecl(allowNone)
+func (p *Parser) matchValue() (ast.Value, error) {
+	val, decl, err := p.matchValueOrDecl()
 	if noEOF(err) != nil {
 		return nil, err
 	}
@@ -77,12 +77,7 @@ func (p *Parser) matchValue(allowNone bool) (ast.Value, error) {
 	return val, nil
 }
 
-func (p *Parser) matchValueOrDecl(allowNone bool) (ast.Value, *ast.TypeDecl, error) {
-	if allowNone {
-		if val, err := p.matchNone(); val != nil || err != nil {
-			return val, nil, err
-		}
-	}
+func (p *Parser) matchValueOrDecl() (ast.Value, *ast.TypeDecl, error) {
 	if val, err := p.matchRecord(); val != nil || err != nil {
 		val, err := p.decorate(val, err)
 		return val, nil, err
@@ -105,6 +100,10 @@ func (p *Parser) matchValueOrDecl(allowNone bool) (ast.Value, *ast.TypeDecl, err
 		val, err := p.decorate(val, err)
 		return val, nil, err
 	}
+	if val, err := p.matchNone(); val != nil || err != nil {
+		val, err := p.decorate(val, err)
+		return val, nil, err
+	}
 	name, err := p.matchIdentifier()
 	if err != nil {
 		return nil, nil, noEOF(err)
@@ -112,7 +111,7 @@ func (p *Parser) matchValueOrDecl(allowNone bool) (ast.Value, *ast.TypeDecl, err
 	if typ, err := p.matchTypeDecl(name); typ != nil || err != nil {
 		return nil, typ, err
 	}
-	if val, err := p.matchFusion(name, allowNone); val != nil || err != nil {
+	if val, err := p.matchFusion(name); val != nil || err != nil {
 		val, err := p.decorate(val, err)
 		return val, nil, err
 	}
@@ -258,28 +257,15 @@ func (p *Parser) matchString() (string, bool, error) {
 func (p *Parser) matchNone() (*ast.None, error) {
 	l := p.lexer
 	if lookahead, err := l.peek(4); err != nil || lookahead == "" || lookahead[:4] != "none" {
+		if err == io.ErrUnexpectedEOF {
+			err = nil
+		}
 		return nil, noEOF(err)
 	}
 	l.skip(4)
-	if ok, err := l.match(':'); !ok || err != nil {
-		if err == nil {
-			err = p.error("none value (_) must include type decorator")
-		}
-		return nil, err
-	}
-	if ok, err := l.match(':'); !ok || err != nil {
-		if err == nil {
-			err = p.error("none value (_) followed by malformed type decorator")
-		}
-		return nil, err
-	}
-	typ, err := p.matchTypeComponent()
-	if err != nil {
-		return nil, err
-	}
 	return &ast.None{
 		Kind: "None",
-		Type: typ,
+		Type: &ast.TypePrimitive{Kind: "TypePrimitive", Name: "none"},
 	}, nil
 }
 
@@ -353,7 +339,7 @@ func (p *Parser) matchField() (*ast.Field, error) {
 	if !ok {
 		return nil, p.errorf("no type name found for field %q", name)
 	}
-	val, err := p.matchValue(true)
+	val, err := p.matchValue()
 	if val == nil && err == nil {
 		err = p.lexerError()
 	}
@@ -442,7 +428,7 @@ func (p *Parser) matchValueList() ([]ast.Value, error) {
 	l := p.lexer
 	var vals []ast.Value
 	for {
-		val, err := p.matchValue(false)
+		val, err := p.matchValue()
 		if err != nil {
 			return nil, err
 		}
@@ -530,7 +516,7 @@ func (p *Parser) matchMapEntries() ([]ast.Entry, error) {
 }
 
 func (p *Parser) parseEntry() (*ast.Entry, error) {
-	key, err := p.matchValue(false)
+	key, err := p.matchValue()
 	if err != nil {
 		return nil, err
 	}
@@ -564,7 +550,7 @@ func (p *Parser) matchError(name string) (*ast.Error, error) {
 	if ok, err := l.match('('); !ok || err != nil {
 		return nil, noEOF(err)
 	}
-	val, err := p.matchValue(false)
+	val, err := p.matchValue()
 	if err != nil {
 		return nil, noEOF(err)
 	}
@@ -612,7 +598,7 @@ func (p *Parser) matchTypeDecl(keyword string) (*ast.TypeDecl, error) {
 	}, nil
 }
 
-func (p *Parser) matchFusion(name string, allowNone bool) (*ast.Fusion, error) {
+func (p *Parser) matchFusion(name string) (*ast.Fusion, error) {
 	if name != "fusion" {
 		return nil, nil
 	}
@@ -620,7 +606,7 @@ func (p *Parser) matchFusion(name string, allowNone bool) (*ast.Fusion, error) {
 	if ok, err := l.match('('); !ok || err != nil {
 		return nil, noEOF(err)
 	}
-	val, err := p.matchValue(allowNone)
+	val, err := p.matchValue()
 	if err != nil {
 		return nil, noEOF(err)
 	}

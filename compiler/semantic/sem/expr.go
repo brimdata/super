@@ -162,11 +162,6 @@ type (
 		Value Expr
 		Opt   bool
 	}
-	NoneElem struct {
-		ast.Node
-		Name string
-		Type int
-	}
 	SpreadElem struct {
 		ast.Node
 		Expr Expr
@@ -179,7 +174,6 @@ type (
 
 func (*ExprElem) arrayElemNode()    {}
 func (*FieldElem) recordElemNode()  {}
-func (*NoneElem) recordElemNode()   {}
 func (*SpreadElem) arrayElemNode()  {}
 func (*SpreadElem) recordElemNode() {}
 
@@ -389,12 +383,6 @@ func CopyExpr(e Expr) Expr {
 					Name:  elem.Name,
 					Value: CopyExpr(elem.Value),
 					Opt:   elem.Opt,
-				})
-			case *NoneElem:
-				elems = append(elems, &NoneElem{
-					Node: elem.Node,
-					Name: elem.Name,
-					Type: elem.Type,
 				})
 			case *SpreadElem:
 				elems = append(elems, &SpreadElem{

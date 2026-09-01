@@ -280,15 +280,6 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 				Opt:  elem.Opt,
 				Expr: expr,
 			})
-		case *dag.None:
-			noneType, err := b.lookupType(elem.Type)
-			if err != nil {
-				return nil, err
-			}
-			elems = append(elems, &vamexpr.NoneElem{
-				Name: elem.Name,
-				Type: noneType,
-			})
 		case *dag.Spread:
 			expr, err := b.compileVamExpr(elem.Expr)
 			if err != nil {

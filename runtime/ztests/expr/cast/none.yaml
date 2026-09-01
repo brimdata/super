@@ -1,0 +1,18 @@
+spq: values {x?:cast(none,<int64>)}
+
+output: |
+  {x?:none::int64}
+
+---
+
+spq: values {x?:none::int64}
+
+output: |
+  {x?:none::int64}
+
+---
+
+spq: values cast({x?:none::int64},<{x?:(int32|string|none)}>)
+
+output: |
+  {x?:none::(int32|string|none)}

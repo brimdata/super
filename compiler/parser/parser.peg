@@ -1270,7 +1270,7 @@ RecordElems
 
 RecordElemTail = __ "," __ elem:RecordElem { return elem, nil }
 
-RecordElem = SpreadElem / NoneElem / FieldElem / ExprElem
+RecordElem = SpreadElem / FieldElem / ExprElem
 
 SpreadElem
   = "..." __ expr:Expr {
@@ -1284,16 +1284,6 @@ FieldElem
         Name: name.(*ast.Text),
         Value: value.(ast.Expr),
         Opt: opt.(bool),
-        Loc: loc(c),
-      }, nil
-    }
-
-NoneElem
-  = name:Name __ "?" __ ":" __ "none" __ "::" __ typ:ComponentType {
-      return &ast.NoneElem{
-        Kind: "NoneElem",
-        Name: name.(*ast.Text),
-        Type: typ.(ast.Type),
         Loc: loc(c),
       }, nil
     }
@@ -1386,6 +1376,7 @@ Literal
   / IntegerLiteral
   / BooleanLiteral
   / NullLiteral
+  / NoneLiteral
 
 SubnetLiteral
   = v:IP6Net !IdentifierRest {
@@ -1420,6 +1411,9 @@ BooleanLiteral
 NullLiteral
   = NULL { return newPrimitive(c, "null", ""), nil }
 
+NoneLiteral
+  = NONE { return newPrimitive(c, "none", ""), nil }
+  
 BytesLiteral
   = "0x" HexDigit* {
     return newPrimitive(c, "bytes", string(c.text)), nil
@@ -1693,6 +1687,7 @@ IdentifierRest
 
 IDGuard
   = BooleanLiteral
+  / NoneLiteral
   / NullLiteral
   / NaN
   / Infinity
@@ -2512,6 +2507,7 @@ LOAD       = "LOAD"i            !IdentifierRest
 MATERIALIZED = "MATERIALIZED"i  !IdentifierRest
 MAP        = "MAP"i             !IdentifierRest
 MERGE      = "MERGE"i           !IdentifierRest
+NONE       = "NONE"i            !IdentifierRest
 NOT        = "NOT"i             !IdentifierRest
 NULL       = "NULL"i            !IdentifierRest
 NULLS      = "NULLS"i           !IdentifierRest
