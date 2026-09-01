@@ -369,7 +369,7 @@ func (f *formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 		}
 		elem := it.Next()
 		if super.IsNone(field.Type, elem) {
-			f.build("_")
+			f.build("none")
 			f.startColor(color.Gray(200))
 			f.build("::")
 			typ := field.Type
@@ -545,7 +545,7 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
 	case *super.TypeOfNull:
 		b.WriteString("null")
 	case *super.TypeOfNone:
-		b.WriteString("_")
+		b.WriteString("none")
 	case *super.TypeOfAll:
 		// Write out all values as byte encoded as they only place
 		// they may appear is inside of a fusion(all), which includes

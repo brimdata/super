@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
 )
@@ -54,8 +55,9 @@ type (
 	}
 	DotExpr struct {
 		ast.Node
-		LHS Expr
-		RHS string
+		LHS     Expr
+		RHS     string
+		Noneish bool
 	}
 	IndexExpr struct {
 		ast.Node
@@ -119,7 +121,7 @@ type (
 	}
 	ThisExpr struct {
 		ast.Node
-		Path Path
+		Chain field.Chain
 	}
 	TypeExpr struct {
 		ast.Node
@@ -219,31 +221,8 @@ type FuncRef struct {
 
 func (*FuncRef) exprNode() {}
 
-func NewThis(n ast.Node, path Path) *ThisExpr {
-	return &ThisExpr{Node: n, Path: path}
-}
-
-type PathElem struct {
-	ID      string
-	Nullish bool
-}
-
-type Path []PathElem
-
-func (p Path) IDs() []string {
-	path := make([]string, 0, len(p))
-	for _, elem := range p {
-		path = append(path, elem.ID)
-	}
-	return path
-}
-
-func NewPath(ids ...string) Path {
-	path := make([]PathElem, 0, len(ids))
-	for _, id := range ids {
-		path = append(path, PathElem{ID: id})
-	}
-	return path
+func NewThis(n ast.Node, chain field.Chain) *ThisExpr {
+	return &ThisExpr{Node: n, Chain: chain}
 }
 
 func NewBinaryExpr(n ast.Node, op string, lhs, rhs Expr) *BinaryExpr {
@@ -359,9 +338,10 @@ func CopyExpr(e Expr) Expr {
 		}
 	case *DotExpr:
 		return &DotExpr{
-			Node: e.Node,
-			LHS:  CopyExpr(e.LHS),
-			RHS:  e.RHS,
+			Node:    e.Node,
+			LHS:     CopyExpr(e.LHS),
+			RHS:     e.RHS,
+			Noneish: e.Noneish,
 		}
 	case *IndexExpr:
 		return &IndexExpr{
@@ -470,8 +450,8 @@ func CopyExpr(e Expr) Expr {
 		}
 	case *ThisExpr:
 		return &ThisExpr{
-			Node: e.Node,
-			Path: slices.Clone(e.Path),
+			Node:  e.Node,
+			Chain: slices.Clone(e.Chain),
 		}
 	case *TypeExpr:
 		return &TypeExpr{

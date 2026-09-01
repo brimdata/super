@@ -163,7 +163,7 @@ func describeOpAggs(op dag.Op, parents []field.List) []field.List {
 		// not nil.
 		keys := field.List{}
 		for _, k := range op.Keys {
-			keys = append(keys, k.RHS.(*dag.ThisExpr).Path)
+			keys = append(keys, k.RHS.(*dag.ThisExpr).Chain.Path())
 		}
 		return []field.List{keys}
 	case *dag.ForkOp:

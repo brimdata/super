@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/sup"
 )
 
@@ -250,7 +249,7 @@ func (c *checker) assignments(in super.Type, assignments []sem.Assignment) []pat
 	for _, a := range assignments {
 		var path []string
 		if this, ok := a.LHS.(*sem.ThisExpr); ok {
-			path = this.Path.IDs()
+			path = this.Chain.Path()
 		}
 		typ := c.expr(in, a.RHS)
 		paths = append(paths, pathType{path, typ})
@@ -448,7 +447,7 @@ func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Typ
 }
 
 func (c *checker) this(loc ast.Node, this *sem.ThisExpr, typ super.Type) super.Type {
-	for _, comp := range this.Path {
+	for _, comp := range this.Chain {
 		//XXX type check should use comp.Nullish too
 		typ, _ = c.deref(loc, typ, comp.ID)
 	}
@@ -673,7 +672,7 @@ func (c *checker) lvalsToPaths(exprs []sem.Expr) []path {
 		if !ok {
 			return nil
 		}
-		paths = append(paths, path{loc: this.Node, elems: this.Path.IDs()})
+		paths = append(paths, path{loc: this.Node, elems: this.Chain.Path()})
 	}
 	return paths
 }
@@ -1155,11 +1154,11 @@ func (c *checker) error(loc ast.Node, err error) {
 func (c *checker) newFuser() *fuser {
 	//XXX "complete" option will be true when we have dual support for fusion
 	// and static types
-	return &fuser{agg.NewFuser(c.t.sctx, false), c.unknown}
+	return &fuser{super.NewFuser(c.t.sctx, false), c.unknown}
 }
 
 type fuser struct {
-	fuser   *agg.Fuser
+	fuser   *super.Fuser
 	unknown super.Type
 }
 

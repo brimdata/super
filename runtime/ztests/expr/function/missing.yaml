@@ -9,7 +9,7 @@ input: |
   {a:null::(null|int64),b:null::(null|int64)}
   {a:"foo",b:error("other")}
   {b:error("other")}
-  {a:"foo",b?:_::string}
+  {a:"foo",b?:none::string}
 
 output: |
   false

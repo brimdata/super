@@ -35,8 +35,8 @@ blend
 {a:1}
 {b:2}
 # expected output
-{a?:1,b?:_::int64}
-{a?:_::int64,b?:2}
+{a?:1,b?:none::int64}
+{a?:none::int64,b?:2}
 ```
 
 ---
@@ -63,6 +63,6 @@ blend
 {a:[1,2]}
 {a:["foo","bar"],b:10.0.0.1}
 # expected output
-{a:[1,2]::[int64|string],b?:_::ip}
+{a:[1,2]::[int64|string],b?:none::ip}
 {a:["foo","bar"]::[int64|string],b?:10.0.0.1}
 ```

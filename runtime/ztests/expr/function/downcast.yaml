@@ -5,12 +5,12 @@ input: |
   [{x:1},<{}>]
   [{x?:1},<{x:int64}>]
   [{x?:1},<null|{x:int64}>]
-  [{x?:2,y?:_::int64},<null|{x:int64}>]
+  [{x?:2,y?:none::int64},<null|{x:int64}>]
   [{x:1::(int64|string)},<{x:int64}>]
   [{x:1,y:"foo"},<{y:string}>]
   [{x:1::(int64|bool|string)},<{x:int64|string}>]
   // error cases
-  [{x?:_::int64},<{x:int64}>]
+  [{x?:none::int64},<{x:int64}>]
   [{x:1},<{x?:int64}>]
 
 output: |
@@ -114,12 +114,12 @@ output: |
 spq: downcast(this[0], this[1])
 
 input: |
-  [fusion({x?:1,y?:_::string},<{x:int64}>),<{x:int64}>]
+  [fusion({x?:1,y?:none::string},<{x:int64}>),<{x:int64}>]
   [{a:fusion(2::(int64|null),<int64>)},<null|{a:int64}>]
   [{a:fusion(3::(int64|string|none),<int64|none>)},<{a?:int64}>]
-  [fusion({x?:_::int64,y?:"foo"},<{y:string}>),<{y:int64|string}>]
+  [fusion({x?:none::int64,y?:"foo"},<{y:string}>),<{y:int64|string}>]
   // error cases
-  [fusion({x?:1,y?:_::string},<{x:int64}>),<{y?:string}>]
+  [fusion({x?:1,y?:none::string},<{x:int64}>),<{y?:string}>]
 
 output: |
   {x:1}

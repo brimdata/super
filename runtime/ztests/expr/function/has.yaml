@@ -8,7 +8,7 @@ input: |
   {a:null,b:2}
   {a:null::(null|int64),b:null::(null|int64)}
   {a:error("other"),b:2}
-  {a:1,b?:_::int64}
+  {a:1,b?:none::int64}
 
 output: |
   false

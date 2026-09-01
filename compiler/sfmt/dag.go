@@ -165,7 +165,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.close()
 		c.write(")")
 	case *dag.ThisExpr:
-		c.fieldpath(e.Path)
+		c.fieldchain(e.Chain)
 	case *dag.TypeExpr:
 		if typ, err := super.LookupPrimitiveByID(e.ID); err == nil {
 			c.write("<%s>", super.PrimitiveName(typ))
@@ -250,7 +250,7 @@ func (c *canonDAG) vectorElems(elems []dag.VectorElem) {
 
 func isDAGThis(e dag.Expr) bool {
 	if this, ok := e.(*dag.ThisExpr); ok {
-		if len(this.Path) == 0 {
+		if len(this.Chain) == 0 {
 			return true
 		}
 	}

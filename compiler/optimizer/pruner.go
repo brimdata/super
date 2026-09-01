@@ -26,8 +26,8 @@ func maybeNewRangePruner(pred dag.Expr, sortKeys order.SortKeys) dag.Expr {
 // from a scan when we know the pool key range of the object could not satisfy
 // the filter predicate of any of the values in the object.
 func newRangePruner(pred dag.Expr, sortKey order.SortKey) dag.Expr {
-	min := dag.NewCall("defuse", []dag.Expr{dag.NewThis(field.Path{"min"})})
-	max := dag.NewCall("defuse", []dag.Expr{dag.NewThis(field.Path{"max"})})
+	min := dag.NewCall("defuse", []dag.Expr{dag.NewThis(field.NewChain("min"))})
+	max := dag.NewCall("defuse", []dag.Expr{dag.NewThis(field.NewChain("max"))})
 	if e := buildRangePruner(pred, sortKey.Key, min, max); e != nil {
 		return e
 	}
@@ -75,7 +75,7 @@ func buildRangePruner(pred dag.Expr, fld field.Path, min, max dag.Expr) *dag.Bin
 		return dag.NewBinaryExpr("and", lhs, rhs)
 	case "==", "<", "<=", ">", ">=":
 		this, literal, op := literalComparison(e)
-		if this == nil || !fld.Equal(this.Path) {
+		if this == nil || !fld.Equal(this.Chain.Path()) {
 			return nil
 		}
 		// At this point, we know we can definitely run a pruning decision based
@@ -176,8 +176,8 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 		min := &dag.PrimitiveExpr{Kind: "PrimitiveExpr", Value: sup.QuotedString(prefix)}
 		max := &dag.PrimitiveExpr{Kind: "PrimitiveExpr", Value: sup.QuotedString(maxPrefix)}
 		return dag.NewBinaryExpr("and",
-			compare("<=", min, dag.NewThis(append(slices.Clone(this.Path), "max"))),
-			compare(">", max, dag.NewThis(append(slices.Clone(this.Path), "min"))))
+			compare("<=", min, dag.NewThis(slices.Clone(this.Chain).Append("max", false))),
+			compare(">", max, dag.NewThis(slices.Clone(this.Chain).Append("min", false))))
 	default:
 		return nil
 	}
@@ -306,8 +306,8 @@ func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.PrimitiveExpr {
 }
 
 func metadataPrunerPred(op string, this *dag.ThisExpr, literal *dag.PrimitiveExpr) *dag.BinaryExpr {
-	min := dag.NewThis(append(slices.Clone(this.Path), "min"))
-	max := dag.NewThis(append(slices.Clone(this.Path), "max"))
+	min := dag.NewThis(slices.Clone(this.Chain).Append("min", false))
+	max := dag.NewThis(slices.Clone(this.Chain).Append("max", false))
 	switch op {
 	case "<":
 		return compare("<", min, literal)

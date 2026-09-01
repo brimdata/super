@@ -52,7 +52,7 @@ output: |
 spq: unnest this
 
 input: |
-  fusion({x:"foo",y:[1,2],z?:_::int64},<{x:string,y:[int64]}>)
+  fusion({x:"foo",y:[1,2],z?:none::int64},<{x:string,y:[int64]}>)
   fusion({x:"foo",y:[1,2],z?:3},<{x:string,y:[int64],z:int64}>)
 
 output: |

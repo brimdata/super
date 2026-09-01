@@ -2,7 +2,7 @@ spq: values a,b
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:1}
 
 output: |
@@ -19,7 +19,7 @@ spq: values flatten(this)
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:1}
 
 output: |
@@ -33,11 +33,11 @@ spq: collect(this)
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:1}
 
 output: |
-  [{a:1,b?:"foo"},{a:1,b?:_::string},{a:1,b:1}]
+  [{a:1,b?:"foo"},{a:1,b?:none::string},{a:1,b:1}]
 
 ---
 
@@ -45,7 +45,7 @@ spq: avg(b)
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:1}
 
 output: |
@@ -57,12 +57,12 @@ spq: values cast(this, <{a:string,b?:string}>)
 
 input: |
   {a:1,b?:"foo"}
-  {a:1,b?:_::string}
+  {a:1,b?:none::string}
   {a:1,b:2}
 
 output: |
   {a:"1",b?:"foo"}
-  {a:"1",b?:_::string}
+  {a:"1",b?:none::string}
   {a:"1",b?:"2"}
 
 ---
@@ -71,10 +71,10 @@ spq: values this[2]
 
 input: |
   {a:1,b?:"foo",c:1}
-  {a:1,b?:_::string,c:2}
+  {a:1,b?:none::string,c:2}
   {a:1,b:2,c:3}
   {a:1,b:2,c?:"foo"}
-  {a:1,b:2,c?:_::string}
+  {a:1,b:2,c?:none::string}
 
 output: |
   1
@@ -89,7 +89,7 @@ spq: values b
 
 input: |
   {b?:"foo"}
-  {b?:_::string}
+  {b?:none::string}
 
 output: |
   "foo"
@@ -100,7 +100,7 @@ output: |
 spq: values b
 
 input: |
-  {b?:_::string}
+  {b?:none::string}
 
 output: |
   error("missing")
@@ -110,8 +110,8 @@ output: |
 spq: values b
 
 input: |
-  {b?:_::string}
-  {b?:_::string}
+  {b?:none::string}
+  {b?:none::string}
 
 output: |
   error("missing")
@@ -133,11 +133,11 @@ spq: values {x?:a.b,y:a.b}
 
 input: |
   {a:{b?:1}}
-  {a:{b?:_::int64}}
+  {a:{b?:none::int64}}
 
 output: |
   {x?:1,y:1}
-  {x?:_::int64,y:error({message:"none assigned to non-optional field y",on?:_::int64})}
+  {x?:none::int64,y:error({message:"none assigned to non-optional field y",on?:none::int64})}
 
 ---
 
@@ -145,7 +145,7 @@ spq: values a.b ?? 2
 
 input: |
   {a:{b?:1}}
-  {a:{b?:_::int64}}
+  {a:{b?:none::int64}}
 
 output: |
   1
@@ -157,7 +157,7 @@ spq: values a?.b
 
 input: |
   {a?:{b:1}}
-  {a?:_::{b:int64}}
+  {a?:none::{b:int64}}
 
 # XXX this should not be missing and will be fixed in a subsequent PR
 

@@ -748,7 +748,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		var fields field.List
 		for _, a := range assignments {
 			if this, ok := a.LHS.(*sem.ThisExpr); ok {
-				fields = append(fields, this.Path.IDs())
+				fields = append(fields, this.Chain.Path())
 			}
 		}
 		if _, err := super.NewRecordBuilder(t.sctx, fields); err != nil {
@@ -899,7 +899,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		var fields field.List
 		for _, a := range assignments {
 			if this, ok := a.LHS.(*sem.ThisExpr); ok {
-				fields = append(fields, this.Path.IDs())
+				fields = append(fields, this.Chain.Path())
 			}
 		}
 		if err := checkPutFields(fields); err != nil {
@@ -925,7 +925,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			lhs, lhsOk := assign.LHS.(*sem.ThisExpr)
 			rhs, rhsOk := assign.RHS.(*sem.ThisExpr)
 			if rhsOk && lhsOk {
-				if err := expr.CheckRenameField(lhs.Path.IDs(), rhs.Path.IDs()); err != nil {
+				if err := expr.CheckRenameField(lhs.Chain.Path(), rhs.Chain.Path()); err != nil {
 					t.error(&fa, err)
 				}
 			}
@@ -985,19 +985,19 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			Aggs: []sem.Assignment{
 				{
 					Node: o,
-					LHS:  sem.NewThis(o, sem.NewPath("sample")),
+					LHS:  sem.NewThis(o, field.NewChain("sample")),
 					RHS:  &sem.AggFunc{Node: o, Name: "any", Expr: e},
 				},
 			},
 			Keys: []sem.Assignment{
 				{
 					Node: o,
-					LHS:  sem.NewThis(o, sem.NewPath("shape")),
+					LHS:  sem.NewThis(o, field.NewChain("shape")),
 					RHS:  sem.NewCall(o, "typeof", []sem.Expr{e}),
 				},
 			},
 		})
-		return append(seq, sem.NewValues(o, sem.NewThis(o, sem.NewPath("sample")))), t.checker.unknown
+		return append(seq, sem.NewValues(o, sem.NewThis(o, field.NewChain("sample")))), t.checker.unknown
 	case *ast.AssertOp:
 		cond, _ := t.expr(o.Expr, inType)
 		// 'assert EXPR' is equivalent to
@@ -1172,7 +1172,7 @@ func (t *translator) pipeJoinCond(cond ast.JoinCond, leftAlias, rightAlias strin
 		t.checker.boolean(cond.Expr, typ)
 		// hack: e is wrapped in []sem.Expr to work around CanSet() model in WalkT
 		dag.WalkT(reflect.ValueOf([]sem.Expr{e}), func(e *sem.ThisExpr) *sem.ThisExpr {
-			if len(e.Path) == 0 {
+			if len(e.Chain) == 0 {
 				t.error(cond.Expr, errors.New(`join expression cannot refer to "this"`))
 			}
 			return e
@@ -1181,8 +1181,8 @@ func (t *translator) pipeJoinCond(cond ast.JoinCond, leftAlias, rightAlias strin
 	case *ast.JoinUsingCond:
 		var exprs []sem.Expr
 		for _, id := range cond.Fields {
-			lhs := sem.NewThis(id, sem.NewPath(leftAlias, id.Name))
-			rhs := sem.NewThis(id, sem.NewPath(rightAlias, id.Name))
+			lhs := sem.NewThis(id, field.NewChain(leftAlias, id.Name))
+			rhs := sem.NewThis(id, field.NewChain(rightAlias, id.Name))
 			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
 		}
 		return andUsingExprs(cond, exprs)
@@ -1222,7 +1222,7 @@ func (t *translator) singletonAgg(assignment *ast.Assignment, seq sem.Seq, inTyp
 	}
 	out, path := t.assignment(assignment, inType)
 	this, ok := out.LHS.(*sem.ThisExpr)
-	if !ok || len(this.Path) != 1 {
+	if !ok || len(this.Chain) != 1 {
 		return nil, nil
 	}
 	// The return type is simply pulled out of the path since the
@@ -1243,7 +1243,7 @@ func (t *translator) singletonKey(agg ast.Assignment, seq sem.Seq, inType super.
 	}
 	out, path := t.assignment(&agg, inType)
 	this, ok := out.LHS.(*sem.ThisExpr)
-	if !ok || len(this.Path) != 1 {
+	if !ok || len(this.Chain) != 1 {
 		return nil, nil
 	}
 	return append(seq,
@@ -1566,12 +1566,12 @@ func (t *translator) maybeCallShortcut(call *ast.CallExpr, seq sem.Seq, inType s
 			Aggs: []sem.Assignment{
 				{
 					Node: call,
-					LHS:  sem.NewThis(f, sem.NewPath(name)),
+					LHS:  sem.NewThis(f, field.NewChain(name)),
 					RHS:  agg,
 				},
 			},
 		}
-		values := sem.NewValues(call, sem.NewThis(call, sem.NewPath(name)))
+		values := sem.NewValues(call, sem.NewThis(call, field.NewChain(name)))
 		return append(append(seq, aggregate), values), typ
 	}
 	if !function.HasBoolResult(strings.ToLower(name)) {
@@ -1591,12 +1591,12 @@ func (t *translator) aggFuncShortcut(agg *ast.AggFuncExpr, seq sem.Seq, inType s
 		Aggs: []sem.Assignment{
 			{
 				Node: aggFunc,
-				LHS:  sem.NewThis(agg, sem.NewPath(name)),
+				LHS:  sem.NewThis(agg, field.NewChain(name)),
 				RHS:  aggFunc,
 			},
 		},
 	}
-	values := sem.NewValues(agg, sem.NewThis(agg, sem.NewPath(name)))
+	values := sem.NewValues(agg, sem.NewThis(agg, field.NewChain(name)))
 	return append(seq, aggregate, values), typ
 }
 

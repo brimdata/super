@@ -2,7 +2,7 @@ spq: pass
 
 input: |
   {a:1,b?:2}
-  {a:3,b?:_::int64}
+  {a:3,b?:none::int64}
 
 output-flags: -f json
 

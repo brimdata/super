@@ -7,7 +7,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 )
@@ -94,7 +93,7 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	}
 	// XXX this should pass super true when type checker can handle it
 	rr := sbuf.PullerReader(sbuf.NewMaterializer(f))
-	fuser := agg.NewFuser(sctx, false)
+	fuser := super.NewFuser(sctx, false)
 	for range sampleSize {
 		val, err := rr.Read()
 		if val == nil || err != nil {

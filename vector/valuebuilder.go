@@ -2,6 +2,7 @@ package vector
 
 import (
 	"net/netip"
+	"slices"
 
 	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
@@ -283,7 +284,7 @@ func newFusionValueBuilder(typ *super.TypeFusion) ValueBuilder {
 func (f *fusionValueBuilder) Write(bytes scode.Bytes) {
 	it := bytes.Iter()
 	f.values.Write(it.Next())
-	f.subtypes = append(f.subtypes, it.Next())
+	f.subtypes = append(f.subtypes, slices.Clone(it.Next()))
 }
 
 func (f *fusionValueBuilder) Build(sctx *super.Context) Any {
