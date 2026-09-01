@@ -4,6 +4,8 @@ script: |
   super compile -C -dag 'op o a: (values a(this))  o lambda x: x+1'
   echo ===
   super compile -C -dag 'op o inc: (values (lambda x:x+1)(this+inc))  o 123'
+  echo ===
+  super compile -C -dag 'values {lambda x:x+1(2)}'
 
 outputs:
   - name: stdout
@@ -25,4 +27,11 @@ outputs:
       )
       null
       | values 0(this+123)
+      | output main
+      ===
+      fn 0/lambda(x): (
+        x+1
+      )
+      null
+      | values {"((lambda x:x+1))(2)":0(2)}
       | output main
