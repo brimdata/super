@@ -113,7 +113,7 @@ func (o *Robot) nextPuller() (vio.Puller, error) {
 }
 
 func (o *Robot) errOnVal(vec vector.Any) vio.Puller {
-	out := vector.NewWrappedError(o.rctx.Sctx, "from ecountered non-string input", vec)
+	out := vector.NewWrappedError(o.rctx.Sctx, "from encountered non-string input", vec)
 	return vio.NewPuller(out)
 }
 

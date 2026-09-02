@@ -344,7 +344,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		lambdaType := c.expr(elemType, e.Lambda)
 		errs := c.popErrs()
 		if len(errs) != 0 {
-			c.error(errs[0].loc, fmt.Errorf("in functon called from map: %w", errs[0].err))
+			c.error(errs[0].loc, fmt.Errorf("in function called from map: %w", errs[0].err))
 		}
 		return lambdaType
 	case *sem.MapExpr:

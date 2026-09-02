@@ -892,7 +892,7 @@ func (t *translator) semMapCall(call *ast.CallExpr, args []sem.Expr, argTypes []
 	e, typ := t.resolver.resolveCall(call.Args[1], ref.ID, mapArgs, mapTypes)
 	errs := t.checker.popErrs()
 	for _, err := range errs {
-		t.error(err.loc, fmt.Errorf("in functon called from map: %w", err.err))
+		t.error(err.loc, fmt.Errorf("in function called from map: %w", err.err))
 	}
 	if callExpr, ok := e.(*sem.CallExpr); ok {
 		return &sem.MapCallExpr{

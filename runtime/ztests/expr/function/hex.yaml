@@ -9,6 +9,6 @@ input: |
 output: |
   0x68656c6c6f20776f726c64
   "68656c6c6f20776f726c64"
-  error({message:"hex: string argument is not hexidecimal",on:"foo"})
+  error({message:"hex: string argument is not hexadecimal",on:"foo"})
   null
 

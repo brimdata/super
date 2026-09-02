@@ -45,7 +45,7 @@ func (h *Hex) Call(args []super.Value) super.Value {
 	case super.IDString:
 		b, err := hex.DecodeString(super.DecodeString(val.Bytes()))
 		if err != nil {
-			return h.sctx.WrapError("hex: string argument is not hexidecimal", val)
+			return h.sctx.WrapError("hex: string argument is not hexadecimal", val)
 		}
 		return super.NewBytes(b)
 	default:

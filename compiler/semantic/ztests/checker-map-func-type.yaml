@@ -3,6 +3,6 @@ spq: |
   values map([1,2], &f)
 
 error: |
-  in functon called from map: indexed entity is not indexable at line 1, column 9:
+  in function called from map: indexed entity is not indexable at line 1, column 9:
   fn f(a):a[1]
           ~
