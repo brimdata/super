@@ -296,9 +296,7 @@ func (c *canon) funcRefAsCall(f ast.Expr) {
 	case *ast.FuncNameExpr:
 		c.write("%s", f.Name)
 	case *ast.LambdaExpr:
-		c.write("(")
 		c.lambda(f)
-		c.write(")")
 	default:
 		c.expr(f, "")
 	}
