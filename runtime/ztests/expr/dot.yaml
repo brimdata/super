@@ -19,7 +19,7 @@ output: |
   1
   1
   error("missing")
-  error("missing")
+  none
   error("missing")
   error("missing")
   error("missing")

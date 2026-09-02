@@ -441,6 +441,8 @@ func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Typ
 		return c.plus(loc, lhs, rhs)
 	case "-", "*", "/", "%":
 		return c.arithmetic(lloc, rloc, lhs, rhs)
+	case "??":
+		return c.fuse([]super.Type{lhs, rhs})
 	default:
 		panic(op)
 	}
@@ -939,18 +941,6 @@ func hasString(typ super.Type) bool {
 		return true
 	case *super.TypeUnion:
 		return slices.ContainsFunc(typ.Types, hasString)
-	}
-	return false
-}
-
-func hasNone(typ super.Type) bool {
-	switch typ := super.TypeUnder(typ).(type) {
-	case *super.TypeError:
-		return isUnknown(typ)
-	case *super.TypeOfNone:
-		return true
-	case *super.TypeUnion:
-		return slices.ContainsFunc(typ.Types, hasNone)
 	}
 	return false
 }

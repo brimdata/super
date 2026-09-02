@@ -7,9 +7,9 @@ input: |
 
 output: |
   1
-  "foo"
+  "foo"::(string|none)
   1
-  error("missing")
+  none::(string|none)
   1
   1
 
@@ -92,8 +92,8 @@ input: |
   {b?:none::string}
 
 output: |
-  "foo"
-  error("missing")
+  "foo"::(string|none)
+  none::(string|none)
 
 ---
 
@@ -103,7 +103,7 @@ input: |
   {b?:none::string}
 
 output: |
-  error("missing")
+  none::(string|none)
 
 ---
 
@@ -114,8 +114,8 @@ input: |
   {b?:none::string}
 
 output: |
-  error("missing")
-  error("missing")
+  none::(string|none)
+  none::(string|none)
 
 ---
 
@@ -125,7 +125,7 @@ input: |
   {b?:"foo"}
 
 output: |
-  "foo"
+  "foo"::(string|none)
 
 ---
 
@@ -159,8 +159,6 @@ input: |
   {a?:{b:1}}
   {a?:none::{b:int64}}
 
-# XXX this should not be missing and will be fixed in a subsequent PR
-
 output: |
   1
-  error("missing")
+  none
