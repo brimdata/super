@@ -12,6 +12,8 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 	}
 	vec = vector.Under(vec)
 	switch vec.Kind() {
+	case vector.KindNull:
+		return vector.NewUnionOfOne(sctx.Nullable(typ), vector.NewNull(vec.Len()))
 	case vector.KindNone:
 		none := vector.NewNone(vec.Len())
 		if typ == super.TypeNone {
@@ -22,8 +24,6 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 			u = sctx.Option(typ)
 		}
 		return vector.NewUnionOfOne(u, none)
-	case vector.KindNull:
-		return vector.NewUnionOfOne(sctx.Nullable(typ), vector.NewNull(vec.Len()))
 	case vector.KindError:
 		return vec
 	}

@@ -257,9 +257,6 @@ func (p *Parser) matchString() (string, bool, error) {
 func (p *Parser) matchNone() (*ast.None, error) {
 	l := p.lexer
 	if lookahead, err := l.peek(4); err != nil || lookahead == "" || lookahead[:4] != "none" {
-		if err == io.ErrUnexpectedEOF {
-			err = nil
-		}
 		return nil, noEOF(err)
 	}
 	l.skip(4)

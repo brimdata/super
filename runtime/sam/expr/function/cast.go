@@ -77,11 +77,7 @@ func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 		return super.Some(optionType, val.Type(), val.Bytes()), true
 	}
 	from = from.DeunionIntoNameds()
-	if from.Type() == super.TypeNone {
-		// Casting a none value to a non option type.  Automatically convert
-		// the target type to it's option form.
-		return super.None(c.sctx.Option(to)), true
-	}
+
 	switch fromType := from.Type(); {
 	case fromType == to:
 		return from, true
@@ -92,6 +88,10 @@ func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 		var b scode.Builder
 		super.BuildUnion(&b, union.TagOf(super.TypeNull), nil)
 		return super.NewValue(union, b.Bytes().Body()), true
+	case fromType == super.TypeNone:
+		// Casting a none value to a non option type.  Automatically convert
+		// the target type to it's option form.
+		return super.None(c.sctx.Option(to)), true
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:

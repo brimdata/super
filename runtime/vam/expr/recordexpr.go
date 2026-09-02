@@ -2,6 +2,7 @@ package expr
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
@@ -121,8 +122,8 @@ func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 
 func (r *recordExpr) deleteField(name string) {
 	if i, ok := r.fieldIndexes[name]; ok {
-		r.fields = append(r.fields[:i], r.fields[i+1:]...)
-		r.fieldVecs = append(r.fieldVecs[:i], r.fieldVecs[i+1:]...)
+		r.fields = slices.Delete(r.fields, i, i+1)
+		r.fieldVecs = slices.Delete(r.fieldVecs, i, i+1)
 	}
 }
 
