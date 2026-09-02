@@ -1,0 +1,13 @@
+script: |
+  super compile -C 'this==none'
+  echo ===
+  super compile -C -dag 'this==none'
+
+outputs:
+  -  name: stdout
+     data: |
+       where this==none
+       ===
+       null
+       | where this==none
+       | output main
