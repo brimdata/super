@@ -152,7 +152,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("]")
 	case *ast.IsNullExpr:
 		c.expr(e.Expr, "")
-		c.write("IS ")
+		c.write(" IS ")
 		if e.Not {
 			c.write("NOT ")
 		}

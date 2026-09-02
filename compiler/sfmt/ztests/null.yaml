@@ -1,0 +1,33 @@
+script: |
+  super compile -C 'this==null'
+  echo ===
+  super compile -C -dag 'this==null'
+  echo ===
+  super compile -C 'a is null'
+  echo ===
+  super compile -C -dag 'this is null'
+  echo ===
+  super compile -C 'a is not null'
+  echo ===
+  super compile -C -dag 'this is not null'
+
+outputs:
+  -  name: stdout
+     data: |
+       where this==null
+       ===
+       null
+       | where this==null
+       | output main
+       ===
+       values a IS NULL
+       ===
+       null
+       | where this IS NULL
+       | output main
+       ===
+       values a IS NOT NULL
+       ===
+       null
+       | where this IS NOT NULL
+       | output main
