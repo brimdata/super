@@ -34,7 +34,6 @@ type Reader struct {
 
 	fr                 *pqarrow.FileReader
 	colIndexes         []int
-	colIndexToField    map[int]*pqarrow.SchemaField
 	metadataColIndexes []int
 	metadataFilters    []expr.Evaluator
 
@@ -99,7 +98,6 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 		sctx:               sctx,
 		fr:                 fr,
 		colIndexes:         columnIndexes(fr.Manifest, fields),
-		colIndexToField:    fr.Manifest.ColIndexToField,
 		metadataColIndexes: metadataColIndexes,
 		metadataFilters:    metadataFilters,
 		nextRowGroup:       &atomic.Int64{},
@@ -158,7 +156,8 @@ func (r *Reader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 			}
 			if len(r.metadataFilters) > 0 {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
-				val := buildMetadataValue(r.sctx, rgMetadata, r.metadataColIndexes, r.colIndexToField)
+				colIndexToField := r.fr.Manifest.ColIndexToField
+				val := buildMetadataValue(r.sctx, rgMetadata, r.metadataColIndexes, colIndexToField)
 				if r.metadataFilters[id].Eval(val).Equal(super.False) {
 					continue
 				}
