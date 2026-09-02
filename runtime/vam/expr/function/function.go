@@ -1,6 +1,7 @@
 package function
 
 import (
+	"errors"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -10,6 +11,13 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+)
+
+var (
+	ErrBadArgument    = errors.New("bad argument")
+	ErrNoSuchFunction = errors.New("no such function")
+	ErrTooFewArgs     = errors.New("too few arguments")
+	ErrTooManyArgs    = errors.New("too many arguments")
 )
 
 func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
@@ -175,10 +183,20 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	default:
 		return nil, function.ErrNoSuchFunction
 	}
-	if err := function.CheckArgCount(narg, argmin, argmax); err != nil {
+	if err := CheckArgCount(narg, argmin, argmax); err != nil {
 		return nil, err
 	}
 	return f, nil
+}
+
+func CheckArgCount(narg int, argmin int, argmax int) error {
+	if argmin != -1 && narg < argmin {
+		return ErrTooFewArgs
+	}
+	if argmax != -1 && narg > argmax {
+		return ErrTooManyArgs
+	}
+	return nil
 }
 
 type NeedsInput interface {
@@ -217,4 +235,16 @@ func (f *samFunc) Call(args ...vector.Any) vector.Any {
 		b.Write(f.fn.Call(f.values))
 	}
 	return b.Build(f.sctx)
+}
+
+// HasBoolResult returns true if the function name returns a Boolean value.
+// XXX This is a hack so the semantic compiler can determine if a single call
+// expr is a Filter or Put proc. At some point function declarations should have
+// signatures so the return type can be introspected.
+func HasBoolResult(name string) bool {
+	switch name {
+	case "grep", "has", "has_error", "is_error", "is", "missing", "cidr_match":
+		return true
+	}
+	return false
 }

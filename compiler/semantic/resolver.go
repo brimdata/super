@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/runtime/vam/expr/function"
 )
 
 type funcParamLambda struct {
