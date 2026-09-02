@@ -59,6 +59,6 @@ input: |
   {val:"2",next?:{val:"3",next?:none::List}::List}::List
 
 output: |
-  error("missing")
   type List={val:string,next?:List}
-  {val:"3",next?:none::List}::List
+  none::(List|none)
+  {val:"3",next?:none::List}::List::(List|none)

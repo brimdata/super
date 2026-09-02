@@ -31,7 +31,7 @@ func (v *Values) Pull(done bool) (vector.Any, error) {
 		}
 		vals := make([]vector.Any, 0, len(v.exprs))
 		for _, e := range v.exprs {
-			vals = append(vals, vector.DeoptionWithMissing(v.sctx, e.Eval(val)))
+			vals = append(vals, e.Eval(val))
 		}
 		if len(vals) == 1 {
 			return vals[0], nil
