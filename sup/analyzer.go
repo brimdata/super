@@ -467,7 +467,7 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	case *Error:
 		return a.decorateError(val, typ)
 	case *Fusion:
-		return nil, fmt.Errorf("fusion values cannt be decorated: %q", FormatType(typ))
+		return nil, fmt.Errorf("fusion values cannot be decorated: %q", FormatType(typ))
 	case *Union:
 		return a.decorateUnion(val, typ)
 	default:

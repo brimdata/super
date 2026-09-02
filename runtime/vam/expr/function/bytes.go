@@ -78,7 +78,7 @@ func (h *Hex) Call(args ...vector.Any) vector.Any {
 			}
 			out.Append(bytes)
 		}
-		err := vector.NewWrappedError(h.sctx, "hex: string argument is not hexidecimal", errvals)
+		err := vector.NewWrappedError(h.sctx, "hex: string argument is not hexadecimal", errvals)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
 	default:
 		return vector.NewWrappedError(h.sctx, "hex: argument must a bytes or string type", val)

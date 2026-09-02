@@ -20,7 +20,7 @@ The primary difference here is that "from" operators on a database work with dat
 stored in the database whereas "from" operators on file system work with local files.
 In both cases, "from" can also retrieve data from HTTP APIs via URL.
 
-See the "super compile" command help for futher information.
+See the "super compile" command help for further information.
 `,
 	New: New,
 }
