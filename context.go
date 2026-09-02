@@ -718,6 +718,13 @@ func (c *Context) Option(typ Type) *TypeUnion {
 	return c.MustLookupTypeUnion(append(types, TypeNone))
 }
 
+func (c *Context) Optionize(typ Type) Type {
+	if typ == TypeNone {
+		return typ
+	}
+	return c.Option(typ)
+}
+
 func OptionUnion(typ Type) (*TypeUnion, int) {
 	if union, ok := typ.(*TypeUnion); ok {
 		for tag, typ := range union.Types {

@@ -498,9 +498,6 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 		case *sem.FieldElem:
 			column := super.NewField(elem.Name, c.option(elem.Opt, c.expr(typ, elem.Value)))
 			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{column}))
-		case *sem.NoneElem:
-			column := super.NewField(elem.Name, c.option(true, c.t.lookupTypeByID(elem.Type)))
-			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{column}))
 		default:
 			panic(elem)
 		}
@@ -529,8 +526,6 @@ func (c *checker) fuseRecordElems(elems []sem.RecordElem, types []super.Type) su
 			fuser.fuse(typ)
 		case *sem.FieldElem:
 			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{super.NewField(elem.Name, c.option(elem.Opt, typ))}))
-		case *sem.NoneElem:
-			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{super.NewField(elem.Name, c.option(true, typ))}))
 		default:
 			panic(elem)
 		}

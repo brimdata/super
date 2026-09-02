@@ -1,0 +1,11 @@
+spq: put x:=none
+
+input: |
+  {}
+  {x:0,y:1}
+  {x?:2}
+
+output: |
+  {}
+  {y:1}
+  {}

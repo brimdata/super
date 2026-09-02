@@ -235,12 +235,6 @@ type (
 		Opt   bool   `json:"opt"`
 		Loc   `json:"loc"`
 	}
-	NoneElem struct {
-		Kind string `json:"kind" unpack:""`
-		Name *Text  `json:"name"`
-		Type Type   `json:"type"`
-		Loc  `json:"loc"`
-	}
 	SpreadElem struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
@@ -257,7 +251,6 @@ type (
 func (*ExprElem) arrayElemNode()    {}
 func (*ExprElem) recordElemNode()   {}
 func (*FieldElem) recordElemNode()  {}
-func (*NoneElem) recordElemNode()   {}
 func (*SpreadElem) arrayElemNode()  {}
 func (*SpreadElem) recordElemNode() {}
 

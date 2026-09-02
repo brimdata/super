@@ -2,6 +2,7 @@ package expr
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
@@ -17,17 +18,11 @@ type FieldElem struct {
 	Expr Evaluator
 }
 
-type NoneElem struct {
-	Name string
-	Type super.Type
-}
-
 type SpreadElem struct {
 	Expr Evaluator
 }
 
 func (*FieldElem) recordElemSum()  {}
-func (*NoneElem) recordElemSum()   {}
 func (*SpreadElem) recordElemSum() {}
 
 func NewRecordExpr(sctx *super.Context, elems []RecordElem) Evaluator {
@@ -60,9 +55,6 @@ func (r *recordExpr) Eval(this vector.Any) vector.Any {
 	for _, elem := range r.elems {
 		var vec vector.Any
 		switch elem := elem.(type) {
-		case *NoneElem:
-			optionType := r.sctx.Option(elem.Type)
-			vec = vector.NewOptionNone(r.sctx, optionType, this.Len())
 		case *FieldElem:
 			vec = elem.Expr.Eval(this)
 		case *SpreadElem:
@@ -79,13 +71,13 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 	r.fields = r.fields[:0]
 	clear(r.fieldIndexes)
 	r.fieldVecs = make([]vector.Any, 0, len(r.elems))
-	length := vecs[0].Len()
 	for k, vec := range vecs {
 		switch elem := r.elems[k].(type) {
-		case *NoneElem:
-			optionType := r.sctx.Option(elem.Type)
-			r.addOrUpdateNone(elem.Name, optionType, length)
 		case *FieldElem:
+			if vec.Type() == super.TypeNone {
+				r.deleteField(elem.Name)
+				continue
+			}
 			if elem.Opt {
 				if !super.IsOptionType(vec.Type()) {
 					vec = vector.NewOptionSome(r.sctx, vec)
@@ -128,15 +120,11 @@ func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 	r.fieldVecs = append(r.fieldVecs, vec)
 }
 
-func (r *recordExpr) addOrUpdateNone(name string, optionType *super.TypeUnion, length uint32) {
+func (r *recordExpr) deleteField(name string) {
 	if i, ok := r.fieldIndexes[name]; ok {
-		r.fields[i].Type = optionType
-		r.fieldVecs[i] = vector.NewOptionNone(r.sctx, optionType, length)
-		return
+		r.fields = slices.Delete(r.fields, i, i+1)
+		r.fieldVecs = slices.Delete(r.fieldVecs, i, i+1)
 	}
-	r.fieldIndexes[name] = len(r.fields)
-	r.fields = append(r.fields, super.NewField(name, optionType))
-	r.fieldVecs = append(r.fieldVecs, vector.NewOptionNone(r.sctx, optionType, length))
 }
 
 func (r *recordExpr) spread(vec vector.Any) {

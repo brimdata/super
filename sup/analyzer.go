@@ -189,8 +189,7 @@ func (a *Analyzer) convertValue(val ast.Value) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		typ = a.sctx.Option(typ)
-		return &None{typ: typ}, nil
+		return &None{typ: a.sctx.Optionize(typ)}, nil
 	case *ast.Primitive:
 		return a.convertPrimitive(val)
 	case *ast.TypeValue:
@@ -447,7 +446,7 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	case *None:
 		// None value carries the type for an optional field and
 		// the parent decoration overrides.
-		return &None{typ: typ}, nil
+		return &None{typ: a.sctx.Optionize(typ)}, nil
 	case *Null:
 		if super.TypeUnder(typ) != super.TypeNull {
 			return nil, fmt.Errorf("illegal null value decorator: %q", FormatType(typ))

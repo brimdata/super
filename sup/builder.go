@@ -52,7 +52,9 @@ func buildValue(b *scode.Builder, val Value) error {
 	case *None:
 		union, noneTag := super.OptionUnion(val.Type())
 		if union == nil {
-			panic(val.Type())
+			// none is an untyped, not inside option type
+			b.Append(nil)
+			return nil
 		}
 		super.BeginUnion(b, noneTag)
 		b.Append(nil)
@@ -164,6 +166,12 @@ func BuildPrimitive(b *scode.Builder, val Primitive) error {
 			return fmt.Errorf("invalid network: %s (%w)", val.text, err)
 		}
 		b.Append(super.EncodeNet(net.Masked()))
+		return nil
+	case *super.TypeOfNone:
+		if val.text != "" {
+			return fmt.Errorf("invalid text body of none value: %q", val.text)
+		}
+		b.Append(nil)
 		return nil
 	case *super.TypeOfNull:
 		if val.text != "" {
