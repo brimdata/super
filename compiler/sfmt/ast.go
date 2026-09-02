@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/runtime/vam/expr/function"
 	"github.com/brimdata/super/sup"
 )
 

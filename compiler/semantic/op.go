@@ -20,7 +20,8 @@ import (
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/expr/function"
+	samfunction "github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/runtime/vam/expr/function"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sup"
@@ -216,7 +217,7 @@ func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem
 }
 
 func hasError(val super.Value) bool {
-	result := function.HasError{}.Call([]super.Value{val})
+	result := samfunction.HasError{}.Call([]super.Value{val})
 	return result.AsBool()
 }
 
