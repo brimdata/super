@@ -113,7 +113,7 @@ func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error)
 	case "+", "-", "*", "/", "%":
 		return vamexpr.NewArith(b.sctx(), op, lhs, rhs), nil
 	case "??":
-		return vamexpr.NewNoneish(b.sctx(), lhs, rhs), nil
+		return vamexpr.NewNoneish(lhs, rhs), nil
 	default:
 		return nil, fmt.Errorf("invalid binary operator %s", op)
 	}
