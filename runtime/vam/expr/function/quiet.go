@@ -7,12 +7,11 @@ import (
 )
 
 type Quiet struct {
-	sctx   *super.Context
 	defuse *expr.Defuse
 }
 
 func newQuiet(sctx *super.Context) *Quiet {
-	return &Quiet{sctx, expr.NewDefuse(sctx)}
+	return &Quiet{expr.NewDefuse(sctx)}
 }
 
 func (q *Quiet) Call(args ...vector.Any) vector.Any {
