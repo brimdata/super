@@ -1,0 +1,37 @@
+spq: |
+  "Foo".upper()
+
+output: |
+  "FOO"
+
+---
+
+spq: |
+  "Foo".upper().lower()
+
+output: |
+  "foo"
+
+---
+
+spq: |
+  fn Has(r,field) : has(r[field])
+  values x.Has('y')
+
+input: |
+  {}
+  {x:{y:1}}
+  {x?:{y:2}}
+  {x?:none::{y:int64}}
+  {x?:{y?:none::int64}}
+  {x:null}
+  {x:{y:null}}
+
+output: |
+  false
+  true
+  true
+  false
+  false
+  false
+  null
