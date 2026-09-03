@@ -1090,6 +1090,14 @@ DerefExpr
         Loc: loc(c),
       }, nil
     }
+  / expr:DerefExpr "."  name:FuncNameExpr "("__ args:FunctionArgs __ ")" {
+  	  return &ast.CallExpr{
+		Kind: "CallExpr",
+		Func: name.(ast.Expr),
+		Args: append([]ast.Expr{expr.(ast.Expr)}, sliceOf[ast.Expr](args)...),
+		Loc:  loc(c),
+	  }, nil
+    }
   / expr:DerefExpr op:DotOp id:DerefKey {
       return &ast.BinaryExpr{
         Kind: "BinaryExpr",
@@ -1157,15 +1165,18 @@ Function
 
 AggArgGuard = __ (ALL / DISTINCT) _ Expr
 
-Callable
-  = LambdaExpr
-  / id:IdentifierName {
+Callable = LambdaExpr / FuncNameExpr
+
+FuncNameExpr
+  = id:FuncIdentifier {
       return &ast.FuncNameExpr{
         Kind: "FuncNameExpr",
         Name: id.(string),
         Loc: loc(c),
       }, nil
     }
+
+FuncIdentifier = IdentifierName / BacktickString
 
 FuncValue
   = "&" id:IdentifierName {
