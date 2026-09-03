@@ -163,6 +163,11 @@ is a pool.
 Data sources identified by URLs can be accessed either when attached
 or detached from a database.
 
+>[!NOTE]
+> A URL computed at run time from a [non-constant f-string](../expressions/f-strings.md)
+> cannot currently be accessed while attached to a database, and fails with an
+> error of the form `<url>: cannot open in a database environment`.
+
 As a [text entity](../queries.md#text-entity), typical URLs need not be quoted though URLs with special characters must be quoted.
 
 When the `<entity>` argument begins with `http:` or `https:`
