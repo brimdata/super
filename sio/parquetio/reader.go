@@ -426,9 +426,15 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 
 func (v *vectorBuilder) buildNullableUnion(vec vector.Any, a arrow.Array) vector.Any {
 	unionType := v.sctx.MustLookupTypeUnion([]super.Type{vec.Type(), super.TypeNull})
+	numNulls := uint32(a.NullN())
+	if numNulls == 0 {
+		return vector.NewUnionOfOne(unionType, vec)
+	} else if numNulls == vec.Len() {
+		return vector.NewUnionOfOne(unionType, vector.NewNull(numNulls))
+	}
 	nullTag, vecTag, _ := arrowio.NullableUnionTagsAndType(unionType)
 	tags := make([]uint32, vec.Len())
-	var vecIndex []uint32
+	vecIndex := make([]uint32, 0, vec.Len()-numNulls)
 	for i := range vec.Len() {
 		if a.IsNull(int(i)) {
 			tags[i] = uint32(nullTag)
@@ -438,7 +444,7 @@ func (v *vectorBuilder) buildNullableUnion(vec vector.Any, a arrow.Array) vector
 		}
 	}
 	var vecs [2]vector.Any
-	vecs[nullTag] = vector.NewNull(vec.Len() - uint32(len(vecIndex)))
+	vecs[nullTag] = vector.NewNull(numNulls)
 	vecs[vecTag] = vector.Pick(vec, vecIndex)
 	return vector.NewUnion(unionType, tags, vecs[:])
 }
