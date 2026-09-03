@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/vam/expr"
-	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
@@ -163,8 +163,14 @@ func (o *Robot) nextVec() (vector.Any, error) {
 }
 
 func (o *Robot) open(off uint32, path string) (vio.Puller, error) {
+	// A URL is never a pool reference, so it can be opened with a database
+	// attached just as it can when detached.  This mirrors the compile-time
+	// path, where fromName tests for a URL before it tests for an attached
+	// database.  The database's storage engine already enables only the http,
+	// https, and s3 schemes and rejects anything else at open time.
+	//
 	// This check for attached database will be removed when we add support for pools here.
-	if o.env.IsAttached() {
+	if !isURL(path) && o.env.IsAttached() {
 		return nil, fmt.Errorf("%s: cannot open in a database environment", path)
 	}
 	// When HTTP options are present, drive the request through the HTTP client
@@ -263,4 +269,11 @@ func decodeStrings(val *super.Value) ([]string, error) {
 		return nil, errors.New("header field value must be a string or an array or set of strings")
 	}
 	return []string{val.AsString()}, nil
+}
+
+// isURL matches the test of the same name in package semantic so that the
+// dynamic (robot) and static paths of the from operator agree on what counts
+// as a URL.
+func isURL(s string) bool {
+	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }
