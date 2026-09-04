@@ -15,8 +15,8 @@ output: |
 ---
 
 spq: |
-  fn Has(r,field) : has(r[field])
-  values x.Has('y')
+  fn Has(r,field) : r.has(field)
+  values this.has('x') and x.Has('y')
 
 input: |
   {}
@@ -31,7 +31,7 @@ output: |
   false
   true
   true
-  false
-  false
-  false
-  null
+  error({message:"has function applied to invalid type",on:none})
+  true
+  error({message:"has function applied to invalid type",on:null})
+  true

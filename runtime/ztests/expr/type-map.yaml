@@ -5,9 +5,9 @@ spq: |
     "conn": conn,
     "dns": dns
   }
-  switch schemas[_path]
-    case conn ( cut schema:=schemas[_path] )
-    case dns  ( put _UNCLASSIFIED:=true )
+  switch quiet(schemas[_path])
+    default ( cut schema:=schemas[_path] )
+    case none  ( put _UNCLASSIFIED:=true )
   | sort this
 
 input: |

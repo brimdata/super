@@ -1,4 +1,4 @@
-spq: not has(t)
+spq: not this.has('t')
 
 input: &input |
   {s:"A=B"}

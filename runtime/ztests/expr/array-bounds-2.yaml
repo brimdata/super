@@ -1,4 +1,4 @@
-spq: cut m1:=missing(a[-1]),m2:=missing(a[4])
+spq: cut m1:=quiet(a[-1])=none,m2:=quiet(a[4])=none
 
 input: |
   {x:[1,2,3],i:1::uint16}

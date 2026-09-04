@@ -1,4 +1,4 @@
-spq: put b:=missing(a[2])
+spq: put b:=quiet(a[2])=none
 
 input: |
   {a:[1,2,3]}
