@@ -1,96 +1,88 @@
 package function
 
 import (
-	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Has struct {
-	missing Missing
-	not     *expr.Not
+	sctx   *super.Context
+	defuse *expr.Defuse
 }
 
 func newHas(sctx *super.Context) *Has {
-	return &Has{missing: Missing{sctx}, not: expr.NewLogicalNot(sctx, &expr.This{})}
+	return &Has{sctx, expr.NewDefuse(sctx)}
 }
+
+func (*Has) NoDefuse() bool            { return false }
+func (*Has) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipUnions }
 
 func (h *Has) Call(args ...vector.Any) vector.Any {
-	return h.not.Eval(h.missing.Call(args...))
+	val := h.defuse.Eval(vector.Under(args[0]))
+	key := h.defuse.Eval(vector.Under(args[1]))
+	return vector.Apply(vector.ApplyRipUnions, h.eval, val, key)
 }
 
-type Missing struct {
-	sctx *super.Context
+func (h *Has) eval(args ...vector.Any) vector.Any {
+	val := vector.Under(args[0])
+	key := vector.Under(args[1])
+	switch val.Kind() {
+	case vector.KindType:
+		if _, ok := val.Type().(*super.TypeOfType); ok {
+			if key.Kind() != vector.KindString {
+				return vector.NewWrappedError(h.sctx, "has function applied to type value with non-string key", key)
+			}
+			return h.hasTypeRecordField(val, key)
+		}
+		//XXX panic?
+		return vector.NewFalse(val.Len())
+	case vector.KindRecord:
+		if typ, ok := val.Type().(*super.TypeRecord); ok {
+			if key.Kind() != vector.KindString {
+				return vector.NewWrappedError(h.sctx, "has function applied to record with non-string key", key)
+			}
+			return h.hasRecordField(typ, key)
+		}
+		//XXX panic?
+		return vector.NewFalse(val.Len())
+	case vector.KindMap:
+		panic("TBD")
+	default:
+		return vector.NewWrappedError(h.sctx, "has function applied to invalid type", val)
+	}
 }
 
-func (*Missing) NoDefuse() bool            { return true }
-func (*Missing) ApplyOpt() vector.ApplyOpt { return vector.ApplyRipFusions | vector.ApplyRipUnions }
-
-func (m *Missing) Call(args ...vector.Any) vector.Any {
-	for _, vec := range args {
-		if vec.Kind() == vector.KindNull {
-			return vec
+func (h *Has) hasRecordField(typ *super.TypeRecord, key vector.Any) vector.Any {
+	n := key.Len()
+	bits := bitvec.NewFalse(n)
+	for slot := range n {
+		if typ.HasField(vector.StringValue(key, slot)) {
+			bits.Set(slot)
 		}
 	}
-	n := args[0].Len()
-	for _, vec := range args {
-		vec = vector.DeoptionWithMissing(m.sctx, vec)
-		if err, ok := vec.(*vector.Error); ok {
-			b := isMissing(err)
-			if b.IsEmpty() {
-				return err
-			}
-			if b.GetCardinality() == uint64(n) {
-				return vector.NewConstBool(true, vec.Len())
-			}
-			// Mix of errors and trues.
-			index := b.ToArray()
-			errIndex := roaring.Flip(b, 0, uint64(n)).ToArray()
-			trueVec := vector.NewConstBool(true, uint32(len(index)))
-			return vector.Combine(trueVec, errIndex, vector.Pick(err, errIndex))
-		}
-	}
-	return vector.NewConstBool(false, args[0].Len())
+	return vector.NewBool(bits)
 }
 
-func isMissing(verr *vector.Error) *roaring.Bitmap {
-	b := roaring.New()
-	inner := verr.Vals
-	if inner.Type() != super.TypeString {
-		return b
-	}
-	switch inner := inner.(type) {
+func (h *Has) hasTypeRecordField(val vector.Any, key vector.Any) vector.Any {
+	n := key.Len()
+	bits := bitvec.NewFalse(n)
+	switch val := val.(type) {
 	case *vector.Const:
-		s := vector.StringValue(inner, 0)
-		if s == "missing" {
-			b.AddRange(0, uint64(inner.Len()))
+		return vector.NewConst(h.hasTypeRecordField(val.Any, key), n)
+	case *vector.TypeValue:
+		types := val.Types()
+		for slot, t := range types {
+			//XXX above returns error for non-record, this returns false
+			if valType, ok := super.TypeUnder(t).(*super.TypeRecord); ok {
+				if valType.HasField(vector.StringValue(key, uint32(slot))) {
+					bits.Set(uint32(slot))
+				}
+			}
 		}
 	case *vector.View:
-		vec := inner.Any.(*vector.String)
-		for i := range inner.Len() {
-			s := vec.Value(inner.Index[i])
-			if s == "missing" {
-				b.Add(i)
-			}
-		}
-	case *vector.Dict:
-		vec := inner.Any.(*vector.String)
-		for i := range inner.Len() {
-			s := vec.Value(uint32(inner.Index[i]))
-			if s == "missing" {
-				b.Add(i)
-			}
-		}
-	case *vector.String:
-		for i := range inner.Len() {
-			s := inner.Value(i)
-			if s == "missing" {
-				b.Add(i)
-			}
-		}
-	default:
-		panic(inner)
+		return h.hasTypeRecordField(vector.PushView(val), key)
 	}
-	return b
+	return vector.NewBool(bits)
 }

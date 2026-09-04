@@ -1,4 +1,4 @@
-spq: values has(a,b)
+spq: values has(this,'a') and has(this,'b')
 
 input: |
   {a:1}
@@ -14,8 +14,32 @@ output: |
   false
   false
   true
-  null
-  null
-  null
-  error("other")
+  true
+  true
+  true
+  true
+  true
+
+---
+
+spq: values has(this,'a') and has(this,'b')
+
+input: |
+  <{a:int64}>
+  <{b:int64}>
+  <{a:int64,b:int64}>
+  <{a:int64,b:null}>
+  <{a:null,b:int64}>
+  <{a:null|int64,b:null|int64}>
+  <{a:error(string),b:int64}>
+  <{a:int64,b?:int64}>
+
+output: |
   false
+  false
+  true
+  true
+  true
+  true
+  true
+  true

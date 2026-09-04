@@ -1,17 +1,13 @@
 spq: |
-  cut r:=has(r),
-    rb:=has(r.b),
-    both:=has(r,r.b),
-    div0:=has(s/0),
-    add1:=has(s+1),
-    s:=has(s),
-    array:=has(array[1]),
-    arraynot:=has(array[4])
+  cut r:=this.has('r'),
+    rb:=r.has('b'),
+    both:=this.has('r') and r.has('b'),
+    s:=this.has('s')
 
 input: |
   {r:{a:1::int32},s:123::int32,array:[1,2,3]}
   {r:{a:1::int8,b:2::int8}}
 
 output: |
-  {r:true,rb:false,both:false,div0:error("divide by zero"),add1:true,s:true,array:true,arraynot:false}
-  {r:true,rb:true,both:true,div0:false,add1:false,s:false,array:false,arraynot:false}
+  {r:true,rb:false,both:false,s:true}
+  {r:true,rb:true,both:true,s:false}

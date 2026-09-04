@@ -83,7 +83,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin, argmax = 2, 3
 		f = newGrok(sctx)
 	case "has":
-		argmax = -1
+		argmin = 2
+		argmax = 2
 		f = newHas(sctx)
 	case "has_error":
 		f = HasError{sctx}
@@ -116,9 +117,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &Log{sctx}
 	case "lower":
 		f = &ToLower{sctx}
-	case "missing":
-		argmax = -1
-		f = &Missing{sctx}
 	case "nameof":
 		f = &NameOf{sctx: sctx}
 	case "nest_dotted":
