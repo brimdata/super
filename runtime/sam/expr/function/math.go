@@ -1,86 +1,11 @@
 package function
 
 import (
-	"math"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/anymath"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 )
-
-type Abs struct {
-	sctx *super.Context
-}
-
-func (a *Abs) Call(args []super.Value) super.Value {
-	val := args[0].Under()
-	if val.IsNull() {
-		return val
-	}
-	switch id := val.Type().ID(); {
-	case super.IsUnsigned(id):
-		return val
-	case super.IsSigned(id):
-		x := val.Int()
-		if x < 0 {
-			x = -x
-		}
-		return super.NewInt(val.Type(), x)
-	case super.IsFloat(id):
-		return super.NewFloat(val.Type(), math.Abs(val.Float()))
-	}
-	return a.sctx.WrapError("abs: not a number", val)
-}
-
-type Ceil struct {
-	sctx *super.Context
-}
-
-func (c *Ceil) Call(args []super.Value) super.Value {
-	val := args[0].Under()
-	switch id := val.Type().ID(); {
-	case super.IsUnsigned(id) || super.IsSigned(id):
-		return val
-	case super.IsFloat(id):
-		return super.NewFloat(val.Type(), math.Ceil(val.Float()))
-	}
-	return c.sctx.WrapError("ceil: not a number", val)
-}
-
-type Floor struct {
-	sctx *super.Context
-}
-
-func (f *Floor) Call(args []super.Value) super.Value {
-	val := args[0].Under()
-	switch id := val.Type().ID(); {
-	case super.IsUnsigned(id) || super.IsSigned(id):
-		return val
-	case super.IsFloat(id):
-		return super.NewFloat(val.Type(), math.Floor(val.Float()))
-	}
-	return f.sctx.WrapError("floor: not a number", val)
-}
-
-type Log struct {
-	sctx *super.Context
-}
-
-func (l *Log) Call(args []super.Value) super.Value {
-	val := args[0].Under()
-	if val.IsNull() || val.IsError() {
-		return val
-	}
-	x, ok := coerce.ToFloat(val, super.TypeFloat64)
-	if !ok {
-		return l.sctx.WrapError("log: not a number", args[0])
-	}
-	if x <= 0 {
-		return l.sctx.WrapError("log: illegal argument", args[0])
-	}
-	return super.NewFloat64(math.Log(x))
-}
 
 type reducer struct {
 	sctx *super.Context
@@ -151,63 +76,4 @@ func (r *reducer) Call(args []super.Value) super.Value {
 
 func (r *reducer) errNotNumber(val super.Value) super.Value {
 	return r.sctx.WrapError(r.name+": not a number", val)
-}
-
-type Round struct {
-	sctx *super.Context
-}
-
-func (r *Round) Call(args []super.Value) super.Value {
-	val := args[0].Under()
-	switch id := val.Type().ID(); {
-	case id == super.IDNull:
-		return val
-	case super.IsUnsigned(id) || super.IsSigned(id):
-		return val
-	case super.IsFloat(id):
-		if val.IsNull() {
-			return val
-		}
-		return super.NewFloat(val.Type(), math.Round(val.Float()))
-	}
-	return r.sctx.WrapError("round: not a number", val)
-}
-
-type Pow struct {
-	sctx *super.Context
-}
-
-func (p *Pow) Call(args []super.Value) super.Value {
-	a, b := args[0].Under(), args[1].Under()
-	if a.IsNull() || b.IsNull() {
-		return super.Null
-	}
-	if !super.IsNumber(a.Type().ID()) {
-		return p.sctx.WrapError("pow: not a number", args[0])
-	}
-	if !super.IsNumber(b.Type().ID()) {
-		return p.sctx.WrapError("pow: not a number", args[1])
-	}
-	x, _ := coerce.ToFloat(a, super.TypeFloat64)
-	y, _ := coerce.ToFloat(b, super.TypeFloat64)
-	return super.NewFloat64(math.Pow(x, y))
-}
-
-type Sqrt struct {
-	sctx *super.Context
-}
-
-func (s *Sqrt) Call(args []super.Value) super.Value {
-	val := args[0].Under()
-	if val.IsNull() {
-		return super.Null
-	}
-	if !super.IsNumber(val.Type().ID()) {
-		return s.sctx.WrapError("sqrt: number argument required", val)
-	}
-	x, ok := coerce.ToFloat(val, super.TypeFloat64)
-	if !ok {
-		return s.sctx.WrapError("sqrt: not a number", val)
-	}
-	return super.NewFloat64(math.Sqrt(x))
 }
