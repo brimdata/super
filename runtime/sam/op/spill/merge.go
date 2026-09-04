@@ -30,10 +30,6 @@ func TempDir() (string, error) {
 	return os.MkdirTemp("", TempPrefix)
 }
 
-func TempFile() (*os.File, error) {
-	return os.CreateTemp("", TempPrefix)
-}
-
 // NewMergeSort returns a MergeSort to implement external merge sorts of a large
 // BSUP stream.  It creates a temporary directory to hold the collection
 // of spilled chunks.  Call Cleanup to remove it.

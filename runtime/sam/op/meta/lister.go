@@ -44,14 +44,6 @@ func NewSortedLister(ctx context.Context, sctx *super.Context, pool *db.Pool, co
 	return NewSortedListerFromSnap(ctx, sctx, pool, snap, pruner), nil
 }
 
-func NewSortedListerByID(ctx context.Context, sctx *super.Context, r *db.Root, poolID, commit ksuid.KSUID, pruner expr.Evaluator) (*Lister, error) {
-	pool, err := r.OpenPool(ctx, poolID)
-	if err != nil {
-		return nil, err
-	}
-	return NewSortedLister(ctx, sctx, pool, commit, pruner)
-}
-
 func NewSortedListerFromSnap(ctx context.Context, sctx *super.Context, pool *db.Pool, snap commits.View, pruner expr.Evaluator) *Lister {
 	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)

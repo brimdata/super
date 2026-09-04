@@ -35,14 +35,6 @@ func NewFile(f *os.File) *File {
 	}
 }
 
-func NewTempFile() (*File, error) {
-	f, err := TempFile()
-	if err != nil {
-		return nil, err
-	}
-	return NewFile(f), nil
-}
-
 func NewFileWithPath(path string) (*File, error) {
 	f, err := fs.Create(path)
 	if err != nil {

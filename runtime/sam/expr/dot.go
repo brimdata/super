@@ -1,7 +1,6 @@
 package expr
 
 import (
-	"errors"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -87,39 +86,4 @@ func (d *DotExpr) evalTypeOfType(b scode.Bytes) super.Value {
 		}
 	}
 	return d.sctx.Missing()
-}
-
-// DotExprToString returns text for the Evaluator assuming it's a field expr.
-func DotExprToString(e Evaluator) (string, error) {
-	f, err := DotExprToField(e)
-	if err != nil {
-		return "", err
-	}
-	return f.String(), nil
-}
-
-func DotExprToField(e Evaluator) (field.Path, error) {
-	switch e := e.(type) {
-	case *This:
-		return field.Path{}, nil
-	case *DotExpr:
-		lhs, err := DotExprToField(e.record)
-		if err != nil {
-			return nil, err
-		}
-		return append(lhs, e.field), nil
-	case *Literal:
-		return field.Path{e.val.String()}, nil
-	case *Index:
-		lhs, err := DotExprToField(e.container)
-		if err != nil {
-			return nil, err
-		}
-		rhs, err := DotExprToField(e.index)
-		if err != nil {
-			return nil, err
-		}
-		return append(lhs, rhs...), nil
-	}
-	return nil, errors.New("not a field")
 }

@@ -8,11 +8,6 @@ type Any super.Value
 
 var _ Function = (*Any)(nil)
 
-func NewAny() *Any {
-	a := (Any)(super.Null)
-	return &a
-}
-
 func (a *Any) Consume(val super.Value) {
 	if val.DeunionIntoNameds().IsNull() {
 		return

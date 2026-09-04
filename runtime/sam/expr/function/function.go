@@ -7,7 +7,6 @@ import (
 )
 
 var (
-	ErrBadArgument    = errors.New("bad argument")
 	ErrNoSuchFunction = errors.New("no such function")
 	ErrTooFewArgs     = errors.New("too few arguments")
 	ErrTooManyArgs    = errors.New("too many arguments")
