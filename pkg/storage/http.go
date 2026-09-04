@@ -6,6 +6,8 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+
+	"github.com/brimdata/super/pkg/httptrace"
 )
 
 type HTTPEngine struct{}
@@ -21,7 +23,7 @@ func (*HTTPEngine) Get(ctx context.Context, u *URI) (Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httptrace.Do(http.DefaultClient, req)
 	if err != nil {
 		return nil, err
 	}

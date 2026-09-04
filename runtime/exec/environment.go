@@ -12,6 +12,7 @@ import (
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/pkg/httptrace"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/anyio"
@@ -108,7 +109,7 @@ func (e *Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, fo
 		return nil, err
 	}
 	req.Header = headers
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httptrace.Do(http.DefaultClient, req)
 	if err != nil {
 		return nil, err
 	}
