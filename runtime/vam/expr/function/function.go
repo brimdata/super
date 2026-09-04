@@ -82,6 +82,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "grok":
 		argmin, argmax = 2, 3
 		f = newGrok(sctx)
+	case "has":
+		argmin = 2
+		argmax = 2
+		f = newHas(sctx)
 	case "has_error":
 		f = HasError{sctx}
 	case "hex":
