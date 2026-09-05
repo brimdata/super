@@ -8,6 +8,6 @@ input: |
   {s:"a"}
 
 output: |
+  {}
   {s:"c"}
   {s:"b"}
-  {s:"a"}
