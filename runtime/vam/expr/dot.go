@@ -15,23 +15,25 @@ func (*This) Eval(val vector.Any) vector.Any {
 }
 
 type DotExpr struct {
-	sctx   *super.Context
-	record Evaluator
-	field  string
+	sctx    *super.Context
+	record  Evaluator
+	field   string
+	noneish bool
 }
 
-func NewDotExpr(sctx *super.Context, record Evaluator, field string) *DotExpr {
+func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish bool) *DotExpr {
 	return &DotExpr{
-		sctx:   sctx,
-		record: record,
-		field:  field,
+		sctx:    sctx,
+		record:  record,
+		field:   field,
+		noneish: noneish,
 	}
 }
 
-func NewDottedExpr(sctx *super.Context, f field.Path) Evaluator {
+func NewDottedExpr(sctx *super.Context, f field.Chain) Evaluator {
 	ret := Evaluator(&This{})
-	for _, name := range f {
-		ret = NewDotExpr(sctx, ret, name)
+	for _, elem := range f {
+		ret = NewDotExpr(sctx, ret, elem.ID, elem.Noneish)
 	}
 	return ret
 }
@@ -47,6 +49,9 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Record:
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
+			if d.noneish {
+				return vector.NewNone(val.Len())
+			}
 			return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", d.field), val)
 		}
 		return val.Fields[i]

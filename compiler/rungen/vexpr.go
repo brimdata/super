@@ -60,7 +60,7 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	case *dag.SubqueryExpr:
 		return b.compileVamSubquery(e)
 	case *dag.ThisExpr:
-		return vamexpr.NewDottedExpr(b.sctx(), e.Chain.Path()), nil
+		return vamexpr.NewDottedExpr(b.sctx(), e.Chain), nil
 	case *dag.TypeExpr:
 		typ, err := b.lookupType(e.ID)
 		if err != nil {
@@ -155,7 +155,7 @@ func (b *Builder) compileVamDotExpr(dot *dag.DotExpr) (vamexpr.Evaluator, error)
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewDotExpr(b.sctx(), record, dot.RHS), nil
+	return vamexpr.NewDotExpr(b.sctx(), record, dot.RHS, dot.Noneish), nil
 }
 
 func (b *Builder) compileVamIndexExpr(idx *dag.IndexExpr) (vamexpr.Evaluator, error) {
