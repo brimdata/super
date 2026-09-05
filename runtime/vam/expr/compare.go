@@ -17,10 +17,11 @@ type Compare struct {
 	opCode int
 	lhs    Evaluator
 	rhs    Evaluator
+	msg    string
 }
 
 func NewCompare(sctx *super.Context, op string, lhs, rhs Evaluator) *Compare {
-	return &Compare{sctx, NewDefuse(sctx), vector.CompareOpFromString(op), lhs, rhs}
+	return &Compare{sctx, NewDefuse(sctx), vector.CompareOpFromString(op), lhs, rhs, op}
 }
 
 func (c *Compare) Compare(vec0, vec1 vector.Any) vector.Any {
@@ -34,7 +35,7 @@ func (c *Compare) Eval(val vector.Any) vector.Any {
 }
 
 func (c *Compare) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(vecs); ok {
+	if vec, ok := CheckForNullThenError(c.sctx, vecs, c.msg); ok {
 		return vec
 	}
 	lhs := vector.Under(vector.Super(vecs[0]))

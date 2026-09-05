@@ -20,7 +20,7 @@ func (m *mapCall) Eval(in vector.Any) vector.Any {
 }
 
 func (m *mapCall) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(vecs); ok {
+	if vec, ok := CheckForNullThenError(m.sctx, vecs, "map"); ok {
 		return vec
 	}
 	vec := vector.Under(vecs[0])

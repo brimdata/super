@@ -151,12 +151,13 @@ func (s *search) match(vec vector.Any) vector.Any {
 }
 
 type regexpMatch struct {
-	re *regexp.Regexp
-	e  Evaluator
+	sctx *super.Context
+	re   *regexp.Regexp
+	e    Evaluator
 }
 
-func NewRegexpMatch(re *regexp.Regexp, e Evaluator) Evaluator {
-	return &regexpMatch{re, e}
+func NewRegexpMatch(sctx *super.Context, re *regexp.Regexp, e Evaluator) Evaluator {
+	return &regexpMatch{sctx, re, e}
 }
 
 func (r *regexpMatch) Eval(this vector.Any) vector.Any {
@@ -164,7 +165,7 @@ func (r *regexpMatch) Eval(this vector.Any) vector.Any {
 }
 
 func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(vecs); ok {
+	if vec, ok := CheckForNullThenError(r.sctx, vecs, "regexp"); ok {
 		return vec
 	}
 	vec := vector.Under(vecs[0])

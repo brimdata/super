@@ -69,6 +69,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			errs = append(errs, i)
 		}
 		if len(errs) > 0 {
+			//XXX need to build error vector above with each field-missing message
 			return vector.Combine(typvals, errs, vector.NewMissing(d.sctx, uint32(len(errs))))
 		}
 		return typvals
@@ -78,6 +79,6 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:
-		return vector.NewMissing(d.sctx, val.Len())
+		return vector.NewWrappedError(d.sctx, "dot operator on non-record", vecs[0])
 	}
 }

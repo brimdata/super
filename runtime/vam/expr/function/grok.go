@@ -26,7 +26,7 @@ func newGrok(sctx *super.Context) *Grok {
 }
 
 func (g *Grok) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(g.sctx, args, "grok"); ok {
 		return vec
 	}
 	patternArg, inputArg := args[0], args[1]

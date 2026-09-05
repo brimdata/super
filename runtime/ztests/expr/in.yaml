@@ -15,7 +15,7 @@ input: |
   1::(int64|string)
   {a:[0,1]::[int64|string]}
   null
-  error(0)
+  [error({message:"'in' operator: error value encountered",on:error(0)}),error({message:"'in' operator: error value encountered",on:error(0)}),error({message:"'in' operator: error value encountered",on:error(0)})]
   [error(0),error(1)]
   [error(0),null]
 

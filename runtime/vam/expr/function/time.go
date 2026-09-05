@@ -15,7 +15,7 @@ type Bucket struct {
 }
 
 func (b *Bucket) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(b.sctx, args, "bucket"); ok {
 		return vec
 	}
 	args = underAll(args)
@@ -31,7 +31,7 @@ func (b *Bucket) Call(args ...vector.Any) vector.Any {
 }
 
 func (b *Bucket) call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(b.sctx, args, "bucket"); ok {
 		return vec
 	}
 	tsArg, binArg := args[0], args[1]
@@ -104,7 +104,7 @@ type Strftime struct {
 }
 
 func (s *Strftime) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(s.sctx, args, "strftime"); ok {
 		return vec
 	}
 	args = underAll(args)

@@ -24,8 +24,8 @@ func (n *Not) Eval(val vector.Any) vector.Any {
 	return evalBool(n.sctx, n.eval, n.expr.Eval(val))
 }
 
-func (*Not) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(vecs); ok {
+func (n *Not) eval(vecs ...vector.Any) vector.Any {
+	if vec, ok := CheckForNullThenError(n.sctx, vecs, "'not' operator"); ok {
 		return vec
 	}
 	switch vec := vecs[0].(type) {
@@ -201,6 +201,7 @@ func FlattenBool(vec vector.Any) *vector.Bool {
 }
 
 type In struct {
+	sctx   *super.Context
 	lhs    Evaluator
 	rhs    Evaluator
 	defuse *Defuse
@@ -208,7 +209,7 @@ type In struct {
 }
 
 func NewIn(sctx *super.Context, lhs, rhs Evaluator) *In {
-	return &In{lhs, rhs, NewDefuse(sctx), NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
+	return &In{sctx, lhs, rhs, NewDefuse(sctx), NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {
@@ -218,7 +219,7 @@ func (i *In) Eval(this vector.Any) vector.Any {
 }
 
 func (i *In) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(vecs); ok {
+	if vec, ok := CheckForNullThenError(i.sctx, vecs, "'in' operator"); ok {
 		return vec
 	}
 	return i.pw.Eval(vecs[0], vecs[1])

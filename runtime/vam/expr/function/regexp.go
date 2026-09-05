@@ -18,7 +18,7 @@ type Regexp struct {
 }
 
 func (r *Regexp) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(r.sctx, args, "regexp"); ok {
 		return vec
 	}
 	args = underAll(args)
@@ -66,7 +66,7 @@ type RegexpReplace struct {
 }
 
 func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(r.sctx, args, "regexp_replace"); ok {
 		return vec
 	}
 	args = underAll(args)

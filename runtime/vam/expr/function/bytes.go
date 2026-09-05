@@ -14,7 +14,7 @@ type Base64 struct {
 }
 
 func (b *Base64) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(b.sctx, args, "base64"); ok {
 		return vec
 	}
 	val := vector.Under(args[0])
@@ -52,7 +52,7 @@ type Hex struct {
 }
 
 func (h *Hex) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(h.sctx, args, "hex"); ok {
 		return vec
 	}
 	val := vector.Under(args[0])

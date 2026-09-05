@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
@@ -16,16 +18,20 @@ type Function interface {
 // CheckForNullThenError returns the first element of vecs with the null
 // type. If no element has the null type, it returns the first element with an
 // error type.
-func CheckForNullThenError(vecs []vector.Any) (vector.Any, bool) {
-	var errVec vector.Any
+// XXX rename this and add structured error info... this now checks for error first
+// and returns the error, then checks for null
+func CheckForNullThenError(sctx *super.Context, vecs []vector.Any, msg string) (vector.Any, bool) {
 	for _, vec := range vecs {
-		if k := vec.Kind(); k == vector.KindNull {
-			return vec, true
-		} else if k == vector.KindError && errVec == nil {
-			errVec = vec
+		if vec.Kind() == vector.KindError {
+			return vector.NewWrappedError(sctx, fmt.Sprintf("%s: error value encountered", msg), vec), true
 		}
 	}
-	return errVec, errVec != nil
+	for _, vec := range vecs {
+		if vec.Kind() == vector.KindNull {
+			return vec, true
+		}
+	}
+	return nil, false
 }
 
 type Call struct {

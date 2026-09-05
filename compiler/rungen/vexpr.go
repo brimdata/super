@@ -326,7 +326,7 @@ func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatchExpr) (vamexpr.Eva
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewRegexpMatch(re, e), nil
+	return vamexpr.NewRegexpMatch(b.sctx(), re, e), nil
 }
 
 func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearchExpr) (vamexpr.Evaluator, error) {

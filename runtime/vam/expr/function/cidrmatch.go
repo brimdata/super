@@ -16,7 +16,7 @@ func NewCIDRMatch(sctx *super.Context) *CIDRMatch {
 }
 
 func (c *CIDRMatch) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
+	if vec, ok := expr.CheckForNullThenError(c.sctx, args, "cidr_match"); ok {
 		return vec
 	}
 	if args[0].Type().ID() != super.IDNet {
