@@ -6,6 +6,6 @@ input: |
   {bar:"bar3"}
 
 output: |
-  {foo:error("missing")}
-  {foo:error("missing")}
-  {foo:error("missing")}
+  {foo:error({message:"no such field foo",on:{bar:"bar1"}})}
+  {foo:error({message:"no such field foo",on:{bar:"bar2"}})}
+  {foo:error({message:"no such field foo",on:{bar:"bar3"}})}

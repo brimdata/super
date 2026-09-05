@@ -118,6 +118,8 @@ input: |
   {val:fusion(2::(int64|[int64|{r:int64}]),<int64>)}
   {val:fusion([1,{r:3}]::(int64|[int64|{r:int64}]),<[int64|{r:int64}]>)}
 
+# XXX fix this should not be error missing... should be structured
+
 output: |
-  error("missing")
+  error({message:"dot operator on non-record",on:error("missing")})
   3

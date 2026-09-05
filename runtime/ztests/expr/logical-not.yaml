@@ -15,8 +15,8 @@ output: |
   null
   false
   null
-  error("missing")
-  error("foo")
+  error({message:"'not' operator: error value encountered",on:error("missing")})
+  error({message:"'not' operator: error value encountered",on:error("foo")})
 
 ---
 

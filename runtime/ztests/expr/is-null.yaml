@@ -17,5 +17,5 @@ output: |
   [true,false]
   [true,false]
   [true,false]
-  [error("missing"),error("missing")]
-  [error("foo"),error("foo")]
+  [error("missing"),error({message:"'not' operator: error value encountered",on:error("missing")})]
+  [error("foo"),error({message:"'not' operator: error value encountered",on:error("foo")})]

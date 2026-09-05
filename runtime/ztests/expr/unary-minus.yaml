@@ -55,8 +55,8 @@ output: |
   error({message:"type incompatible with unary '-' operator",on:"foo"})
   error({message:"type incompatible with unary '-' operator",on:10.0.0.1})
   error({message:"type incompatible with unary '-' operator",on:[1,2,3]})
-  error(1)
-  error(1)
+  error({message:"unary '-': error value encountered",on:error(1)})
+  error({message:"unary '-': error value encountered",on:error(1)})
   null
   null
   -1
