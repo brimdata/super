@@ -5,7 +5,7 @@ outputs:
   - name: stdout
     data: |
       fn 0/h(e): (
-        has(e)
+        quiet(e) != none
       )
       null
       | where 0(this)

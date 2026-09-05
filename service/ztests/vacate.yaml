@@ -9,7 +9,7 @@ script: |
   echo // ===
   super db vacate -f
   echo // === 
-  super db -s -c 'from test:log | has(message) | values message'
+  super db -s -c 'from test:log | where this.has('message') | values message'
   echo // === 
   super db -s -c 'from test'
   ! super db vacate -f
@@ -17,7 +17,7 @@ script: |
   echo // === 
   super db vacate -f
   echo // === 
-  super db -s -c 'from test:log | has(message) | values message'
+  super db -s -c 'from test:log | where this.has('message') | values message'
 
 inputs:
   - name: service.sh
