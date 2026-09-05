@@ -9,12 +9,12 @@ input: |
 
 output: |
   {s:null}
-  {}
   {s:null}
   {}
   {s:"a"}
-  {s:"a"}
-  {s:"b"}
   {s:"b"}
   {s:"c"}
+  {}
+  {s:"a"}
+  {s:"b"}
   {s:"c"}

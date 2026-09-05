@@ -15,7 +15,7 @@ output: |
 ---
 
 spq: |
-  fn Has(r,field) : has(r[field])
+  fn Has(r,field) : r[field]
   values x.Has('y')
 
 input: |
