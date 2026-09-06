@@ -101,9 +101,11 @@ input: |
   
 output: |
   2
-  error("missing")
+  type foo=[int64]
+  error({message:"dot operator on non-record",on:[1,2,3]::foo})
   5
-  error("missing")
+  type bar=set[int64]
+  error({message:"dot operator on non-record",on:set[4,5,6]::bar})
   "foo"
   error("missing")
   error("missing")

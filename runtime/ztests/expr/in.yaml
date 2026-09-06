@@ -33,7 +33,7 @@ output: |
   [true,false,null]
   [true,false,null]
   [null,null,null]
-  [error(0),error(0),null]
+  [false,false,null]
   [true,false,null]
   [null,null,null]
 
