@@ -60,4 +60,4 @@ output: |
   null
   null
   -1
-  error(1)
+  error({message:"unary '-': error value encountered",on:error(1)})

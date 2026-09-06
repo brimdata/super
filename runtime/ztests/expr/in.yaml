@@ -54,7 +54,7 @@ output: |
   true
   null
   null
-  error(0)
+  error({message:"'in' operator: error value encountered",on:error(0)})
 
 ---
 
@@ -104,8 +104,8 @@ input: |
   {a:map{"a":"hello"}}
 
 output: |
-  {b1:true,b2:error("missing")}
-  {b1:true,b2:error("missing")}
-  {b1:false,b2:error("missing")}
-  {b1:error("missing"),b2:error("missing")}
-  {b1:error("missing"),b2:true}
+  {b1:true,b2:error({message:"'in' operator: error value encountered",on:error({message:"no such field a",on:{x:"a"}})})}
+  {b1:true,b2:error({message:"'in' operator: error value encountered",on:error({message:"no such field a",on:{x:1}})})}
+  {b1:false,b2:error({message:"'in' operator: error value encountered",on:error({message:"no such field a",on:{x:10}})})}
+  {b1:error({message:"'in' operator: error value encountered",on:error({message:"no such field x",on:{y:1}})}),b2:error({message:"'in' operator: error value encountered",on:error({message:"no such field a",on:{y:1}})})}
+  {b1:error({message:"'in' operator: error value encountered",on:error({message:"no such field x",on:{a:map{"a":"hello"}}})}),b2:true}
