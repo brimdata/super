@@ -791,6 +791,17 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 	nargs := len(args)
 	nameLower := strings.ToLower(name)
 	switch {
+	case nameLower == "is_ok":
+		if err := function.CheckArgCount(nargs, 1, 1); err != nil {
+			t.error(call, err)
+			return badExpr, t.checker.unknown
+		}
+		return &sem.BinaryExpr{
+			Node: call,
+			Op:   "!=",
+			LHS:  sem.NewCall(call, "quiet", args),
+			RHS:  sem.NewLiteral(call, super.NewValue(super.TypeNone, nil), t.defs),
+		}, super.TypeBool
 	case nameLower == "map":
 		return t.semMapCall(call, args, argTypes)
 	case nameLower == "grep":

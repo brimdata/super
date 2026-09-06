@@ -15,7 +15,7 @@ output: |
 ---
 
 spq: |
-  fn Has(r,field) : r[field]
+  fn Has(r,field) : quiet(r) != none and quiet(r[field]) != none
   values x.Has('y')
 
 input: |

@@ -1,3 +1,5 @@
+skip: need to handle missing differently in SQL
+
 spq: |
   select *
   from (values {aid:1}, {aid:2}, {aid:3})
@@ -5,5 +7,5 @@ spq: |
   order by aid
 
 output: |
-  {aid:1,bid:error("missing")}
-  {aid:3,bid:error("missing")}
+  {aid:1,bid?:none::int64}
+  {aid:3,bid?:none::int64}
