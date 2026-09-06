@@ -36,7 +36,7 @@ output: |
   [false,true,false,false,false,false]
   [false,true,false,false,false,false]
   [null,null,null,null,null,null]
-  [error(0),error(0),error(0),error(0),error(0),error(0)]
+  [error({message:"==: error value encountered",on:error(0)}),error({message:"!=: error value encountered",on:error(0)}),error({message:"<: error value encountered",on:error(0)}),error({message:"<=: error value encountered",on:error(0)}),error({message:">=: error value encountered",on:error(0)}),error({message:">: error value encountered",on:error(0)})]
 
 ---
 
@@ -60,7 +60,7 @@ output: |
   [false,true,false,false,false,false]
   [false,true,false,false,false,false]
   [null,null,null,null,null,null]
-  [error(0),error(0),error(0),error(0),error(0),error(0)]
+  [error({message:"==: error value encountered",on:error(0)}),error({message:"!=: error value encountered",on:error(0)}),error({message:"<: error value encountered",on:error(0)}),error({message:"<=: error value encountered",on:error(0)}),error({message:">=: error value encountered",on:error(0)}),error({message:">: error value encountered",on:error(0)})]
 
 ---
 
@@ -84,7 +84,7 @@ output: |
   [false,true,false,false,false,false]
   [false,true,false,false,false,false]
   [null,null,null,null,null,null]
-  [error(0),error(0),error(0),error(0),error(0),error(0)]
+  [error({message:"==: error value encountered",on:error(0)}),error({message:"!=: error value encountered",on:error(0)}),error({message:"<: error value encountered",on:error(0)}),error({message:"<=: error value encountered",on:error(0)}),error({message:">=: error value encountered",on:error(0)}),error({message:">: error value encountered",on:error(0)})]
 
 ---
 
@@ -130,4 +130,4 @@ output: |
   [false,true,false,false,false,false]
   [false,true,false,false,false,false]
   [null,null,null,null,null,null]
-  [error(0),error(0),error(0),error(0),error(0),error(0)]
+  [error({message:"==: error value encountered",on:error(0)}),error({message:"!=: error value encountered",on:error(0)}),error({message:"<: error value encountered",on:error(0)}),error({message:"<=: error value encountered",on:error(0)}),error({message:">=: error value encountered",on:error(0)}),error({message:">: error value encountered",on:error(0)})]
