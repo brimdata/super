@@ -1,4 +1,4 @@
-skip: need to handle missing differently in SQL
+skip: TBD fix SQL missing fields
 
 spq: |
   select *
