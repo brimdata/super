@@ -26,10 +26,11 @@ func (i *ip) length() uint32 {
 func (*ip) unmarshal(*csup.Context, field.Projection) {}
 
 func (i *ip) project(loader *loader, projection field.Projection) vector.Any {
+	vec := vector.NewIP(i.load(loader))
 	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, i.length())
+		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
 	}
-	return vector.NewIP(i.load(loader))
+	return vec
 }
 
 func (i *ip) load(loader *loader) []netip.Addr {

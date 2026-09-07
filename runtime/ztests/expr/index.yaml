@@ -38,8 +38,8 @@ output: |
   2
   1
   null
-  error("missing")
-  error("missing")
+  error({message:"index out of range",on:-5})
+  error({message:"entity cannot be indexed",on:null})
   error({message:"index is not an integer",on:null})
   error({message:"index is not an integer",on:"hi"})
   error({message:"cannot cast to int64",on:9223372036854775808::uint64})
@@ -47,7 +47,7 @@ output: |
   2
   1
   null
-  error("missing")
+  error({message:"index out of range",on:-5})
   error({message:"index is not an integer",on:"hi"})
   "foo"
   "baz"
@@ -55,11 +55,11 @@ output: |
   "foo"
   "bar"
   error({message:"invalid value for record index",on:1.})
-  error("missing")
+  error({message:"invalid record index",on:"doesnotexist"})
   1
   2
   1
-  error("missing")
+  none
   127.0.0.1
 
 ---
@@ -107,8 +107,8 @@ output: |
   type bar=set[int64]
   error({message:"'.': applied to non-record",on:set[4,5,6]::bar})
   "foo"
-  error("missing")
-  error("missing")
+  none
+  error({message:"invalid record index",on:1})
   123
 
 ---
@@ -120,8 +120,6 @@ input: |
   {val:fusion(2::(int64|[int64|{r:int64}]),<int64>)}
   {val:fusion([1,{r:3}]::(int64|[int64|{r:int64}]),<[int64|{r:int64}]>)}
 
-# XXX fix this should not be error missing... should be structured
-
 output: |
-  error({message:"'.': applied to non-record",on:error("missing")})
+  error({message:"'.': applied to non-record",on:error({message:"entity cannot be indexed",on:2})})
   3

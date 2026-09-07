@@ -28,10 +28,11 @@ func (u *uint_) length() uint32 {
 func (*uint_) unmarshal(*csup.Context, field.Projection) {}
 
 func (u *uint_) project(loader *loader, projection field.Projection) vector.Any {
+	vec := vector.NewUint(u.meta.Typ, u.load(loader))
 	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, u.length())
+		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
 	}
-	return vector.NewUint(u.meta.Typ, u.load(loader))
+	return vec
 }
 
 func (u *uint_) load(loader *loader) []uint64 {

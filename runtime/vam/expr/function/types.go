@@ -132,7 +132,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 		return vector.NewConstString(named.Name, vec.Len())
 	}
 	if typ.ID() != super.IDType {
-		return vector.NewMissing(n.sctx, vec.Len())
+		return vector.NewWrappedError(n.sctx, "nameof: not a type", vec)
 	}
 	out := vector.NewStringEmpty(vec.Len())
 	var errs []uint32
@@ -145,7 +145,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewMissing(n.sctx, uint32(len(errs))))
+		return vector.NewCombinedError(n.sctx, "not a named type", out, vec, errs)
 	}
 	return out
 }
@@ -180,7 +180,7 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewMissing(t.sctx, uint32(len(errs))))
+		return vector.NewCombinedError(t.sctx, "typename: unknown type name", out, vec, errs)
 	}
 	return out
 }

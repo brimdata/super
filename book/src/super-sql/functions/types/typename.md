@@ -12,7 +12,7 @@ typename(name: string) -> type
 
 The `typename` function returns the [type](../../types/intro.md) of the
 [named type](../../types/named.md) given by `name` if it exists.  Otherwise,
-`error("missing")` is returned.
+an error is returned.
 
 ## Examples
 
@@ -48,7 +48,7 @@ type port=int16
 
 ---
 
-_The result is `error("missing")` if the type name does not exist_
+_The result is an error if the type name does not exist_
 
 ```mdtest-spq
 # spq
@@ -56,5 +56,5 @@ values typename("port")
 # input
 80
 # expected output
-error("missing")
+error({message:"typename: unknown type name",on:"port"})
 ```

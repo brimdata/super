@@ -1,6 +1,7 @@
 package vcache
 
 import (
+	"fmt"
 	"slices"
 	"sync"
 
@@ -74,7 +75,7 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k] != nil {
 			val = r.fields[k].project(loader, node.Proj)
 		} else {
-			val = vector.NewMissing(loader.sctx, r.length())
+			val = vector.NewStringError(loader.sctx, fmt.Sprintf("no such field %s", node.Name), r.length())
 		}
 		valFields = append(valFields, val)
 		fields = append(fields, super.NewField(node.Name, val.Type()))

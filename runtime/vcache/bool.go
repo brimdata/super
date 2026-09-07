@@ -27,10 +27,11 @@ func (b *bool_) length() uint32 {
 func (*bool_) unmarshal(*csup.Context, field.Projection) {}
 
 func (b *bool_) project(loader *loader, projection field.Projection) vector.Any {
+	vec := vector.NewBool(b.load(loader))
 	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, b.length())
+		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
 	}
-	return vector.NewBool(b.load(loader))
+	return vec
 }
 
 func (b *bool_) load(loader *loader) bitvec.Bits {

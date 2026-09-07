@@ -9,9 +9,9 @@ input: |
 output: |
   <{bar:int64}>
   <int64>
-  error("missing")
-  error({message:"'.': applied to non-record",on:error("missing")})
+  error({message:"no such field foo",on:<int64>})
+  error({message:"'.': applied to non-record",on:error({message:"no such field foo",on:<int64>})})
   <ip>
-  error("missing")
+  error({message:"no such field bar",on:<ip>})
   error({message:"'.': applied to non-record",on:null})
   error({message:"'.': applied to non-record",on:error({message:"'.': applied to non-record",on:null})})

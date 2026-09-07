@@ -23,9 +23,6 @@ func (c *const_) length() uint32 {
 func (*const_) unmarshal(*csup.Context, field.Projection) {}
 
 func (c *const_) project(loader *loader, projection field.Projection) vector.Any {
-	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, c.length())
-	}
 	// Map the const super.Value in the csup's type context to
 	// a new one in the query type context.
 	val := c.meta.Value
@@ -36,5 +33,9 @@ func (c *const_) project(loader *loader, projection field.Projection) vector.Any
 	if err != nil {
 		panic(err)
 	}
-	return vector.NewConstFromValue(loader.sctx, super.NewValue(typ, val.Bytes()), c.length())
+	vec := vector.NewConstFromValue(loader.sctx, super.NewValue(typ, val.Bytes()), c.length())
+	if len(projection) > 0 {
+		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
+	}
+	return vec
 }

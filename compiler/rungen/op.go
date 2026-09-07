@@ -306,11 +306,10 @@ func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
 	// reference to a var not in scope, a field access null this, etc.
 	defer func() {
 		if recover() != nil {
-			val = b.sctx().Missing()
+			val = b.sctx().NewErrorf("evalAtCompileTime")
 		}
 	}()
-	missingVec := vector.NewMissing(b.sctx(), 1)
-	vec := e.Eval(missingVec)
+	vec := e.Eval(vector.NewStringError(b.sctx(), "evalAtCompileTime", 1))
 	if vec.Len() != 1 {
 		panic(vector.Format(vec))
 	}

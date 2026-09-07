@@ -8,5 +8,5 @@ input: |
 
 output: |
   {a:0,b:1}
-  {a:error("missing"),b:1}
-  {a:error("missing"),b:error({message:"'.': applied to non-record",on:"b"})}
+  {a:error({message:"index out of range",on:0}),b:1}
+  {a:error({message:"entity cannot be indexed",on:"a"}),b:error({message:"'.': applied to non-record",on:"b"})}

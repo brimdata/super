@@ -27,18 +27,20 @@ func (b *bytes) length() uint32 {
 func (*bytes) unmarshal(*csup.Context, field.Projection) {}
 
 func (b *bytes) project(loader *loader, projection field.Projection) vector.Any {
-	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, b.length())
-	}
+	var vec vector.Any
 	table := b.load(loader)
 	switch b.meta.Typ.ID() {
 	case super.IDString:
-		return vector.NewString(table)
+		vec = vector.NewString(table)
 	case super.IDBytes:
-		return vector.NewBytes(table)
+		vec = vector.NewBytes(table)
 	default:
 		panic(b.meta.Typ)
 	}
+	if len(projection) > 0 {
+		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
+	}
+	return vec
 }
 
 func (b *bytes) load(loader *loader) vector.BytesTable {
