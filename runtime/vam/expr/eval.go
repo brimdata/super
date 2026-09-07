@@ -20,7 +20,7 @@ type Function interface {
 // error type.
 // XXX rename this and add structured error info... this now checks for error first
 // and returns the error, then checks for null
-func CheckForNullThenError(sctx *super.Context, vecs []vector.Any, msg string) (vector.Any, bool) {
+func CheckForErrorThenNull(sctx *super.Context, vecs []vector.Any, msg string) (vector.Any, bool) {
 	for _, vec := range vecs {
 		if vec.Kind() == vector.KindError {
 			return vector.NewWrappedError(sctx, fmt.Sprintf("%s: error value encountered", msg), vec), true
@@ -29,6 +29,18 @@ func CheckForNullThenError(sctx *super.Context, vecs []vector.Any, msg string) (
 	for _, vec := range vecs {
 		if vec.Kind() == vector.KindNull {
 			return vec, true
+		}
+	}
+	return nil, false
+}
+
+func CheckForErrorThenNullThenNone(sctx *super.Context, vecs []vector.Any, msg string) (vector.Any, bool) {
+	if vec, ok := CheckForErrorThenNull(sctx, vecs, msg); ok {
+		return vec, true
+	}
+	for _, vec := range vecs {
+		if vec.Kind() == vector.KindNone {
+			return vector.NewStringError(sctx, fmt.Sprintf("%s: illegal none value", msg), vec.Len()), true
 		}
 	}
 	return nil, false

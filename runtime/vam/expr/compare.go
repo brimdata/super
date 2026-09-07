@@ -35,7 +35,7 @@ func (c *Compare) Eval(val vector.Any) vector.Any {
 }
 
 func (c *Compare) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(c.sctx, vecs, c.msg); ok {
+	if vec, ok := CheckForErrorThenNull(c.sctx, vecs, c.msg); ok {
 		return vec
 	}
 	lhs := vector.Under(vector.Super(vecs[0]))

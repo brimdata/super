@@ -24,7 +24,7 @@ func NewArith(sctx *super.Context, op string, lhs, rhs Evaluator) *Arith {
 }
 
 func (a *Arith) Eval(val vector.Any) vector.Any {
-	return vector.Apply2(vector.ApplyRipUnions|vector.ApplyRipFusions, a, a.lhs.Eval(val), a.rhs.Eval(val))
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, a.eval, a.lhs.Eval(val), a.rhs.Eval(val))
 }
 
 func (a *Arith) Error(which int, on vector.Any) vector.Any {
@@ -47,9 +47,22 @@ func (a *Arith) ErrorRHS(on vector.Any) vector.Any {
 	return vector.NewWrappedError(a.sctx, fmt.Sprintf("error on right-hand side of %s", vector.ArithOpToString(a.opCode)), on)
 }
 
-func (a *Arith) Apply(lhs, rhs vector.Any) (out vector.Any) {
-	lhs = vector.Under(lhs)
-	rhs = vector.Under(rhs)
+func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
+	if vec, ok := CheckForErrorThenNullThenNone(a.sctx, vecs, vector.ArithOpToString(a.opCode)); ok {
+		return vec
+	}
+	lhs := vector.Under(vecs[0])
+	rhs := vector.Under(vecs[1])
+	/*
+		lhs := vector.Under(vecs[0])
+		if lhs.Kind() == vector.KindNone {
+			return vector.NewStringError(a.sctx, fmt.Sprintf("bad none value: on left-hand side of %s", vector.ArithOpToString(a.opCode)), lhs.Len())
+		}
+		rhs := vector.Under(vecs[1])
+		if rhs.Kind() == vector.KindNone {
+			return vector.NewStringError(a.sctx, fmt.Sprintf("bad none value: on right-hand side of %s", vector.ArithOpToString(a.opCode)), rhs.Len())
+		}
+	*/
 	lhs, rhs, errVal := coerceVals(a.sctx, lhs, rhs)
 	if errVal != nil {
 		return errVal

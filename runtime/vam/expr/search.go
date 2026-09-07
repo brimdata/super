@@ -165,7 +165,7 @@ func (r *regexpMatch) Eval(this vector.Any) vector.Any {
 }
 
 func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(r.sctx, vecs, "regexp"); ok {
+	if vec, ok := CheckForErrorThenNull(r.sctx, vecs, "regexp"); ok {
 		return vec
 	}
 	vec := vector.Under(vecs[0])

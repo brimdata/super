@@ -6,6 +6,26 @@ input: |
   {s:1}
 
 output: |
-  error({message:"error on left-hand side of /",on:error({message:"no such field s",on:{}})})
-  error({message:"error on left-hand side of /",on:error("other")})
+  error({message:"/: error value encountered",on:error({message:"no such field s",on:{}})})
+  error({message:"/: error value encountered",on:error("other")})
   error("divide by zero")
+
+---
+
+spq: a+1
+
+input: |
+  {a?:none::int64}
+
+output: |
+  error("+: illegal none value")
+
+---
+
+spq: this+1
+
+input: |
+  none
+
+output: |
+  error("+: illegal none value")

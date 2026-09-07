@@ -22,7 +22,7 @@ func (u *unaryMinus) Eval(this vector.Any) vector.Any {
 }
 
 func (u *unaryMinus) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(u.sctx, vecs, "unary '-'"); ok {
+	if vec, ok := CheckForErrorThenNull(u.sctx, vecs, "unary '-'"); ok {
 		return vec
 	}
 	vec := vector.Under(vecs[0])

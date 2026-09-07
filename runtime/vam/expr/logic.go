@@ -25,7 +25,7 @@ func (n *Not) Eval(val vector.Any) vector.Any {
 }
 
 func (n *Not) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(n.sctx, vecs, "'not' operator"); ok {
+	if vec, ok := CheckForErrorThenNull(n.sctx, vecs, "'not' operator"); ok {
 		return vec
 	}
 	switch vec := vecs[0].(type) {
@@ -219,7 +219,7 @@ func (i *In) Eval(this vector.Any) vector.Any {
 }
 
 func (i *In) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckForNullThenError(i.sctx, vecs, "'in' operator"); ok {
+	if vec, ok := CheckForErrorThenNull(i.sctx, vecs, "'in' operator"); ok {
 		return vec
 	}
 	return i.pw.Eval(vecs[0], vecs[1])
