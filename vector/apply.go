@@ -174,28 +174,45 @@ func preserveOptionType(u *Union) Any {
 	return NewDynamic(d.Tags, vecs)
 }
 
-type ApplierBinary interface {
-	Apply(lhs, rhs Any) Any
-	ErrorLHS(Any) Any
-	ErrorRHS(Any) Any
+type Applier1 interface {
+	Apply(Any) Any
+	Error(Any) Any
 }
 
-func ApplyBinary(opt ApplyOpt, applier ApplierBinary, lhs, rhs Any) Any {
+func Apply1(opt ApplyOpt, applier Applier1, vec Any) Any {
+	eval := func(vecs ...Any) Any {
+		if isErrorOrNone(vec) {
+			return applier.Error(vec)
+		}
+		if vec.Kind() == KindNull {
+			return vec
+		}
+		return applier.Apply(vec)
+	}
+	return Apply(opt, eval, []Any{vec}...)
+}
+
+type Applier2 interface {
+	Apply(lhs, rhs Any) Any
+	Error(int, Any) Any
+}
+
+func Apply2(opt ApplyOpt, applier Applier2, lhs, rhs Any) Any {
 	eval := func(vecs ...Any) Any {
 		lhs := vecs[0]
 		rhs := vecs[1]
 		if isErrorOrNone(lhs) {
-			return applier.ErrorLHS(lhs)
+			return applier.Error(0, lhs)
 		}
 		if isErrorOrNone(rhs) {
-			return applier.ErrorRHS(rhs)
+			return applier.Error(1, rhs)
 		}
 		//XXX this should coerce the pure null to a typed null of the other side
 		// or at least retain the typed null if it came from a rip
-		if k := lhs.Kind(); k == KindNull {
+		if lhs.Kind() == KindNull {
 			return lhs
 		}
-		if k := rhs.Kind(); k == KindNull {
+		if rhs.Kind() == KindNull {
 			return rhs
 		}
 		return applier.Apply(vecs[0], vecs[1])

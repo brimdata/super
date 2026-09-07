@@ -24,14 +24,20 @@ func NewArith(sctx *super.Context, op string, lhs, rhs Evaluator) *Arith {
 }
 
 func (a *Arith) Eval(val vector.Any) vector.Any {
-	return vector.ApplyBinary(vector.ApplyRipUnions|vector.ApplyRipFusions, a, a.lhs.Eval(val), a.rhs.Eval(val))
+	return vector.Apply2(vector.ApplyRipUnions|vector.ApplyRipFusions, a, a.lhs.Eval(val), a.rhs.Eval(val))
 }
 
-func (a *Arith) ErrorLHS(on vector.Any) vector.Any {
-	if on.Kind() == vector.KindNone {
-		return vector.NewStringError(a.sctx, fmt.Sprintf("bad none value: on left-hand side of %s", vector.ArithOpToString(a.opCode)), on.Len())
+func (a *Arith) Error(which int, on vector.Any) vector.Any {
+	var side string
+	if which == 0 {
+		side = "left"
+	} else {
+		side = "right"
 	}
-	return vector.NewWrappedError(a.sctx, fmt.Sprintf("error on left-hand side of %s", vector.ArithOpToString(a.opCode)), on)
+	if on.Kind() == vector.KindNone {
+		return vector.NewStringError(a.sctx, fmt.Sprintf("bad none value: on %s-hand side of %s", side, vector.ArithOpToString(a.opCode)), on.Len())
+	}
+	return vector.NewWrappedError(a.sctx, fmt.Sprintf("error on %s-hand side of %s", side, vector.ArithOpToString(a.opCode)), on)
 }
 
 func (a *Arith) ErrorRHS(on vector.Any) vector.Any {
