@@ -52,18 +52,17 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 // to dataflow.
 type translator struct {
 	reporter
-	ctx                context.Context
-	resolver           *resolver
-	checker            *checker
-	hasVectorizedInput bool
-	opCnt              map[*ast.OpDecl]int
-	opStack            []string
-	cteStack           []*ast.SQLCTE
-	env                *exec.Environment
-	scope              *Scope
-	sctx               *super.Context
-	types              *sup.Analyzer
-	defs               *super.Context
+	ctx      context.Context
+	resolver *resolver
+	checker  *checker
+	opCnt    map[*ast.OpDecl]int
+	opStack  []string
+	cteStack []*ast.SQLCTE
+	env      *exec.Environment
+	scope    *Scope
+	sctx     *super.Context
+	types    *sup.Analyzer
+	defs     *super.Context
 }
 
 func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *translator {
