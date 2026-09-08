@@ -101,12 +101,12 @@ This can be especially handy when you are learning the language and its
 
 For example, this query
 ```mdtest-command
-super -C -c 'has(foo)'
+super -C -c 'is_ok(foo)'
 ```
 is an implied [where](../super-sql/operators/where.md) operator, which matches values
 that have a field `foo`, i.e.,
 ```mdtest-output
-where has(foo)
+where is_ok(foo)
 ```
 while this query
 ```mdtest-command

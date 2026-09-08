@@ -93,14 +93,14 @@ values {...this, c:3}
 
 ---
 
-_Missing fields show up as missing errors_
+_Missing fields show up as errors_
 ```mdtest-spq
 # spq
 put d:=e
 # input
 {a:1,b:2,c:3}
 # expected output
-{a:1,b:2,c:3,d:error("missing")}
+{a:1,b:2,c:3,d:error({message:"no such field e",on:{a:1,b:2,c:3}})}
 ```
 
 ---

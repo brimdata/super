@@ -16,4 +16,4 @@ output: |
   error({message:"log: illegal argument",on:-1})
   null
   null
-  error("missing")
+  error({message:"log: error value encountered",on:error("missing")})

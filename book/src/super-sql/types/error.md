@@ -133,8 +133,8 @@ So why should we pretend that this is a bona fide value?  SQL adopted this
 approach because it lacks first-class errors.
 
 But SuperSQL has first-class errors so
-a reference to something that does not exist is an error of type
-`error(string)` whose value is `error("missing")`.  For example,
+a reference to something that does not exist is an error.
+For example,
 ```mdtest-spq
 # spq
 values x
@@ -143,7 +143,7 @@ values x
 {y:2}
 # expected output
 1
-error("missing")
+error({message:"no such field x",on:{y:2}})
 ```
 
 ## Examples

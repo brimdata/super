@@ -60,18 +60,3 @@ error("exception")
 {that:error("exception"),err:true,kind:"error"}
 {that:"exception",err:false,kind:"primitive"}
 ```
-
----
-
-_Comparison of a missing error results in a missing error even if they
-are the same missing errors so as to not allow field comparisons of two
-missing fields to succeed_
-
-```mdtest-spq
-# spq
-badfield:=x | values badfield==error("missing")
-# input
-{}
-# expected output
-error("missing")
-```

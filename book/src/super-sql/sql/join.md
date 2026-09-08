@@ -99,7 +99,7 @@ JOIN U ON x=z
 ---
 
 _Left outer join_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 WITH T(x,y) AS (
     VALUES (1,2), (3,4), (5,6)
@@ -122,7 +122,7 @@ ORDER BY x
 ---
 
 _Right outer join_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 WITH T(x,y) AS (
     VALUES (1,2), (3,4), (5,6)

@@ -12,8 +12,8 @@ input: |
 output: |
   {x:1::int32,s:"a",v:{s:"a",x:1::int32}}
   {x:2::int32,s:"b",v:{s:"b",x:2::int32}}
-  {s:"x",v:{s:"x",x:error("missing")}}
-  {s:"b",v:{s:"b",x:error("missing")}}
-  {none:"bad",v:{s:error("missing"),x:error("missing")}}
+  {s:"x",v:{s:"x",x:error({message:"no such field x",on:{s:"x"}})}}
+  {s:"b",v:{s:"b",x:error({message:"no such field x",on:{s:"b"}})}}
+  {none:"bad",v:{s:error({message:"no such field s",on:{none:"bad"}}),x:error({message:"no such field x",on:{none:"bad"}})}}
   {x:1::int32,s:"a",v:{s:"a",x:1::int32}}
   {x:3::int32,s:"e",v:{s:"e",x:3::int32}}

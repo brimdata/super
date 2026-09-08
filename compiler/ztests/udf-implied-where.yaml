@@ -1,11 +1,11 @@
 script: |
-  super compile -C -dag 'fn h(e): ( has(e) ) h(this)'
+  super compile -C -dag 'fn h(e): ( len(e) != 0 ) h(this)'
 
 outputs:
   - name: stdout
     data: |
       fn 0/h(e): (
-        has(e)
+        len(e)!=0
       )
       null
       | where 0(this)

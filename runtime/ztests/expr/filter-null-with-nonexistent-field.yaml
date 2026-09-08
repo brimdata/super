@@ -1,4 +1,4 @@
-spq: not has(t)
+spq: is_error(t)
 
 input: &input |
   {s:"A=B"}

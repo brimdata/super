@@ -17,8 +17,8 @@ output: |
   0
   1
   1
-  error("missing")
-  error("missing")
+  error({message:"no such field b",on:{a:0}})
+  error({message:"no such field a",on:{b:0}})
 
 ---
 

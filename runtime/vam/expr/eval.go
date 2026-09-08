@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
@@ -13,19 +15,33 @@ type Function interface {
 	Call(...vector.Any) vector.Any
 }
 
-// CheckForNullThenError returns the first element of vecs with the null
-// type. If no element has the null type, it returns the first element with an
-// error type.
-func CheckForNullThenError(vecs []vector.Any) (vector.Any, bool) {
-	var errVec vector.Any
+// CheckForErrorThenNull returns the first element of vecs with an error
+// type. If no element has an error type, it returns the first element with the
+// null type.
+func CheckForErrorThenNull(sctx *super.Context, vecs []vector.Any, msg string) (vector.Any, bool) {
 	for _, vec := range vecs {
-		if k := vec.Kind(); k == vector.KindNull {
-			return vec, true
-		} else if k == vector.KindError && errVec == nil {
-			errVec = vec
+		if vec.Kind() == vector.KindError {
+			return vector.NewWrappedError(sctx, fmt.Sprintf("%s: error value encountered", msg), vec), true
 		}
 	}
-	return errVec, errVec != nil
+	for _, vec := range vecs {
+		if vec.Kind() == vector.KindNull {
+			return vec, true
+		}
+	}
+	return nil, false
+}
+
+func CheckForErrorThenNullThenNone(sctx *super.Context, vecs []vector.Any, msg string) (vector.Any, bool) {
+	if vec, ok := CheckForErrorThenNull(sctx, vecs, msg); ok {
+		return vec, true
+	}
+	for _, vec := range vecs {
+		if vec.Kind() == vector.KindNone {
+			return vector.NewStringError(sctx, fmt.Sprintf("%s: illegal none value", msg), vec.Len()), true
+		}
+	}
+	return nil, false
 }
 
 type Call struct {

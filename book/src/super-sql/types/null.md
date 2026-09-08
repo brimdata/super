@@ -56,7 +56,7 @@ false
 
 ---
 
-_Missing values are not null values_
+_Error values are not null values_
 
 ```mdtest-spq
 # spq
@@ -66,9 +66,9 @@ values {out:y}
 {x:2,y:3}
 null
 # expected output
-{out:error("missing")}
+{out:error({message:"no such field y",on:{x:1}})}
 {out:3}
-{out:error("missing")}
+{out:error({message:"'.': applied to non-record",on:null})}
 ```
 
 ---

@@ -1,4 +1,4 @@
-spq: put b:=missing(a[2])
+spq: put b:=is_error(a[2])
 
 input: |
   {a:[1,2,3]}

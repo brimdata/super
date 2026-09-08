@@ -9,8 +9,8 @@ input: |
 
 output: |
   {s:null}
-  {}
   {s:null}
+  {}
   {}
   {s:"c"}
   {s:"c"}

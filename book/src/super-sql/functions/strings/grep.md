@@ -90,7 +90,7 @@ _Regular expression with a non-this argument_
 
 ```mdtest-spq
 # spq
-grep('b.*', s)
+grep('b.*', s.ok())
 # input
 {s:"bar"}
 {s:"foo"}

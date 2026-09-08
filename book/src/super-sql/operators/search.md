@@ -161,7 +161,7 @@ the [in](../expressions/containment.md) operator, e.g.,
 
 Any Boolean-valued [function](../functions/intro.md) like
 [`is`](../functions/types/is.md),
-[`has`](../functions/generics/has.md),
+[`is_ok`](../functions/generics/is_ok.md),
 [`grep`](../functions/strings/grep.md),
 etc. and any [comparison expression](../expressions/comparisons.md)
 may be used as a search term and mixed into a search expression.

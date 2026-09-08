@@ -104,7 +104,7 @@ where ! (this in [1,4])
 _Boolean functions may be called_
 ```mdtest-spq
 # spq
-where has(a)
+where a.is_ok()
 # input
 {a:1}
 {b:"foo"}
@@ -119,7 +119,7 @@ where has(a)
 _Boolean functions with Boolean logic_
 ```mdtest-spq
 # spq
-where has(a) or has(b)
+where a.is_ok() or b.is_ok()
 # input
 {a:1}
 {b:"foo"}

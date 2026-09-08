@@ -32,14 +32,14 @@ outputs:
       {x:true}
       {x:false}
       ===
-      error({message:"upper: string arg required",on:5})
-      error({message:"upper: string arg required",on:5})
-      error({message:"upper: string arg required",on:5})
+      error({message:">=: error value encountered",on:error({message:"upper: string arg required",on:5})})
+      error({message:">=: error value encountered",on:error({message:"upper: string arg required",on:5})})
+      error({message:">=: error value encountered",on:error({message:"upper: string arg required",on:5})})
       true
       true
       ===
-      error({message:"upper: string arg required",on:5})
-      error({message:"upper: string arg required",on:5})
-      error({message:"upper: string arg required",on:5})
+      error({message:"'not' operator: error value encountered",on:error({message:">=: error value encountered",on:error({message:"upper: string arg required",on:5})})})
+      error({message:"'not' operator: error value encountered",on:error({message:">=: error value encountered",on:error({message:"upper: string arg required",on:5})})})
+      error({message:"'not' operator: error value encountered",on:error({message:">=: error value encountered",on:error({message:"upper: string arg required",on:5})})})
       false
       false

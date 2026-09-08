@@ -1,4 +1,4 @@
-spq: values quiet(this)
+spq: values this.ok()
 
 input: |
   1
@@ -28,7 +28,7 @@ output: |
 
 ---
 
-spq: values quiet(x)
+spq: values x.ok()
 
 input: |
   {x:1}
@@ -40,7 +40,7 @@ output: |
 
 ---
 
-spq: cut a:=quiet(x),b:=x
+spq: cut a:=x.ok(),b:=x
 
 input: |
   {x:1}
@@ -48,4 +48,4 @@ input: |
 
 output: |
   {a:1,b:1}
-  {b:error("missing")}
+  {b:error({message:"no such field x",on:{y:1}})}

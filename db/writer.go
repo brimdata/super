@@ -319,7 +319,7 @@ func ImportComparator(sctx *super.Context, pool *Pool) *expr.Comparator {
 	}
 	// valueAsBytes establishes a total order.
 	exprs = append(exprs, expr.NewSortExpr(&valueAsBytes{}, o, o.NullsMax(true)))
-	return expr.NewComparator(exprs...).WithMissingAsNull()
+	return expr.NewComparator(exprs...)
 }
 
 type valueAsBytes struct{}

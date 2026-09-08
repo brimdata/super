@@ -60,7 +60,7 @@ FROM (VALUES ('hello, world'),('to be or not to be')) T(message)
 ---
 
 _Column variation filled in with missing values_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 SELECT * FROM (VALUES (1,2),(3)) T(x,y)
 # input

@@ -82,7 +82,7 @@ _Various scalar comparisons_
 
 ```mdtest-spq
 # spq
-values 1 > 2, 1 < 2, "b" > "a", 1 > "a", 1 > error("missing")
+values 1 > 2, 1 < 2, "b" > "a", 1 > "a"
 # input
 
 # expected output
@@ -90,7 +90,6 @@ false
 true
 true
 false
-error("missing")
 ```
 
 ---
@@ -104,12 +103,12 @@ values {isNull:this is null,isNotNull:this is not null}
 1
 null
 2
-error("missing")
+none
 # expected output
 {isNull:false,isNotNull:true}
 {isNull:true,isNotNull:false}
 {isNull:false,isNotNull:true}
-{isNull:error("missing"),isNotNull:error("missing")}
+{isNull:false,isNotNull:true}
 ```
 
 ---
