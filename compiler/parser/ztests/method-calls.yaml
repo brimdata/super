@@ -31,7 +31,7 @@ output: |
   false
   true
   true
-  error({message:"has function applied to invalid type",on:none})
-  true
-  error({message:"has function applied to invalid type",on:null})
-  true
+  false
+  false
+  false
+  null
