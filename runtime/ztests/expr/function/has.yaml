@@ -1,3 +1,13 @@
+spq: values has({},none), has({},null), has(null, none), has(none, none)
+
+output: |
+  error({message:"has: applied to record with non-string key",on:none})
+  error({message:"has: applied to record with non-string key",on:null})
+  error({message:"has: invalid type",on:null})
+  error({message:"has: invalid type",on:none})
+
+---
+
 spq: values has(this,'a') and has(this,'b')
 
 input: |
@@ -43,3 +53,19 @@ output: |
   true
   true
   true
+
+---
+
+spq: |
+  cut r:=this.has('r'),
+    rb:=r.has('b'),
+    both:=this.has('r') and r.has('b'),
+    s:=this.has('s')
+
+input: |
+  {r:{a:1::int32},s:123::int32,array:[1,2,3]}
+  {r:{a:1::int8,b:2::int8}}
+
+output: |
+  {r:true,rb:false,both:false,s:true}
+  {r:true,rb:true,both:true,s:false}

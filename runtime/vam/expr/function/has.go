@@ -30,27 +30,20 @@ func (h *Has) eval(args ...vector.Any) vector.Any {
 	key := vector.Under(args[1])
 	switch val.Kind() {
 	case vector.KindType:
-		if _, ok := val.Type().(*super.TypeOfType); ok {
-			if key.Kind() != vector.KindString {
-				return vector.NewWrappedError(h.sctx, "has function applied to type value with non-string key", key)
-			}
-			return h.hasTypeRecordField(val, key)
+		if key.Kind() != vector.KindString {
+			return vector.NewWrappedError(h.sctx, "has function applied to type value with non-string key", key)
 		}
-		//XXX panic?
-		return vector.NewFalse(val.Len())
+		return h.hasTypeRecordField(val, key)
 	case vector.KindRecord:
-		if typ, ok := val.Type().(*super.TypeRecord); ok {
-			if key.Kind() != vector.KindString {
-				return vector.NewWrappedError(h.sctx, "has function applied to record with non-string key", key)
-			}
-			return h.hasRecordField(typ, key)
+		typ := val.Type().(*super.TypeRecord)
+		if key.Kind() != vector.KindString {
+			return vector.NewWrappedError(h.sctx, "has: applied to record with non-string key", key)
 		}
-		//XXX panic?
-		return vector.NewFalse(val.Len())
+		return h.hasRecordField(typ, key)
 	case vector.KindMap:
-		panic("TBD")
+		return vector.NewWrappedError(h.sctx, "has: map types not yet supported", key)
 	default:
-		return vector.NewWrappedError(h.sctx, "has function applied to invalid type", val)
+		return vector.NewWrappedError(h.sctx, "has: invalid type", val)
 	}
 }
 
