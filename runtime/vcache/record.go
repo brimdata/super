@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -75,7 +76,7 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k] != nil {
 			val = r.fields[k].project(loader, node.Proj)
 		} else {
-			val = vector.NewStringError(loader.sctx, fmt.Sprintf("no such field %s", node.Name), r.length())
+			val = vector.NewStringError(loader.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(node.Name)), r.length())
 		}
 		valFields = append(valFields, val)
 		fields = append(fields, super.NewField(node.Name, val.Type()))

@@ -28,7 +28,7 @@ output: |
   error({message:"nameof: not a type",on:{y:1}})
   error({message:"nameof: not a type",on:{x:"foo",y:1,z:2}})
   "bar2"
-  error({message:"not a named type",on:<{x:string,y:int64,z:int64}>})
+  error({message:"nameof: not a named type",on:<{x:string,y:int64,z:int64}>})
   error({message:"nameof: not a type",on:null})
   error({message:"nameof: not a type",on:1})
   error({message:"nameof: not a type",on:null})

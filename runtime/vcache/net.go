@@ -28,7 +28,7 @@ func (*net) unmarshal(*csup.Context, field.Projection) {}
 func (n *net) project(loader *loader, projection field.Projection) vector.Any {
 	vec := vector.NewNet(n.load(loader))
 	if len(projection) > 0 {
-		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
 	}
 	return vec
 }

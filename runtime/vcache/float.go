@@ -29,7 +29,7 @@ func (*float) unmarshal(*csup.Context, field.Projection) {}
 func (f *float) project(loader *loader, projection field.Projection) vector.Any {
 	vec := vector.NewFloat(f.meta.Typ, f.load(loader))
 	if len(projection) > 0 {
-		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
 	}
 	return vec
 }

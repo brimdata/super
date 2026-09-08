@@ -35,7 +35,7 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	case vector.KindMap:
 		return indexMap(i.sctx, container, index)
 	default:
-		return vector.NewWrappedError(i.sctx, "entity cannot be indexed", container)
+		return vector.NewWrappedError(i.sctx, "value cannot be indexed", container)
 	}
 }
 

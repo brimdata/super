@@ -145,7 +145,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	if len(errs) > 0 {
-		return vector.NewCombinedError(n.sctx, "not a named type", out, vec, errs)
+		return vector.NewCombinedError(n.sctx, "nameof: not a named type", out, vec, errs)
 	}
 	return out
 }

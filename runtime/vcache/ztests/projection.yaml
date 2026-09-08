@@ -53,6 +53,6 @@ outputs:
       {y:4,w:error("no such field w")}
       {y:error("no such field y"),w:{y:5}}
       ===
-      error({message:"dot operator on non-record",on:1})
-      error({message:"dot operator on non-record",on:2})
-      error({message:"dot operator on non-record",on:3})
+      error({message:"'.': applied to non-record",on:1})
+      error({message:"'.': applied to non-record",on:2})
+      error({message:"'.': applied to non-record",on:3})

@@ -70,7 +70,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			errs = append(errs, i)
 		}
 		if len(errs) > 0 {
-			return vector.NewCombinedError(d.sctx, fmt.Sprintf("no such field %s", d.field), typvals, val, errs)
+			return vector.NewCombinedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.field)), typvals, val, errs)
 		}
 		return typvals
 	case *vector.Map:

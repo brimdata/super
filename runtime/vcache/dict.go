@@ -38,7 +38,7 @@ func (d *dict) project(loader *loader, projection field.Projection) vector.Any {
 	index, counts := d.load(loader)
 	vec := vector.NewDict(d.values.project(loader, projection), index, counts)
 	if len(projection) > 0 {
-		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
 	}
 	return vec
 }

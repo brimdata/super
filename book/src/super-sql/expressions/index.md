@@ -75,8 +75,8 @@ values a[2]
 # expected output
 3
 3
-error({message:"entity cannot be indexed",on:"1234"})
-error({message:"entity cannot be indexed",on:0x01020304})
+error({message:"value cannot be indexed",on:"1234"})
+error({message:"value cannot be indexed",on:0x01020304})
 ```
 
 ---
@@ -95,8 +95,8 @@ values a[2]
 # expected output
 2
 2
-error({message:"entity cannot be indexed",on:"1234"})
-error({message:"entity cannot be indexed",on:0x01020304})
+error({message:"value cannot be indexed",on:"1234"})
+error({message:"value cannot be indexed",on:0x01020304})
 ```
 
 ---
@@ -114,6 +114,6 @@ values a[-1]
 # expected output
 4
 4
-error({message:"entity cannot be indexed",on:"1234"})
-error({message:"entity cannot be indexed",on:0x01020304})
+error({message:"value cannot be indexed",on:"1234"})
+error({message:"value cannot be indexed",on:0x01020304})
 ```

@@ -35,7 +35,7 @@ func (c *const_) project(loader *loader, projection field.Projection) vector.Any
 	}
 	vec := vector.NewConstFromValue(loader.sctx, super.NewValue(typ, val.Bytes()), c.length())
 	if len(projection) > 0 {
-		return vector.NewWrappedError(loader.sctx, "dot operator on non-record", vec)
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
 	}
 	return vec
 }

@@ -46,7 +46,7 @@ values {
 "bar"
 [1,2,3]
 # expected output
-{a:"a",b:error({message:"entity cannot be indexed",on:"bar"})}
+{a:"a",b:error({message:"value cannot be indexed",on:"bar"})}
 {a:[2],b:1}
 ```
 
