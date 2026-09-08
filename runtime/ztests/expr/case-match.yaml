@@ -13,4 +13,4 @@ output: |
   "foo"
   "bar"
   {y:12}
-  error({message:"==: error value encountered",on:error({message:"dot operator on non-record",on:1})})
+  error({message:"==: error value encountered",on:error({message:"'.': applied to non-record",on:1})})

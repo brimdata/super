@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
 
@@ -52,7 +53,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			if d.noneish {
 				return vector.NewNone(val.Len())
 			}
-			return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", d.field), val)
+			return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.field)), val)
 		}
 		return val.Fields[i]
 	case *vector.TypeValue:
@@ -79,6 +80,10 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:
-		return vector.NewWrappedError(d.sctx, "dot operator on non-record", vecs[0])
+		dot := "."
+		if d.noneish {
+			dot = "?."
+		}
+		return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", dot), vecs[0])
 	}
 }

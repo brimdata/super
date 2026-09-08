@@ -1005,7 +1005,7 @@ func deriveNameFromExpr(e ast.Expr) string {
 	case *ast.CallExpr:
 		if f, ok := e.Func.(*ast.FuncNameExpr); ok {
 			name := f.Name
-			if (strings.ToLower(name) == "ok" || strings.ToLower(name) == "is_ok") && len(e.Args) > 0 {
+			if s := strings.ToLower(name); (s == "ok" || s == "is_ok") && len(e.Args) > 0 {
 				return deriveNameFromExpr(e.Args[0])
 			}
 			return name

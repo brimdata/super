@@ -194,8 +194,7 @@ input: |
 output: |
   none
   none
-  error({message:"dot operator on non-record",on:1})
-  error({message:"dot operator on non-record",on:1})
+  error({message:"'?.': applied to non-record",on:1})
+  error({message:"'?.': applied to non-record",on:1})
   1::(int64|none)
   none::(int64|none)
-

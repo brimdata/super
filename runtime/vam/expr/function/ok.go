@@ -15,12 +15,12 @@ func newOk(sctx *super.Context) *Ok {
 }
 
 func (o *Ok) Call(args ...vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyNone, o.apply, o.defuse.Eval(args[0]))
+	return vector.Apply(vector.ApplyNone, o.call, o.defuse.Eval(args[0]))
 }
 
-func (o *Ok) apply(args ...vector.Any) vector.Any {
+func (o *Ok) call(args ...vector.Any) vector.Any {
 	vec := args[0]
-	if k := vec.Kind(); k == vector.KindError {
+	if vec.Kind() == vector.KindError {
 		return vector.NewNone(vec.Len())
 	}
 	return vec

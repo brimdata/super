@@ -68,7 +68,7 @@ null
 # expected output
 {out:error({message:"no such field y",on:{x:1}})}
 {out:3}
-{out:error({message:"dot operator on non-record",on:null})}
+{out:error({message:"'.': applied to non-record",on:null})}
 ```
 
 ---

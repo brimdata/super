@@ -10,8 +10,8 @@ output: |
   <{bar:int64}>
   <int64>
   error("missing")
-  error({message:"dot operator on non-record",on:error("missing")})
+  error({message:"'.': applied to non-record",on:error("missing")})
   <ip>
   error("missing")
-  error({message:"dot operator on non-record",on:null})
-  error({message:"dot operator on non-record",on:error({message:"dot operator on non-record",on:null})})
+  error({message:"'.': applied to non-record",on:null})
+  error({message:"'.': applied to non-record",on:error({message:"'.': applied to non-record",on:null})})

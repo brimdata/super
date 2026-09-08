@@ -102,10 +102,10 @@ input: |
 output: |
   2
   type foo=[int64]
-  error({message:"dot operator on non-record",on:[1,2,3]::foo})
+  error({message:"'.': applied to non-record",on:[1,2,3]::foo})
   5
   type bar=set[int64]
-  error({message:"dot operator on non-record",on:set[4,5,6]::bar})
+  error({message:"'.': applied to non-record",on:set[4,5,6]::bar})
   "foo"
   error("missing")
   error("missing")
@@ -123,5 +123,5 @@ input: |
 # XXX fix this should not be error missing... should be structured
 
 output: |
-  error({message:"dot operator on non-record",on:error("missing")})
+  error({message:"'.': applied to non-record",on:error("missing")})
   3

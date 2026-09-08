@@ -96,7 +96,7 @@ super -s -I left-join.spq
 produces
 ```mdtest-output
 {name:"figs",color:"brown",flavor:"plain",eater:"jessie",age:30}
-{name:"avocado",color:"green",flavor:"savory",eater:error({message:"dot operator on non-record",on:error({message:"no such field p",on:{f:{name:"avocado",color:"green",flavor:"savory"}}})}),age:error({message:"dot operator on non-record",on:error({message:"no such field p",on:{f:{name:"avocado",color:"green",flavor:"savory"}}})})}
+{name:"avocado",color:"green",flavor:"savory",eater:error({message:"'.': applied to non-record",on:error({message:"no such field p",on:{f:{name:"avocado",color:"green",flavor:"savory"}}})}),age:error({message:"'.': applied to non-record",on:error({message:"no such field p",on:{f:{name:"avocado",color:"green",flavor:"savory"}}})})}
 {name:"banana",color:"yellow",flavor:"sweet",eater:"quinn",age:14}
 {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn",age:14}
 {name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn",age:14}

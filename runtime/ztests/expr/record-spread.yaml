@@ -13,7 +13,7 @@ input: |
   null
 
 output: |
-  {b:error({message:"dot operator on non-record",on:123}),c:2}
+  {b:error({message:"'.': applied to non-record",on:123}),c:2}
   {x:2,b:3,c:2}
   {x:1,b:error({message:"no such field b",on:{a:1,r:{x:1}}}),c:2}
   {b:error({message:"no such field b",on:{a:1}}),c:2}
@@ -22,4 +22,4 @@ output: |
   {x:3,c:2,b:3,d:1}
   {y:true,z:false,b:3,c:2}
   {x:1,b:3,c:2}
-  {b:error({message:"dot operator on non-record",on:null}),c:2}
+  {b:error({message:"'.': applied to non-record",on:null}),c:2}

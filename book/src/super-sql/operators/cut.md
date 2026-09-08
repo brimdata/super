@@ -79,7 +79,7 @@ cut a,b
 1
 {a:1,b:2,c:3}
 # expected output
-{a:error({message:"dot operator on non-record",on:1}),b:error({message:"dot operator on non-record",on:1})}
+{a:error({message:"'.': applied to non-record",on:1}),b:error({message:"'.': applied to non-record",on:1})}
 {a:1,b:2}
 ```
 

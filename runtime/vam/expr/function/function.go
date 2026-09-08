@@ -239,7 +239,7 @@ func (f *samFunc) Call(args ...vector.Any) vector.Any {
 // signatures so the return type can be introspected.
 func HasBoolResult(name string) bool {
 	switch name {
-	case "grep", "has_error", "is_error", "is", "is_ok", "missing", "cidr_match":
+	case "grep", "has_error", "is", "is_error", "is_ok", "missing", "cidr_match":
 		return true
 	}
 	return false
