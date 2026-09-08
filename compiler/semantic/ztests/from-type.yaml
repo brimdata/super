@@ -1,0 +1,76 @@
+script: |
+  super -o test.csup test.sup
+  super -f parquet -o test.parquet -c blend test.sup
+  super -f json -o test.json test.sup
+  for format in "sup" "json" "csup" "parquet"; do
+    echo "=== $format (default)"
+    super compile -dag -C "from test.$format"
+    echo "=== $format (static)"
+    super compile -static -dag -C "from test.$format"
+    echo "=== $format (default /dev/stdin)"
+    cat "test.$format" | super compile -dag -C "from /dev/stdin" 2>&1
+    echo "=== $format (static /dev/stdin)"
+    cat "test.$format" | super compile -static -dag -C "from /dev/stdin" 2>&1 || true
+  done
+
+inputs:
+  - name: test.sup
+    data: |
+      {x:1}
+      {y:1}
+
+outputs:
+  - name: stdout
+    data: |
+      === sup (default)
+      file test.sup format sup
+      | output main
+      === sup (static)
+      file test.sup format sup type {x?:int64,y?:int64}
+      | output main
+      === sup (default /dev/stdin)
+      file /dev/stdin
+      | output main
+      === sup (static /dev/stdin)
+      cannot get file type of non-seekable input at line 1, column 6:
+      from /dev/stdin
+           ~~~~~~~~~~
+      === json (default)
+      file test.json format json
+      | output main
+      === json (static)
+      file test.json format json type {x?:int64,y?:int64}
+      | output main
+      === json (default /dev/stdin)
+      file /dev/stdin
+      | output main
+      === json (static /dev/stdin)
+      cannot get file type of non-seekable input at line 1, column 6:
+      from /dev/stdin
+           ~~~~~~~~~~
+      === csup (default)
+      file test.csup format csup type {x?:int64,y?:int64}
+      | output main
+      === csup (static)
+      file test.csup format csup type {x?:int64,y?:int64}
+      | output main
+      === csup (default /dev/stdin)
+      file /dev/stdin
+      | output main
+      === csup (static /dev/stdin)
+      cannot get file type of non-seekable input at line 1, column 6:
+      from /dev/stdin
+           ~~~~~~~~~~
+      === parquet (default)
+      file test.parquet format parquet type {x:int64|null,y:int64|null}
+      | output main
+      === parquet (static)
+      file test.parquet format parquet type {x:int64|null,y:int64|null}
+      | output main
+      === parquet (default /dev/stdin)
+      file /dev/stdin
+      | output main
+      === parquet (static /dev/stdin)
+      cannot get file type of non-seekable input at line 1, column 6:
+      from /dev/stdin
+           ~~~~~~~~~~

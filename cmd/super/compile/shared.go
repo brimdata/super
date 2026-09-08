@@ -31,7 +31,7 @@ type Shared struct {
 	parallel    int
 	query       bool
 	runtime     bool
-	sampleSize  int
+	static      bool
 	queryFlags  queryflags.QueryTextFlags
 	OutputFlags outputflags.Flags
 }
@@ -42,7 +42,7 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.optimize, "O", false, "display optimized DAG")
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
 	fs.BoolVar(&s.query, "C", false, "display DAG or AST as query text")
-	fs.IntVar(&s.sampleSize, "samplesize", 1000, "values to read per input file to determine type (<1 for all)")
+	fs.BoolVar(&s.static, "static", false, "force static type checking on query inputs")
 	s.OutputFlags.SetFlags(fs)
 	s.queryFlags.SetFlags(fs)
 }
@@ -50,6 +50,9 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags, desc bool) error {
 	if len(s.queryFlags.Query) == 0 && len(args) == 0 {
 		return errors.New("no query specified")
+	}
+	if s.dynamic && s.static {
+		return errors.New("-static and -dynamic flags cannot both be enabled")
 	}
 	var inputs []string
 	if len(args) > 0 {
@@ -87,7 +90,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 	rctx := runtime.DefaultContext()
 	env := exec.NewEnvironment(storage.NewLocalEngine(), root)
 	env.Dynamic = s.dynamic
-	env.SampleSize = s.sampleSize
+	env.Static = s.static
 	dag, err := compiler.Analyze(rctx, ast, env, false)
 	if err != nil {
 		return err

@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/segmentio/ksuid"
 )
@@ -262,10 +263,11 @@ type (
 		Commit ksuid.KSUID `json:"commit"`
 	}
 	FileScan struct {
-		Kind     string   `json:"kind"  unpack:""`
-		Paths    []string `json:"paths"`
-		Format   string   `json:"format"`
-		Pushdown Pushdown `json:"pushdown"`
+		Kind     string     `json:"kind"  unpack:""`
+		Paths    []string   `json:"paths"`
+		Type     super.Type `json:"-"`
+		Format   string     `json:"format"`
+		Pushdown Pushdown   `json:"pushdown"`
 	}
 	ListerScan struct {
 		Kind      string      `json:"kind" unpack:""`

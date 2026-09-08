@@ -12,9 +12,9 @@ import (
 type Flags struct {
 	Dynamic      bool
 	ReaderOpts   anyio.ReaderOpts
-	SampleSize   int
 	bsupReadMax  auto.Bytes
 	bsupReadSize auto.Bytes
+	Static       bool
 }
 
 func (f *Flags) SetFlags(fs *flag.FlagSet, validate bool) {
@@ -36,7 +36,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet, validate bool) {
 	})
 	fs.BoolVar(&f.Dynamic, "dynamic", false, "disable static type checking of inputs")
 	fs.StringVar(&opts.Format, "i", "auto", "format of input data [auto,arrows,bsup,csup,csv,json,line,parquet,sup,tsv,zeek]")
-	fs.IntVar(&f.SampleSize, "samplesize", 1000, "values to read per input file to determine type (<1 for all)")
+	fs.BoolVar(&f.Static, "static", false, "force static type checking of query inputs")
 }
 
 // Init is called after flags have been parsed.
@@ -49,6 +49,9 @@ func (f *Flags) Init() error {
 	bsup.Size = int(f.bsupReadSize.Bytes)
 	if bsup.Size < 0 {
 		return errors.New("target read buffer size must be greater than zero")
+	}
+	if f.Dynamic && f.Static {
+		return errors.New("-static and -dynamic flags cannot both be enabled")
 	}
 	return nil
 }

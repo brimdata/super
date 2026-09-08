@@ -32,7 +32,7 @@ type Environment struct {
 	Dynamic          bool
 	IgnoreOpenErrors bool
 	ReaderOpts       anyio.ReaderOpts
-	SampleSize       int
+	Static           bool
 	Stdin            vio.Puller
 }
 

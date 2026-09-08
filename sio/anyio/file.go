@@ -2,13 +2,14 @@ package anyio
 
 import (
 	"context"
+	"errors"
 	"io"
-	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector"
 )
 
 // Open uses engine to open path for reading.  path is a local file path or a
@@ -55,11 +56,8 @@ func NewFile(ctx context.Context, sctx *super.Context, rc io.ReadCloser, path st
 }
 
 // FileType returns a type for the values in the file at path.  If the file
-// contains values with differing types, FileType returns a fused type.  If
-// FileType must read values to compute a fused type, it reads at most
-// sampleSize values or the entire file if sampleSize is less than 1, and it
-// returns a nil type if the file is empty.
-func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, path string, opts ReaderOpts, sampleSize int) (super.Type, error) {
+// contains values with differing types, FileType returns a fused type.
+func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, path string, opts ReaderOpts, static bool) (super.Type, error) {
 	u, err := storage.ParseURI(path)
 	if err != nil {
 		return nil, err
@@ -69,11 +67,11 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 		return nil, err
 	}
 	defer r.Close()
-	rs, ok := r.(io.ReadSeekCloser)
+	rs, ok := isReadSeeker(r)
 	if !ok {
-		return nil, nil
-	}
-	if _, err := rs.Seek(0, io.SeekCurrent); err != nil {
+		if static {
+			return nil, errors.New("cannot get file type of non-seekable input")
+		}
 		return nil, nil
 	}
 	f, err := NewFile(ctx, sctx, r, path, opts)
@@ -88,18 +86,27 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	if typed, ok := f.Puller.(sio.Typer); ok {
 		return typed.Type()
 	}
-	if sampleSize < 1 {
-		sampleSize = math.MaxInt
+	if !static {
+		return nil, nil
 	}
-	// XXX this should pass super true when type checker can handle it
-	rr := sbuf.PullerReader(sbuf.NewMaterializer(f))
 	fuser := super.NewFuser(sctx, false)
-	for range sampleSize {
-		val, err := rr.Read()
-		if val == nil || err != nil {
+	for {
+		vec, err := f.Pull(false)
+		if vec == nil || err != nil {
 			return fuser.Type(), err
 		}
-		fuser.Fuse(val.Type())
+		vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
+			fuser.Fuse(vecs[0].Type())
+			return vecs[0]
+		}, vec)
 	}
-	return fuser.Type(), err
+}
+
+func isReadSeeker(r io.Reader) (io.ReadSeekCloser, bool) {
+	rs, ok := r.(io.ReadSeekCloser)
+	if !ok {
+		return nil, false
+	}
+	_, err := rs.Seek(0, io.SeekCurrent)
+	return rs, err == nil
 }

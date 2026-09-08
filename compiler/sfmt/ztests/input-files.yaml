@@ -2,13 +2,13 @@ script: |
   # Command line input files do not appear in the AST.
   super compile -C pass /dev/null /dev/zero
   echo ===
-  super compile -C -dag pass /dev/null /dev/zero
+  super compile -C -dag pass /dev/null /dev/null
 
 outputs:
   - name: stdout
     data: |
       pass
       ===
-      file /dev/null,/dev/zero
+      file /dev/null,/dev/null
       | pass
       | output main

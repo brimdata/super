@@ -1,9 +1,9 @@
 script: |
-  super -s -c 'select * from "a.sup" | drop c'
+  super -static -s -c 'select * from "a.sup" | drop c'
   echo ===
-  super -dynamic -s -c 'select this from "messy.sup" | values that | drop s,t'
+  super -s -c 'select this from "messy.sup" | values that | drop s,t'
   echo ===
-  super -s -c 'select * from "b.sup" | drop b'
+  super -static -s -c 'select * from "b.sup" | drop b'
 
 inputs:
   - name: a.sup

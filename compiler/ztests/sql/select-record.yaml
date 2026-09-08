@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'select {x:T.a,y:c,c} as outer from "a.sup" T'
+  super -static -s -c 'select {x:T.a,y:c,c} as outer from "a.sup" T'
 
 inputs:
   - name: a.sup
