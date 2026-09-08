@@ -26,10 +26,11 @@ func (n *net) length() uint32 {
 func (*net) unmarshal(*csup.Context, field.Projection) {}
 
 func (n *net) project(loader *loader, projection field.Projection) vector.Any {
+	vec := vector.NewNet(n.load(loader))
 	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, n.length())
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
 	}
-	return vector.NewNet(n.load(loader))
+	return vec
 }
 
 func (n *net) load(loader *loader) []netip.Prefix {

@@ -9,6 +9,9 @@ script: |
   super dev vector project -s test.csup s x
   echo ===
   super dev vector project -s test.csup y w.y
+  echo ===
+  echo '1 2 3' | super -f csup -o test2.csup -
+  super dev vector project -s test2.csup x
 inputs:
   - name: stdin
     data: |
@@ -20,32 +23,36 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {x:1,y:2,z:error("missing")}
-      {x:3,y:4,z:error("missing")}
-      {x:3,y:4,z:error("missing")}
-      {x:3,y:4,z:error("missing")}
-      {x:error("missing"),y:error("missing"),z:error("missing")}
+      {x:1,y:2,z:error("no such field z")}
+      {x:3,y:4,z:error("no such field z")}
+      {x:3,y:4,z:error("no such field z")}
+      {x:3,y:4,z:error("no such field z")}
+      {x:error("no such field x"),y:error("no such field y"),z:error("no such field z")}
       ===
       {s:"foo"}
-      {s:error("missing")}
+      {s:error("no such field s")}
       {s:"bar"}
-      {s:error("missing")}
+      {s:error("no such field s")}
       {s:"baz"}
       ===
       {x:1,s:"foo"}
-      {x:3,s:error("missing")}
+      {x:3,s:error("no such field s")}
       {x:3,s:"bar"}
-      {x:3,s:error("missing")}
-      {x:error("missing"),s:"baz"}
+      {x:3,s:error("no such field s")}
+      {x:error("no such field x"),s:"baz"}
       ===
       {s:"foo",x:1}
-      {s:error("missing"),x:3}
+      {s:error("no such field s"),x:3}
       {s:"bar",x:3}
-      {s:error("missing"),x:3}
-      {s:"baz",x:error("missing")}
+      {s:error("no such field s"),x:3}
+      {s:"baz",x:error("no such field x")}
       ===
-      {y:2,w:error("missing")}
-      {y:4,w:error("missing")}
-      {y:4,w:error("missing")}
-      {y:4,w:error("missing")}
-      {y:error("missing"),w:{y:5}}
+      {y:2,w:error("no such field w")}
+      {y:4,w:error("no such field w")}
+      {y:4,w:error("no such field w")}
+      {y:4,w:error("no such field w")}
+      {y:error("no such field y"),w:{y:5}}
+      ===
+      error({message:"'.': applied to non-record",on:1})
+      error({message:"'.': applied to non-record",on:2})
+      error({message:"'.': applied to non-record",on:3})

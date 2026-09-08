@@ -11,7 +11,7 @@ nameof(val: any) -> string
 ## Description
 
 The `nameof` function returns the type name of `val` as a string if `val` is a named type.
-Otherwise, it returns `error("missing")`.
+Otherwise, it returns an error.
 
 ## Examples
 
@@ -28,5 +28,5 @@ type port=int16
 80
 # expected output
 "port"
-error("missing")
+error({message:"nameof: not a type",on:80})
 ```

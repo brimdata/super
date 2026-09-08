@@ -21,8 +21,9 @@ func (n *null) length() uint32 {
 func (*null) unmarshal(*csup.Context, field.Projection) {}
 
 func (n *null) project(loader *loader, projection field.Projection) vector.Any {
+	vec := vector.NewNull(n.meta.Count)
 	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, n.length())
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
 	}
-	return vector.NewNull(n.meta.Count)
+	return vec
 }

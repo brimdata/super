@@ -241,7 +241,7 @@ func (t *translator) fromConst(val super.Value, entity *ast.FromEval, args []ast
 	}
 	names := make([]string, 0, len(vals))
 	for _, val := range vals {
-		if super.TypeUnder(val.Type()) != super.TypeString {
+		if !hasString(val.Type()) {
 			t.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", sup.String(val)))
 			return sem.Seq{badOp}, ""
 		}

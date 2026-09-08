@@ -70,8 +70,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			errs = append(errs, i)
 		}
 		if len(errs) > 0 {
-			//XXX need to build error vector above with each field-missing message
-			return vector.Combine(typvals, errs, vector.NewMissing(d.sctx, uint32(len(errs))))
+			return vector.NewCombinedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.field)), typvals, val, errs)
 		}
 		return typvals
 	case *vector.Map:

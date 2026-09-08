@@ -9,5 +9,5 @@ input: |
 output: |
   type port=int16
   <port>
-  error("missing")
+  error({message:"typename: unknown type name",on:"doesnotexit"})
   error({message:"typename: argument must be a string",on:1})

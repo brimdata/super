@@ -39,13 +39,13 @@ func NewStringError(sctx *super.Context, msg string, len uint32) *Error {
 	return &Error{Typ: sctx.LookupTypeError(super.TypeString), Vals: vals}
 }
 
-func NewMissing(sctx *super.Context, len uint32) *Error {
-	return NewStringError(sctx, "missing", len)
-}
-
 func NewWrappedError(sctx *super.Context, msg string, val Any) *Error {
 	msgVec := NewConstString(msg, val.Len())
 	return NewVecWrappedError(sctx, msgVec, val)
+}
+
+func NewCombinedError(sctx *super.Context, msg string, vec, on Any, index []uint32) Any {
+	return Combine(vec, index, NewWrappedError(sctx, msg, NewView(on, index)))
 }
 
 func NewVecWrappedError(sctx *super.Context, msg Any, val Any) *Error {

@@ -35,11 +35,12 @@ func (d *dict) unmarshal(cctx *csup.Context, projection field.Projection) {
 }
 
 func (d *dict) project(loader *loader, projection field.Projection) vector.Any {
-	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, d.length())
-	}
 	index, counts := d.load(loader)
-	return vector.NewDict(d.values.project(loader, projection), index, counts)
+	vec := vector.NewDict(d.values.project(loader, projection), index, counts)
+	if len(projection) > 0 {
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
+	}
+	return vec
 }
 
 func (d *dict) load(loader *loader) ([]byte, []uint32) {

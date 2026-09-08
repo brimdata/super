@@ -35,7 +35,7 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	case vector.KindMap:
 		return indexMap(i.sctx, container, index)
 	default:
-		return vector.NewMissing(i.sctx, container.Len())
+		return vector.NewWrappedError(i.sctx, "value cannot be indexed", container)
 	}
 }
 
@@ -78,7 +78,7 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any, base1 bool) 
 	}
 	out := vector.Pick(vector.Deunion(vals), viewIndexes)
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewMissing(sctx, uint32(len(errs))))
+		return vector.NewCombinedError(sctx, "index out of range", out, indexVec, errs)
 	}
 	return out
 }
@@ -109,7 +109,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 	default:
 		panic(vec)
 	}
-	var errcnt uint32
+	var errs []uint32
 	tags := make([]uint32, vec.Len())
 	n := len(rec.Typ.Fields)
 	viewIndexes := make([][]uint32, n)
@@ -131,7 +131,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 		}
 		if k < 0 || k >= n {
 			tags[i] = uint32(n)
-			errcnt++
+			errs = append(errs, i)
 			continue
 		}
 		idx := i
@@ -142,9 +142,9 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 		viewIndexes[k] = append(viewIndexes[k], idx)
 	}
 	out := make([]vector.Any, n+1)
-	out[n] = vector.NewMissing(sctx, errcnt)
+	out[n] = vector.NewWrappedError(sctx, "invalid record index", vector.NewView(indexVec, errs))
 	for i, field := range rec.Fields {
-		out[i] = vector.DeoptionWithNone(sctx, vector.Pick(field, viewIndexes[i]))
+		out[i] = vector.Pick(field, viewIndexes[i])
 	}
 	return vector.NewDynamic(tags, out)
 }
@@ -161,7 +161,7 @@ func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 			pick = append(pick, i)
 		}
 	}
-	var valIndexes, errs []uint32
+	var valIndexes, nones []uint32
 	cmp := NewCompare(sctx, "==", nil, nil).eval
 	hits := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, cmp, vector.Pick(indexVec, pick), m.Keys)
 	bits := FlattenBool(hits).Bits
@@ -176,12 +176,12 @@ func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 		if selected != -1 {
 			valIndexes = append(valIndexes, uint32(selected))
 		} else {
-			errs = append(errs, i)
+			nones = append(nones, i)
 		}
 	}
 	vals := vector.Pick(vector.Deunion(m.Values), valIndexes)
-	if len(errs) > 0 {
-		return vector.Combine(vals, errs, vector.NewMissing(sctx, uint32(len(errs))))
+	if len(nones) > 0 {
+		return vector.Combine(vals, nones, vector.NewNone(uint32(len(nones))))
 	}
 	return vals
 }

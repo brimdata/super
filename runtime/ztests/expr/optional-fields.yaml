@@ -80,8 +80,8 @@ output: |
   1
   2
   3
-  "foo"
-  none
+  "foo"::(string|none)
+  none::(string|none)
 
 ---
 

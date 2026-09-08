@@ -32,7 +32,7 @@ value in the set of that index ordered by total order of values.
 If `<entity>` is a map, then the `<index>` operand
 is presumed to be a key and the corresponding value for that key is
 the result of the operation.  If no such key exists in the map, then
-the result is `error("missing")`.
+the result is `none`.
 
 If `<entity>` is a string, then the `<index>` operand
 must be coercible to an integer and the result is an integer representing
@@ -75,8 +75,8 @@ values a[2]
 # expected output
 3
 3
-error("missing")
-error("missing")
+error({message:"value cannot be indexed",on:"1234"})
+error({message:"value cannot be indexed",on:0x01020304})
 ```
 
 ---
@@ -95,8 +95,8 @@ values a[2]
 # expected output
 2
 2
-error("missing")
-error("missing")
+error({message:"value cannot be indexed",on:"1234"})
+error({message:"value cannot be indexed",on:0x01020304})
 ```
 
 ---
@@ -114,6 +114,6 @@ values a[-1]
 # expected output
 4
 4
-error("missing")
-error("missing")
+error({message:"value cannot be indexed",on:"1234"})
+error({message:"value cannot be indexed",on:0x01020304})
 ```

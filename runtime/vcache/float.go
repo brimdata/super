@@ -27,10 +27,11 @@ func (f *float) length() uint32 {
 func (*float) unmarshal(*csup.Context, field.Projection) {}
 
 func (f *float) project(loader *loader, projection field.Projection) vector.Any {
+	vec := vector.NewFloat(f.meta.Typ, f.load(loader))
 	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, f.length())
+		return vector.NewWrappedError(loader.sctx, "'.': applied to non-record", vec)
 	}
-	return vector.NewFloat(f.meta.Typ, f.load(loader))
+	return vec
 }
 
 func (f *float) load(loader *loader) []float64 {
