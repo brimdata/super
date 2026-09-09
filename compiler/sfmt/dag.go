@@ -307,8 +307,9 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Pushdown.Unordered {
 			c.write(" unordered")
 		}
-		if !isUnknown(p.Type) {
-			c.write(" type %s", sup.FormatType(p.Type))
+		if p.Type != nil {
+			c.write(" type ")
+			c.expr(p.Type, "")
 		}
 		if len(p.Pushdown.Projection) > 0 {
 			c.fields(p.Pushdown.Projection)
@@ -642,13 +643,4 @@ func (c *canonDAG) sortExprs(sortExprs []dag.SortExpr) {
 		c.expr(s.Key, "")
 		c.write(" %s nulls %s", s.Order, s.Nulls)
 	}
-}
-
-func isUnknown(typ super.Type) bool {
-	if err, ok := super.TypeUnder(typ).(*super.TypeError); ok {
-		if rec, ok := err.Type.(*super.TypeRecord); ok {
-			return len(rec.Fields) == 0
-		}
-	}
-	return false
 }

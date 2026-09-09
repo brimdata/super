@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sup"
 )
 
 type dagen struct {
@@ -81,11 +82,15 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Commit: op.Commit,
 		}
 	case *sem.FileScan:
+		var typ dag.Expr
+		if op.Type != nil && !isUnknown(op.Type) {
+			typ = &dag.PrimitiveExpr{Kind: "PrimitiveExpr", Value: sup.FormatType(op.Type)}
+		}
 		return &dag.FileScan{
 			Kind:   "FileScan",
 			Paths:  op.Paths,
 			Format: op.Format,
-			Type:   op.Type,
+			Type:   typ,
 		}
 	case *sem.HTTPScan:
 		return &dag.HTTPScan{
