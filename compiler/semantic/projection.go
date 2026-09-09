@@ -15,6 +15,13 @@ func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr
 			return sem.NewThis(e, field.NewChain("g", groupTmp(i))), true
 		}
 		switch e := e.(type) {
+		case *sem.BinaryExpr:
+			//XXX this is fragile
+			if e.Op == "==" {
+				if call, ok := e.LHS.(*sem.CallExpr); ok && call.Tag == "ok" {
+					return replaceGroupings(t, call.Args[0], groupings)
+				}
+			}
 		case *sem.ThisExpr:
 			if len(e.Chain) >= 1 {
 				s := e.Chain[0].ID

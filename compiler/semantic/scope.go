@@ -134,11 +134,20 @@ func (s *Scope) resolveThis(t *translator, n ast.Node, inType super.Type) (sem.E
 	return badExpr, badType
 }
 
+func (s *Scope) resolve(t *translator, n ast.Node, path field.Path, inType super.Type) (sem.Expr, super.Type) {
+	e, typ := s.resolveNoCheck(t, n, path, inType)
+	if e != nil {
+		//XXX We should adjust type to be sum with null and no error, but this works for now.
+		e = t.nullcheck(n, e)
+	}
+	return e, typ
+}
+
 // resolve paths based on SQL semantics in order of precedence
 // and replace with dag path with schemafied semantics.
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
-func (s *Scope) resolve(t *translator, n ast.Node, path field.Path, inType super.Type) (sem.Expr, super.Type) {
+func (s *Scope) resolveNoCheck(t *translator, n ast.Node, path field.Path, inType super.Type) (sem.Expr, super.Type) {
 	// If there's no relational scope, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
