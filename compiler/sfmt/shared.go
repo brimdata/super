@@ -34,6 +34,9 @@ func (s *shared) fieldchain(chain field.Chain) {
 		if elem.Noneish {
 			s.write("?")
 		}
+		if elem.Nullish {
+			s.write("??")
+		}
 		if sup.IsIdentifier(elem.ID) {
 			if k != 0 {
 				s.write(".")

@@ -22,23 +22,28 @@ type DotExpr struct {
 	entity  Evaluator
 	key     string
 	noneish bool
+<<<<<<< HEAD
 	okPush  bool
+=======
+	nullish bool
+>>>>>>> 7c021ad3e (handle missing fields in SQL as null)
 }
 
-func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish bool) *DotExpr {
+func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish, nullish bool) *DotExpr {
 	return &DotExpr{
 		sctx:    sctx,
 		defuse:  NewDefuse(sctx),
 		entity:  record,
 		key:     field,
 		noneish: noneish,
+		nullish: nullish,
 	}
 }
 
 func NewDottedExpr(sctx *super.Context, f field.Chain) Evaluator {
 	ret := Evaluator(&This{})
 	for _, elem := range f {
-		ret = NewDotExpr(sctx, ret, elem.ID, elem.Noneish)
+		ret = NewDotExpr(sctx, ret, elem.ID, elem.Noneish, elem.Nullish)
 	}
 	return ret
 }
@@ -47,12 +52,17 @@ func (d *DotExpr) Eval(vec vector.Any) vector.Any {
 	return vector.Apply(vector.ApplyNone, d.eval, d.entity.Eval(vec))
 }
 
+<<<<<<< HEAD
 func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 	vec := outerVecs[0]
 	var missing bool
 	eval := func(innerVecs ...vector.Any) vector.Any {
 		switch val := vector.Under(innerVecs[0]).(type) {
-		case *vector.None:
+	case *vector.Null:
+		if d.nullish {
+			return val
+		}
+				case *vector.None:
 			return val
 		case *vector.Record:
 			i, ok := val.Typ.IndexOfField(d.key)
@@ -75,6 +85,37 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 						typvals.Append(typ)
 						continue
 					}
+=======
+func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
+	switch val := vector.Under(vector.Super(vecs[0])).(type) {
+	case *vector.Null:
+		if d.nullish {
+			return val
+		}
+	case *vector.None:
+		return val
+	case *vector.Record:
+		i, ok := val.Typ.IndexOfField(d.field)
+		if !ok {
+			if d.noneish {
+				return vector.NewNone(val.Len())
+			}
+			if d.nullish {
+				return vector.NewNull(val.Len())
+			}
+			return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.field)), val)
+		}
+		return val.Fields[i]
+	case *vector.TypeValue:
+		var errs []uint32
+		typvals := vector.NewTypeValueEmpty()
+		for i := range val.Len() {
+			typ := val.Value(i)
+			if typ, ok := super.TypeUnder(typ).(*super.TypeRecord); ok {
+				if typ, ok := typ.TypeOfField(d.field); ok {
+					typvals.Append(typ)
+					continue
+>>>>>>> 7c021ad3e (handle missing fields in SQL as null)
 				}
 				errs = append(errs, i)
 			}
@@ -91,9 +132,12 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 			dot := "."
 			if d.noneish {
 				dot = "?."
-			}
-			return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", dot), innerVecs[0])
+	} else if d.nullish {
+		dot = "??."
+	}
+				return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", dot), innerVecs[0])
 		}
+<<<<<<< HEAD
 	}
 	out := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, eval, vec)
 	// If there were any structured errors or none values (e.g., because we hit a none
@@ -122,4 +166,23 @@ func hasNone(vec vector.Any) bool {
 		return slices.IndexFunc(vec.Values, hasNone) >= 0
 	}
 	return false
+=======
+		if len(errs) > 0 {
+			return vector.NewCombinedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.field)), typvals, val, errs)
+		}
+		return typvals
+	case *vector.Map:
+		keyVec := vector.NewConstString(d.field, val.Len())
+		return indexMap(d.sctx, val, keyVec)
+	case *vector.View:
+		return vector.Pick(d.eval(val.Any), val.Index)
+	}
+	dot := "."
+	if d.noneish {
+		dot = "?."
+	} else if d.nullish {
+		dot = "??."
+	}
+	return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", dot), vecs[0])
+>>>>>>> 7c021ad3e (handle missing fields in SQL as null)
 }

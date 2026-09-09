@@ -1,0 +1,13 @@
+spq: SELECT T.y FROM (VALUES (1,2),(3)) T(x,y)
+
+output: |
+  {y:2}
+  {y:null}
+
+---
+
+spq: SELECT y FROM (VALUES (1,2),(3)) T(x,y)
+
+output: |
+  {y:2}
+  {y:null}

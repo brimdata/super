@@ -49,7 +49,7 @@ outputs:
       ===
       file f unordered fields a,b
       | aggregate
-          t0:=max(b) by k0:=a
+          t0:=max(??b) by k0:=??a
       | aggregate
           min:=min(t0) by a:=k0
       | output main

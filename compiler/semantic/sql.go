@@ -177,7 +177,7 @@ func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr, inTy
 			}
 			for _, p := range paths {
 				typ := t.checker.this(star, p, inType)
-				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Chain.Path())), semExpr: p, typ: typ, astExpr: as.Expr})
+				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Chain.Path())), semExpr: t.nullcheck(star, p), typ: typ, astExpr: as.Expr})
 			}
 			continue
 		}
@@ -185,6 +185,11 @@ func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr, inTy
 		out = append(out, column{name: dedup(scores, t.asName(as.Label, as.Expr, nil)), astExpr: as.Expr, lateral: lateral})
 	}
 	return out
+}
+
+func (t *translator) nullcheck(loc ast.Node, e sem.Expr) sem.Expr {
+	null := sem.NewLiteral(loc, super.NewValue(super.TypeNull, nil), t.defs)
+	return sem.NewBinaryExpr(loc, "??", sem.NewCall(loc, "ok", []sem.Expr{e}), null)
 }
 
 func (t *translator) asName(label *ast.ID, expr ast.Expr, path []string) string {
@@ -413,7 +418,7 @@ func mapColumns(sctx *super.Context, in *super.TypeRecord, alias *ast.TableAlias
 			elems = append(elems, &sem.FieldElem{
 				Node:  alias.Columns[k],
 				Name:  out[k],
-				Value: sem.NewThis(alias.Columns[k], field.NewChain(in.Fields[k].Name)),
+				Value: sem.NewThis(alias.Columns[k], field.NewChainNullish(in.Fields[k].Name)),
 			})
 			fields = append(fields, super.NewField(out[k], in.Fields[k].Type))
 		}
@@ -634,8 +639,8 @@ func (t *translator) sqlJoinCond(cond ast.JoinCond, typ super.Type) sem.Expr {
 				t.error(id, fmt.Errorf("column %q in USING clause does not exist in right table", id.Name))
 				continue
 			}
-			lhs := sem.NewThis(id, field.NewChain(append([]string{"left"}, left...)...))
-			rhs := sem.NewThis(id, field.NewChain(append([]string{"right"}, right...)...))
+			lhs := sem.NewThis(id, field.NewChainNullish(append([]string{"left"}, left...)...))
+			rhs := sem.NewThis(id, field.NewChainNullish(append([]string{"right"}, right...)...))
 			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
 		}
 		if len(exprs) == 0 {
@@ -711,7 +716,7 @@ func (t *translator) resolveOrdinalOuter(ts tableScope, n ast.Node, prefix strin
 		} else {
 			path = []string{ts.typ.Fields[col-1].Name}
 		}
-		return sem.NewThis(n, field.NewChain(path...))
+		return sem.NewThis(n, field.NewChainNullish(path...))
 	default:
 		panic(ts)
 	}

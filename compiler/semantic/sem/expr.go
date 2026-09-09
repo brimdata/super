@@ -58,6 +58,7 @@ type (
 		LHS     Expr
 		RHS     string
 		Noneish bool
+		Nullish bool
 	}
 	IndexExpr struct {
 		ast.Node
@@ -336,6 +337,7 @@ func CopyExpr(e Expr) Expr {
 			LHS:     CopyExpr(e.LHS),
 			RHS:     e.RHS,
 			Noneish: e.Noneish,
+			Nullish: e.Nullish,
 		}
 	case *IndexExpr:
 		return &IndexExpr{

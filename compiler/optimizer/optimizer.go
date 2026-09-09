@@ -599,11 +599,11 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 						return newErrorMissing()
 					}
 					// Copy spread so f and y don't share dag.Exprs.
-					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Chain.Path())
+					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Chain)
 					return e
 				}
 				// Copy e1 so f and y don't share dag.Exprs.
-				e, liftOK = addPathToExpr(dag.CopyExpr(e1), this.Chain.Path()[1:])
+				e, liftOK = addPathToExpr(dag.CopyExpr(e1), this.Chain[1:])
 				return e
 			})
 			if liftOK {
@@ -644,10 +644,10 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 					if v1TopLevelSpread == nil {
 						return newErrorMissing()
 					}
-					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Chain.Path())
+					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Chain)
 					return e
 				}
-				e, mergeOK = addPathToExpr(v1Expr, this.Chain.Path()[1:])
+				e, mergeOK = addPathToExpr(v1Expr, this.Chain[1:])
 				return e
 			}
 			var mergedOp dag.Op
@@ -703,8 +703,8 @@ func hasThisWithEmptyPath(v any) bool {
 //   - It returns a dag.This when possible.
 //   - It descends to a dag.RecordExpr.Elem when possible.
 //   - It returns false when it cannot descend to a dag.RecordExpr.Elem.
-func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
-	if len(path) == 0 {
+func addPathToExpr(e dag.Expr, chain field.Chain) (dag.Expr, bool) {
+	if len(chain) == 0 {
 		return e, true
 	}
 	switch e := e.(type) {
@@ -713,14 +713,14 @@ func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
 		for _, elem := range slices.Backward(e.Elems) {
 			switch elem := elem.(type) {
 			case *dag.Field:
-				if elem.Name != path[0] {
+				if elem.Name != chain[0].ID {
 					continue
 				}
 				if spread != nil {
 					// Don't know which will win.
 					return e, false
 				}
-				return addPathToExpr(elem.Value, path[1:])
+				return addPathToExpr(elem.Value, chain[1:])
 			case *dag.Spread:
 				if spread != nil {
 					// Don't know which will win.
@@ -732,12 +732,12 @@ func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
 		if spread == nil {
 			return e, false
 		}
-		return addPathToExpr(spread.Expr, path)
+		return addPathToExpr(spread.Expr, chain)
 	case *dag.ThisExpr:
-		return dag.NewThis(slices.Concat(e.Chain, field.NewChain(path...))), true
+		return dag.NewThis(slices.Concat(e.Chain, chain)), true
 	}
-	for _, elem := range path {
-		e = &dag.DotExpr{Kind: "DotExpr", LHS: e, RHS: elem}
+	for _, elem := range chain {
+		e = &dag.DotExpr{Kind: "DotExpr", LHS: e, RHS: elem.ID, Noneish: elem.Noneish, Nullish: elem.Nullish}
 	}
 	return e, true
 }

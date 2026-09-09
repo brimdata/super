@@ -402,6 +402,7 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			LHS:     d.expr(e.LHS),
 			RHS:     e.RHS,
 			Noneish: e.Noneish,
+			Nullish: e.Nullish,
 		}
 	case *sem.IndexExpr:
 		return &dag.IndexExpr{

@@ -3,6 +3,7 @@ package field
 type ChainElem struct {
 	ID      string
 	Noneish bool
+	Nullish bool
 }
 
 type Chain []ChainElem
@@ -15,8 +16,16 @@ func NewChain(ids ...string) Chain {
 	return chain
 }
 
+func NewChainNullish(ids ...string) Chain {
+	chain := make([]ChainElem, 0, len(ids))
+	for _, id := range ids {
+		chain = append(chain, ChainElem{ID: id, Nullish: true})
+	}
+	return chain
+}
+
 func (c Chain) Append(id string, noneish bool) Chain {
-	return append(c, ChainElem{id, noneish})
+	return append(c, ChainElem{id, noneish, false})
 }
 
 func (c Chain) Path() Path {

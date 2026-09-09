@@ -59,15 +59,15 @@ FROM (VALUES ('hello, world'),('to be or not to be')) T(message)
 
 ---
 
-_Column variation filled in with missing values_
-```mdtest-spq-skip
+_Column variation filled in with null values_
+```mdtest-spq
 # spq
 SELECT * FROM (VALUES (1,2),(3)) T(x,y)
 # input
 
 # expected output
 {x:1,y:2}
-{x:3,y:error("missing")}
+{x:3,y:null}
 ```
 
 ---

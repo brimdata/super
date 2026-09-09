@@ -155,7 +155,7 @@ func (b *Builder) compileVamDotExpr(dot *dag.DotExpr) (vamexpr.Evaluator, error)
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewDotExpr(b.sctx(), record, dot.RHS, dot.Noneish), nil
+	return vamexpr.NewDotExpr(b.sctx(), record, dot.RHS, dot.Noneish, dot.Nullish), nil
 }
 
 func (b *Builder) compileVamIndexExpr(idx *dag.IndexExpr) (vamexpr.Evaluator, error) {
