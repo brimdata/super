@@ -13,6 +13,8 @@ import (
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/vector"
@@ -118,6 +120,23 @@ func (e *Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, fo
 		return nil, fmt.Errorf("%s: %w", url, err)
 	}
 	return file, nil
+}
+
+func (e *Environment) OpenPool(ctx context.Context, sctx *super.Context, id ksuid.KSUID, pushdown sbuf.Pushdown) (vio.Puller, error) {
+	pool, err := e.db.OpenPool(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	branch, err := e.CommitObject(ctx, id, "main")
+	if err != nil {
+		return nil, err
+	}
+	l, err := meta.NewSortedLister(ctx, sctx, pool, branch, nil)
+	if err != nil {
+		return nil, err
+	}
+	scanner := meta.NewSequenceScanner(runtime.NewContext(ctx, sctx), l, pool, pushdown, nil, nil)
+	return sbuf.NewDematerializer(sctx, scanner), nil
 }
 
 func newConcurrentPuller(path string, puller vio.Puller) ConcurrentPuller {
