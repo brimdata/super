@@ -316,6 +316,20 @@ func DeoptionWithNone(sctx *super.Context, vec Any) Any {
 	return vec
 }
 
+func IsNone(vec Any, slot uint32) bool {
+	switch vec := Super(vec).(type) {
+	case *None:
+		return true
+	case *Dynamic:
+		return super.TypeUnder(vec.TypeOf(slot)) == super.TypeNone
+	case *Union:
+		if super.IsOptionType(vec.Typ) {
+			return IsNone(vec.Dynamic(), slot)
+		}
+	}
+	return false
+}
+
 func DeoptionWithError(sctx *super.Context, vec, on Any, where string) Any {
 	switch vec := vec.(type) {
 	case *None:

@@ -8,6 +8,14 @@ output: |
 
 ---
 
+spq: values has({x?:1},'x'), has({x?:none::int64}, 'x')
+
+output: |
+  true
+  false
+
+---
+
 spq: values has(this,'a') and has(this,'b')
 
 input: |
@@ -28,7 +36,7 @@ output: |
   true
   true
   true
-  true
+  false
 
 ---
 

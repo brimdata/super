@@ -26,7 +26,7 @@ func (h *Has) Call(args ...vector.Any) vector.Any {
 }
 
 func (h *Has) eval(args ...vector.Any) vector.Any {
-	val := vector.Under(args[0])
+	val := vector.PushView(vector.Under(args[0]))
 	key := vector.Under(args[1])
 	switch val.Kind() {
 	case vector.KindType:
@@ -35,11 +35,10 @@ func (h *Has) eval(args ...vector.Any) vector.Any {
 		}
 		return h.hasTypeRecordField(val, key)
 	case vector.KindRecord:
-		typ := val.Type().(*super.TypeRecord)
 		if key.Kind() != vector.KindString {
 			return vector.NewWrappedError(h.sctx, "has: applied to record with non-string key", key)
 		}
-		return h.hasRecordField(typ, key)
+		return h.hasRecordField(val, key)
 	case vector.KindMap:
 		return vector.NewWrappedError(h.sctx, "has: map types not yet supported", key)
 	default:
@@ -47,18 +46,31 @@ func (h *Has) eval(args ...vector.Any) vector.Any {
 	}
 }
 
-func (h *Has) hasRecordField(typ *super.TypeRecord, key vector.Any) vector.Any {
-	n := key.Len()
-	bits := bitvec.NewFalse(n)
-	for slot := range n {
-		if typ.HasField(vector.StringValue(key, slot)) {
-			bits.Set(slot)
+func (h *Has) hasRecordField(val, key vector.Any) vector.Any {
+	switch val := val.(type) {
+	case *vector.Const:
+		return vector.NewConst(h.hasRecordField(val.Any, key), val.Len())
+	case *vector.Dict:
+		return vector.NewDict(h.hasRecordField(val.Any, key), val.Index, val.Counts)
+	case *vector.View:
+		return h.hasRecordField(vector.PushView(val), key)
+	case *vector.Record:
+		typ := val.Typ
+		n := key.Len()
+		bits := bitvec.NewFalse(n)
+		for slot := range n {
+			if k, ok := typ.IndexOfField(vector.StringValue(key, slot)); ok {
+				if !vector.IsNone(val.Fields[k], slot) {
+					bits.Set(slot)
+				}
+			}
 		}
+		return vector.NewBool(bits)
 	}
-	return vector.NewBool(bits)
+	panic(val)
 }
 
-func (h *Has) hasTypeRecordField(val vector.Any, key vector.Any) vector.Any {
+func (h *Has) hasTypeRecordField(val, key vector.Any) vector.Any {
 	n := key.Len()
 	bits := bitvec.NewFalse(n)
 	switch val := val.(type) {
