@@ -29,7 +29,7 @@ outputs:
       | values {c0:1,c1:2,c2:3}
       | values {a:c0,b:c1,c:c2}
       | values {in:this}
-      | values {in:in,out:{a:in.a,a_1:in.a,b:in.b,c:in.c}}
+      | values {in:in,out:{a:in.a,a_1:ok(in.a)??null,b:ok(in.b)??null,c:ok(in.c)??null}}
       | values out
       | output main
       // ===
@@ -45,7 +45,7 @@ outputs:
         )
       | inner join as {left,right} on left.id==right.team_id
       | values {in:this}
-      | values {in:in,out:{id:in.left.id,team:in.left.team,id_1:in.right.id,team_id:in.right.team_id,player:in.right.player}}
+      | values {in:in,out:{id:ok(in.left.id)??null,team:ok(in.left.team)??null,id_1:ok(in.right.id)??null,team_id:ok(in.right.team_id)??null,player:ok(in.right.player)??null}}
       | values out
       | output main
       // ===
@@ -61,9 +61,9 @@ outputs:
         )
       | inner join as {left,right} on left.aid==right.aid and left.bid==right.bid
       | values {in:this}
-      | values {in:in,out:{aid:in.left.aid,bid:in.left.bid,a:in.left.a,b:in.right.b}}
+      | values {in:in,out:{aid:ok(in.left.aid)??null,bid:ok(in.left.bid)??null,a:ok(in.left.a)??null,b:ok(in.right.b)??null}}
       | values out
       | values {in:this}
-      | values {in:in,out:{aid:in.aid,bid:in.bid,a:in.a,b:in.b}}
+      | values {in:in,out:{aid:ok(in.aid)??null,bid:ok(in.bid)??null,a:ok(in.a)??null,b:ok(in.b)??null}}
       | values out
       | output main

@@ -30,7 +30,7 @@ outputs:
           | where position=="P"
         )
       | inner hashjoin as {left,right} on id==team_id
-      | values {id:left.id,team:left.team,id_1:right.id,team_id:right.team_id,player:right.player,position:right.position}
+      | values {id:ok(left.id)??null,team:ok(left.team)??null,id_1:ok(right.id)??null,team_id:ok(right.team_id)??null,player:ok(right.player)??null,position:ok(right.position)??null}
       | output main
       // ===
       null
@@ -53,5 +53,5 @@ outputs:
         )
       | cross join as {left,right}
       | where 1==1
-      | values {a1:left.left.a1,a2:left.right.a2,a3:right.a3}
+      | values {a1:ok(left.left.a1)??null,a2:ok(left.right.a2)??null,a3:ok(right.a3)??null}
       | output main
