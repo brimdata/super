@@ -309,10 +309,10 @@ func (t *translator) fileType(path, format string) (super.Type, error) {
 	opts := t.env.ReaderOpts
 	opts.Format = format
 	typ, err := anyio.FileType(t.ctx, t.sctx, engine, path, opts, t.env.Static)
-	if typ != nil || err != nil {
-		return typ, err
+	if typ == nil {
+		typ = t.checker.unknown
 	}
-	return t.checker.unknown, nil
+	return typ, err
 }
 
 func (t *translator) fromFileGlob(globLoc ast.Node, pattern string, args []ast.OpArg) sem.Op {

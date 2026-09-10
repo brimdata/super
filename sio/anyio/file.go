@@ -67,7 +67,7 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 		return nil, err
 	}
 	defer r.Close()
-	rs, ok := isReadSeeker(r)
+	rs, ok := asReadSeeker(r)
 	if !ok {
 		if static {
 			return nil, errors.New("cannot get file type of non-seekable input")
@@ -102,8 +102,8 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	}
 }
 
-func isReadSeeker(r io.Reader) (io.ReadSeekCloser, bool) {
-	rs, ok := r.(io.ReadSeekCloser)
+func asReadSeeker(r io.Reader) (io.ReadSeeker, bool) {
+	rs, ok := r.(io.ReadSeeker)
 	if !ok {
 		return nil, false
 	}

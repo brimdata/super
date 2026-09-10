@@ -82,9 +82,9 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Commit: op.Commit,
 		}
 	case *sem.FileScan:
-		var typ dag.Expr
-		if op.Type != nil && !isUnknown(op.Type) {
-			typ = &dag.PrimitiveExpr{Kind: "PrimitiveExpr", Value: sup.FormatType(op.Type)}
+		var typ string
+		if !isUnknown(op.Type) {
+			typ = sup.FormatType(op.Type)
 		}
 		return &dag.FileScan{
 			Kind:   "FileScan",

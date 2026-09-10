@@ -304,12 +304,11 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Format != "" {
 			c.write(" format %s", p.Format)
 		}
+		if p.Type != "" {
+			c.write(" type %s", p.Type)
+		}
 		if p.Pushdown.Unordered {
 			c.write(" unordered")
-		}
-		if p.Type != nil {
-			c.write(" type ")
-			c.expr(p.Type, "")
 		}
 		if len(p.Pushdown.Projection) > 0 {
 			c.fields(p.Pushdown.Projection)

@@ -264,9 +264,9 @@ type (
 	FileScan struct {
 		Kind     string   `json:"kind"  unpack:""`
 		Paths    []string `json:"paths"`
-		Type     Expr     `json:"type"`
 		Format   string   `json:"format"`
 		Pushdown Pushdown `json:"pushdown"`
+		Type     string   `json:"type"`
 	}
 	ListerScan struct {
 		Kind      string      `json:"kind" unpack:""`

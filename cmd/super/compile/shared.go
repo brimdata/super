@@ -42,7 +42,7 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.optimize, "O", false, "display optimized DAG")
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
 	fs.BoolVar(&s.query, "C", false, "display DAG or AST as query text")
-	fs.BoolVar(&s.static, "static", false, "force static type checking on query inputs")
+	fs.BoolVar(&s.static, "static", false, "force static type checking of inputs on DAG")
 	s.OutputFlags.SetFlags(fs)
 	s.queryFlags.SetFlags(fs)
 }
