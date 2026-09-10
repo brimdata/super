@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'from "1.sup" | distinct x'
+  super -s -c 'from "1.sup" | distinct x.ok()'
   echo ===
   super -s -c 'from "2.sup" | distinct abs(this)'
   echo ===

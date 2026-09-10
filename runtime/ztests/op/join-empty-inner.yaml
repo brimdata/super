@@ -1,8 +1,8 @@
 script: |
   echo === hash join
-  super -dynamic -s -c 'left join (from C.sup) on left.a=right.a | values {...left,hit:this?.right?.sc ?? error("missing")} | sort' A.sup
+  super -dynamic -s -c 'left join (from C.sup) on left.a=right.a | values {...left,hit:right.sc.ok() ?? error("missing")} | sort' A.sup
   echo === nested loop join
-  super -dynamic -s -c 'left join (from C.sup) on left.a<right.a | values {...left,hit:this?.right?.sc ?? error("missing")} | sort' A.sup
+  super -dynamic -s -c 'left join (from C.sup) on left.a<right.a | values {...left,hit:right.sc.ok() ?? error("missing")} | sort' A.sup
 
 inputs:
   - name: A.sup
