@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,5 +16,5 @@ func TestStdinGetReturnsWorkingReaderAfterClose(t *testing.T) {
 	r, err = e.Get(t.Context(), u)
 	require.NoError(t, err)
 	_, err = r.Read(nil)
-	require.NoError(t, err, "zero-length read should succeed")
+	require.Error(t, err, io.EOF)
 }
