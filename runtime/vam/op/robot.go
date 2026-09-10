@@ -1,8 +1,6 @@
 package op
 
 import (
-	"fmt"
-
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -134,9 +132,12 @@ func (o *Robot) nextVec() (vector.Any, error) {
 }
 
 func (o *Robot) open(path string) (vio.Puller, error) {
-	// This check for attached database will be removed when we add support for pools here.
 	if o.env.IsAttached() {
-		return nil, fmt.Errorf("%s: cannot open in a database environment", path)
+		// XXX we should support committish values
+		id, err := o.env.PoolID(o.rctx, path)
+		if err == nil {
+			return o.env.OpenPool(o.rctx, o.rctx.Sctx, id, o.pushdown)
+		}
 	}
 	return o.env.Open(o.rctx.Context, o.rctx.Sctx, path, o.format, o.pushdown, 1)
 }

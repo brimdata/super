@@ -1,0 +1,13 @@
+script: |
+  super db init -q
+  super db create -q test1
+  super db create -q test2
+  echo {x:1} | super db load -q -use test1 -
+  echo {x:2} | super db load -q -use test2 -
+  super db -s -c 'values "test1", "test2" | from f"{this}"'
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}
+      {x:2}
