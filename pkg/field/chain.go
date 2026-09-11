@@ -28,6 +28,10 @@ func (c Chain) Append(id string, noneish bool) Chain {
 	return append(c, ChainElem{id, noneish, false})
 }
 
+func (c Chain) AppendNullish(id string) Chain {
+	return append(c, ChainElem{id, false, true})
+}
+
 func (c Chain) Path() Path {
 	path := make([]string, 0, len(c))
 	for _, elem := range c {

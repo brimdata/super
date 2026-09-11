@@ -177,7 +177,7 @@ func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr, inTy
 			}
 			for _, p := range paths {
 				typ := t.checker.this(star, p, inType)
-				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Chain.Path())), semExpr: t.nullcheck(star, p), typ: typ, astExpr: as.Expr})
+				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Chain.Path())), semExpr: p, typ: typ, astExpr: as.Expr})
 			}
 			continue
 		}
@@ -185,11 +185,6 @@ func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr, inTy
 		out = append(out, column{name: dedup(scores, t.asName(as.Label, as.Expr, nil)), astExpr: as.Expr, lateral: lateral})
 	}
 	return out
-}
-
-func (t *translator) nullcheck(loc ast.Node, e sem.Expr) sem.Expr {
-	null := sem.NewLiteral(loc, super.NewValue(super.TypeNull, nil), t.defs)
-	return sem.NewBinaryExpr(loc, "??", sem.NewCall(loc, "ok", []sem.Expr{e}), null)
 }
 
 func (t *translator) asName(label *ast.ID, expr ast.Expr, path []string) string {
