@@ -767,12 +767,17 @@ func (a Analyzer) convertTypeMap(tmap *ast.TypeMap) (*super.TypeMap, error) {
 var errAnonUnion = errors.New("anonymous union inside union")
 
 func (a Analyzer) convertTypeUnion(union *ast.TypeUnion) (*super.TypeUnion, error) {
+	seen := make(map[super.Type]bool)
 	var types []super.Type
 	for _, typ := range union.Types {
 		typ, err := a.convertType(typ)
 		if err != nil {
 			return nil, err
 		}
+		if seen[typ] {
+			return nil, fmt.Errorf("duplicate type %q in union", FormatType(typ))
+		}
+		seen[typ] = true
 		types = append(types, typ)
 	}
 	out, ok := a.sctx.LookupTypeUnion(types)

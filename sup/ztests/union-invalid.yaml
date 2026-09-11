@@ -1,0 +1,8 @@
+spq: pass
+
+input: '1::(int64|int64)'
+
+input-flags: '-i sup'
+
+error: |
+  stdio:stdin: duplicate type "int64" in union
