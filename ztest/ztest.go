@@ -483,7 +483,7 @@ func (z *ZTest) runInternal(ctx context.Context) (string, error) {
 	env := exec.NewEnvironment(eng, nil)
 	env.Dynamic = inflags.Dynamic
 	env.ReaderOpts = inflags.ReaderOpts
-	env.SampleSize = inflags.SampleSize
+	env.Static = inflags.Static
 	q, err := runtime.CompileQuery(ctx, super.NewContext(), compiler.NewCompilerWithEnv(env), ast, nil)
 	if err != nil {
 		return "", err

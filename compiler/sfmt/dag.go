@@ -304,6 +304,9 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Format != "" {
 			c.write(" format %s", p.Format)
 		}
+		if p.Type != "" {
+			c.write(" type %s", p.Type)
+		}
 		if p.Pushdown.Unordered {
 			c.write(" unordered")
 		}

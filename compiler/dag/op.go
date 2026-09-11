@@ -266,6 +266,7 @@ type (
 		Paths    []string `json:"paths"`
 		Format   string   `json:"format"`
 		Pushdown Pushdown `json:"pushdown"`
+		Type     string   `json:"type"`
 	}
 	ListerScan struct {
 		Kind      string      `json:"kind" unpack:""`

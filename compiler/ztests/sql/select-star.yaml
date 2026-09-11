@@ -1,7 +1,7 @@
 script: |
-  super -s -c 'select * from "a.sup"'
+  super -static -s -c 'select * from "a.sup"'
   echo ===
-  super -s -c 'select *,c+a as x from "a.sup"'
+  super -static -s -c 'select *,c+a as x from "a.sup"'
 
 inputs:
   - name: a.sup

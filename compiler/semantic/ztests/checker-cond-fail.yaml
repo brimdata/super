@@ -1,5 +1,5 @@
 script: |
-  ! super -s -c "values is_ok(n) ? this+1 : this+2" in.sup
+  ! super -static -s -c "values is_ok(n) ? this+1 : this+2" in.sup
 
 inputs:
   - name: in.sup
