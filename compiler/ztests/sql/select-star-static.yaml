@@ -27,9 +27,9 @@ outputs:
     data: |
       null
       | values {c0:1,c1:2,c2:3}
-      | values {a:??c0,b:??c1,c:??c2}
+      | values {a:this!.c0,b:this!.c1,c:this!.c2}
       | values {in:this}
-      | values {in:in,out:{a:??in??.a,a_1:??in??.a,b:??in??.b,c:??in??.c}}
+      | values {in:in,out:{a:this!.in!.a,a_1:this!.in!.a,b:this!.in!.b,c:this!.in!.c}}
       | values out
       | output main
       // ===
@@ -37,15 +37,15 @@ outputs:
       | fork
         (
           values {c0:1,c1:"dodgers"}
-          | values {id:??c0,team:??c1}
+          | values {id:this!.c0,team:this!.c1}
         )
         (
           values {c0:1,c1:1,c2:"ted"}
-          | values {id:??c0,team_id:??c1,player:??c2}
+          | values {id:this!.c0,team_id:this!.c1,player:this!.c2}
         )
-      | inner join as {left,right} on ??left??.id==??right??.team_id
+      | inner join as {left,right} on this!.left!.id==this!.right!.team_id
       | values {in:this}
-      | values {in:in,out:{id:??in??.left??.id,team:??in??.left??.team,id_1:??in??.right??.id,team_id:??in??.right??.team_id,player:??in??.right??.player}}
+      | values {in:in,out:{id:this!.in!.left!.id,team:this!.in!.left!.team,id_1:this!.in!.right!.id,team_id:this!.in!.right!.team_id,player:this!.in!.right!.player}}
       | values out
       | output main
       // ===
@@ -53,17 +53,17 @@ outputs:
       | fork
         (
           values {c0:1,c1:2,c2:"a"}
-          | values {aid:??c0,bid:??c1,a:??c2}
+          | values {aid:this!.c0,bid:this!.c1,a:this!.c2}
         )
         (
           values {c0:1,c1:2,c2:"b"}
-          | values {aid:??c0,bid:??c1,b:??c2}
+          | values {aid:this!.c0,bid:this!.c1,b:this!.c2}
         )
-      | inner join as {left,right} on ??left??.aid==??right??.aid and ??left??.bid==??right??.bid
+      | inner join as {left,right} on this!.left!.aid==this!.right!.aid and this!.left!.bid==this!.right!.bid
       | values {in:this}
-      | values {in:in,out:{aid:??in??.left??.aid,bid:??in??.left??.bid,a:??in??.left??.a,b:??in??.right??.b}}
+      | values {in:in,out:{aid:this!.in!.left!.aid,bid:this!.in!.left!.bid,a:this!.in!.left!.a,b:this!.in!.right!.b}}
       | values out
       | values {in:this}
-      | values {in:in,out:{aid:??in??.aid,bid:??in??.bid,a:??in??.a,b:??in??.b}}
+      | values {in:in,out:{aid:this!.in!.aid,bid:this!.in!.bid,a:this!.in!.a,b:this!.in!.b}}
       | values out
       | output main

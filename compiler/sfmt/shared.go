@@ -31,22 +31,26 @@ func (s *shared) fieldchain(chain field.Chain) {
 		return
 	}
 	for k, elem := range chain {
-		if elem.Noneish {
-			s.write("?")
-		}
-		if elem.Nullish {
-			s.write("??")
-		}
-		if sup.IsIdentifier(elem.ID) {
-			if k != 0 {
-				s.write(".")
-			}
-			s.write(elem.ID)
-		} else {
+		if elem.Noneish || elem.Nullish {
 			if k == 0 {
 				s.write("this")
 			}
-			s.write("[%q]", elem.ID)
+			if elem.Noneish {
+				s.write("?")
+			} else {
+				s.write("!")
+			}
+			if k == 0 {
+				s.write(".")
+			}
+		}
+		if k != 0 {
+			s.write(".")
+		}
+		if sup.IsIdentifier(elem.ID) {
+			s.write(elem.ID)
+		} else {
+			s.write("`%s`", elem.ID)
 		}
 	}
 }

@@ -23,14 +23,14 @@ outputs:
       | fork
         (
           values {id:1,team:"badgers"}
-          | where ??team=="badgers"
+          | where this!.team=="badgers"
         )
         (
           values {id:1,team_id:1,player:"blake",position:"P"}
-          | where ??position=="P"
+          | where this!.position=="P"
         )
-      | inner hashjoin as {left,right} on ??id==??team_id
-      | values {id:??left??.id,team:??left??.team,id_1:??right??.id,team_id:??right??.team_id,player:??right??.player,position:??right??.position}
+      | inner hashjoin as {left,right} on this!.id==this!.team_id
+      | values {id:this!.left!.id,team:this!.left!.team,id_1:this!.right!.id,team_id:this!.right!.team_id,player:this!.right!.player,position:this!.right!.position}
       | output main
       // ===
       null
@@ -39,19 +39,19 @@ outputs:
           fork
             (
               values {a1:1}
-              | where ??a1 in [1,5,9] and ??a1 in set[1,5,9]
+              | where this!.a1 in [1,5,9] and this!.a1 in set[1,5,9]
             )
             (
               values {a2:1}
-              | where ??a2==1 or ??a2==2
+              | where this!.a2==1 or this!.a2==2
             )
           | cross join as {left,right}
         )
         (
           values {a3:1}
-          | where ??a3 in {c0:1,c1:5,c2:[9,11]}
+          | where this!.a3 in {c0:1,c1:5,c2:[9,11]}
         )
       | cross join as {left,right}
       | where 1==1
-      | values {a1:??left??.left??.a1,a2:??left??.right??.a2,a3:??right??.a3}
+      | values {a1:this!.left!.left!.a1,a2:this!.left!.right!.a2,a3:this!.right!.a3}
       | output main
