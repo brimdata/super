@@ -1,4 +1,4 @@
-spq: SELECT * FROM (VALUES (1,2)) AS T(x,y) GROUP BY T.x, T.y
+spq: SELECT * FROM (VALUES (1,2)) AS T(x,y) GROUP BY T.x, T.y | sort this
 
 output: |
   {x:1,y:2}
