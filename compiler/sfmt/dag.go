@@ -220,6 +220,9 @@ func (c *canonDAG) recordElems(elems []dag.RecordElem) {
 		switch e := elem.(type) {
 		case *dag.Field:
 			c.write(sup.QuotedName(e.Name))
+			if e.Opt {
+				c.write("?")
+			}
 			c.write(":")
 			c.expr(e.Value, "")
 		case *dag.Spread:

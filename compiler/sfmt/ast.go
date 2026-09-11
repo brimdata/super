@@ -185,6 +185,9 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			switch e := elem.(type) {
 			case *ast.FieldElem:
 				c.write(sup.QuotedName(e.Name.Text))
+				if e.Opt {
+					c.write("?")
+				}
 				c.write(":")
 				c.expr(e.Value, "")
 			case *ast.ExprElem:
