@@ -128,7 +128,7 @@ from file*.parq (format parquet)
 ### Pools
 
 When the `<entity>` argument is recognized as a [database](../../command/db.md) pool,
-the data required for the query is ready from the database and
+the data required for the query is read from the database and
 emitted to its output.
 
 The only allowed option for a pool is the commit argument having the form
@@ -189,9 +189,7 @@ where
 * `<body>` is a [text-entity](../queries.md#text-entity) string
 to be included as the body of the HTTP request.
 
-Currently, the headers expression must evaluate to a compile-time constant though this
-may change to allow dynamic computation in a future version of SuperSQL.
-Each field of this record must either be a string or (to specify a
+Each field of the `headers` record must either be a string or (to specify a
 header option appearing multiple times with different values)
 an array or set of strings.
 
@@ -247,7 +245,7 @@ super -s -c 'from hello.json | values greeting'
 
 ---
 
-_Source super-structured from a local file_
+_Source super-structured data from a local file_
 ```mdtest-command
 echo '1 2 {x:1} {s:1::(int64|string)} {s:"hello"::(int64|string)}' > vals.sup
 super -s -c 'from vals.sup'
@@ -407,6 +405,23 @@ super db -db example -s -c '
 "There were 3 flips"
 {flip:1,result:"heads",word:"one"}
 {flip:2,result:"tails",word:"two"}
+```
+
+---
+
+_Use an f-string to source data from pool names computed at run time_
+```mdtest-command
+super db -db example -s -c '
+  from :pools
+  | from f"{name}"
+  | sort this'
+```
+```mdtest-output
+{flip:1,result:"heads"}
+{flip:2,result:"tails"}
+{number:1,word:"one"}
+{number:2,word:"two"}
+{number:3,word:"three"}
 ```
 
 ---
