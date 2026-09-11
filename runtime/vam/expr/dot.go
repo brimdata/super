@@ -111,17 +111,15 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 }
 
 func hasNone(vec vector.Any) bool {
-	if _, ok := vec.(*vector.None); ok {
+	switch vec := vec.(type) {
+	case *vector.None:
 		return true
-	}
-	if vec, ok := vec.(*vector.Fusion); ok {
+	case *vector.Union:
+		return super.IsOptionType(vec.Type()) && hasNone(vec.Dynamic())
+	case *vector.Fusion:
 		return hasNone(vec.Values)
-	}
-	if vec, ok := vec.(*vector.Dynamic); ok {
+	case *vector.Dynamic:
 		return slices.IndexFunc(vec.Values, hasNone) >= 0
-	}
-	if super.IsOptionType(vec.Type()) {
-		return hasNone(vec.(*vector.Union).Dynamic())
 	}
 	return false
 }
