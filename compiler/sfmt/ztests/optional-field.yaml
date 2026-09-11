@@ -1,0 +1,13 @@
+script: |
+  super compile -C 'values {x?:1}'
+  echo ===
+  super compile -dag -C 'values {x?:1}'
+
+outputs:
+  - name: stdout
+    data: |
+      values {x?:1}
+      ===
+      null
+      | values {x?:1}
+      | output main
