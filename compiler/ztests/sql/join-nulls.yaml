@@ -1,0 +1,22 @@
+# from issue 5984
+
+script: |
+  super -s -c "SELECT * FROM integers.sup LEFT OUTER JOIN integers2.sup ON integers.i=integers2.k ORDER BY i;"
+
+inputs:
+  - name: integers.sup
+    data: |
+      {i:1::int32,j:2::int32}
+      {i:2::int32,j:3::int32}
+      {i:3::int32,j:4::int32}
+  - name: integers2.sup
+    data: |
+      {k:1::int32,l:10::int32}
+      {k:2::int32,l:20::int32}
+
+outputs:
+  - name: stdout
+    data: |
+      {i:1::int32,j:2::int32,k:1::int32,l:10::int32}
+      {i:2::int32,j:3::int32,k:2::int32,l:20::int32}
+      {i:3::int32,j:4::int32,k:null,l:null}

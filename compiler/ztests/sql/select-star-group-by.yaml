@@ -1,0 +1,12 @@
+spq: SELECT * FROM (VALUES (1,2)) AS T(x,y) GROUP BY T.x, T.y
+
+output: |
+  {x:1,y:2}
+
+---
+
+spq: SELECT * FROM (VALUES (1,2), (3)) AS T(x,y) GROUP BY T.x, T.y
+
+output: |
+  {x:1,y:2}
+  {x:3,y:null}

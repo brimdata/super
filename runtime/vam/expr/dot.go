@@ -22,23 +22,25 @@ type DotExpr struct {
 	entity  Evaluator
 	key     string
 	noneish bool
+	nullish bool
 	okPush  bool
 }
 
-func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish bool) *DotExpr {
+func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish, nullish bool) *DotExpr {
 	return &DotExpr{
 		sctx:    sctx,
 		defuse:  NewDefuse(sctx),
 		entity:  record,
 		key:     field,
 		noneish: noneish,
+		nullish: nullish,
 	}
 }
 
 func NewDottedExpr(sctx *super.Context, f field.Chain) Evaluator {
 	ret := Evaluator(&This{})
 	for _, elem := range f {
-		ret = NewDotExpr(sctx, ret, elem.ID, elem.Noneish)
+		ret = NewDotExpr(sctx, ret, elem.ID, elem.Noneish, elem.Nullish)
 	}
 	return ret
 }
@@ -52,11 +54,18 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 	var missing bool
 	eval := func(innerVecs ...vector.Any) vector.Any {
 		switch val := vector.Under(innerVecs[0]).(type) {
+		case *vector.Null:
+			if d.nullish {
+				return val
+			}
 		case *vector.None:
 			return val
 		case *vector.Record:
 			i, ok := val.Typ.IndexOfField(d.key)
 			if !ok {
+				if d.nullish {
+					return vector.NewNull(val.Len())
+				}
 				missing = true
 				return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.key)), innerVecs[0])
 			}
@@ -87,13 +96,14 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 			return indexMap(d.sctx, val, keyVec)
 		case *vector.View:
 			return vector.Pick(d.eval(val.Any), val.Index)
-		default:
-			dot := "."
-			if d.noneish {
-				dot = "?."
-			}
-			return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", dot), innerVecs[0])
 		}
+		op := "."
+		if d.noneish {
+			op = "?."
+		} else if d.nullish {
+			op = "??."
+		}
+		return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", op), innerVecs[0])
 	}
 	out := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, eval, vec)
 	// If there were any structured errors or none values (e.g., because we hit a none

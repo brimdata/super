@@ -66,6 +66,7 @@ type (
 		LHS     Expr   `json:"lhs"`
 		RHS     string `json:"rhs"`
 		Noneish bool   `json:"noneish"`
+		Nullish bool   `json:"nullish"`
 	}
 	IndexExpr struct {
 		Kind  string `json:"kind" unpack:""`
