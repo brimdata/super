@@ -1,0 +1,13 @@
+spq: fuse | values x
+
+input: |
+  {x:"foo"}
+  {x:1}
+  {y:1}
+  {}
+
+output: |
+  "foo"
+  1
+  error({message:"no such field x",on:{y:1}})
+  error({message:"no such field x",on:{}})
