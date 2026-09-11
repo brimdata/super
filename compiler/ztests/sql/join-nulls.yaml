@@ -1,7 +1,7 @@
 # from issue 5984
 
 script: |
-  super -s -c "SELECT * FROM integers.sup LEFT OUTER JOIN integers2.sup ON integers.i=integers2.k ORDER BY i;"
+  super -static -s -c "SELECT * FROM integers.sup LEFT OUTER JOIN integers2.sup ON integers.i=integers2.k ORDER BY i;"
 
 inputs:
   - name: integers.sup
