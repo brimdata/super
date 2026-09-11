@@ -1,9 +1,7 @@
 # from issue 5984
 
 script: |
-  super -f parquet -o integers.parquet integers.sup
-  super -f parquet -o integers2.parquet integers2.sup
-  super -s -c "SELECT * FROM integers.parquet LEFT OUTER JOIN integers2.parquet ON integers.i=integers2.k ORDER BY i;"
+  super -s -c "SELECT * FROM integers.sup LEFT OUTER JOIN integers2.sup ON integers.i=integers2.k ORDER BY i;"
 
 inputs:
   - name: integers.sup

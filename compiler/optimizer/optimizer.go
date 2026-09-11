@@ -599,11 +599,11 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 						return newErrorMissing()
 					}
 					// Copy spread so f and y don't share dag.Exprs.
-					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Chain)
+					e, liftOK = addChainToExpr(dag.CopyExpr(spread), this.Chain)
 					return e
 				}
 				// Copy e1 so f and y don't share dag.Exprs.
-				e, liftOK = addPathToExpr(dag.CopyExpr(e1), this.Chain[1:])
+				e, liftOK = addChainToExpr(dag.CopyExpr(e1), this.Chain[1:])
 				return e
 			})
 			if liftOK {
@@ -644,10 +644,10 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 					if v1TopLevelSpread == nil {
 						return newErrorMissing()
 					}
-					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Chain)
+					e, mergeOK = addChainToExpr(v1TopLevelSpread, this.Chain)
 					return e
 				}
-				e, mergeOK = addPathToExpr(v1Expr, this.Chain[1:])
+				e, mergeOK = addChainToExpr(v1Expr, this.Chain[1:])
 				return e
 			}
 			var mergedOp dag.Op
@@ -690,20 +690,20 @@ func hasThisWithEmptyPath(v any) bool {
 	return found
 }
 
-// addPathToExpr is roughly equivalent to this:
+// addChainToExpr is roughly equivalent to this:
 //
-//	func simpleAddPathToExpr((e dag.Expr, path []string) dag.Expr {
+//	func simpleAddChainToExpr((e dag.Expr, path []string) dag.Expr {
 //	   for _, elem := range path {
 //	       e = &dag.Dot{Kind: "Dot", LHS: e, RHS: elem}
 //	   }
 //	   return e
 //	}
 //
-// addPathToExpr differs in a few ways:
+// addChainToExpr differs in a few ways:
 //   - It returns a dag.This when possible.
 //   - It descends to a dag.RecordExpr.Elem when possible.
 //   - It returns false when it cannot descend to a dag.RecordExpr.Elem.
-func addPathToExpr(e dag.Expr, chain field.Chain) (dag.Expr, bool) {
+func addChainToExpr(e dag.Expr, chain field.Chain) (dag.Expr, bool) {
 	if len(chain) == 0 {
 		return e, true
 	}
@@ -720,7 +720,7 @@ func addPathToExpr(e dag.Expr, chain field.Chain) (dag.Expr, bool) {
 					// Don't know which will win.
 					return e, false
 				}
-				return addPathToExpr(elem.Value, chain[1:])
+				return addChainToExpr(elem.Value, chain[1:])
 			case *dag.Spread:
 				if spread != nil {
 					// Don't know which will win.
@@ -732,7 +732,7 @@ func addPathToExpr(e dag.Expr, chain field.Chain) (dag.Expr, bool) {
 		if spread == nil {
 			return e, false
 		}
-		return addPathToExpr(spread.Expr, chain)
+		return addChainToExpr(spread.Expr, chain)
 	case *dag.ThisExpr:
 		return dag.NewThis(slices.Concat(e.Chain, chain)), true
 	}

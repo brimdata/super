@@ -69,5 +69,3 @@ SELECT * FROM (VALUES (1,2),(3)) T(x,y)
 {x:1,y:2}
 {x:3,y:null}
 ```
-
----

@@ -97,13 +97,13 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 		case *vector.View:
 			return vector.Pick(d.eval(val.Any), val.Index)
 		}
-		dot := "."
+		op := "."
 		if d.noneish {
-			dot = "?."
+			op = "?."
 		} else if d.nullish {
-			dot = "??."
+			op = "??."
 		}
-		return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", dot), innerVecs[0])
+		return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", op), innerVecs[0])
 	}
 	out := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, eval, vec)
 	// If there were any structured errors or none values (e.g., because we hit a none
