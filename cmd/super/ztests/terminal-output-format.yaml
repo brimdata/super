@@ -1,0 +1,18 @@
+script: |
+  if [ "$(uname -s)" = Darwin ]; then
+    onterm() { script -q -e /dev/null "$@" < /dev/null; }
+  else
+    onterm() { script -q -e -c "$(printf '%q ' "$@")" /dev/null < /dev/null; }
+  fi
+
+  super db -q -db db init
+  super db -q -db db create p1
+
+  onterm super -color=false -c 'values {a:1}'
+  onterm super db -db db -color=false -c 'values {a:1}'
+  onterm super db -db db ls -color=false
+
+outputs:
+  - name: stdout
+    regexp: |
+      (?s)\{a:1\}.*\{a:1\}.*p1 \w{27} key ts order desc.*
