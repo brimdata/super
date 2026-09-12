@@ -721,6 +721,13 @@ func (c *Context) Option(typ Type) *TypeUnion {
 	return c.MustLookupTypeUnion(append(types, TypeNone))
 }
 
+func (c *Context) SomeType(typ Type) *TypeUnion {
+	types := slices.DeleteFunc(slices.Clone(typ.(*TypeUnion).Types), func(t Type) bool {
+		return t == TypeNone
+	})
+	return c.MustLookupTypeUnion(types)
+}
+
 func (c *Context) Optionize(typ Type) Type {
 	if typ == TypeNone {
 		return typ
