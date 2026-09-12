@@ -253,7 +253,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 		return &sem.RecordExpr{
 			Node:  e,
 			Elems: out,
-		}, t.checker.fuseRecordElems(out, types)
+		}, t.checker.formRecordElems(out, types)
 	case *ast.RegexpExpr:
 		return &sem.RegexpSearchExpr{
 			Node:    e,
@@ -442,7 +442,7 @@ func (t *translator) dottedBaseCase(loc ast.Node, lhs *ast.IDExpr, rhs *ast.IDEx
 }
 
 func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, noneish bool, inType super.Type) (sem.Expr, super.Type) {
-	typ, _ := t.checker.deref(id, inType, id.Name)
+	typ := t.checker.deref(id, inType, id.Name, noneish)
 	if lhs, ok := lhs.(*sem.ThisExpr); ok {
 		lhs.Chain = lhs.Chain.Append(id.Name, noneish)
 		lhs.Node = loc

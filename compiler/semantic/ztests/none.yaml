@@ -1,0 +1,11 @@
+spq: values x+1
+
+input: |
+  {x:1}
+  {y:1}
+
+# this should be a -static test with compile-time-error
+
+output: |
+  2
+  error({message:"+: error value encountered",on:error({message:"no such field x",on:{y:1}})})
