@@ -802,6 +802,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			Args: args,
 		}), typ
 	case *ast.SortOp:
+		fmt.Println("SORT", sup.String(inType))
 		var sortExprs []sem.SortExpr
 		for _, e := range o.Exprs {
 			sortExprs = append(sortExprs, t.sortExpr(nil, e, o.Reverse, inType))
@@ -896,6 +897,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			Reverse: o.Reverse && len(exprs) == 0,
 		}), inType
 	case *ast.PutOp:
+		fmt.Println("PUT IN", sup.String(inType))
 		assignments, paths := t.assignments(o.Args, inType)
 		// We can do collision checking on static paths, so check what we can.
 		var fields field.List
