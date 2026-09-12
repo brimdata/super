@@ -51,6 +51,7 @@ func (c *checker) seq(typ super.Type, seq sem.Seq) super.Type {
 }
 
 func (c *checker) op(typ super.Type, op sem.Op) super.Type {
+	fmt.Println("CHK", sup.String(typ))
 	switch op := op.(type) {
 	//
 	// Scanners first
@@ -447,11 +448,11 @@ func defuse(typ super.Type) super.Type {
 }
 
 func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
-	if hasNone(lhs) {
+	if hasNone(lhs) && !hasUnknown(lhs) {
 		c.error(lloc, fmt.Errorf("'%s': none may appear, consider ok()", op))
 		return c.unknown
 	}
-	if hasNone(rhs) {
+	if hasNone(rhs) && !hasUnknown(rhs) {
 		c.error(rloc, fmt.Errorf("'%s': none may appear, consider ok()", op))
 		return c.unknown
 	}
@@ -773,7 +774,6 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 	case *super.TypeMap:
 		return c.indexMap(loc, typ, super.TypeString)
 	case *super.TypeRecord:
-		fmt.Println("TYPE", sup.String(typ))
 		which, ok := typ.IndexOfField(field)
 		if !ok {
 			if !hasUnknown(typ) {

@@ -802,6 +802,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			Args: args,
 		}), typ
 	case *ast.SortOp:
+		fmt.Println("SORT", sup.String(inType))
 		var sortExprs []sem.SortExpr
 		for _, e := range o.Exprs {
 			sortExprs = append(sortExprs, t.sortExpr(nil, e, o.Reverse, inType))
