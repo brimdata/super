@@ -303,6 +303,9 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		rhs := c.expr(typ, e.RHS)
 		return c.binary(e.Op, e, e.LHS, e.RHS, lhs, rhs)
 	case *sem.CallExpr:
+		if e.Tag == "ok" || e.Tag == "is_ok" {
+			return c.ok(typ, e)
+		}
 		var types []super.Type
 		for _, e := range e.Args {
 			types = append(types, c.expr(typ, e))
@@ -418,6 +421,24 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	}
 }
 
+func (c *checker) ok(typ super.Type, call *sem.CallExpr) super.Type {
+	c.pushErrs()
+	var types []super.Type
+	for _, e := range call.Args {
+		types = append(types, c.expr(typ, e))
+	}
+	var out super.Type
+	if isBuiltin(call.Tag) {
+		out = c.callBuiltin(call, types)
+	} else {
+		out = c.callFunc(call, types)
+	}
+	errs := stripMissing(c.popErrs())
+	if len(errs) != 0 {
+		c.keepErrs(errs[:1])
+	}
+	return out
+}
 func defuse(typ super.Type) super.Type {
 	if typ, ok := typ.(*super.TypeFusion); ok {
 		return typ.Type
@@ -756,7 +777,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 		which, ok := typ.IndexOfField(field)
 		if !ok {
 			if !hasUnknown(typ) {
-				c.error(loc, fmt.Errorf("no such field %q", field))
+				c.error(loc, newMissing(field))
 			}
 			return c.unknown, false
 		}
@@ -786,6 +807,24 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 	}
 	c.error(loc, fmt.Errorf("no such field %q", field))
 	return c.unknown, false
+}
+
+type missing struct {
+	error
+}
+
+func newMissing(field string) error {
+	return &missing{fmt.Errorf("no such field %q", field)}
+}
+
+func stripMissing(errs errlist) errlist {
+	var out errlist
+	for _, errloc := range errs {
+		if _, ok := errloc.err.(*missing); !ok {
+			out = append(out, errloc)
+		}
+	}
+	return out
 }
 
 func (c *checker) logical(lloc, rloc ast.Node, lhs, rhs super.Type) {
