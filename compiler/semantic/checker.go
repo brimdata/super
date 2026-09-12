@@ -325,7 +325,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		}
 		return c.fuse([]super.Type{thenType, elseType})
 	case *sem.DotExpr:
-		typ, _ := c.deref(e.Node, c.expr(typ, e.LHS), e.RHS)
+		typ, _ := c.deref(e.Node, c.expr(typ, e.LHS), e.RHS, e.Noneish)
 		return typ
 	case *sem.IndexExpr:
 		typ, _ := c.indexOf(e.Expr, e.Index, c.expr(typ, e.Expr), c.expr(typ, e.Index))
@@ -426,6 +426,14 @@ func defuse(typ super.Type) super.Type {
 }
 
 func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
+	if hasNone(lhs) {
+		c.error(lloc, fmt.Errorf("'%s': none may appear, consider ok()", op))
+		return c.unknown
+	}
+	if hasNone(rhs) {
+		c.error(rloc, fmt.Errorf("'%s': none may appear, consider ok()", op))
+		return c.unknown
+	}
 	switch strings.ToLower(op) {
 	case "and", "or":
 		c.logical(lloc, rloc, lhs, rhs)
@@ -451,7 +459,8 @@ func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Typ
 func (c *checker) this(loc ast.Node, this *sem.ThisExpr, typ super.Type) super.Type {
 	for _, comp := range this.Chain {
 		//XXX type check should use comp.Nullish too
-		typ, _ = c.deref(loc, typ, comp.ID)
+		//XXX update comment
+		typ, _ = c.deref(loc, typ, comp.ID, comp.Noneish)
 	}
 	return typ
 }
@@ -734,7 +743,7 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 	return ok
 }
 
-func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type, bool) {
+func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool) (super.Type, bool) {
 	switch typ := defuse(super.TypeUnder(typ)).(type) {
 	case *super.TypeError:
 		if isUnknown(typ) {
@@ -743,6 +752,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 	case *super.TypeMap:
 		return c.indexMap(loc, typ, super.TypeString)
 	case *super.TypeRecord:
+		fmt.Println("TYPE", sup.String(typ))
 		which, ok := typ.IndexOfField(field)
 		if !ok {
 			if !hasUnknown(typ) {
@@ -756,19 +766,23 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 		// we'll discard the errors.  Otherwise, we'll keep them.
 		c.pushErrs()
 		var types []super.Type
-		var valid bool
+		var bad bool
 		for _, t := range typ.Types {
-			typ, ok := c.deref(loc, t, field)
+			if hasUnknown(t) {
+				continue
+			}
+			typ, ok := c.deref(loc, t, field, noneish)
 			if ok {
 				types = append(types, typ)
-				valid = true
+			} else {
+				bad = true
 			}
 		}
 		errs := c.popErrs()
-		if !valid {
+		if bad {
 			c.keepErrs(errs[:1])
 		}
-		return c.fuse(types), valid
+		return c.fuse(types), !bad
 	}
 	c.error(loc, fmt.Errorf("no such field %q", field))
 	return c.unknown, false
@@ -961,6 +975,19 @@ func hasUnknown(typ super.Type) bool {
 		}
 	}
 	return isUnknown(typ)
+}
+
+func isNone(typ super.Type) bool {
+	return super.TypeUnder(typ) == super.TypeNone
+}
+
+func hasNone(typ super.Type) bool {
+	if u, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
+		if slices.ContainsFunc(u.Types, hasNone) {
+			return true
+		}
+	}
+	return isNone(typ)
 }
 
 func (c *checker) hasArray(typ super.Type) (super.Type, bool) {

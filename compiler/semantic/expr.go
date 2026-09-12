@@ -438,7 +438,7 @@ func (t *translator) dottedBaseCase(loc ast.Node, lhs *ast.IDExpr, rhs *ast.IDEx
 }
 
 func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr, noneish bool, inType super.Type) (sem.Expr, super.Type) {
-	typ, _ := t.checker.deref(id, inType, id.Name)
+	typ, _ := t.checker.deref(id, inType, id.Name, noneish)
 	if lhs, ok := lhs.(*sem.ThisExpr); ok {
 		lhs.Chain = lhs.Chain.Append(id.Name, noneish)
 		lhs.Node = loc
