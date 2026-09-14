@@ -34,11 +34,6 @@ tidy:
 	go mod tidy
 	git diff --exit-code -- go.mod go.sum
 
-bin/minio: Makefile
-	@curl -fLo $@ --compressed --create-dirs \
-		https://dl.min.io/server/minio/release/$$(go env GOOS)-$$(go env GOARCH)/archive/minio.RELEASE.2022-05-04T07-45-27Z
-	@chmod +x $@
-
 generate:
 	go generate ./...
 
@@ -48,17 +43,27 @@ test-generate: generate
 test-unit:
 	@go test -short ./...
 
-test-system: build bin/minio
+test-system: build bin/rustfs
 	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" go test .
 
-test-boomerangs: build bin/minio
+test-boomerangs: build bin/rustfs
 	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" go test -parallel 1 . -run TestSPQ/boomerang -v
 
-test-run: build bin/minio
+test-run: build bin/rustfs
 	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" go test . -v -run $(TEST)
 
 test-heavy: build
 	@PATH="$(CURDIR)/dist:$(PATH)" go test -tags=heavy ./mdtest
+
+bin/rustfs: Makefile
+	arch=$$(uname -m | sed -e s/^arm/aarch/) \
+	os=$$(uname -s | sed -e s/^Darwin/macos/ | tr A-Z a-z) && \
+	  [ $$os = linux ] && libc=-gnu && \
+	  url=https://github.com/rustfs/rustfs/releases/download/1.0.0-rc.5/rustfs-$${os}-$${arch}$${libc}-latest.zip && \
+	  echo $$url && \
+	  curl -Lf --create-dirs -o $@.zip $$url
+	unzip -oq $@.zip -d $(@D)
+	touch -c $@
 
 build: $(PEG_DEP)
 	@mkdir -p dist
