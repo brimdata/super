@@ -43,7 +43,7 @@ make test-unit
 ```
 
 System tests require Python 3.3 or better and the
-[AWS CLI](https://docs.aws.amazon.com/cli/).  To run them, execute:
+[AWS CLI](https://aws.amazon.com/cli/).  To run them, execute:
 
 ```
 make test-system
