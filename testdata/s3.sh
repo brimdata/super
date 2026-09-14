@@ -29,4 +29,3 @@ EOF
 
 export AWS_ENDPOINT_URL_S3=http://localhost:$port
 export AWS_REGION=does-not-matter
-export AWS_S3_ENDPOINT=$AWS_ENDPOINT_URL_S3
