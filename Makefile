@@ -58,7 +58,7 @@ test-heavy: build
 bin/rustfs: Makefile
 	arch=$$(uname -m | sed -e s/^arm/aarch/) \
 	os=$$(uname -s | sed -e s/^Darwin/macos/ | tr A-Z a-z) && \
-	  [ $$os = linux ] && libc=-musl && \
+	  [ $$os != linux ] || libc=-musl && \
 	  url=https://github.com/rustfs/rustfs/releases/download/1.0.0-rc.5/rustfs-$${os}-$${arch}$${libc}-latest.zip && \
 	  echo $$url && \
 	  curl -Lf --create-dirs -o $@.zip $$url

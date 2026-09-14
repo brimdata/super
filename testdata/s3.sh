@@ -9,7 +9,8 @@ port=$(python3 -c "import socket; print(socket.create_server(('localhost', 0)).g
 
 dir=$PWD/s3
 mkdir $dir
-rustfs server $dir --address localhost:$port --access-key $AWS_ACCESS_KEY_ID --secret-key $AWS_SECRET_ACCESS_KEY &
+RUSTFS_OBS_LOG_DIRECTORY=rustfs rustfs server $dir \
+  --address localhost:$port --access-key $AWS_ACCESS_KEY_ID --secret-key $AWS_SECRET_ACCESS_KEY &
 trap "kill -9 $!" EXIT
 
 # Wait for server to accept a connection.
