@@ -1,14 +1,19 @@
 #!/bin/bash
 
-mkdir -p data/bucket
+export AWS_ACCESS_KEY_ID=admin
+export AWS_SECRET_ACCESS_KEY=secret
 
-# Allocate a port.  Another process could bind to it before MinIO does,
+# Allocate a port.  Another process could bind to it before ours does,
 # but that's very unlikely.
 port=$(python3 -c "import socket; print(socket.create_server(('localhost', 0)).getsockname()[1])")
-minio server --address localhost:$port --console-address localhost:0 --quiet data &
+
+dir=$PWD/s3
+mkdir $dir
+RUSTFS_OBS_LOG_DIRECTORY=rustfs rustfs server $dir \
+  --address localhost:$port --access-key $AWS_ACCESS_KEY_ID --secret-key $AWS_SECRET_ACCESS_KEY &
 trap "kill -9 $!" EXIT
 
-# Wait for MinIO to accept a connection.
+# Wait for server to accept a connection.
 python3 <<EOF
 import socket, time
 start = time.time()
@@ -22,7 +27,6 @@ while True:
     time.sleep(0.1)
 EOF
 
+export AWS_ENDPOINT_URL_S3=http://localhost:$port
 export AWS_REGION=does-not-matter
-export AWS_ACCESS_KEY_ID=minioadmin
-export AWS_SECRET_ACCESS_KEY=minioadmin
-export AWS_S3_ENDPOINT=http://localhost:$port
+export AWS_S3_ENDPOINT=$AWS_ENDPOINT_URL_S3

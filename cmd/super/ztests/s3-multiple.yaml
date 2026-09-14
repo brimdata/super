@@ -1,11 +1,13 @@
 script: |
-  source minio.sh
-  mv *.sup data/bucket
+  source s3.sh
+  aws s3api create-bucket --bucket bucket
+  aws s3 cp --quiet log1.sup s3://bucket
+  aws s3 cp --quiet log2.sup s3://bucket
   super -s -c "sort ts" s3://bucket/log1.sup s3://bucket/log2.sup
 
 inputs:
-  - name: minio.sh
-    source: ../../../testdata/minio.sh
+  - name: s3.sh
+    source: ../../../testdata/s3.sh
   - name: log1.sup
     data: |
       {ts:2018-03-24T17:15:21.255387Z,uid:"C8Tful1TvM3Zf5x8fl"}

@@ -37,12 +37,14 @@ go mod edit -replace=github.com/org/repo=../repo
 
 Before any PRs are merged to main, all tests must pass.
 
-Unit tests require Node.js.  To run them, execute:
+To run unit tests, execute:
 ```
 make test-unit
 ```
 
-System tests require Python 3.3 or better.  To run them, execute:
+System tests require Python 3.3 or better and the
+[AWS CLI](https://aws.amazon.com/cli/).  To run them, execute:
+
 ```
 make test-system
 ```
