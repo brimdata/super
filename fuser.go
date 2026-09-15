@@ -139,7 +139,7 @@ func (f *Fuser) makeOption(t Type) Type {
 	if fusion, ok := t.(*TypeFusion); ok {
 		return f.sctx.LookupTypeFusion(f.makeOption(fusion.Type))
 	}
-	return f.sctx.Option(t)
+	return f.sctx.Optionize(t)
 }
 
 func isAll(t Type) bool {

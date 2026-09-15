@@ -704,6 +704,9 @@ func NullableUnion(typ Type) (*TypeUnion, int) {
 }
 
 func (c *Context) Option(typ Type) *TypeUnion {
+	if typ == TypeNone {
+		panic("cannot create option on TypeNone")
+	}
 	var types []Type
 	if union, ok := typ.(*TypeUnion); ok {
 		for _, t := range union.Types {
