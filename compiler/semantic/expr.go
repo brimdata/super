@@ -214,6 +214,10 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				}
 				fields[name] = struct{}{}
 				e, typ := t.expr(elem.Value, inType)
+				if elem.Opt && typ == super.TypeNone {
+					t.error(elem, fmt.Errorf("non-union none assigned to optional field %s", name))
+					typ = t.checker.unknown
+				}
 				out = append(out, &sem.FieldElem{
 					Node:  elem,
 					Name:  elem.Name.Text,

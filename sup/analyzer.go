@@ -280,6 +280,8 @@ func (a *Analyzer) convertTypeValue(tv *ast.TypeValue) (Value, error) {
 	}, nil
 }
 
+var errNoneOnOption = errors.New("non-union none assigned to optional field")
+
 func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
 	vals := make([]Value, 0, len(val.Fields))
 	fields := make([]super.Field, 0, len(val.Fields))
@@ -290,6 +292,9 @@ func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
 		}
 		typ := val.Type()
 		if f.Opt {
+			if typ == super.TypeNone {
+				return nil, fmt.Errorf("%w %s", errNoneOnOption, f.Name)
+			}
 			typ = a.sctx.Option(typ)
 			val, err = a.createUnion(val, typ)
 			if err != nil {
@@ -745,6 +750,9 @@ func (a Analyzer) convertTypeRecord(typ *ast.TypeRecord) (*super.TypeRecord, err
 			return nil, err
 		}
 		if f.Opt {
+			if typ == super.TypeNone {
+				return nil, fmt.Errorf("%w %s", errNoneOnOption, f.Name)
+			}
 			typ = a.sctx.Option(typ)
 		}
 		fields = append(fields, super.NewField(f.Name, typ))
