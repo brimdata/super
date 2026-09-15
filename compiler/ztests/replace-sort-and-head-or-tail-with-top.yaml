@@ -27,11 +27,11 @@ outputs:
       | top -r 1
       | output main
       ===
-      file in.sup unordered
+      file in.sup type {a:int64,b:int64,c:int64} unordered
       | top 3 a desc nulls last, b asc nulls last, c desc nulls first
       | output main
       ===
-      file in.sup unordered
+      file in.sup type {a:int64,b:int64,c:int64} unordered
       | top 3 a asc nulls last, b desc nulls last, c asc nulls first
       | output main
       ===

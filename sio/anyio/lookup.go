@@ -56,5 +56,12 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 }
 
 func newVioPuller(sctx *super.Context, r sio.Reader) vio.Puller {
-	return sbuf.NewDematerializer(sctx, sbuf.NewPuller(r))
+	puller := sbuf.NewDematerializer(sctx, sbuf.NewPuller(r))
+	if typer, ok := r.(sio.Typer); ok {
+		return struct {
+			vio.Puller
+			sio.Typer
+		}{puller, typer}
+	}
+	return puller
 }
