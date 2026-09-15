@@ -27,8 +27,8 @@ func NewClient(cfg *aws.Config) *s3.S3 {
 		cfg = &aws.Config{}
 	}
 	// Add ability to override s3 endpoint via env variable (the aws sdk doesn't
-	// support this). This is mostly for system tests w/ minio.
-	if endpoint := os.Getenv("AWS_S3_ENDPOINT"); cfg.Endpoint == nil && endpoint != "" {
+	// support this). This is mostly for system tests.
+	if endpoint := os.Getenv("AWS_ENDPOINT_URL_S3"); cfg.Endpoint == nil && endpoint != "" {
 		cfg.Endpoint = new(endpoint)
 		cfg.S3ForcePathStyle = new(true) // https://github.com/minio/minio/tree/master/docs/config#domain
 	}
