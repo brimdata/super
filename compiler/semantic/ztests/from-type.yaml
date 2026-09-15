@@ -62,7 +62,7 @@ outputs:
       from /dev/stdin
            ~~~~~~~~~~
       === sup (default)
-      file test.sup format sup
+      file test.sup format sup type {x?:int64,y?:int64}
       | output main
       === sup (static)
       file test.sup format sup type {x?:int64,y?:int64}
