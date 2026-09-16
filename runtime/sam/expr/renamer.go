@@ -129,8 +129,7 @@ func (r *Renamer) dstType(typ *super.TypeRecord, src, dst field.Path) (*super.Ty
 	fields[i] = super.NewField(dst[0], innerType)
 	typ, err := r.sctx.LookupTypeRecord(fields)
 	if err != nil {
-		var dferr *super.DuplicateFieldError
-		if errors.As(err, &dferr) {
+		if _, ok := errors.AsType[*super.DuplicateFieldError](err); ok {
 			return nil, err
 		}
 		panic(err)

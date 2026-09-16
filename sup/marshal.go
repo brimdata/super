@@ -593,7 +593,6 @@ func (m *MarshalBSUPContext) lookupType(t reflect.Type) (super.Type, error) {
 func (m *MarshalBSUPContext) lookupTypeRecord(structType reflect.Type) (super.Type, error) {
 	var fields []super.Field
 	for field := range structType.Fields() {
-		field := field
 		name := fieldName(field)
 		fieldType, err := m.lookupType(field.Type)
 		if err != nil {

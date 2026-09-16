@@ -93,8 +93,7 @@ func (t *Test) vetGoExample() error {
 		return err
 	}
 	_, err = exec.Command("go", "vet", path).Output()
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
+	if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 		return fmt.Errorf("could not vet go example: %s", string(exitErr.Stderr))
 	}
 	return err

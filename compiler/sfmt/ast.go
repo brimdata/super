@@ -27,9 +27,9 @@ func AST(p ast.Seq) string {
 
 func ASTExpr(e ast.Expr) string {
 	d := &canon{
-		shared: shared{formatter: formatter{tab: 2}},
-		head:   true,
-		first:  true,
+		tab:   2,
+		head:  true,
+		first: true,
 	}
 	d.expr(e, "")
 	d.flush()
