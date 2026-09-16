@@ -1,6 +1,6 @@
 module github.com/brimdata/super
 
-go 1.26
+go 1.27
 
 require (
 	github.com/RoaringBitmap/roaring/v2 v2.9.0
