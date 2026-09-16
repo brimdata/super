@@ -63,7 +63,7 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 
 // Build builds a flowgraph for main.
 func (b *Builder) Build(main *dag.Main) (map[string]vio.Puller, *vamop.DebugChans, error) {
-	if !isEntry(main.Body) {
+	if !isEntry(main.Body, true) {
 		return nil, nil, errors.New("internal error: DAG entry point is not a data source")
 	}
 	if len(main.Types) != 0 {
@@ -338,16 +338,18 @@ func EvalAtCompileTime(sctx *super.Context, main *dag.MainExpr) (val super.Value
 	return b.evalAtCompileTime(main.Expr)
 }
 
-func isEntry(seq dag.Seq) bool {
+func isEntry(seq dag.Seq, fileScanIsEntry bool) bool {
 	if len(seq) == 0 {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *dag.ListerScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
+	case *dag.ListerScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
 		return true
+	case *dag.FileScan:
+		return fileScanIsEntry
 	case *dag.ForkOp:
 		return len(op.Paths) > 0 && !slices.ContainsFunc(op.Paths, func(seq dag.Seq) bool {
-			return !isEntry(seq)
+			return !isEntry(seq, fileScanIsEntry)
 		})
 	}
 	return false

@@ -5,7 +5,7 @@ inputs:
     data: |
       fork
         ( pass )
-        ( from right.sup )
+        ( head 1 | from right.sup )
       | inner join on left.x=right.y 
       | values {...left,matched:true}
   - name: left.sup
