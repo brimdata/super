@@ -52,7 +52,6 @@ func structToUnpackRule(typ reflect.Type) (string, string, bool, error) {
 	var unpackVal string
 	var unpackSkip bool
 	for field := range typ.Fields() {
-		field := field
 		jsonField, jsonOk, _ := parseTag(tagJSON, field)
 		if jsonOk {
 			if _, ok := names[jsonField]; ok {

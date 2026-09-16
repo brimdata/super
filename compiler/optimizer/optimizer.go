@@ -432,8 +432,8 @@ func inlineRecordExprSpreads(v any) {
 		}
 		// dedupe elems from spreads
 		m := map[string]struct{}{}
-		for i := len(r.Elems) - 1; i >= 0; i-- {
-			if f, ok := r.Elems[i].(*dag.Field); ok {
+		for i, elem := range slices.Backward(r.Elems) {
+			if f, ok := elem.(*dag.Field); ok {
 				if _, ok := m[f.Name]; ok {
 					r.Elems = slices.Delete(r.Elems, i, i+1)
 				}
@@ -826,8 +826,8 @@ func walkT[T any](v reflect.Value, post func(T) T) {
 // order of values in the underlying data source).  setPushdownUnordered returns
 // whether seq's input can be unordered.
 func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
-	for i := len(seq) - 1; i >= 0; i-- {
-		switch op := seq[i].(type) {
+	for _, op := range slices.Backward(seq) {
+		switch op := op.(type) {
 		case *dag.AggregateOp, *dag.CombineOp, *dag.DistinctOp, *dag.HashJoinOp, *dag.JoinOp, *dag.SortOp, *dag.TopOp,
 			*dag.HTTPScan, *dag.PoolScan,
 			*dag.CommitMetaScan, *dag.DBMetaScan, *dag.PoolMetaScan:

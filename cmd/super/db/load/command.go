@@ -184,13 +184,13 @@ func (e *engineWrap) status() (units.Bytes, int) {
 
 type byteCounter struct {
 	storage.Reader
-	n         int64
+	n         atomic.Int64
 	completed *int32
 }
 
 func (r *byteCounter) Read(b []byte) (int, error) {
 	n, err := r.Reader.Read(b)
-	atomic.AddInt64(&r.n, int64(n))
+	r.n.Add(int64(n))
 	if errors.Is(err, io.EOF) {
 		atomic.AddInt32(r.completed, 1)
 	}
@@ -198,5 +198,5 @@ func (r *byteCounter) Read(b []byte) (int, error) {
 }
 
 func (r *byteCounter) bytesRead() int64 {
-	return atomic.LoadInt64(&r.n)
+	return r.n.Load()
 }

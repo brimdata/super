@@ -109,8 +109,7 @@ func Load() ([]*File, error) {
 		}
 		inputs, tests, err := parseMarkdown(b)
 		if err != nil {
-			var le lineError
-			if errors.As(err, &le) {
+			if le, ok := errors.AsType[lineError](err); ok {
 				return fmt.Errorf("%s:%d: %s", path, le.line, le.msg)
 			}
 			return fmt.Errorf("%s: %w", path, err)

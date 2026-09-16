@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"runtime"
+	"slices"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -170,8 +171,8 @@ func (s *Store) buildSnapshot(ctx context.Context, leaf ksuid.KSUID) (*Snapshot,
 	} else {
 		snap = base.Copy()
 	}
-	for k := len(objects) - 1; k >= 0; k-- {
-		for _, action := range objects[k].Actions {
+	for _, o := range slices.Backward(objects) {
+		for _, action := range o.Actions {
 			if err := PlayAction(snap, action); err != nil {
 				return nil, err
 			}
@@ -303,8 +304,8 @@ func (s *Store) ReadAll(ctx context.Context, commit, stop ksuid.KSUID) ([]byte, 
 		commit = commitObject.Parent
 	}
 	out := make([]byte, 0, size)
-	for k := len(buffers) - 1; k >= 0; k-- {
-		out = append(out, buffers[k]...)
+	for _, b := range slices.Backward(buffers) {
+		out = append(out, b...)
 	}
 	return out, nil
 }

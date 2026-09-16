@@ -1,13 +1,15 @@
 package optimizer
 
 import (
+	"slices"
+
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/optimizer/demand"
 )
 
 func DemandForSeq(seq dag.Seq, downstreams ...demand.Demand) []demand.Demand {
-	for i := len(seq) - 1; i >= 0; i-- {
-		downstreams = demandForOp(seq[i], downstreams)
+	for _, op := range slices.Backward(seq) {
+		downstreams = demandForOp(op, downstreams)
 	}
 	return downstreams
 }
@@ -205,8 +207,8 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 		return demand.Union(DemandForSeq(expr.Body, demand.All())...)
 	case *dag.ThisExpr:
 		d := demand.All()
-		for i := len(expr.Chain) - 1; i >= 0; i-- {
-			d = demand.Key(expr.Chain[i].ID, d)
+		for _, elem := range slices.Backward(expr.Chain) {
+			d = demand.Key(elem.ID, d)
 		}
 		return d
 	case *dag.UnaryExpr:
