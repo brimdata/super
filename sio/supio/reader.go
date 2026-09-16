@@ -41,3 +41,19 @@ func (r *Reader) Read() (*super.Value, error) {
 	r.val, err = sup.Build(r.builder, val)
 	return &r.val, err
 }
+
+func (r *Reader) Type() (super.Type, error) {
+	r.parser = sup.NewParser(r.reader)
+	fuser := super.NewFuser(r.sctx, false)
+	for {
+		ast, err := r.parser.ParseValue()
+		if ast == nil || err != nil {
+			return fuser.Type(), err
+		}
+		val, err := r.analyzer.ConvertValue(ast)
+		if err != nil {
+			return nil, err
+		}
+		fuser.Fuse(val.Type())
+	}
+}
