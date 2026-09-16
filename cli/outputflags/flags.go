@@ -20,18 +20,18 @@ import (
 
 type Flags struct {
 	anyio.WriterOpts
-	DefaultFormat string
-	color         bool
-	forceBinary   bool
-	jsonPretty    bool
-	jsonShortcut  bool
-	outputFile    string
-	pretty        int
-	split         string
-	splitSize     auto.Bytes
-	supPretty     bool
-	supShortcut   bool
-	unbuffered    bool
+	color        bool
+	forceBinary  bool
+	isFormatSet  bool
+	jsonPretty   bool
+	jsonShortcut bool
+	outputFile   string
+	pretty       int
+	split        string
+	splitSize    auto.Bytes
+	supPretty    bool
+	supShortcut  bool
+	unbuffered   bool
 }
 
 func (f *Flags) Options() anyio.WriterOpts {
@@ -66,10 +66,17 @@ func (f *Flags) SetFlagsWithFormat(fs *flag.FlagSet, format string) {
 }
 
 func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
-	if f.DefaultFormat == "" {
-		f.DefaultFormat = "csup"
+	if f.Format == "" {
+		f.Format = "csup"
 	}
-	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,db,json,line,parquet,sup,table,tsv,zeek]")
+	fUsage := fmt.Sprintf(
+		"format for output data [arrows,bsup,csup,csv,db,json,line,parquet,sup,table,tsv,zeek] (default %s)",
+		f.Format)
+	fs.Func("f", fUsage, func(s string) error {
+		f.Format = s
+		f.isFormatSet = true
+		return nil
+	})
 	fs.BoolVar(&f.forceBinary, "B", false, "allow Super Binary to be sent to a terminal output")
 	fs.BoolVar(&f.jsonPretty, "J", false, "use formatted JSON output independent of -f option")
 	fs.BoolVar(&f.jsonShortcut, "j", false, "use line-oriented JSON output independent of -f option")
@@ -81,7 +88,7 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 func (f *Flags) Init() error {
 	f.JSON.Pretty, f.SUP.Pretty = f.pretty, f.pretty
 	if f.jsonShortcut || f.jsonPretty {
-		if f.Format != f.DefaultFormat || f.supShortcut || f.supPretty {
+		if f.isFormatSet || f.supShortcut || f.supPretty {
 			return errors.New("cannot use -j or -J with -f, -s, or -S")
 		}
 		f.Format = "json"
@@ -89,7 +96,7 @@ func (f *Flags) Init() error {
 			f.JSON.Pretty = 0
 		}
 	} else if f.supShortcut || f.supPretty {
-		if f.Format != f.DefaultFormat {
+		if f.isFormatSet {
 			return errors.New("cannot use -s or -S with -f")
 		}
 		f.Format = "sup"
@@ -100,7 +107,7 @@ func (f *Flags) Init() error {
 	if f.outputFile == "-" {
 		f.outputFile = ""
 	}
-	if f.outputFile == "" && f.split == "" && f.Format == f.DefaultFormat &&
+	if f.outputFile == "" && f.split == "" && !f.isFormatSet &&
 		isBinary(f.Format) && !f.forceBinary && terminal.IsTerminalFile(os.Stdout) {
 		f.Format = "sup"
 		f.SUP.Pretty = 0
