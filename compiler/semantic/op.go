@@ -262,7 +262,7 @@ func (t *translator) fromName(node ast.Node, name string, args []ast.OpArg) (sem
 	if isURL(name) {
 		return t.fromURL(node, name, args), ""
 	}
-	prefix := strings.Split(filepath.Base(name), ".")[0]
+	prefix, _, _ := strings.Cut(filepath.Base(name), ".")
 	if t.env.IsAttached() {
 		return t.pool(node, name, args), prefix
 	}

@@ -222,7 +222,7 @@ type ResponseWriter struct {
 	zw        vio.PushCloser
 	marshaler *sup.MarshalBSUPContext
 	request   *Request
-	written   int32
+	written   atomic.Int32
 }
 
 func (w *ResponseWriter) ContentType() string {
@@ -247,7 +247,7 @@ func (w *ResponseWriter) ZioWriter() vio.PushCloser {
 }
 
 func (w *ResponseWriter) Write(b []byte) (int, error) {
-	if atomic.CompareAndSwapInt32(&w.written, 0, 1) {
+	if w.written.CompareAndSwap(0, 1) {
 		typ, err := api.FormatToMediaType(w.Format)
 		if err != nil {
 			return 0, err
@@ -271,7 +271,7 @@ func (w *ResponseWriter) Error(err error) {
 	if status >= 500 {
 		w.Logger.Warn("Error", zap.Int("status", status), zap.Error(err))
 	}
-	if atomic.CompareAndSwapInt32(&w.written, 0, 1) {
+	if w.written.CompareAndSwap(0, 1) {
 		// Should errors be returned in different encodings, i.e. adhere to
 		// the encoding ?
 		w.Header().Set("Content-Type", "application/json")
