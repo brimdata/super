@@ -149,6 +149,9 @@ func stitch(tags []uint32, vecs []Any) Any {
 }
 
 func AddNoRip(vec Any) Any {
+	if vec == nil {
+		return vec
+	}
 	if dynamic, ok := vec.(*Dynamic); ok {
 		vals := make([]Any, len(dynamic.Values))
 		for i, vec := range dynamic.Values {
