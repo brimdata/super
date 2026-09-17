@@ -674,7 +674,13 @@ func (t *translator) groupBy(sch *selectScope, in []ast.Expr, inType super.Type)
 			} else {
 				save := sch.groupByLoc
 				sch.groupByLoc = expr
-				e, typ = t.expr(sch.columns[colno-1].astExpr, inType)
+				if col := sch.columns[colno-1]; col.semExpr != nil {
+					// If semExpr is not nil, column refers to an expanded star
+					// expression - use this value.
+					e, typ = col.semExpr, col.typ
+				} else {
+					e, typ = t.expr(col.astExpr, inType)
+				}
 				sch.groupByLoc = save
 			}
 		} else {

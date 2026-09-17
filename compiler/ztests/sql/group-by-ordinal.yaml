@@ -2,6 +2,8 @@ script: |
   super -s -c 'select a from test.sup group by 1,1'
   echo // ===
   super -s -c 'select 1, b, count() as c from test.sup group by 1, b order by c desc'
+  echo // ===
+  super -s -c 'select * from test.sup group by 1,2,3,4'
   ! super -s -c 'select a, b, c, d from test.sup group by 5, 0'
   echo // === >&2
   ! super -s -c 'select count() as c, a from test.sup group by 1,2'
@@ -20,6 +22,9 @@ outputs:
       // ===
       {"1":1,b:"foo",c:2}
       {"1":1,b:"bar",c:1}
+      // ===
+      {a:1,b:"foo",c:1,d:1}
+      {a:1,b:"bar",c:1,d:1}
   - name: stderr
     data: |
       position 5 is not in select list at line 1, column 42:
