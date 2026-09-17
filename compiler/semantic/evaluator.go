@@ -17,6 +17,7 @@ import (
 type evaluator struct {
 	translator *translator
 	in         map[string]*funcDef
+	seen       map[string]bool
 	errs       errlist
 	constThis  bool
 	bad        bool
@@ -31,6 +32,7 @@ func newEvaluator(t *translator, funcs map[string]*funcDef) *evaluator {
 	return &evaluator{
 		translator: t,
 		in:         funcs,
+		seen:       make(map[string]bool),
 	}
 }
 
@@ -52,13 +54,6 @@ func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, 
 	e.expr(expr)
 	if len(e.errs) > 0 || e.bad {
 		return super.Value{}, false
-	}
-	for _, f := range e.translator.resolver.funcs {
-		e.constThis = true
-		e.expr(f.body)
-		if len(e.errs) > 0 || e.bad {
-			return super.Value{}, false
-		}
 	}
 	main := newDagen(e.translator.reporter).assembleExpr(expr, e.translator.getTypes(), e.translator.resolver.funcs)
 	val, err := rungen.EvalAtCompileTime(sctx, main)
@@ -221,11 +216,15 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 	case *sem.BinaryExpr:
 		return e.expr(expr.LHS) && e.expr(expr.RHS)
 	case *sem.CallExpr:
-		// XXX should calls with side-effects not be const?
-		// once you're in the call, you're good.  but the body must not
-		// do a subquery with ext input.  so we need to scan the funcs.
-		// this means e.funcs should be here to check.
-		return e.exprs(expr.Args)
+		isConst := e.exprs(expr.Args)
+		if f, ok := e.in[expr.Tag]; ok && !e.seen[expr.Tag] {
+			e.seen[expr.Tag] = true
+			save := e.constThis
+			e.constThis = true
+			e.expr(f.body)
+			e.constThis = save
+		}
+		return isConst
 	case *sem.CondExpr:
 		return e.expr(expr.Cond) && e.expr(expr.Then) && e.expr(expr.Else)
 	case *sem.DotExpr:
