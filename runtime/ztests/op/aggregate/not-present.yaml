@@ -1,5 +1,7 @@
 spq: max(val) by key | sort
 
+input-flags: -dynamic
+
 input: |
   {key:"key1"}
 

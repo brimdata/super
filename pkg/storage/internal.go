@@ -6,24 +6,26 @@ import (
 	"io/fs"
 )
 
+type Open func() (Reader, error)
+
 type InternalEngine struct {
-	files map[string]io.Reader
+	openers map[string]Open
 }
 
 func NewInternalEngine() *InternalEngine {
-	return &InternalEngine{map[string]io.Reader{}}
+	return &InternalEngine{map[string]Open{}}
 }
 
-func (i *InternalEngine) AddReader(uri string, r io.Reader) {
-	i.files[uri] = r
+func (i *InternalEngine) AddFile(uri string, o Open) {
+	i.openers[uri] = o
 }
 
 func (i *InternalEngine) Get(_ context.Context, u *URI) (Reader, error) {
-	v, ok := i.files[u.String()]
+	o, ok := i.openers[u.String()]
 	if !ok {
 		return nil, fs.ErrNotExist
 	}
-	return &notSupportedReaderAt{io.NopCloser(v)}, nil
+	return o()
 }
 
 func (*InternalEngine) Put(context.Context, *URI) (io.WriteCloser, error) {
@@ -43,12 +45,12 @@ func (*InternalEngine) DeleteByPrefix(context.Context, *URI) error {
 }
 
 func (i *InternalEngine) Exists(_ context.Context, u *URI) (bool, error) {
-	_, ok := i.files[u.String()]
+	_, ok := i.openers[u.String()]
 	return ok, nil
 }
 
 func (i *InternalEngine) Size(_ context.Context, u *URI) (int64, error) {
-	_, ok := i.files[u.String()]
+	_, ok := i.openers[u.String()]
 	if !ok {
 		return 0, fs.ErrNotExist
 	}

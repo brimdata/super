@@ -1,5 +1,7 @@
 spq: values foo, foo.bar
 
+input-flags: -dynamic
+
 input: |
   <{foo:{bar:int64}}>
   <int64>
