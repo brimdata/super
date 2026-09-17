@@ -478,7 +478,7 @@ func (z *ZTest) runInternal(ctx context.Context) (string, error) {
 	eng := storage.NewInternalEngine()
 	if i := z.Input; i != nil {
 		ast.PrependFileScan([]string{"stdio:stdin"})
-		eng.AddFile("stdio:stdin", func() (storage.Reader, error) {
+		eng.AddOpenFunc("stdio:stdin", func() (storage.Reader, error) {
 			return &nopCloseStringsReader{strings.NewReader(*i)}, nil
 		})
 	}
