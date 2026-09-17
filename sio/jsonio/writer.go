@@ -59,6 +59,9 @@ func (w *Writer) Push(vec vector.Any) error {
 }
 
 func (w *Writer) Write(val super.Value) error {
+	if val.IsNone() {
+		return nil
+	}
 	// writeAny doesn't return an error because any error that occurs will be
 	// surfaced with w.writer.Flush is called.
 	w.writeAny(0, val)
