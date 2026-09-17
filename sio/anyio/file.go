@@ -2,7 +2,6 @@ package anyio
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	"github.com/brimdata/super"
@@ -62,27 +61,21 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	if err != nil {
 		return nil, err
 	}
-	r, err := engine.Get(ctx, u)
+	var r storage.Reader
+	if static {
+		r, err = storage.GetAndMaybeBuffer(ctx, engine, u)
+	} else {
+		r, err = engine.Get(ctx, u)
+	}
 	if err != nil {
 		return nil, err
 	}
 	defer r.Close()
-	rs, ok := asReadSeeker(r)
-	if !ok {
-		if static {
-			return nil, errors.New("cannot get file type of non-seekable input")
-		}
-		return nil, nil
-	}
 	f, err := NewFile(ctx, sctx, r, path, opts)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
-	// On BSD/macOS, open("/dev/stdin") dups fd 0 rather than re-opening the
-	// file, so it shares stdin's file offset. Reset to 0 so a re-open reads
-	// from the start instead of resuming where the last read left off.
-	defer rs.Seek(0, io.SeekStart)
 	if typed, ok := f.Puller.(sio.Typer); ok {
 		return typed.Type()
 	}

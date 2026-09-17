@@ -3,8 +3,10 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -76,6 +78,45 @@ func Get(ctx context.Context, engine Engine, u *URI) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+func GetAndMaybeBuffer(ctx context.Context, engine Engine, u *URI) (Reader, error) {
+	r, err := engine.Get(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	if streams, ok := isStream(engine); ok {
+		b, err := io.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+		streams[u.String()] = b
+		return newStream(b), nil
+	}
+	return r, nil
+}
+
+func isStream(r Reader) (map[string][]byte, bool) {
+	switch engine := engine.(type) {
+	case *HTTPEngine:
+		return engine.streams, true
+	case *InternalEngine:
+		return engine.streams, true
+	default:
+		fmt.Printf("IS-STREAM %T\n", engine)
+		return nil, false
+	}
+}
+
+type stream struct {
+	io.Reader
+	io.ReaderAt
+	io.Closer
+}
+
+func newStream(b []byte) *stream {
+	r := bytes.NewReader(b)
+	return &stream{r, r, io.NopCloser(r)}
 }
 
 func Size(r Reader) (int64, error) {

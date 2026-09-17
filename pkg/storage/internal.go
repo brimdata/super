@@ -7,11 +7,12 @@ import (
 )
 
 type InternalEngine struct {
-	files map[string]io.Reader
+	files   map[string]io.Reader
+	streams map[string][]byte
 }
 
 func NewInternalEngine() *InternalEngine {
-	return &InternalEngine{map[string]io.Reader{}}
+	return &InternalEngine{map[string]io.Reader{}, make(map[string][]byte)}
 }
 
 func (i *InternalEngine) AddReader(uri string, r io.Reader) {
@@ -19,6 +20,9 @@ func (i *InternalEngine) AddReader(uri string, r io.Reader) {
 }
 
 func (i *InternalEngine) Get(_ context.Context, u *URI) (Reader, error) {
+	if b, ok := i.streams[u.String()]; ok {
+		return newStream(b), nil
+	}
 	v, ok := i.files[u.String()]
 	if !ok {
 		return nil, fs.ErrNotExist

@@ -19,7 +19,8 @@ const (
 // Router is an Engine that routes each function call to the correct sub-Engine
 // based off the provided URI's scheme and its enablement.
 type Router struct {
-	engines map[Scheme]Engine
+	engines  map[Scheme]Engine
+	buffered map[string][]byte
 }
 
 var _ Engine = (*Router)(nil)

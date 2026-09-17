@@ -8,15 +8,20 @@ import (
 	"net/http"
 )
 
-type HTTPEngine struct{}
+type HTTPEngine struct {
+	streams map[string][]byte
+}
 
 var _ Engine = (*HTTPEngine)(nil)
 
 func NewHTTP() *HTTPEngine {
-	return &HTTPEngine{}
+	return &HTTPEngine{streams: make(map[string][]byte)}
 }
 
-func (*HTTPEngine) Get(ctx context.Context, u *URI) (Reader, error) {
+func (h *HTTPEngine) Get(ctx context.Context, u *URI) (Reader, error) {
+	if b, ok := h.streams[u.String()]; ok {
+		return newStream(b), nil
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
