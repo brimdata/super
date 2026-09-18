@@ -263,10 +263,9 @@ func (f *File) load(dir string) ([]byte, *regexp.Regexp, error) {
 
 // ZTest defines a ztest.
 type ZTest struct {
-	Line    int     `yaml:"-"`
-	Runtime *string `yaml:"runtime,omitempty"`
-	Skip    string  `yaml:"skip,omitempty"`
-	Tag     string  `yaml:"tag,omitempty"`
+	Line int    `yaml:"-"`
+	Skip string `yaml:"skip,omitempty"`
+	Tag  string `yaml:"tag,omitempty"`
 
 	// For SPQ-style tests.
 	SPQ         string  `yaml:"spq,omitempty"`
