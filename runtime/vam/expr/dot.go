@@ -123,7 +123,7 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 func hasNone(vec vector.Any) bool {
 	switch vec := vec.(type) {
 	case *vector.None:
-		return true
+		return vec.Len() > 0
 	case *vector.Union:
 		return super.IsOptionType(vec.Type()) && hasNone(vec.Dynamic())
 	case *vector.Fusion:
