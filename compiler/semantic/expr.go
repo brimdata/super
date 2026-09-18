@@ -1246,7 +1246,13 @@ func (t *translator) arrayElems(elems []ast.ArrayElem, inType super.Type) ([]sem
 		case *ast.SpreadElem:
 			elemExpr, elemType := t.expr(elem.Expr, inType)
 			out = append(out, &sem.SpreadElem{Node: elem, Expr: elemExpr})
-			types = append(types, elemType)
+			var spreadType super.Type
+			if arrayType, ok := elemType.(*super.TypeArray); ok {
+				spreadType = arrayType.Type
+			} else {
+				spreadType = t.checker.unknown
+			}
+			types = append(types, spreadType)
 		case *ast.ExprElem:
 			elemExpr, elemType := t.expr(elem.Expr, inType)
 			out = append(out, &sem.ExprElem{Node: elem, Expr: elemExpr})
