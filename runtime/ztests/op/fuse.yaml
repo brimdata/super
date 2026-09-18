@@ -197,3 +197,29 @@ output: |
   {y:2}
   1
   2
+
+---
+
+spq: fuse | values x
+
+input: |
+  {x:{y:1}}
+  {}
+
+output-flags: -fusion
+
+output: |
+  fusion({y:1}::(none|{y:int64}),<{y:int64}>)
+  error({message:"no such field x",on:{}})
+
+---
+
+spq: fuse | values x.ok() ?? 123
+
+input: |
+  {x:{y:1}}
+  {}
+
+output: |
+  {y:1}
+  123
