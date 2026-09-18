@@ -1,9 +1,9 @@
 spq: 'cut typeof(this)'
 
+flags: -f table
+
 input: |
   {a:1}
-
-output-flags: -f table
 
 output: |
   typeof

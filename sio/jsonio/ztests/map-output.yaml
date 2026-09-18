@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f json
+
 input: |
   map{}
   // Primitive keys
@@ -34,8 +36,6 @@ input: |
   map{error(0):1}
   type t2=string
   map{"named"::t2:1}
-
-output-flags: -f json
 
 output: |
   {}

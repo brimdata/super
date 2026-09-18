@@ -1,11 +1,11 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {a:0}
   {a:"foo"}
   {a:127.0.0.1}
-
-output-flags: -f csv
 
 output: |
   a

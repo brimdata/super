@@ -12,7 +12,7 @@ spq: |
     )
   | sort s
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   {a:[1,2,3],from:1,to:3}

@@ -1,11 +1,11 @@
 spq: pass
 
+flags: -f json
+
 input: |
   type custom={a:int64}
   {a:1}::custom
   {b:2}
-
-output-flags: -f json
 
 output: |
   {"a":1}

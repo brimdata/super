@@ -1,6 +1,6 @@
 spq: drop x
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   1

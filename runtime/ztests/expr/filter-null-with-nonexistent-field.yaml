@@ -1,6 +1,6 @@
 spq: is_error(t)
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: &input |
   {s:"A=B"}

@@ -51,7 +51,7 @@ output: |
 # Unnest on fusion values
 spq: unnest this
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   fusion({x:"foo",y:[1,2],z?:none::int64},<{x:string,y:[int64]}>)

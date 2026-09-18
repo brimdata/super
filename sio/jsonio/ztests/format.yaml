@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f json
+
 input: |
   #separator \x09
   #set_separator	,
@@ -10,8 +12,6 @@ input: |
   #types	string	string
   key1 value1	key2 value1
   key1 value2	key2 value2
-
-output-flags: -f json
 
 output: |
   {"_path":"conn","foo":"key1 value1","bar":"key2 value1"}

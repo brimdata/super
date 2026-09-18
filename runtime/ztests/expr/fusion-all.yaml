@@ -1,5 +1,7 @@
 spq: upcast(this,<any>)
 
+flags: -fusion
+
 # note: the syntax for fusion values will change from bytes to values soon
 # and this test will be updated
 
@@ -8,8 +10,6 @@ input: |
   "foo"
   {x:1}
   <string>
-
-output-flags: -fusion
 
 output: |
   1::any

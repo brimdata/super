@@ -1,10 +1,10 @@
 spq: pass
 
+flags: -f table
+
 input: |
   type record_named={b:int64}
   {a:{b:1}::record_named}
-
-output-flags: -f table
 
 output: |
   a.b

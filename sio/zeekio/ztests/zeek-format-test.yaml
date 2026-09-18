@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f zeek
+
 input: |
   {s:null::(string|null)}
   {s:"foo"}
@@ -25,8 +27,6 @@ input: |
   {s:["(empty)"]}
   {s:["abc","xyz"]}
   {s:["a,b"]}
-
-output-flags: -f zeek
 
 output: |
   #separator \x09

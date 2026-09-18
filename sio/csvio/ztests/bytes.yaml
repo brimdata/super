@@ -1,10 +1,10 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {bytes:0x}
   {bytes:0x68656c6c6f0a}
-
-output-flags: -f csv
 
 output: |
   bytes

@@ -1,6 +1,6 @@
 spq: pass
 
-output-flags: -fusion
+flags: -fusion
 
 input: &input |
   {a:fusion(none::(int64|null|none),<none>)}

@@ -1,6 +1,6 @@
 spq: cut m1:=is_error(a[-1]),m2:=is_error(a[4])
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   {x:[1,2,3],i:1::uint16}

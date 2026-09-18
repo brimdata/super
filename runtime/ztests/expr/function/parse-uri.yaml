@@ -1,5 +1,7 @@
 spq: uri := parse_uri(s)
 
+flags: -pretty 2
+
 input: |
   {s:""}
   {s:"scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"}
@@ -9,8 +11,6 @@ input: |
   {s:1}
   {s:":no-scheme"}
   {s:"scheme://bad-port:1234567"}
-
-output-flags: -pretty=2
 
 output: |
   {

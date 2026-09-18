@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f csv
+
 # 1e-45 and 5e-324 are the smallest nonzero float32 and float64.
 # 3.4028235e+38 and 1.7976931348623157e+308 are the maximum float32 and
 # float64.
@@ -16,8 +18,6 @@ input: |
   {f16:-5.9604645e-08::float16,f32:-1e-45::float32,f64:-5e-324}
   {f16:65504.::float16,f32:3.4028235e+38::float32,f64:1.7976931348623157e+308}
   {f16:-65504.::float16,f32:-3.4028235e+38::float32,f64:-1.7976931348623157e+308}
-
-output-flags: -f csv
 
 output: |
   f16,f32,f64

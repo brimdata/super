@@ -1,11 +1,11 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {a:"hello",b:"world"}
   {a:"goodnight",b:"gracie"}
   {a:",",b:"gracie"}
-
-output-flags: -f csv
 
 output: |
   a,b

@@ -1,9 +1,9 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {net:1.2.3.4/32}
-
-output-flags: -f csv
 
 output: |
   net

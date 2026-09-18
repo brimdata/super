@@ -1,6 +1,6 @@
 spq: pass
 
-output-flags: -f sup -pretty=4
+flags: -f sup -pretty 4
 
 input: |
   {flip:"HEADS"::enum(HEADS,TAILS)}
