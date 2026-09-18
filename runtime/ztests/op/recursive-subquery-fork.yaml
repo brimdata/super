@@ -1,0 +1,14 @@
+spq: |
+  fn walk(n): (
+    values {n}
+    | values n <= 0 ? [] : [{a: n, b: n * 2, c: 'x', d: [n, n], e: {f: n}}, ...walk(n - 1)]
+  )
+  fork
+    ( values walk(200) | unnest this )
+    ( values walk(200) | unnest this )
+    ( values walk(200) | unnest this )
+    ( values walk(200) | unnest this )
+  | count()
+
+output: |
+  800
