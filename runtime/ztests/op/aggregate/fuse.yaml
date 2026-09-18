@@ -9,9 +9,9 @@ input: |
   {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"c"}
 
 output: |
-  {key:"a",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
-  {key:"b",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
-  {key:"c",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
+  {key:"a",supertype:<fusion({a:fusion(string|none),r:fusion({x:fusion(int32|none),y:int32,z:fusion(int32|none)}),key:string,s:fusion(string|none),r2:fusion(none|{x:int32})})>}
+  {key:"b",supertype:<fusion({a:fusion(string|none),r:fusion({x:fusion(int32|none),y:int32,z:fusion(int32|none)}),key:string,s:fusion(string|none),r2:fusion(none|{x:int32})})>}
+  {key:"c",supertype:<fusion({a:fusion(string|none),r:fusion({x:fusion(int32|none),y:int32,z:fusion(int32|none)}),key:string,s:fusion(string|none),r2:fusion(none|{x:int32})})>}
 
 ---
 
@@ -25,7 +25,8 @@ input: |
   {fixed:{x:5},var:{s:"foo",t:{x:1}}}
 
 output: |
-  <{fixed:{x:int64},var:fusion({s:string,a?:[int64],t:fusion(int64|none|{x:int64})})}>
+  <{fixed:{x:int64},var:fusion({s:string,a:fusion(none|[int64]),t:fusion(int64|none|{x:int64})})}>
+
 ---
 
 spq: fuse(this)
@@ -95,3 +96,36 @@ output: |
   type n1=[int64]
   type n2=int64
   <fusion(n1|[fusion(n2|int64)])>
+
+---
+
+spq: fuse(this)
+
+input: |
+  {x:{y:1}}
+  {}
+
+output: |
+  <fusion({x:fusion(none|{y:int64})})>
+
+---
+
+spq: fuse(this)
+
+input: |
+  {x?:1}
+  {x?:2,y:3}
+
+output: |
+  <fusion({x?:int64,y:fusion(int64|none)})>
+
+---
+
+spq: fuse(this)
+
+input: |
+  {x?:2,y:3}
+  {x?:1}
+
+output: |
+  <fusion({x?:int64,y:fusion(int64|none)})>
