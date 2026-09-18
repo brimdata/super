@@ -69,12 +69,14 @@ Local files are not accessible when attached to a database.
 When the entity is a text entity recognized as a file,
 the `from` operator reads data from its upstream pipe operator.
 For each input value, the file is scanned once and the data is fed to
-the output of `from`.
+the output of `from`.  If `from` is the first operator, it receives
+exactly one `null` value as input so it scans the file exactly once.
 
 When the entity is a glob recognized as a file-system glob,
 the `from` operator reads data from its upstream pipe operator.
 For each input value, all matching files are scanned once and the data
-is fed to the output of `from`.
+is fed to the output of `from`.  If `from` is the first operator, it receives
+exactly one `null` value as input so it scans all matching files exactly once.
 
 When the entity is an [f-string](../expressions/f-strings.md),
 the `from` operator reads data from its upstream pipe operator
