@@ -1,5 +1,5 @@
 script: |
-  super -f csup -o out.csup -
+  super -o out.csup -
   super dev csup -s out.csup
 
 inputs:

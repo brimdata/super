@@ -1,6 +1,6 @@
 # Test pruner flips comparator with literal/path
 script: |
-  super -f parquet -o test.parquet -c 'values {v:1}'
+  super -o test.parquet -c 'values {v:1}'
   echo === Test pruner flips comparator with literal/path
   super compile -O -C -c 'from test.parquet | where 1 <= v and 1 >= v'
   echo === Test pruner optimization works with in subquery expressions

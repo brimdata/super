@@ -1,6 +1,6 @@
 script: |
-  super -o x.parquet -f parquet x.sup
-  super -o y.parquet -f parquet y.sup
+  super -o x.parquet x.sup
+  super -o y.parquet y.sup
   super -s -c "select x from x.parquet join y.parquet on x=y"
   touch z.sup
   ! super -s -c "select x from x.parquet join z.sup on x=y"

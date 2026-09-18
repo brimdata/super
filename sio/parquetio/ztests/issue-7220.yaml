@@ -1,7 +1,7 @@
 # Verify that projection pushdown works with nested logical types.
 
 script: |
-  super -f parquet -o a.parquet -
+  super -o a.parquet -
   super -s -c 'from a.parquet | values {a,b,c}'
 
 inputs:

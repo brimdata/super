@@ -6,12 +6,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/brimdata/super/cli/auto"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/pkg/terminal"
 	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/emitter"
@@ -102,6 +104,13 @@ func (f *Flags) Init() error {
 		f.Format = "sup"
 		if !f.supPretty {
 			f.SUP.Pretty = 0
+		}
+	} else if !f.isFormatSet {
+		if fmt := sio.FormatFromPath(f.outputFile); fmt != "" {
+			f.Format = fmt
+		}
+		if e := filepath.Ext(f.outputFile); e == ".jsonl" || e == ".ndjson" {
+			f.JSON.Pretty = 0
 		}
 	}
 	if f.outputFile == "-" {

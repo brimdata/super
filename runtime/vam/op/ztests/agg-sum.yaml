@@ -6,7 +6,7 @@ script: |
   {
     seq -f '{x: 0, y: %.0f}' 257
     seq -f '{x: 1, y: %.0f}' 257
-  } | super -o t.csup -f csup -
+  } | super -o t.csup -
   super -s -c 'from t.csup | sum(x)'
   super -s -c 'from t.csup | sum(y)'
 

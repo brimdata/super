@@ -1,5 +1,5 @@
 script: |
-  super -f csup -o t.csup in.sup
+  super -o t.csup in.sup
   ! cat t.csup | super -i csup -
 
 inputs:

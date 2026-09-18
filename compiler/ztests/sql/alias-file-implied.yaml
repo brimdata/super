@@ -1,6 +1,6 @@
 script: |
   mkdir -p path/to
-  super -o path/to/foo.parquet -f parquet foo.sup
+  super -o path/to/foo.parquet foo.sup
   super -s -c 'select foo.id from path/to/foo.parquet'
 
 inputs:

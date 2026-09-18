@@ -12,7 +12,7 @@ outputs:
 ---
 
 script: |
-  super -f csup -o test.csup -c 'values false | where this'
+  super -o test.csup -c 'values false | where this'
 
 outputs:
   - name: test.csup

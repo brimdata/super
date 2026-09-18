@@ -1,8 +1,8 @@
 script: |
-  super -f parquet -o t.parquet a.sup
+  super -o t.parquet a.sup
   super -s -i parquet t.parquet
   echo ===
-  super -f parquet -o t.parquet b.sup
+  super -o t.parquet b.sup
   super -s -i parquet t.parquet
 
 inputs:
