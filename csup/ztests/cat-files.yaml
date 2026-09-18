@@ -1,6 +1,6 @@
 script: |
-  super -f csup -o a.csup a.sup
-  super -f csup -o b.csup b.sup
+  super -o a.csup a.sup
+  super -o b.csup b.sup
   cat a.csup b.csup > test.csup
   super -s test.csup
   echo // ===

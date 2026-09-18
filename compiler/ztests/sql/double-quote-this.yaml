@@ -1,10 +1,10 @@
 script: |
-  super -o this.parquet -f parquet this.sup
+  super -o this.parquet this.sup
   super -s -c 'select "this" from this.parquet'
   echo ===
   super -s -c 'select this from this.parquet'
   echo ===
-  super -o a.parquet -f parquet a.sup
+  super -o a.parquet a.sup
   super -s -c 'select this from a.parquet this'
   echo ===
   super -s -c 'select this.a from a.parquet this'

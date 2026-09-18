@@ -1,5 +1,5 @@
 script: |
-  super -f parquet -o a.parquet a.sup
+  super -o a.parquet a.sup
   ! super -c "select count() from a.parquet having a=1"
 
 inputs:

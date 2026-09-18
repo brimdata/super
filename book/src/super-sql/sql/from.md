@@ -115,7 +115,7 @@ _Translate some CSV into Parquet and query it_
 echo 'Name,Email,Phone Number,Address
 John Doe,john.doe@example.com,123-555-1234,"123 Example Address, City, State"
 Jane Smith,jane.smith@example.com,123-555-5678,"456 Another Lane, Town, State"' > example.csv
-super -f parquet -o example.parquet example.csv
+super -o example.parquet example.csv
 super -s -c 'SELECT collect("Phone Number") as numbers FROM example.parquet'
 ```
 ```mdtest-output

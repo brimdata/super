@@ -1,5 +1,5 @@
 script: |
-  super -f csup -o test.csup in.sup
+  super -o test.csup in.sup
   super -s -fusion test.csup
 
 inputs:

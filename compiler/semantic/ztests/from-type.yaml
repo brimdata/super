@@ -1,7 +1,7 @@
 script: |
   super -o test.csup test.sup
-  super -f parquet -o test.parquet -c blend test.sup
-  super -f json -o test.json test.sup
+  super -o test.json test.sup
+  super -o test.parquet -c blend test.sup
   for format in csup json parquet sup; do
     echo "=== $format (default)"
     super compile -dag -C "from test.$format"
