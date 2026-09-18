@@ -1,0 +1,19 @@
+# Test an issue that occurred when a dynamic function was called and
+# then a complex const was used, the dynamic function was checked
+# for being a const even though the const never called the function.
+script: |
+  super -s -c '
+    fn read(s): ( from f"{s}" )
+    fn foo(i):  ( {foo:i} )
+    const C = foo(2)
+    values {...read("in.sup"),b:C}'
+
+inputs:
+  - name: in.sup
+    data: |
+      {a:1}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1,b:{foo:2}}

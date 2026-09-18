@@ -71,6 +71,21 @@ func (f *Fuser) fuse(a, b Type) Type {
 					fields = append(fields, NewField(field.Name, typ))
 				}
 			}
+			// Any fields that are completely missing from the fused record require
+			// a fusion wrapper so we can recover their missingness without
+			// defusing the parent type.
+			for k, field := range fields {
+				if _, ok := field.Type.(*TypeFusion); ok {
+					continue
+				}
+				if _, ok := indexOfField(a.Fields, field.Name); !ok {
+					fields[k].Type = f.fusion(field.Type)
+					continue
+				}
+				if _, ok := indexOfField(b.Fields, field.Name); !ok {
+					fields[k].Type = f.fusion(field.Type)
+				}
+			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
 			if recChanged(a, fusedRec) || recChanged(b, fusedRec) {
 				return f.fusion(fusedRec)

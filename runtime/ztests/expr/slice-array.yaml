@@ -1,5 +1,7 @@
 spq: "values c[start:end]"
 
+input-flags: -dynamic
+
 input: |
   {start:null,end:-1,c:[1,2,3,4]}
   {start:1,end:null,c:[1,2,3,4]}

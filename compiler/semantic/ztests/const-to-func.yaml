@@ -5,3 +5,16 @@ spq: |
 
 output: |
   "BAR"
+
+---
+
+# Test const that calls to a function with a dynamic result fails.
+spq: |
+  fn u(s): (from f"{s}")
+  const foo=u('file.sup')
+  values foo
+
+error: |
+  cannot read data in constant expression at line 1, column 16:
+  fn u(s): (from f"{s}")
+                 ~~~~~~
