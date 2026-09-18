@@ -65,15 +65,13 @@ func (t *translator) parentJoin(in ast.Seq, seq sem.Seq, inType super.Type) (sem
 func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem.Seq) (sem.Seq, super.Type, string) {
 	switch entity := entity.(type) {
 	case *ast.GlobExpr:
-		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badType, ""
-		}
 		if t.env.IsAttached() {
 			// XXX need to get fused type from pool
 			return t.fromPoolRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), nil, ""
 		}
 		// XXX should fuse the types across the glob instead of unknown
-		return sem.Seq{t.fromFileGlob(entity, entity.Pattern, args)}, t.checker.unknown, ""
+		op := t.fromFileGlob(entity, entity.Pattern, args)
+		return append(seq, op), t.checker.unknown, ""
 	case *ast.RegexpExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
 			return bad, badType, ""
@@ -85,9 +83,6 @@ func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem
 		// XXX need to get fused type from pool
 		return t.fromPoolRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), t.checker.unknown, ""
 	case *ast.Text:
-		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badType, ""
-		}
 		if seq, typ := t.scope.lookupQuery(t, entity.Text); seq != nil {
 			return seq, typ, entity.Text
 		}
@@ -97,7 +92,7 @@ func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem
 			if typ == nil {
 				typ = t.checker.unknown
 			}
-			return sem.Seq{op}, typ, def
+			return append(seq, op), typ, def
 		}
 		return sem.Seq{op}, t.checker.unknown, def
 	case *ast.FromEval:

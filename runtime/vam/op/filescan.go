@@ -15,22 +15,26 @@ import (
 type FileScan struct {
 	rctx     *runtime.Context
 	env      *exec.Environment
+	parent   vio.Puller
 	paths    []string
 	format   string
 	pushdown sbuf.Pushdown
 
-	mu      sync.Mutex
-	current exec.ConcurrentPuller
-	next    int
-	numDone int
-	puller  vio.Puller
-	pullers []*concurrentPuller
+	mu                   sync.Mutex
+	current              exec.ConcurrentPuller
+	eos                  bool
+	inputValuesRemaining int
+	nextPath             int
+	numDone              int
+	puller               vio.Puller
+	pullers              []*concurrentPuller
 }
 
-func NewFileScan(rctx *runtime.Context, env *exec.Environment, paths []string, format string, p sbuf.Pushdown) *FileScan {
+func NewFileScan(rctx *runtime.Context, env *exec.Environment, parent vio.Puller, paths []string, format string, p sbuf.Pushdown) *FileScan {
 	return &FileScan{
 		rctx:     rctx,
 		env:      env,
+		parent:   parent,
 		paths:    paths,
 		format:   format,
 		pushdown: p,
@@ -63,29 +67,57 @@ func (f *FileScan) NewConcurrentPullers(n int) []vio.Puller {
 	return out
 }
 
-func (f *FileScan) done() {
+func (f *FileScan) done() error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.numDone++
 	if f.numDone == len(f.pullers) {
 		f.current = nil
-		f.next = 0
+		if !f.eos {
+			_, err := f.parent.Pull(true)
+			return err
+		}
+		f.eos = false
+		f.inputValuesRemaining = 0
 		f.numDone = 0
 		for _, p := range f.pullers {
 			p.waitCh <- struct{}{}
 		}
 	}
+	return nil
 }
 
 func (f *FileScan) nextFile(current exec.ConcurrentPuller) (exec.ConcurrentPuller, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if f.eos {
+		return nil, nil
+	}
 	if current != f.current {
 		return f.current, nil
 	}
-	for f.next < len(f.paths) {
-		path := f.paths[f.next]
-		f.next++
+	for {
+		for f.inputValuesRemaining == 0 {
+			vec, err := f.parent.Pull(false)
+			if vec == nil || err != nil {
+				f.eos = true
+				return nil, err
+			}
+			f.inputValuesRemaining = int(vec.Len())
+		}
+		puller, err := f.openNextPath()
+		if puller != nil || err != nil {
+			return puller, err
+		}
+		f.inputValuesRemaining--
+		f.nextPath = 0
+	}
+}
+
+func (f *FileScan) openNextPath() (exec.ConcurrentPuller, error) {
+	for f.nextPath < len(f.paths) {
+		path := f.paths[f.nextPath]
+		f.nextPath++
 		puller, err := f.env.Open(f.rctx.Context, f.rctx.Sctx, path, f.format, f.pushdown, len(f.pullers))
 		if err != nil {
 			if f.env.IgnoreOpenErrors {

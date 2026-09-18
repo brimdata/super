@@ -66,6 +66,18 @@ Local files are not accessible when attached to a database.
 > their use is disambiguated by the presence or absence of an attached
 > database.
 
+When the entity is a text entity recognized as a file,
+the `from` operator reads data from its upstream pipe operator.
+For each input value, the file is scanned once and the data is fed to
+the output of `from`.  If `from` is the first operator, it receives
+exactly one `null` value as input so it scans the file exactly once.
+
+When the entity is a glob recognized as a file-system glob,
+the `from` operator reads data from its upstream pipe operator.
+For each input value, all matching files are scanned once and the data
+is fed to the output of `from`.  If `from` is the first operator, it receives
+exactly one `null` value as input so it scans all matching files exactly once.
+
 When the entity is an [f-string](../expressions/f-strings.md),
 the `from` operator reads data from its upstream pipe operator
 and for each input value, the f-string expression is evaluated and
@@ -255,6 +267,22 @@ super -s -c 'from vals.sup'
 
 ---
 
+_Source data from a file repeatedly_
+```mdtest-command
+echo '1 2' > vals.sup
+super -s -c 'values 0,0,0 | from vals.sup'
+```
+```mdtest-output
+1
+2
+1
+2
+1
+2
+```
+
+---
+
 ## HTTP Example
 
 ---
@@ -283,17 +311,6 @@ echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
 {a:2,c:3}
 {b:3,c:4}
 {b:4,c:5}
-```
-
-_Only a non-constant f-string source lets `from` take input from upstream (any other source is an error)_
-
-```mdtest-command fails
-echo '1 2' | super -s -c "values this | from inputfile" -
-```
-```mdtest-output
-from operator cannot have parent unless its argument is a non-constant f-string at line 1, column 20:
-values this | from inputfile
-                   ~~~~~~~~~
 ```
 
 ---
