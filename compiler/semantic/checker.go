@@ -508,7 +508,13 @@ func (c *checker) arrayElems(typ super.Type, elems []sem.ArrayElem) super.Type {
 	for _, elem := range elems {
 		switch elem := elem.(type) {
 		case *sem.SpreadElem:
-			fuser.fuse(c.expr(typ, elem.Expr))
+			spreadType := c.expr(typ, elem.Expr)
+			if arrayType, ok := spreadType.(*super.TypeArray); ok {
+				spreadType = arrayType.Type
+			} else {
+				spreadType = c.unknown
+			}
+			fuser.fuse(spreadType)
 		case *sem.ExprElem:
 			fuser.fuse(c.expr(typ, elem.Expr))
 		default:
@@ -578,6 +584,7 @@ func (c *checker) formRecordElems(elems []sem.RecordElem, types []super.Type) su
 				if elem.Opt {
 					typ = c.t.sctx.Optionize(typ)
 				}
+				order[elem.Name] = len(fields)
 				fields = append(fields, super.NewField(elem.Name, typ))
 			}
 		default:
