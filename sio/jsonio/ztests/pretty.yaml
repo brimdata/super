@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f json -pretty 4
+
 input: |
   {
     f1: 1.,
@@ -12,8 +14,6 @@ input: |
     f8: map{},
     f9: [],
   }
-
-output-flags: -f json -pretty 4
 
 output: |
   {

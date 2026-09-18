@@ -1,9 +1,9 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {ip:1.2.3.4}
-
-output-flags: -f csv
 
 output: |
   ip

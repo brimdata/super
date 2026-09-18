@@ -1,5 +1,7 @@
 spq: values this, "==="
 
+flags: -pretty 4
+
 input: |
   <{foo:int64}|{bar:string}|uint64>
   type named=set[{foo:int64}|uint64]
@@ -9,8 +11,6 @@ input: |
   <[int64]>
   <error([string])>
   <[[string]]>
-
-output-flags: -pretty=4
 
 output: |
   <uint64|{

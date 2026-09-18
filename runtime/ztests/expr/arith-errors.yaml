@@ -24,7 +24,7 @@ output: |
 
 spq: this+1
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   none

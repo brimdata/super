@@ -1,10 +1,8 @@
 spq: pass
 
-input-flags: -i json
+flags: -i json -f json
 
 input: &input |
   {"Hyphen":"-"}
-
-output-flags: -f json
 
 output: *input

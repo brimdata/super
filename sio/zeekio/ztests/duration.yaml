@@ -1,13 +1,13 @@
 spq: pass
 
+flags: -f zeek
+
 input: |
   {_path:"conn",ts:2001-09-09T01:46:40Z,d:31y259d1h46m40s}
   {_path:"conn",ts:1970-01-01T00:00:01Z,d:-1s}
   {_path:"conn",ts:1970-01-01T00:00:01Z,d:1s}
   {_path:"conn",ts:1973-07-23T18:26:40Z,d:3y204d18h26m40s}
   {_path:"conn",ts:1970-01-01T00:00:00.00000001Z,d:10ns}
-
-output-flags: -f zeek
 
 output: |
   #separator \x09

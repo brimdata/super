@@ -1,6 +1,6 @@
 spq: cut foo
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   {bar:"bar1"}

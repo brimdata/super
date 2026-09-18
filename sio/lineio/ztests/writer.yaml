@@ -1,6 +1,6 @@
 spq: pass
 
-output-flags: -f line
+flags: -f line
 
 input: |
   "a"

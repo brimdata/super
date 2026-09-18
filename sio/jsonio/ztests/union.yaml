@@ -1,7 +1,6 @@
 spq: pass
 
-input-flags: '-i json'
-output-flags: '-f json'
+flags: -i json -f json
 
 input: &input |
   1

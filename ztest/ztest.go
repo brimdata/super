@@ -29,12 +29,12 @@
 //
 //	spq: count()
 //
+//	flags: -f table
+//
 //	input: |
 //	  #0:record[i:int64]
 //	  0:[1;]
 //	  0:[2;]
-//
-//	output-flags: -f table
 //
 //	output: |
 //	  count
@@ -268,12 +268,11 @@ type ZTest struct {
 	Tag  string `yaml:"tag,omitempty"`
 
 	// For SPQ-style tests.
-	SPQ         string  `yaml:"spq,omitempty"`
-	Input       *string `yaml:"input,omitempty"`
-	InputFlags  string  `yaml:"input-flags,omitempty"`
-	Output      string  `yaml:"output,omitempty"`
-	OutputFlags string  `yaml:"output-flags,omitempty"`
-	Error       string  `yaml:"error,omitempty"`
+	SPQ    string  `yaml:"spq,omitempty"`
+	Flags  string  `yaml:"flags,omitempty"`
+	Input  *string `yaml:"input,omitempty"`
+	Output string  `yaml:"output,omitempty"`
+	Error  string  `yaml:"error,omitempty"`
 
 	// For script-style tests.
 	Script  string   `yaml:"script,omitempty"`
@@ -457,9 +456,7 @@ func (z *ZTest) runInternal(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	args := []string{"-f=sup", "-pretty=0"}
-	args = append(args, strings.Fields(z.OutputFlags)...)
-	args = append(args, strings.Fields(z.InputFlags)...)
+	args := append([]string{"-f=sup", "-pretty=0"}, strings.Fields(z.Flags)...)
 	var fs flag.FlagSet
 	var inflags inputflags.Flags
 	var outflags outputflags.Flags

@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -pretty 2
+
 input: &input |
   type myuint8 = uint8
   0::myuint8
@@ -68,5 +70,3 @@ input: &input |
   }
 
 output: *input
-
-output-flags: -pretty=2

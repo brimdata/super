@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f zeek
+
 # Note the \x syntax is not valid in a SUP string so there is not a way
 # to get \x Zeek TSV escapes into th TSV output unless we add support
 # for bytes type to zeekio, in which case we can have support functions
@@ -11,8 +13,6 @@ input: |
   {_path:"",foo:"😁"}
   {_path:"magic",foo:"😁"}
   {_path:"",foo:"foo😁bar\\x00\\x01baz"}
-
-output-flags: -f zeek
 
 output: |
   #separator \x09

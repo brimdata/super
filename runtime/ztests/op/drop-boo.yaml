@@ -1,6 +1,6 @@
 spq: drop boo
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: &input |
   {foo:"foo1"}

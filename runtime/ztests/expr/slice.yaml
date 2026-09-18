@@ -1,6 +1,6 @@
 spq: "cut a1:=a[1:-1],a2:=a[1:],a3:=a[:1],a4:=a[:-1],a5:=a[:-100],a6:=a[-1:],a7:=a[-2:-1],a8:=(a IS NOT NULL and len(a)>0) ? a[:a[1]-9] : null"
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   {a:null}
@@ -31,7 +31,7 @@ output: |
 # Test slice on union and fusion values
 spq: this[1:]
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   [1,2,3]::(null|[int64])

@@ -57,7 +57,7 @@ output: |
 
 spq: values {x?:this}
 
-input-flags: -dynamic
+flags: -dynamic
 
 input: |
   none

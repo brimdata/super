@@ -1,6 +1,6 @@
 spq: pass
 
-input-flags: -i csv
+flags: -i csv -pretty 2
 
 input: |
   "@timestamp","@version",DestinationHostname,DestinationIsIpv6,DestinationPort,DestinationPortName,Initiated,Protocol,RuleName,SourceHostname,SourceIsIpv6,SourcePort,SourcePortName,"_id","_index","_score","_type","beat_hostname","beat_name","beat_version","dst_ip_addr","dst_ip_public","dst_ip_rfc","dst_ip_type","dst_ip_version","dst_is_ipv6","etl_host_agent_ephemeral_uid","etl_host_agent_type","etl_host_agent_uid","etl_kafka_offset","etl_kafka_partition","etl_kafka_time","etl_kafka_topic","etl_pipeline","etl_processed_time","etl_version","event_id","event_original_message","event_original_time","event_recorded_time","event_timezone","host_name",level,"log_name","meta_dst_ip_geo.as_org","meta_dst_ip_geo.asn","meta_dst_ip_geo.city_name","meta_dst_ip_geo.continent_code","meta_dst_ip_geo.country_code2","meta_dst_ip_geo.country_code3","meta_dst_ip_geo.country_name","meta_dst_ip_geo.dma_code","meta_dst_ip_geo.latitude","meta_dst_ip_geo.location","meta_dst_ip_geo.longitude","meta_dst_ip_geo.postal_code","meta_dst_ip_geo.region_code","meta_dst_ip_geo.region_name","meta_dst_ip_geo.timezone","meta_user_name_is_machine",opcode,"process_guid","process_id","process_name","process_path","provider_guid","record_number","rule_technique_id","rule_technique_name","source_name","src_ip_addr","src_ip_public","src_ip_rfc","src_ip_type","src_ip_version","src_is_ipv6",tags,task,"thread_id",type,"user_account","user_domain","user_name",version,"z_elastic_ecs.ecs.version","z_elastic_ecs.event.action","z_elastic_ecs.event.code","z_elastic_ecs.event.created","z_elastic_ecs.event.kind","z_elastic_ecs.event.provider","z_elastic_ecs.user.domain","z_elastic_ecs.user.identifier","z_elastic_ecs.user.name","z_elastic_ecs.user.type"
@@ -26,8 +26,6 @@ input: |
     ""lat"": 37.3388,
     ""lon"": -121.8914
   }","-121.8914",95141,CA,California,"America/Los_Angeles",false,Info,"af7cc946-0306-611b-2b01-000000000600","1,140","msmpeng.exe","c:\programdata\microsoft\windows defender\platform\4.18.2107.4-0\msmpeng.exe","5770385f-c22a-43e0-bf4c-06f5698ffbd9","25,987",T1036,Masquerading,"Microsoft-Windows-Sysmon","10.10.10.100",false,"RFC_1918",private,4,false,,"Network connection detected (rule: NetworkConnect)","1,088",wineventlog,"nt authority\system","nt authority",system,5,"1.10.0","Network connection detected (rule: NetworkConnect)",3,"2021-08-23T16:47:10.838Z",event,"Microsoft-Windows-Sysmon","NT AUTHORITY","S-1-5-18",SYSTEM,User
-
-output-flags: -pretty 2
 
 output: |
   {

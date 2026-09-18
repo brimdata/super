@@ -5,7 +5,5 @@ input: |
   {_path:"dns"}
   {_path:"conn"}
 
-output-flags: -pretty=0
-
 output: |
   2

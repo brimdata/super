@@ -1,11 +1,11 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {time:1970-01-01T00:00:00Z}
   {time:1677-09-21T00:12:43.145224192Z}
   {time:2262-04-11T23:47:16.854775807Z}
-
-output-flags: -f csv
 
 output: |
   time

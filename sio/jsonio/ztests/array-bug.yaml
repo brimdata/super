@@ -1,7 +1,6 @@
 spq: defuse(this)
 
-input-flags: '-i json'
-output-flags: '-f json -pretty=0'
+flags: -i json -f json
 
 input: &input |
   {"b":true,"a":[{"x":1}]}
@@ -13,8 +12,7 @@ output: *input
 
 spq: defuse(this)
 
-input-flags: '-i json'
-output-flags: '-f json -pretty=0'
+flags: -i json -f json
 
 input: &input |
   {"a":[]}
@@ -26,8 +24,7 @@ output: *input
 
 spq: defuse(this)
 
-input-flags: '-i json'
-output-flags: '-f json -pretty=0'
+flags: -i json -f json
 
 input: &input |
   ["foo"]

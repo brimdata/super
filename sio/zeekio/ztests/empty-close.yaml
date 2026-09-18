@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f zeek
+
 input: |
   #separator \x09
   #set_separator	,
@@ -9,7 +11,5 @@ input: |
   #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer	validation_status
   #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string	string
   #close  2019-10-10-08-30-35
-
-output-flags: -f zeek
 
 output: ""
