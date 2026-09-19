@@ -422,6 +422,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 // XXX need to move ok() pattern gen to dagen
 
 func (c *checker) ok(typ super.Type, call *sem.CallExpr) super.Type {
+	fmt.Println("OK")
 	c.pushErrs()
 	var types []super.Type
 	for _, e := range call.Args {
@@ -437,6 +438,7 @@ func (c *checker) ok(typ super.Type, call *sem.CallExpr) super.Type {
 	if len(errs) != 0 {
 		c.keepErrs(errs[:1])
 	}
+	fmt.Println("OK", sup.String(out))
 	return out
 }
 
@@ -806,7 +808,11 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 	return ok
 }
 
+// e ?. f => if e is none, then none otherwise e.f
+// so typeof(e?.f) is option(typeof(e.f))
+// but only if e is an option type, otherwise the type is error|typeof(e.f)
 func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool) super.Type {
+	fmt.Println("DEREF", sup.String(typ))
 	switch typ := defuse(super.TypeUnder(typ)).(type) {
 	case *super.TypeError:
 		if isUnknown(typ) {
@@ -825,6 +831,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 		}
 		return typ.Fields[which].Type
 	case *super.TypeUnion:
+		fmt.Println("UNION")
 		if super.IsOptionType(typ) {
 			// This is an option type so call deref on the plain some type
 			// and rewrap it as an option type.  This way the type checker
@@ -835,6 +842,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 			}
 			return typ
 		}
+		fmt.Println(")")
 		// Push the error stack and if we find only missing errors
 		// with at least one valid deref, then we'll discard the errors.
 		// we'll discard the errors.  Otherwise, we'll keep them.
@@ -850,7 +858,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 		}
 		return c.fuse(types)
 	}
-	c.error(loc, fmt.Errorf("no such field %q", field))
+	c.error(loc, fmt.Errorf("no such field %q on type %s", field, sup.FormatType(typ)))
 	return c.unknown
 
 }

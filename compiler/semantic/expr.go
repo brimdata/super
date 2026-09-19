@@ -796,6 +796,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 	nameLower := strings.ToLower(name)
 	switch {
 	case nameLower == "is_ok":
+		//XXX type check underlying ok()
 		if err := function.CheckArgCount(nargs, 1, 1); err != nil {
 			t.error(call, err)
 			return badExpr, t.checker.unknown
