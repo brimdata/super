@@ -14,13 +14,14 @@ import (
 
 type Arith struct {
 	sctx   *super.Context
-	opCode int
+	op     string
 	lhs    Evaluator
 	rhs    Evaluator
+	opCode int
 }
 
 func NewArith(sctx *super.Context, op string, lhs, rhs Evaluator) *Arith {
-	return &Arith{sctx, vector.ArithOpFromString(op), lhs, rhs}
+	return &Arith{sctx, op, lhs, rhs, vector.ArithOpFromString(op)}
 }
 
 func (a *Arith) Eval(val vector.Any) vector.Any {
@@ -28,7 +29,7 @@ func (a *Arith) Eval(val vector.Any) vector.Any {
 }
 
 func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
-	if vec, ok := CheckForErrorThenNullThenNone(a.sctx, vecs, vector.ArithOpToString(a.opCode)); ok {
+	if vec, ok := CheckForErrorThenNullThenNone(a.sctx, vecs, a.op); ok {
 		return vec
 	}
 	lhs := vector.Under(vecs[0])
