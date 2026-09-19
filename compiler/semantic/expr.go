@@ -705,11 +705,22 @@ func (t *translator) semCall(call *ast.CallExpr, inType super.Type) (sem.Expr, s
 	if e, typ := t.maybeConvertAgg(call, inType); e != nil {
 		return e, typ
 	}
-	args, argTypes := t.exprs(call.Args, inType)
 	switch f := call.Func.(type) {
 	case *ast.FuncNameExpr:
+		if f.Name == "ok" {
+			if len(call.Args) != 1 {
+				//XXX
+				panic(".")
+			}
+			t.checker.pushErrs()
+			e, typ := t.expr(call.Args[0], inType)
+			call := sem.NewCall(call, "ok", []sem.Expr{e})
+			return call, t.checker.checkOk(typ, call, t.checker.popErrs())
+		}
+		args, argTypes := t.exprs(call.Args, inType)
 		return t.semCallByName(call, f.Name, args, argTypes, inType)
 	case *ast.LambdaExpr:
+		args, argTypes := t.exprs(call.Args, inType)
 		return t.semCallLambda(f, args, argTypes)
 	default:
 		panic(f)
