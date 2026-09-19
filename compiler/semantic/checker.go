@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/sup"
+	"github.com/kr/pretty"
 )
 
 type checker struct {
@@ -419,27 +420,29 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	}
 }
 
-// XXX need to move ok() pattern gen to dagen
+// XXX need to move is_ok() pattern gen to dagen?
 
 func (c *checker) ok(typ super.Type, call *sem.CallExpr) super.Type {
-	fmt.Println("OK")
+	if len(call.Args) != 1 {
+		panic(call)
+	}
 	c.pushErrs()
-	var types []super.Type
-	for _, e := range call.Args {
-		types = append(types, c.expr(typ, e))
+	typ = c.expr(typ, call.Args[0])
+	return c.checkOk(typ, call, c.popErrs())
+}
+
+func (c *checker) checkOk(typ super.Type, call *sem.CallExpr, errs []errloc) super.Type {
+	fmt.Println("ERRS", errs)
+	others, _ := stripMissing(errs)
+	if len(others) != 0 {
+		c.keepErrs(others[:1])
+		return c.unknown
 	}
-	var out super.Type
-	if isBuiltin(call.Tag) {
-		out = c.callBuiltin(call, types)
-	} else {
-		out = c.callFunc(call, types)
+	//XXX move this into a c.optionize()
+	if hasUnknown(typ) {
+		return typ
 	}
-	errs := stripMissing(c.popErrs())
-	if len(errs) != 0 {
-		c.keepErrs(errs[:1])
-	}
-	fmt.Println("OK", sup.String(out))
-	return out
+	return c.t.sctx.Optionize(typ)
 }
 
 func defuse(typ super.Type) super.Type {
@@ -811,9 +814,9 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 // e ?. f => if e is none, then none otherwise e.f
 // so typeof(e?.f) is option(typeof(e.f))
 // but only if e is an option type, otherwise the type is error|typeof(e.f)
-func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool) super.Type {
-	fmt.Println("DEREF", sup.String(typ))
-	switch typ := defuse(super.TypeUnder(typ)).(type) {
+func (c *checker) deref(loc ast.Node, inType super.Type, field string, noneish bool) super.Type {
+	fmt.Println("DEREF", sup.String(inType))
+	switch typ := defuse(super.TypeUnder(inType)).(type) {
 	case *super.TypeError:
 		if isUnknown(typ) {
 			return typ
@@ -842,7 +845,6 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 			}
 			return typ
 		}
-		fmt.Println(")")
 		// Push the error stack and if we find only missing errors
 		// with at least one valid deref, then we'll discard the errors.
 		// we'll discard the errors.  Otherwise, we'll keep them.
@@ -851,14 +853,26 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string, noneish bool
 		for _, t := range typ.Types {
 			types = append(types, c.deref(loc, t, field, noneish))
 		}
+		//XXX we should separate out case that union has non-record stuff in it
+		// and just report that vs...
+		// COOL IDEA: if we have a case on kind() then we can strip the relevant
+		// types out of the union and, e.g., precisely type check records under
+		// case type(x)="record" (...), or switch, this is like typecase but is
+		// kindcase (which is the same is case kind(e) when the cases are const string)
+		//
 		errs := c.popErrs()
-		nonMissing := stripMissing(errs)
-		if len(nonMissing) != 0 || len(errs) == len(types) {
-			c.keepErrs(errs[:1])
+		pretty.Println("ERRS", errs)
+		others, missings := stripMissing(errs)
+		fmt.Println("OTHERS", len(others), "MISSINGS", len(missings), "TYPES", len(types))
+		if len(missings) == len(types) {
+			c.error(missings[0].loc, fmt.Errorf("no such field %s over all possibilities: %s", field, sup.FormatType(defuse(inType))))
+		}
+		for _, eloc := range others {
+			c.error(eloc.loc, fmt.Errorf("type mismatch may arise: %w (within %s)", eloc.err, sup.FormatType(defuse(inType))))
 		}
 		return c.fuse(types)
 	}
-	c.error(loc, fmt.Errorf("no such field %q on type %s", field, sup.FormatType(typ)))
+	c.error(loc, fmt.Errorf("'.': applied to %s", sup.FormatType(inType)))
 	return c.unknown
 
 }
@@ -871,14 +885,16 @@ func newMissing(field string) error {
 	return &missing{fmt.Errorf("no such field %q", field)}
 }
 
-func stripMissing(errs errlist) errlist {
-	var out errlist
+func stripMissing(errs errlist) (errlist, errlist) {
+	var missings, others errlist
 	for _, errloc := range errs {
-		if _, ok := errloc.err.(*missing); !ok {
-			out = append(out, errloc)
+		if _, ok := errloc.err.(*missing); ok {
+			missings = append(missings, errloc)
+		} else {
+			others = append(others, errloc)
 		}
 	}
-	return out
+	return others, missings
 }
 
 func (c *checker) logical(lloc, rloc ast.Node, lhs, rhs super.Type) {
