@@ -3,7 +3,7 @@ script: |
   echo // ===
   super -s -c 'select 1, b, count() as c from test.sup group by 1, b order by c desc'
   echo // ===
-  super -s -c 'select * from test.sup group by 1,2,3,4'
+  super -s -c 'select * from test.sup group by 1,2,3,4 order by 2 desc'
   ! super -s -c 'select a, b, c, d from test.sup group by 5, 0'
   echo // === >&2
   ! super -s -c 'select count() as c, a from test.sup group by 1,2'
