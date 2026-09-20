@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/sup"
-	"github.com/kr/pretty"
 )
 
 type checker struct {
@@ -815,7 +814,6 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 // so typeof(e?.f) is option(typeof(e.f))
 // but only if e is an option type, otherwise the type is error|typeof(e.f)
 func (c *checker) deref(loc ast.Node, inType super.Type, field string, noneish bool) super.Type {
-	fmt.Println("DEREF", sup.String(inType))
 	switch typ := defuse(super.TypeUnder(inType)).(type) {
 	case *super.TypeError:
 		if isUnknown(typ) {
@@ -834,7 +832,6 @@ func (c *checker) deref(loc ast.Node, inType super.Type, field string, noneish b
 		}
 		return typ.Fields[which].Type
 	case *super.TypeUnion:
-		fmt.Println("UNION")
 		if super.IsOptionType(typ) {
 			// This is an option type so call deref on the plain some type
 			// and rewrap it as an option type.  This way the type checker
@@ -845,27 +842,27 @@ func (c *checker) deref(loc ast.Node, inType super.Type, field string, noneish b
 			}
 			return typ
 		}
-		// Push the error stack and if we find only missing errors
-		// with at least one valid deref, then we'll discard the errors.
-		// we'll discard the errors.  Otherwise, we'll keep them.
 		c.pushErrs()
 		var types []super.Type
 		for _, t := range typ.Types {
 			types = append(types, c.deref(loc, t, field, noneish))
 		}
-		//XXX we should separate out case that union has non-record stuff in it
-		// and just report that vs...
-		// COOL IDEA: if we have a case on kind() then we can strip the relevant
+		// XXX COOL IDEA: if we have a case on kind() then we can strip the relevant
 		// types out of the union and, e.g., precisely type check records under
 		// case type(x)="record" (...), or switch, this is like typecase but is
 		// kindcase (which is the same is case kind(e) when the cases are const string)
 		//
 		errs := c.popErrs()
-		pretty.Println("ERRS", errs)
 		others, missings := stripMissing(errs)
-		fmt.Println("OTHERS", len(others), "MISSINGS", len(missings), "TYPES", len(types))
-		if len(missings) == len(types) {
-			c.error(missings[0].loc, fmt.Errorf("no such field %s over all possibilities: %s", field, sup.FormatType(defuse(inType))))
+		recs := recTypes(typ.Types)
+		if len(missings) == len(recs) && len(recs) > 0 {
+			var in string
+			if len(recs) == 1 {
+				in = sup.FormatType(recs[0])
+			} else {
+				in = sup.FormatType(c.t.sctx.MustLookupTypeUnion(recs))
+			}
+			c.error(missings[0].loc, fmt.Errorf("no such field %s in %s", field, in))
 		}
 		for _, eloc := range others {
 			c.error(eloc.loc, fmt.Errorf("type mismatch may arise: %w (within %s)", eloc.err, sup.FormatType(defuse(inType))))
@@ -875,6 +872,16 @@ func (c *checker) deref(loc ast.Node, inType super.Type, field string, noneish b
 	c.error(loc, fmt.Errorf("'.': applied to %s", sup.FormatType(inType)))
 	return c.unknown
 
+}
+
+func recTypes(types []super.Type) []super.Type {
+	var out []super.Type
+	for _, typ := range types {
+		if _, ok := super.TypeUnder(defuse(typ)).(*super.TypeRecord); ok {
+			out = append(out, typ)
+		}
+	}
+	return out
 }
 
 type missing struct {
