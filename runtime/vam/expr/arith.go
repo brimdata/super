@@ -7,7 +7,6 @@ import (
 	"runtime"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
@@ -43,20 +42,19 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 		panic(fmt.Sprintf("vector kind mismatch after coerce (%#v and %#v)", lhs, rhs))
 	}
 	if kind == vector.KindFloat && a.opCode == vector.ArithMod {
-		return vector.NewStringError(a.sctx, "type float64 incompatible with '%' operator", lhs.Len())
+		return a.incompatibleError(lhs)
 	}
 	lform, ok := vector.FormOf(lhs)
 	if !ok {
-		return vector.NewStringError(a.sctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
+		return a.incompatibleError(lhs)
 	}
 	rform, ok := vector.FormOf(rhs)
 	if !ok {
-		return vector.NewStringError(a.sctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
+		return a.incompatibleError(rhs)
 	}
 	f, ok := arithFuncs[vector.FuncCode(a.opCode, kind, lform, rform)]
 	if !ok {
-		s := fmt.Sprintf("type %s incompatible with '%s' operator", sup.FormatType(lhs.Type()), vector.ArithOpToString(a.opCode))
-		return vector.NewStringError(a.sctx, s, lhs.Len())
+		return a.incompatibleError(lhs)
 	}
 	if a.opCode == vector.ArithDiv || a.opCode == vector.ArithMod {
 		defer func() {
@@ -70,6 +68,11 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 		}()
 	}
 	return f(lhs, rhs)
+}
+
+func (a *Arith) incompatibleError(vec vector.Any) vector.Any {
+	msg := fmt.Sprintf("type %s incompatible with '%s' operator", sup.FormatType(vec.Type()), a.op)
+	return vector.NewStringError(a.sctx, msg, vec.Len())
 }
 
 func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.Any {
