@@ -55,7 +55,7 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	var needApply bool
 	for k, vec := range vecs {
-		if d, ok := vec.(*Dynamic); ok && homogenous(d.Tags) {
+		if d, ok := vec.(*Dynamic); ok && len(d.Tags) > 0 && homogenous(d.Tags) {
 			// All slots in d come from the same vector so replace d
 			// with it.  Then schedule a recursive call to Apply in
 			// case the vector needs to be unwrapped.
