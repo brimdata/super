@@ -89,7 +89,7 @@ func genVarInit(which, typ string, form vector.Form) string {
 		s += fmt.Sprintf("%sx := %sd.Index\n", which, which)
 		return s
 	case vector.FormConst:
-		return fmt.Sprintf("%sconst := vector.%sValue(%shs, 0)\n", which, typ, which)
+		return fmt.Sprintf("%sconst := %shs.(*vector.Const).Any.(*vector.%s).Value(0)\n", which, which, typ)
 	}
 	panic(form)
 }
