@@ -52,7 +52,8 @@ func (d *DotExpr) Eval(vec vector.Any) vector.Any {
 func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 	vec := outerVecs[0]
 	var missing bool
-	eval := func(innerVecs ...vector.Any) vector.Any {
+	var eval func(...vector.Any) vector.Any
+	eval = func(innerVecs ...vector.Any) vector.Any {
 		switch val := vector.Under(innerVecs[0]).(type) {
 		case *vector.Null:
 			if d.nullish {
@@ -95,7 +96,7 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 			keyVec := vector.NewConstString(d.key, val.Len())
 			return indexMap(d.sctx, val, keyVec)
 		case *vector.View:
-			return vector.Pick(d.eval(val.Any), val.Index)
+			return vector.Pick(eval(val.Any), val.Index)
 		}
 		op := "."
 		if d.noneish {
