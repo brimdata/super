@@ -42,6 +42,7 @@ const (
 	EnumKind
 	ErrorKind
 	FusionKind
+	OptionKind
 )
 
 func (k Kind) String() string {
@@ -60,8 +61,11 @@ func (k Kind) String() string {
 		return "union"
 	case EnumKind:
 		return "enum"
+	case OptionKind:
+		return "option"
 	case ErrorKind:
 		return "error"
+
 	default:
 		return fmt.Sprintf("<unknown kind: %d>", k)
 	}
@@ -144,7 +148,8 @@ const (
 	TypeValueNameDef = 39
 	TypeValueNameRef = 40
 	TypeValueFusion  = 41
-	TypeValueMax     = TypeValueFusion
+	TypeValueOption  = 42
+	TypeValueMax     = TypeValueOption
 )
 
 // True iff the type id is a signed or unsigened integer.
@@ -571,6 +576,9 @@ func appendTypeValue(b []byte, t Type, typedefs *map[string]Type) []byte {
 		return appendTypeValue(b, t.Type, typedefs)
 	case *TypeFusion:
 		b = append(b, TypeValueFusion)
+		return appendTypeValue(b, t.Type, typedefs)
+	case *TypeOption:
+		b = append(b, TypeValueOption)
 		return appendTypeValue(b, t.Type, typedefs)
 	default:
 		// Primitive type

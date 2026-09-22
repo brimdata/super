@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Version        = 23
+	Version        = 24
 	HeaderSize     = 9
 	DataHeaderSize = 36
 	FooterSize     = 4

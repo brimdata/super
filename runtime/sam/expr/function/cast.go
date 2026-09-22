@@ -47,34 +47,17 @@ func (c *cast) Call(args []super.Value) super.Value {
 	return c.sctx.WrapError("cast target must be a type or type name", to)
 }
 
-func deoptionType(sctx *super.Context, typ super.Type) super.Type {
-	if union, noneTag := super.OptionUnion(typ); union != nil {
-		if len(union.Types) == 2 {
-			var valTag int
-			if noneTag == 0 {
-				valTag = 1
-			}
-			return union.Types[valTag]
-		}
-		types := slices.DeleteFunc(slices.Clone(union.Types), func(t super.Type) bool {
-			return t == super.TypeNone
-		})
-		return sctx.MustLookupTypeUnion(types)
-	}
-	return typ
-}
-
 func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
-	if optionType, _ := super.OptionUnion(to); optionType != nil {
-		val := from.Deunion()
+	if optionType, ok := to.(*super.TypeOption); ok {
+		val := from.Deoption()
 		if val.Type() == super.TypeNone {
-			return super.None(optionType), true
+			return optionType.None(), true
 		}
-		val, ok := c.Cast(val, deoptionType(c.sctx, to))
+		val, ok := c.Cast(val, optionType.Type)
 		if !ok {
 			return val, ok
 		}
-		return super.Some(optionType, val.Type(), val.Bytes()), true
+		return optionType.Some(val.Bytes()), true
 	}
 	from = from.DeunionIntoNameds()
 
@@ -91,7 +74,7 @@ func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 	case fromType == super.TypeNone:
 		// Casting a none value to a non option type.  Automatically convert
 		// the target type to it's option form.
-		return super.None(c.sctx.Option(to)), true
+		return c.sctx.LookupTypeOption(to).None(), true
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
@@ -147,8 +130,8 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bo
 		if fieldVal.IsMissing() {
 			// This field isn't present.  If the target type is optional,
 			// code a none value.  Otherwise, code error missing.
-			if optionType, _ := super.OptionUnion(f.Type); optionType != nil {
-				val2 = super.None(optionType)
+			if optionType, ok := f.Type.(*super.TypeOption); ok {
+				val2 = optionType.None()
 			} else {
 				val2 = c.sctx.Missing()
 			}

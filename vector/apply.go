@@ -38,17 +38,22 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 		}
 	}
 	if opt&ApplyRipOptions != 0 {
+		// ApplyRipOptions causes any both-style options to be ripped into
+		// pure some or pure none options so that the eval callback need not
+		// worry about encountering a dynamic inside the option.  The stitching
+		// is all done here.
 		for k, vec := range vecs {
-			if vec, ok := Under(vec).(*Union); ok {
-				if super.IsOptionType(vec.Type()) {
-					vecs[k] = preserveOptionType(vec)
-				}
+			if option, ok := Under(vec).(*Option); ok {
+				vecs[k] = ripOption(option)
 			}
 		}
 	}
 	if opt&ApplyRipUnions != 0 {
-		for k, vec := range vecs {
-			if vec, ok := Under(vec).(*Union); ok {
+		for k := range vecs {
+			if vec, ok := Under(vecs[k]).(*Option); ok {
+				vecs[k] = vec.Any
+			}
+			if vec, ok := Under(vecs[k]).(*Union); ok {
 				vecs[k] = vec.Dynamic()
 			}
 		}
@@ -181,17 +186,14 @@ func AddNoRip(vec Any) Any {
 	return &NoRip{vec}
 }
 
-// Take a union vector that is an option type and break it into a dynamic composed
-// not of the union elements but of the original union type where each component contains
-// exactly one non-zero vector.
-func preserveOptionType(u *Union) Any {
-	if u.IsNormalizedOption() {
-		return u
+// When option is style "both", convert it to a dynamic of a pure some option and
+// a pure none option.  Otherwise, return the pure option unmodified.
+func ripOption(o *Option) Any {
+	if d, ok := o.Any.(*Dynamic); ok {
+		optionType := super.TypeUnder(o.Type()).(*super.TypeOption)
+		some := NewOption(optionType, d.Values[super.OptionSomeTag])
+		none := NewOption(optionType, d.Values[super.OptionNoneTag])
+		return NewDynamic(d.Tags, []Any{some, none})
 	}
-	d := u.Dynamic()
-	vecs := make([]Any, 0, len(d.Values))
-	for _, vec := range d.Values {
-		vecs = append(vecs, NewUnionOfOne(u.Typ, vec))
-	}
-	return NewDynamic(d.Tags, vecs)
+	return o
 }

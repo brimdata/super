@@ -3,7 +3,6 @@ package super
 import (
 	"bytes"
 	"errors"
-	"slices"
 	"sort"
 	"sync"
 
@@ -408,26 +407,82 @@ func BeginUnion(b *scode.Builder, tag int) {
 	b.Append(EncodeUint(uint64(tag)))
 }
 
-func BuildSome(b *scode.Builder, optionType *TypeUnion, typ Type, bytes scode.Bytes) {
-	tag := slices.Index(optionType.Types, typ)
-	BuildUnion(b, tag, bytes)
+const (
+	OptionSomeTag = 0
+	OptionNoneTag = 1
+)
+
+type TypeOption struct {
+	id   int
+	Type Type
 }
 
-func Some(optionType *TypeUnion, typ Type, bytes scode.Bytes) Value {
+func NewTypeOption(id int, typ Type) *TypeOption {
+	return &TypeOption{id: id, Type: typ}
+}
+
+func (t *TypeOption) ID() int {
+	return t.id
+}
+
+func (t *TypeOption) Kind() Kind {
+	return OptionKind
+}
+
+func (t *TypeOption) Decode(bytes scode.Bytes) (Type, scode.Bytes) {
+	it := bytes.Iter()
+	tag := DecodeUint(it.Next())
+	if tag == OptionNoneTag {
+		return TypeNone, nil
+	}
+	return t.Type, it.Next()
+}
+
+func (t *TypeOption) Some(bytes scode.Bytes) Value {
 	var b scode.Builder
-	BuildSome(&b, optionType, typ, bytes)
-	return NewValue(optionType, b.Bytes().Body())
+	BuildSome(&b, bytes)
+	return NewValue(t, b.Bytes().Body())
 }
 
-func BuildNone(b *scode.Builder, optionType *TypeUnion) {
-	tag := slices.Index(optionType.Types, Type(TypeNone))
-	BuildUnion(b, tag, nil)
-}
-
-func None(optionType *TypeUnion) Value {
+func (t *TypeOption) None() Value {
 	var b scode.Builder
-	BuildNone(&b, optionType)
-	return NewValue(optionType, b.Bytes().Body())
+	BuildNone(&b)
+	return NewValue(t, b.Bytes().Body())
+}
+
+func IsNone(t Type, bytes []byte) bool {
+	typ := TypeUnder(t)
+	if typ == TypeNone {
+		return true
+	}
+	if typ, ok := typ.(*TypeOption); ok {
+		typ, _ := typ.Decode(bytes)
+		return typ == TypeNone
+	}
+	return false
+}
+
+func IsOptionType(typ Type) bool {
+	_, ok := TypeUnder(typ).(*TypeOption)
+	return ok
+}
+
+func BeginSomeContainer(b *scode.Builder) {
+	b.BeginContainer()
+	b.Append(EncodeUint(OptionSomeTag))
+}
+
+func BuildSome(b *scode.Builder, val scode.Bytes) {
+	b.BeginContainer()
+	b.Append(EncodeUint(OptionSomeTag))
+	b.Append(val)
+	b.EndContainer()
+}
+
+func BuildNone(b *scode.Builder) {
+	b.BeginContainer()
+	b.Append(EncodeUint(OptionNoneTag))
+	b.EndContainer()
 }
 
 func Flatten(types []Type) []Type {

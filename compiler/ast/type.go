@@ -58,6 +58,11 @@ type (
 		Type Type   `json:"type"`
 		Loc  `json:"loc"`
 	}
+	TypeOption struct {
+		Kind string `json:"kind" unpack:""`
+		Type Type   `json:"type"`
+		Loc  `json:"loc"`
+	}
 	TypeRef struct {
 		Kind string `json:"kind" unpack:""`
 		Name string `json:"name"`
@@ -74,6 +79,7 @@ func (*TypeEnum) typeNode()      {}
 func (*TypeMap) typeNode()       {}
 func (*TypeError) typeNode()     {}
 func (*TypeFusion) typeNode()    {}
+func (*TypeOption) typeNode()    {}
 func (*TypeRef) typeNode()       {}
 
 // This is a hack that allows us to express a "date" type until we

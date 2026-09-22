@@ -112,6 +112,8 @@ func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
 		return u.toError(vec, to)
 	case *super.TypeFusion:
 		return u.toFusion(vec, to)
+	case *super.TypeOption:
+		return u.toOption(vec, to)
 	default:
 		return nil
 	}
@@ -299,4 +301,31 @@ func (u *Upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {
 		}
 	}
 	return vector.NewFusion(to, values, subtypes)
+}
+
+func (u *Upcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
+	switch vec.Kind() {
+	case vector.KindOption:
+		option := vector.PushView(vec).(*vector.Option) //XXX Under?
+		return option.Apply(func(tags []uint32, some vector.Any, none *vector.None) vector.Any {
+			if some == nil {
+				return vector.NewOption(to, none)
+			}
+			some = u.upcast(some, to.Type)
+			if some == nil {
+				return nil
+			}
+			if none == nil {
+				return vector.NewOption(to, some)
+			}
+			return vector.NewOptionBoth(to, tags, some, none)
+		})
+	case vector.KindNone:
+		return vector.NewOption(to, vector.NewNone(vec.Len()))
+	}
+	vec = u.upcast(vec, to.Type)
+	if vec == nil {
+		return nil
+	}
+	return vector.NewOption(to, vec)
 }

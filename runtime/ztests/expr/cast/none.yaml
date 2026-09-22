@@ -12,7 +12,7 @@ output: |
 
 ---
 
-spq: values cast({x?:none::int64},<{x?:(int32|string|none)}>)
+spq: values cast({x?:none::int64},<{x?:(int32|string)}>)
 
 output: |
-  {x?:none::(int32|string|none)}
+  {x?:none::option(int32|string)}

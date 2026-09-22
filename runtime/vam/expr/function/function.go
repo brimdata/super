@@ -151,6 +151,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &Replace{sctx}
 	case "round":
 		f = &Round{sctx}
+	case "some":
+		f = newSome(sctx)
 	case "split":
 		argmin, argmax = 2, 2
 		f = &Split{sctx}
@@ -169,6 +171,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &Unblend{sctx}
 	case "under":
 		f = &Under{}
+	case "unwrap":
+		f = newUnwrap(sctx)
 	case "unflatten":
 		f = newUnflatten(sctx)
 	case "upcast":

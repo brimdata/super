@@ -1,0 +1,21 @@
+spq: some(1)
+
+output: |
+  some(1)
+
+---
+
+spq: some(1).unwrap()
+
+output: |
+  1
+
+---
+
+spq: |
+  type foo=option(int64)
+  some(1)::foo
+
+output: |
+  type foo=option(int64)
+  some(1)::foo

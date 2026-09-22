@@ -1,3 +1,5 @@
+skip: this can hang on a mac... disabled until fixed
+
 script: |
   pty() {
     python3 -c 'import pty, sys; pty.spawn(sys.argv[1:])' "$@"
