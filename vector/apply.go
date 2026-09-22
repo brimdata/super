@@ -2,6 +2,7 @@ package vector
 
 import (
 	"iter"
+	"slices"
 
 	"github.com/brimdata/super"
 )
@@ -52,6 +53,19 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 			}
 		}
 	}
+	var needApply bool
+	for k, vec := range vecs {
+		if d, ok := vec.(*Dynamic); ok && len(d.Tags) > 0 && homogenous(d.Tags) {
+			// All slots in d come from the same vector so replace d
+			// with it.  Then schedule a recursive call to Apply in
+			// case the vector needs to be unwrapped.
+			vecs[k] = d.Values[d.Tags[0]]
+			needApply = true
+		}
+	}
+	if needApply && opt != 0 {
+		return Apply(opt, eval, vecs...)
+	}
 	d, ok := findDynamic(vecs)
 	if !ok {
 		for k, vec := range vecs {
@@ -67,6 +81,11 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	// stitch removes nils and replaces Dynamics with their values.
 	return stitch(d.Tags, results)
+}
+
+func homogenous(s []uint32) bool {
+	s0 := s[0]
+	return !slices.ContainsFunc(s[1:], func(v uint32) bool { return v != s0 })
 }
 
 func findDynamic(vecs []Any) (*Dynamic, bool) {
