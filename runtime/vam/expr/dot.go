@@ -127,6 +127,8 @@ func hasNone(vec vector.Any) bool {
 		return vec.Len() > 0
 	case *vector.Union:
 		return super.IsOptionType(vec.Type()) && hasNone(vec.Dynamic())
+	case *vector.Option:
+		return hasNone(vec.Any)
 	case *vector.Fusion:
 		return hasNone(vec.Values)
 	case *vector.Dynamic:

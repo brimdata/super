@@ -387,6 +387,31 @@ func (c *Context) LookupTypeFusion(inner Type) *TypeFusion {
 	return typ
 }
 
+func (c *Context) Option(typ Type) *TypeOption {
+	if optionType, ok := typ.(*TypeOption); ok {
+		return optionType
+	}
+	return c.LookupTypeOption(typ)
+}
+
+func (c *Context) LookupTypeOption(inner Type) *TypeOption {
+	if inner == TypeNone {
+		panic(inner)
+	}
+	if _, ok := inner.(*TypeOption); ok {
+		panic(inner)
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	id := c.typedefs.LookupTypeWrapped(TypeDefOption, inner)
+	if typ, ok := c.byID[id]; ok {
+		return typ.(*TypeOption)
+	}
+	typ := NewTypeOption(int(id), inner)
+	c.byID[id] = typ
+	return typ
+}
+
 // LookupByValue returns the Type indicated by a binary-serialized type value.
 // This provides a means to translate a type-context-independent serialized
 // encoding for an arbitrary type into the reciever Context.
@@ -592,6 +617,16 @@ func (c *Context) DecodeTypeValue(tv []byte) (Type, []byte) {
 			return nil, nil
 		}
 		return typ, tv
+	case TypeValueOption:
+		inner, tv := c.DecodeTypeValue(tv)
+		if tv == nil {
+			return nil, nil
+		}
+		typ := c.LookupTypeOption(inner)
+		if typ == nil {
+			return nil, nil
+		}
+		return typ, tv
 	default:
 		typ, err := LookupPrimitiveByID(int(id))
 		if err != nil {
@@ -703,53 +738,11 @@ func NullableUnion(typ Type) (*TypeUnion, int) {
 	return nil, 0
 }
 
-func (c *Context) Option(typ Type) *TypeUnion {
-	if typ == TypeNone {
-		panic("cannot create option on TypeNone")
-	}
-	var types []Type
-	if union, ok := typ.(*TypeUnion); ok {
-		for _, t := range union.Types {
-			if t == TypeNone {
-				return union
-			}
-		}
-		types = slices.Clone(union.Types)
-	} else {
-		types = []Type{typ}
-	}
-	return c.MustLookupTypeUnion(append(types, TypeNone))
-}
-
 func (c *Context) Optionize(typ Type) Type {
 	if typ == TypeNone {
 		return typ
 	}
 	return c.Option(typ)
-}
-
-func OptionUnion(typ Type) (*TypeUnion, int) {
-	if union, ok := typ.(*TypeUnion); ok {
-		for tag, typ := range union.Types {
-			if typ == TypeNone {
-				return union, tag
-			}
-		}
-	}
-	return nil, 0
-}
-
-func IsOptionType(typ Type) bool {
-	u, _ := OptionUnion(typ)
-	return u != nil
-}
-
-func IsNone(typ Type, bytes []byte) bool {
-	if union, ok := TypeUnder(typ).(*TypeUnion); ok {
-		typ, _ := union.Untag(bytes)
-		return typ == TypeNone
-	}
-	return false
 }
 
 // TypeCache wraps a TypeFetcher with an unsynchronized cache for its LookupType
@@ -795,6 +788,7 @@ const (
 	TypeDefError  = 6
 	TypeDefNamed  = 7
 	TypeDefFusion = 8
+	TypeDefOption = 9
 )
 
 // Different modes for named types:
@@ -914,6 +908,8 @@ func (t *TypeDefs) LookupType(ext Type) uint32 {
 		id = t.LookupTypeNamed(ext.Name, ext.Type)
 	case *TypeFusion:
 		id = t.LookupTypeWrapped(TypeDefFusion, ext.Type)
+	case *TypeOption:
+		id = t.LookupTypeWrapped(TypeDefOption, ext.Type)
 	default:
 		panic(ext)
 	}
@@ -1141,6 +1137,9 @@ func (t *TypeDefs) loops(id uint32, scoreboard map[string]comp) {
 	case TypeDefFusion:
 		id, _ := MustDecodeID(b)
 		t.loops(id, scoreboard)
+	case TypeDefOption:
+		id, _ := MustDecodeID(b)
+		t.loops(id, scoreboard)
 	default:
 		panic(id)
 	}
@@ -1181,7 +1180,7 @@ func (d *TypeDefs) AppendBytes(bytes []byte) bool {
 					return false
 				}
 			}
-		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion:
+		case TypeDefArray, TypeDefSet, TypeDefError, TypeDefFusion, TypeDefOption:
 			id, bytes = DecodeID(bytes)
 			if bytes == nil || id >= localID {
 				return false
@@ -1469,6 +1468,16 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 			return nil
 		}
 		return t.sctx.LookupTypeFusion(inner)
+	case TypeDefOption:
+		id, b := DecodeID(b)
+		if b == nil {
+			return nil
+		}
+		inner := t.LookupType(id)
+		if inner == nil {
+			return nil
+		}
+		return t.sctx.LookupTypeOption(inner)
 	default:
 		panic(id)
 	}
@@ -1596,6 +1605,12 @@ func (t *TypeDefsMerger) LookupID(extID uint32) uint32 {
 		id = t.LookupID(id)
 		at = len(t.bytes)
 		t.bytes = append(t.bytes, TypeDefFusion)
+		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
+	case TypeDefOption:
+		id, bytes = MustDecodeID(bytes)
+		id = t.LookupID(id)
+		at = len(t.bytes)
+		t.bytes = append(t.bytes, TypeDefOption)
 		t.bytes = binary.AppendUvarint(t.bytes, uint64(id))
 	default:
 		panic(id)

@@ -15,15 +15,14 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 	case vector.KindNull:
 		return vector.NewUnionOfOne(sctx.Nullable(typ), vector.NewNull(vec.Len()))
 	case vector.KindNone:
-		none := vector.NewNone(vec.Len())
 		if typ == super.TypeNone {
-			return none
+			return vector.NewNone(vec.Len())
 		}
-		u, _ := super.OptionUnion(typ)
-		if u == nil {
-			u = sctx.Option(typ)
+		optionType, ok := typ.(*super.TypeOption)
+		if !ok {
+			optionType = sctx.LookupTypeOption(typ)
 		}
-		return vector.NewUnionOfOne(u, none)
+		return vector.NewOptionNone(optionType, vec.Len())
 	case vector.KindError:
 		return vec
 	}

@@ -46,18 +46,21 @@ func buildValue(b *scode.Builder, val Value) error {
 		return buildValue(b, val.value)
 	case *Fusion:
 		return buildFusion(b, val)
+	case *Option:
+		return buildOption(b, val)
 	case *Null:
 		b.Append(nil)
 		return nil
 	case *None:
-		union, noneTag := super.OptionUnion(val.Type())
-		if union == nil {
+		typ := val.Type()
+		if typ == super.TypeNone {
 			// none is an untyped, not inside option type
 			b.Append(nil)
 			return nil
 		}
-		super.BeginUnion(b, noneTag)
-		b.Append(nil)
+		// none is an inside an option type
+		b.BeginContainer()
+		b.Append(super.EncodeUint(0))
 		b.EndContainer()
 		return nil
 	}
@@ -251,6 +254,24 @@ func buildFusion(b *scode.Builder, f *Fusion) error {
 	}
 	// subtype
 	b.Append(f.subtype)
+	b.EndContainer()
+	return nil
+}
+
+//XXX type check that value fits in optionType.Type?
+
+func buildOption(b *scode.Builder, o *Option) error {
+	b.BeginContainer()
+	var which uint64
+	if _, ok := o.value.(*None); !ok {
+		which = 1
+	}
+	b.Append(super.EncodeUint(which))
+	if which != 0 {
+		if err := buildValue(b, o.value); err != nil {
+			return err
+		}
+	}
 	b.EndContainer()
 	return nil
 }

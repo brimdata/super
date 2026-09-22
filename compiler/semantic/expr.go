@@ -215,7 +215,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				fields[name] = struct{}{}
 				e, typ := t.expr(elem.Value, inType)
 				if elem.Opt && typ == super.TypeNone {
-					t.error(elem, fmt.Errorf("non-union none assigned to optional field %s", name))
+					t.error(elem, fmt.Errorf("untyped none assigned to optional field %s", name))
 					typ = t.checker.unknown
 				}
 				out = append(out, &sem.FieldElem{
@@ -803,8 +803,15 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 		return &sem.BinaryExpr{
 			Node: call,
 			Op:   "!=",
-			LHS:  sem.NewCall(call, "ok", args),
-			RHS:  sem.NewLiteral(call, super.NewValue(super.TypeNone, nil), t.defs),
+			// Comparing none result of ok requires a noneish operator to turn
+			// option nones into untyped nones since comparing nones is type sensitive.
+			LHS: &sem.BinaryExpr{
+				Node: call,
+				Op:   "??",
+				LHS:  sem.NewCall(call, "ok", args),
+				RHS:  sem.NewLiteral(call, super.NewValue(super.TypeNone, nil), t.defs),
+			},
+			RHS: sem.NewLiteral(call, super.NewValue(super.TypeNone, nil), t.defs),
 		}, super.TypeBool
 	case nameLower == "map":
 		return t.semMapCall(call, args, argTypes)

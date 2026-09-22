@@ -107,6 +107,9 @@ func (d *Downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 	if u, ok := vec.(*vector.Union); ok {
 		return d.downcastDynamic(u.Dynamic(), to)
 	}
+	if o, ok := vec.(*vector.Option); ok && !super.IsOptionType(to) {
+		return d.downcast(o.Any, to)
+	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return d.toRecord(vec, to)
@@ -124,6 +127,8 @@ func (d *Downcast) downcast(vec vector.Any, to super.Type) vector.Any {
 		return d.toError(vec, to)
 	case *super.TypeFusion:
 		return vector.NewWrappedError(d.sctx, "downcast: cannot downcast to a fusion type", vec)
+	case *super.TypeOption:
+		return d.toOption(vec, to)
 	default:
 		if vec.Type() == super.TypeNone {
 			return d.errNonOptionNone(vec, to)
@@ -467,6 +472,39 @@ func (d *Downcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 		}
 		return vector.NewError(to, vec)
 	}, valsVec)
+}
+
+func (d *Downcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
+	switch vec.Kind() {
+	case vector.KindOption:
+		return vector.Apply(vector.ApplyRipOptions, func(vecs ...vector.Any) vector.Any {
+			switch vec := vecs[0].(*vector.Option).Any.(type) {
+			case *vector.None:
+				return vector.NewOptionNone(to, vec.Len())
+			case *vector.Dynamic:
+				panic(vec)
+			default:
+				vec2 := d.downcast(vec, to.Type)
+				if vec2 == nil {
+					return nil
+				}
+				return vector.NewOption(to, vec2)
+			}
+		}, vec)
+	case vector.KindNone:
+		return vector.NewOptionNone(to, vec.Len())
+	}
+	vec = d.downcast(vec, to.Type)
+	if vec == nil {
+		return nil
+	}
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		if vec.Type() != to.Type {
+			return vec
+		}
+		return vector.NewOption(to, vec)
+	}, vec)
 }
 
 func (d *Downcast) subTypeOf(vec vector.Any, types []super.Type, f func(int, vector.Any) vector.Any) vector.Any {

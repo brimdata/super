@@ -69,6 +69,10 @@ type (
 		Value Value      `json:"value"`
 		Type  *TypeValue `json:"type"`
 	}
+	Some struct {
+		Kind  string `json:"kind" unpack:""`
+		Value Value  `json:"value"`
+	}
 	None struct {
 		Kind string `json:"kind" unpack:""`
 		Type Type   `json:"type"`
@@ -83,6 +87,7 @@ func (*Map) valueNode()             {}
 func (*TypeValue) valueNode()       {}
 func (*Error) valueNode()           {}
 func (*Fusion) valueNode()          {}
+func (*Some) valueNode()            {}
 func (*None) valueNode()            {}
 func (*DoubleQuoteExpr) valueNode() {}
 

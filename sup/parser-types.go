@@ -81,6 +81,9 @@ func (p *Parser) matchTypeName() (ast.Type, error) {
 	if name == "fusion" {
 		return p.matchTypeFusionBody()
 	}
+	if name == "option" {
+		return p.matchTypeOptionBody()
+	}
 	if name == "enum" {
 		return p.matchTypeEnumBody()
 	}
@@ -399,4 +402,15 @@ func (p *Parser) matchTypeFusionBody() (*ast.TypeFusion, error) {
 		Type: typ,
 	}
 	return v, nil
+}
+
+func (p *Parser) matchTypeOptionBody() (*ast.TypeOption, error) {
+	typ, err := p.matchTypeBody("option")
+	if err != nil {
+		return nil, err
+	}
+	return &ast.TypeOption{
+		Kind: "TypeOption",
+		Type: typ,
+	}, nil
 }

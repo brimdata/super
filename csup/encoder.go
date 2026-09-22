@@ -52,6 +52,8 @@ func NewEncoder(cctx *Context, vec vector.Any) Encoder {
 			return NewAnyEncoder(cctx, vec)
 		}
 		return NewFusionEncoder(cctx, vec)
+	case *vector.Option:
+		return NewOptionEncoder(cctx, vec)
 	default:
 		return NewPrimitiveEncoder(cctx, vec, true)
 	}

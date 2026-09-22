@@ -132,6 +132,11 @@ func (f *Fuser) fuse(a, b Type) Type {
 		if b, ok := b.(*TypeError); ok {
 			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
+	case *TypeOption:
+		if b, ok := b.(*TypeOption); ok {
+			return f.fusion(f.sctx.LookupTypeOption(f.fuse(a.Type, b.Type)))
+		}
+		return f.fusion(f.sctx.LookupTypeOption(f.fuse(a.Type, b)))
 	case *TypeNamed:
 		if b, ok := b.(*TypeNamed); ok && a.Name == b.Name {
 			// if we got here without match a=b above, then there are
@@ -143,7 +148,8 @@ func (f *Fuser) fuse(a, b Type) Type {
 		// a barrier to type fusion.  Instead we fall through here and ,
 		// fuse the named type with the other type.
 	}
-	if _, ok := b.(*TypeUnion); ok {
+	switch b.(type) {
+	case *TypeUnion, *TypeOption:
 		return f.fuse(b, a)
 	}
 	// Neither a nor b can be an anonymous union at this point.
@@ -195,6 +201,8 @@ func (f *Fuser) fuseInternal(typ Type) Type {
 		} else {
 			out = f.sctx.MustLookupTypeUnion(Flatten(types))
 		}
+	case *TypeOption:
+		out = f.sctx.LookupTypeOption(f.fuseInternal(typ.Type))
 	case *TypeEnum:
 		return typ
 	case *TypeError:

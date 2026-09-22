@@ -56,6 +56,8 @@ func PushView(val Any) Any {
 			outTypes[i] = types[slot]
 		}
 		return NewFusion(val.Typ, Pick(val.Values, view.Index), outTypes)
+	case *Option:
+		return NewOption(val.Typ, Pick(val.Any, view.Index))
 	default:
 		return view
 	}

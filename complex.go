@@ -3,7 +3,6 @@ package super
 import (
 	"bytes"
 	"errors"
-	"slices"
 	"sort"
 	"sync"
 
@@ -408,26 +407,74 @@ func BeginUnion(b *scode.Builder, tag int) {
 	b.Append(EncodeUint(uint64(tag)))
 }
 
-func BuildSome(b *scode.Builder, optionType *TypeUnion, typ Type, bytes scode.Bytes) {
-	tag := slices.Index(optionType.Types, typ)
-	BuildUnion(b, tag, bytes)
+type TypeOption struct {
+	id   int
+	Type Type
 }
 
-func Some(optionType *TypeUnion, typ Type, bytes scode.Bytes) Value {
+func NewTypeOption(id int, typ Type) *TypeOption {
+	return &TypeOption{id: id, Type: typ}
+}
+
+func (t *TypeOption) ID() int {
+	return t.id
+}
+
+// Untag takes bytes of the reciever's type and returns the underlying value
+// as its type and bytes by removing the tag and determining that tag's
+// type from the union.  Untag panics if the tag is invalid.
+func (t *TypeOption) Decode(bytes scode.Bytes) (Type, scode.Bytes) {
+	it := bytes.Iter()
+	which := DecodeUint(it.Next())
+	if which == 0 {
+		return TypeNone, nil
+	}
+	return t.Type, it.Next()
+}
+
+func (t *TypeOption) Kind() Kind {
+	return OptionKind
+}
+
+func (t *TypeOption) Some(bytes scode.Bytes) Value {
 	var b scode.Builder
-	BuildSome(&b, optionType, typ, bytes)
-	return NewValue(optionType, b.Bytes().Body())
+	BuildSome(&b, bytes)
+	return NewValue(t, b.Bytes().Body())
 }
 
-func BuildNone(b *scode.Builder, optionType *TypeUnion) {
-	tag := slices.Index(optionType.Types, Type(TypeNone))
-	BuildUnion(b, tag, nil)
-}
-
-func None(optionType *TypeUnion) Value {
+func (t *TypeOption) None() Value {
 	var b scode.Builder
-	BuildNone(&b, optionType)
-	return NewValue(optionType, b.Bytes().Body())
+	BuildNone(&b)
+	return NewValue(t, b.Bytes().Body())
+}
+
+func IsNone(typ Type, bytes []byte) bool {
+	if typ == TypeNone {
+		return true
+	}
+	if typ, ok := typ.(*TypeOption); ok {
+		typ, _ := typ.Decode(bytes)
+		return typ == TypeNone
+	}
+	return false
+}
+
+func IsOptionType(typ Type) bool {
+	_, ok := typ.(*TypeOption)
+	return ok
+}
+
+func BuildSome(b *scode.Builder, val scode.Bytes) {
+	b.BeginContainer()
+	b.Append(EncodeUint(1))
+	b.Append(val)
+	b.EndContainer()
+}
+
+func BuildNone(b *scode.Builder) {
+	b.BeginContainer()
+	b.Append(EncodeUint(0))
+	b.EndContainer()
 }
 
 func Flatten(types []Type) []Type {

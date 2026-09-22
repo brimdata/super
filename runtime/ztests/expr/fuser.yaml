@@ -70,3 +70,25 @@ input: &input |
   {x:3}
 
 output: *input
+
+---
+
+spq: fuse(this)
+
+input: |
+  some(1)
+  2
+
+output: |
+  <fusion(option(int64))>
+
+---
+
+spq: fuse(this)
+
+input: |
+  2
+  some(1)
+
+output: |
+  <fusion(option(int64))>

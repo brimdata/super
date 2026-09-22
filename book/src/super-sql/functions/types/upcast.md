@@ -42,7 +42,7 @@ values
 
 # expected output
 {x:1,y?:none::string}
-{x:1,y?:none::(string|null|none)}
+{x:1,y?:none::option(string|null)}
 ```
 
 ---

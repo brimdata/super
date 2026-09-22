@@ -94,6 +94,8 @@ func New(typ super.Type) Builder {
 			return newAnyBuilder(typ)
 		}
 		return newFusionBuilder(typ)
+	case *super.TypeOption:
+		return newOptionBuilder(typ)
 	default:
 		panic(typ)
 	}

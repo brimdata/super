@@ -55,6 +55,8 @@ func Unblend(sctx *super.Context, vec vector.Any) vector.Any {
 			return dynamic.Values[idx]
 		}
 		return out
+	case vector.KindOption:
+		return Unblend(sctx, vector.DeoptionWithNone(vector.PushView(vec)))
 	}
 	return vec
 }

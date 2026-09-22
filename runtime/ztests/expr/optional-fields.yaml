@@ -7,9 +7,9 @@ input: |
 
 output: |
   1
-  "foo"::(string|none)
+  some("foo")
   1
-  none::(string|none)
+  none::string
   1
   1
 
@@ -80,8 +80,8 @@ output: |
   1
   2
   3
-  "foo"::(string|none)
-  none::(string|none)
+  some("foo")
+  none::string
 
 ---
 
@@ -92,8 +92,8 @@ input: |
   {b?:none::string}
 
 output: |
-  "foo"::(string|none)
-  none::(string|none)
+  some("foo")
+  none::string
 
 ---
 
@@ -103,7 +103,7 @@ input: |
   {b?:none::string}
 
 output: |
-  none::(string|none)
+  none::string
 
 ---
 
@@ -114,8 +114,8 @@ input: |
   {b?:none::string}
 
 output: |
-  none::(string|none)
-  none::(string|none)
+  none::string
+  none::string
 
 ---
 
@@ -125,7 +125,7 @@ input: |
   {b?:"foo"}
 
 output: |
-  "foo"::(string|none)
+  some("foo")
 
 ---
 
@@ -177,7 +177,7 @@ output: |
   none
   none
   1
-  1::(int64|none)
+  some(1)
 
 ---
 
@@ -196,5 +196,5 @@ output: |
   none
   error({message:"'?.': applied to non-record",on:1})
   error({message:"'?.': applied to non-record",on:1})
-  1::(int64|none)
-  none::(int64|none)
+  some(1)
+  none::int64

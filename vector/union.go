@@ -57,39 +57,6 @@ func NewUnionFromRLE(typ *super.TypeUnion, rle []uint32, vecs []Any) *Union {
 	return &Union{dynamic: NewDynamic(nil, vecs), rle: rle, Typ: typ}
 }
 
-func NewUnionOptionRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) *Union {
-	typ := vec.Type()
-	optionType := sctx.Option(typ)
-	if union, ok := vec.(*Union); ok {
-		// If it's a union, let's make it an option type by adding type none at the end.
-		// We don't (yet) bother trying to run-length encode these since there are more
-		// than two vectors.
-		types := slices.Clone(union.Typ.Types)
-		types = append(types, super.TypeNone)
-		vecs := slices.Clone(union.Values())
-		noneTag := uint32(len(vecs))
-		// buildTags assumes a single value at tag 0 and a none at tag 1.
-		// we'll build that then convert it from this unions tags, where the
-		// union tags are preserved and the none at tag 1 goes to the last tag (noneTag).
-		tags, noneLen := buildTags(runlens, length)
-		vecs = append(vecs, NewNone(noneLen))
-		from := 0
-		fromTags := union.Tags()
-		for k := range tags {
-			if tags[k] == 0 {
-				tags[k] = fromTags[from]
-				from++
-			} else {
-				tags[k] = noneTag
-			}
-		}
-		return NewUnion(optionType, tags, vecs)
-	}
-	//XXX we should use the RLEs only when substantially smaller than tags
-	vecs := []Any{vec, NewNone(noneLength(runlens))}
-	return NewUnionFromRLE(optionType, runlens, vecs)
-}
-
 // verifyUnion verifies that a created union:
 // 1. Has a vector for every type in the union.
 // 2. There are not multiple vectors with the same type.
@@ -292,67 +259,6 @@ func noneLength(runlens []uint32) uint32 {
 		in++
 	}
 	return noneLen
-}
-
-func DeoptionWithNone(sctx *super.Context, vec Any) Any {
-	switch vec := Super(vec).(type) {
-	case *None:
-		return vec
-	case *Dynamic:
-		if hasOptionTypesOrNones(vec.Values) {
-			vecs := make([]Any, 0, len(vec.Values))
-			for _, v := range vec.Values {
-				vecs = append(vecs, DeoptionWithNone(sctx, v))
-			}
-			return stitch(vec.Tags, vecs)
-		}
-	case *Union:
-		if super.IsOptionType(vec.Typ) {
-			out := Deunion(vec)
-			out = DeoptionWithNone(sctx, out)
-			return out
-		}
-	}
-	return vec
-}
-
-func DeoptionWithError(sctx *super.Context, vec, on Any, where string) Any {
-	switch vec := vec.(type) {
-	case *None:
-		return NewWrappedError(sctx, fmt.Sprintf("illegal none value in %s", where), on)
-	case *Dynamic:
-		if hasOptionTypesOrNones(vec.Values) {
-			vecs := make([]Any, 0, len(vec.Values))
-			for _, v := range vec.Values {
-				vecs = append(vecs, DeoptionWithError(sctx, v, on, where))
-			}
-			return stitch(vec.Tags, vecs)
-		}
-	case *Union:
-		if super.IsOptionType(vec.Typ) {
-			return DeoptionWithError(sctx, vec.Dynamic(), on, where)
-		}
-	}
-	return vec
-}
-
-func hasOptionTypesOrNones(vecs []Any) bool {
-	return slices.IndexFunc(vecs, func(vec Any) bool {
-		// XXX apparently the runtime sometimes creates nil vectors inside
-		// of Dynamics where said vector is never referenced by a tag
-		// (e.g., at the output of vector switch), so we check for nil here.
-		if vec == nil {
-			return false
-		}
-		if vec, ok := vec.(*Dynamic); ok {
-			return hasOptionTypesOrNones(vec.Values)
-		}
-		typ := vec.Type()
-		if fusion, ok := typ.(*super.TypeFusion); ok {
-			typ = fusion.Type
-		}
-		return super.IsOptionType(typ) || typ == super.TypeNone
-	}) >= 0
 }
 
 // FlattenUnions takes a Dynamic and recursively replaces any Union values

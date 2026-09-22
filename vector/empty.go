@@ -62,6 +62,8 @@ func (e *Empty) Kind() Kind {
 			return KindError
 		case *super.TypeFusion:
 			return KindFusion
+		case *super.TypeOption:
+			return KindOption
 		case *super.TypeNamed:
 			typ = t.Type
 		default:

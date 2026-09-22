@@ -1493,6 +1493,13 @@ EasyType
           Loc: loc(c),
       }, nil
     }
+  / OPTION __ "(" __ t:Type __ ")" {
+      return &ast.TypeOption{
+          Kind: "TypeOption",
+          Type: t.(ast.Type),
+          Loc: loc(c),
+      }, nil
+    }
   / "{" __ fields:TypeFieldList __ "}" {
       return &ast.TypeRecord{
           Kind: "TypeRecord",
@@ -2525,6 +2532,7 @@ NULLS      = "NULLS"i           !IdentifierRest
 OFFSET     = "OFFSET"i          !IdentifierRest
 ON         = "ON"i              !IdentifierRest
 OP         = "OP"i              !IdentifierRest
+OPTION     = "OPTION"i          !IdentifierRest
 OR         = "OR"i              !IdentifierRest { return "or", nil }
 ORDER      = "ORDER"i           !IdentifierRest
 ORDINALITY = "ORDINALITY"i      !IdentifierRest

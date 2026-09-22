@@ -300,7 +300,11 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 }
 
 func (w *Writer) newArrowField(name string, typ super.Type) (arrow.Field, error) {
-	opt := super.IsOptionType(typ)
+	var opt bool
+	if optionType, ok := typ.(*super.TypeOption); ok {
+		opt = true
+		typ = optionType.Type
+	}
 	var nullable bool
 	if u, which := nullableUnion(typ); which >= 0 {
 		nullable = true
@@ -317,10 +321,16 @@ func (w *Writer) newArrowField(name string, typ super.Type) (arrow.Field, error)
 }
 
 func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.Bytes) {
-	if super.IsNone(typ, bytes) {
-		// This is a None from an optional field.
+	if typ == super.TypeNone {
 		b.AppendNull()
 		return
+	}
+	if o, ok := typ.(*super.TypeOption); ok {
+		typ, bytes = o.Decode(bytes)
+		if typ == super.TypeNull || typ == super.TypeNone {
+			b.AppendNull()
+			return
+		}
 	}
 	if u, which := nullableUnion(typ); which >= 0 {
 		typ, bytes = u.Untag(bytes)
@@ -513,7 +523,7 @@ func nullableUnion(typ super.Type) (*super.TypeUnion, int) {
 	}
 	which := -1
 	for k := range u.Types {
-		if u.Types[k] == super.TypeNull || u.Types[k] == super.TypeNone {
+		if u.Types[k] == super.TypeNull || super.IsOptionType(u.Types[k]) {
 			continue
 		}
 		if which >= 0 {
@@ -551,6 +561,8 @@ func isRecursive(typ super.Type, seen map[string]struct{}) bool {
 				return true
 			}
 		}
+	case *super.TypeOption:
+		return isRecursive(typ.Type, seen)
 	case *super.TypeError:
 		return isRecursive(typ.Type, seen)
 	case *super.TypeFusion:

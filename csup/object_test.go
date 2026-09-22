@@ -59,5 +59,5 @@ func TestObjectProjectMetadataForUnion(t *testing.T) {
 	p := field.NewProjection(field.DottedList("a,b,c,d"))
 	values := o.ProjectMetadata(super.NewContext(), p)
 	require.Len(t, values, 1)
-	require.Equal(t, `{a:{min:1,max:"s"},b:{min:2,max:2},c:{min:3,max:3},d:null}`, sup.FormatValue(values[0]))
+	require.Equal(t, `{a:{min:1,max:"s"},b:{min:2,max:2},c:{min:3,max:3},d:{e:{min:4,max:4}}}`, sup.FormatValue(values[0]))
 }

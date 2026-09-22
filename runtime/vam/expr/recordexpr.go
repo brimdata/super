@@ -76,7 +76,7 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 		case *FieldElem:
 			if vec.Type() == super.TypeNone {
 				if elem.Opt {
-					s := fmt.Sprintf("non-union none assigned to optional field %s", elem.Name)
+					s := fmt.Sprintf("untyped none assigned to optional field %s", elem.Name)
 					return vector.NewStringError(r.sctx, s, vec.Len())
 				}
 				r.deleteField(elem.Name)
@@ -87,8 +87,9 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 					vec = vector.NewOptionSome(r.sctx, vec)
 				}
 			} else {
-				if u, ok := vec.(*vector.Union); ok {
-					vec = deoptionFieldValue(r.sctx, u, elem.Name)
+				// XXX optimize view
+				if o, ok := vector.PushView(vector.Under(vec)).(*vector.Option); ok {
+					vec = deoptionFieldValue(r.sctx, o, elem.Name)
 				}
 			}
 			r.addOrUpdateField(elem.Name, vec)
@@ -102,15 +103,15 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 	return vector.NewRecord(typ, r.fieldVecs, vecs[0].Len())
 }
 
-func deoptionFieldValue(sctx *super.Context, u *vector.Union, name string) vector.Any {
-	if !super.IsOptionType(u.Type()) {
-		return u
+func deoptionFieldValue(sctx *super.Context, o *vector.Option, name string) vector.Any {
+	switch o.Any.(type) {
+	case *vector.Dynamic:
+		panic("should be ripped")
+	case *vector.None:
+		return vector.NewWrappedError(sctx, fmt.Sprintf("none assigned to non-optional field %s", name), o)
+	default:
+		return o.Any
 	}
-	vec := u.Normalized()
-	if _, ok := vec.(*vector.None); ok {
-		return vector.NewWrappedError(sctx, fmt.Sprintf("none assigned to non-optional field %s", name), u)
-	}
-	return vec
 }
 
 func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {

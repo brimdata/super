@@ -60,6 +60,12 @@ func newInferer(typ super.Type) infer {
 		if n >= 0 {
 			return &inferNode{children}
 		}
+	case *super.TypeOption:
+		child := newInferer(typ.Type)
+		if child == nil {
+			return nil
+		}
+		return &inferNode{[]infer{child}}
 	}
 	return nil
 }
@@ -93,6 +99,12 @@ func (i *inferNode) load(typ super.Type, bytes scode.Bytes) {
 		}
 		if child := i.children[tag]; child != nil {
 			child.load(inner, it.Next())
+		}
+	case *super.TypeOption:
+		inner := typ.Type
+		childType, childBytes := typ.Decode(bytes)
+		if childType != super.TypeNone {
+			i.children[0].load(inner, childBytes)
 		}
 	}
 }
@@ -129,6 +141,8 @@ func (i *inferNode) typeof(sctx *super.Context, typ super.Type) super.Type {
 		// infer does not create new unions so there should be
 		// no way to get an anonymous union inserted into an existing union.
 		return sctx.MustLookupTypeUnion(types)
+	case *super.TypeOption:
+		return sctx.LookupTypeOption(i.children[0].typeof(sctx, typ.Type))
 	default:
 		return typ
 	}

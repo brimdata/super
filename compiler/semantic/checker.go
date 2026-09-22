@@ -217,6 +217,8 @@ func (c *checker) unnestCheck(loc ast.Node, typ super.Type) (super.Type, bool) {
 			}
 		}
 		return c.fuse(types), ok
+	case *super.TypeOption:
+		return c.unnestCheck(loc, typ.Type)
 	case *super.TypeArray:
 		return typ.Type, true
 	case *super.TypeRecord:
@@ -509,7 +511,7 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 
 func (c *checker) option(opt bool, typ super.Type) super.Type {
 	if opt {
-		typ = c.t.sctx.Option(typ)
+		typ = c.t.sctx.Optionize(typ)
 	}
 	return typ
 }
@@ -633,7 +635,7 @@ func (c *checker) dropPath(typ super.Type, drop path) super.Type {
 }
 
 func pickRec(typ super.Type) ([]super.Type, int) {
-	switch typ := super.TypeUnder(typ).(type) {
+	switch typ := deoption(super.TypeUnder(typ)).(type) {
 	case *super.TypeRecord:
 		return []super.Type{typ}, 0
 	case *super.TypeUnion:
@@ -645,6 +647,13 @@ func pickRec(typ super.Type) ([]super.Type, int) {
 		}
 	}
 	return nil, 0
+}
+
+func deoption(typ super.Type) super.Type {
+	if typ, ok := typ.(*super.TypeOption); ok {
+		return typ.Type
+	}
+	return typ
 }
 
 func (c *checker) putPaths(typ super.Type, puts []pathType) super.Type {
@@ -710,6 +719,9 @@ func typeCheck(typ super.Type, check func(super.Type) bool) bool {
 		}
 		return false
 	}
+	if o, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
+		return typeCheck(o.Type, check)
+	}
 	return check(typ)
 }
 
@@ -769,6 +781,8 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 			c.keepErrs(errs[:1])
 		}
 		return c.fuse(types), valid
+	case *super.TypeOption:
+		return c.deref(loc, typ.Type, field)
 	}
 	c.error(loc, fmt.Errorf("no such field %q", field))
 	return c.unknown, false
@@ -826,6 +840,8 @@ func (c *checker) in(loc, lloc, rloc ast.Node, lhs, rhs super.Type) bool {
 			c.keepErrs(errs)
 		}
 		return valid
+	case *super.TypeOption:
+		return c.in(loc, lloc, rloc, lhs, typ.Type)
 	default:
 		// If the RHS is not a container, see if they are compatible in terms of
 		// equality comparison.  The in operator for SuperSQL is broader than SQL
@@ -852,6 +868,12 @@ func (c *checker) comparison(lhs, rhs super.Type) super.Type {
 func comparable(a, b super.Type) bool {
 	if isUnknown(a) || isUnknown(b) {
 		return true
+	}
+	if a, ok := super.TypeUnder(a).(*super.TypeOption); ok {
+		return comparable(a.Type, b)
+	}
+	if b, ok := super.TypeUnder(b).(*super.TypeOption); ok {
+		return comparable(a, b.Type)
 	}
 	if u, ok := super.TypeUnder(a).(*super.TypeUnion); ok {
 		for _, t := range u.Types {
@@ -930,6 +952,9 @@ func hasNumber(typ super.Type) bool {
 			return true
 		}
 	}
+	if o, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
+		return hasNumber(o.Type)
+	}
 	return false
 }
 
@@ -960,6 +985,9 @@ func hasUnknown(typ super.Type) bool {
 			return true
 		}
 	}
+	if o, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
+		return hasUnknown(o.Type)
+	}
 	return isUnknown(typ)
 }
 
@@ -973,6 +1001,8 @@ func (c *checker) hasArray(typ super.Type) (super.Type, bool) {
 		}
 	case *super.TypeArray:
 		return typ.Type, true
+	case *super.TypeOption:
+		return c.hasArray(typ.Type)
 	}
 	if isUnknown(typ) {
 		return c.unknown, true
@@ -1037,6 +1067,8 @@ func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) (sup
 			c.keepErrs(errs)
 		}
 		return c.fuse(types), valid
+	case *super.TypeOption:
+		return c.indexOf(cloc, iloc, typ.Type, index)
 	default:
 		c.error(cloc, fmt.Errorf("indexed entity is not indexable"))
 		return c.unknown, false

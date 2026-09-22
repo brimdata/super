@@ -96,6 +96,8 @@ func NewValueBuilder(typ super.Type) ValueBuilder {
 		return newUnionValueBuilder(typ)
 	case *super.TypeFusion:
 		return newFusionValueBuilder(typ)
+	case *super.TypeOption:
+		return newOptionValueBuilder(typ)
 	case *super.TypeEnum:
 		return &enumValueBuilder{typ, nil}
 	case *super.TypeError:
@@ -237,12 +239,7 @@ func newUnionValueBuilder(typ *super.TypeUnion) ValueBuilder {
 	if len(typ.Types) == 2 {
 		rle = NewRLE()
 	}
-	builder := &unionValueBuilder{typ: typ, values: values, rle: rle}
-	// XXX this will be added back or deleted in a subsequent PR
-	//if union, _ := super.OptionUnion(typ); union != nil {
-	//	return &optionValueBuilder{union: union, val: builder}
-	//}
-	return builder
+	return &unionValueBuilder{typ: typ, values: values, rle: rle}
 }
 
 func (u *unionValueBuilder) Write(bytes scode.Bytes) {
@@ -297,6 +294,40 @@ func (f *fusionValueBuilder) Build(sctx *super.Context) Any {
 		types = append(types, t)
 	}
 	return NewFusion(f.typ, f.values.Build(sctx), types)
+}
+
+type optionValueBuilder struct {
+	typ    *super.TypeOption
+	values ValueBuilder
+	nones  int
+	tags   []uint32
+}
+
+func newOptionValueBuilder(typ *super.TypeOption) ValueBuilder {
+	return &optionValueBuilder{typ: typ, values: NewValueBuilder(typ.Type)}
+}
+
+func (o *optionValueBuilder) Write(bytes scode.Bytes) {
+	typ, bytes := o.typ.Decode(bytes)
+	if typ == super.TypeNone {
+		o.tags = append(o.tags, 0)
+		o.nones++
+	} else {
+		o.tags = append(o.tags, 1)
+		o.values.Write(bytes)
+	}
+}
+
+func (o *optionValueBuilder) Build(sctx *super.Context) Any {
+	if len(o.tags) == o.nones {
+		return NewOptionNone(o.typ, uint32(o.nones))
+	}
+	if o.nones == 0 {
+		return NewOptionSome(sctx, o.values.Build(sctx))
+	}
+	none := NewNone(uint32(o.nones))
+	some := o.values.Build(sctx)
+	return NewOption(o.typ, NewDynamic(o.tags, []Any{none, some}))
 }
 
 type enumValueBuilder struct {

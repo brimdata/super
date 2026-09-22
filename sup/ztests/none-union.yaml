@@ -1,0 +1,7 @@
+spq: pass
+
+input: &input |
+  none::(int64|string|none)
+  none::option(int64|string)
+
+output: *input

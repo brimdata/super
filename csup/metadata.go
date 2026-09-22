@@ -129,6 +129,17 @@ func (f *Fusion) Len(cctx *Context) uint32 {
 	return cctx.Lookup(f.Values).Len(cctx)
 }
 
+type Option struct {
+	Type   super.Type `super:"Type"`
+	Length uint32
+	Tags   Segment
+	Values ID
+}
+
+func (o *Option) Len(*Context) uint32 {
+	return o.Length
+}
+
 type Any struct {
 	Values   ID
 	Subtypes ID
@@ -320,6 +331,8 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		return super.TypeNull
 	case *Fusion:
 		return metadataValue(cctx, sctx, b, m.Values, projection)
+	case *Option:
+		return metadataValue(cctx, sctx, b, m.Values, projection)
 	case *Dict:
 		return metadataValue(cctx, sctx, b, m.Values, projection)
 	case *Record:
@@ -419,6 +432,7 @@ var Template = []any{
 	Dict{},
 	Dynamic{},
 	Fusion{},
+	Option{},
 	Any{},
 	Empty{},
 	Enum{},

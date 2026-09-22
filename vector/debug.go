@@ -124,10 +124,24 @@ func write(w io.Writer, vec Any, indent, prefix string) {
 	case *Fusion:
 		fmt.Fprintf(w, " subtype=%s\n", "?" /* sup.FormatType(val.SubTypes) */)
 		write(w, vec.Values, indent, "values=")
+	case *Option:
+		fmt.Fprintf(w, " style=%s\n", optionStyle(vec.Any))
+		write(w, vec.Any, indent, "any=")
 	case *View:
 		fmt.Fprintf(w, " index=%v\n", vec.Index)
 		write(w, vec.Any, indent, "any=")
 	default:
 		fmt.Fprintf(w, " unknown %#v", vec)
+	}
+}
+
+func optionStyle(vec Any) string {
+	switch vec.(type) {
+	case *None:
+		return "none"
+	case *Dynamic:
+		return "none/some"
+	default:
+		return "some"
 	}
 }

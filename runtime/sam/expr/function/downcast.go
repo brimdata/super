@@ -52,6 +52,10 @@ func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (s
 		}
 	}
 	typ, bytes = deunion(typ, bytes)
+	if o, ok := typ.(*super.TypeOption); ok && !super.IsOptionType(to) {
+		typ, bytes := o.Decode(bytes)
+		return d.downcast(typ, bytes, to)
+	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return d.toRecord(typ, bytes, to)
@@ -63,6 +67,8 @@ func (d *downcast) downcast(typ super.Type, bytes scode.Bytes, to super.Type) (s
 		return d.toMap(typ, bytes, to)
 	case *super.TypeUnion:
 		return d.toUnion(typ, bytes, to)
+	case *super.TypeOption:
+		return d.toOption(typ, bytes, to)
 	case *super.TypeEnum:
 		return d.toEnum(typ, bytes, to)
 	case *super.TypeError:
@@ -198,6 +204,17 @@ func (d *downcast) toUnion(typ super.Type, bytes scode.Bytes, to *super.TypeUnio
 	b.Append(val.Bytes())
 	b.EndContainer()
 	return super.NewValue(to, b.Bytes().Body()), nil
+}
+
+func (d *downcast) toOption(typ super.Type, bytes scode.Bytes, to *super.TypeOption) (super.Value, *super.Value) {
+	if optionType, ok := typ.(*super.TypeOption); ok {
+		body, errVal := d.downcast(optionType.Type, bytes, to.Type)
+		if errVal != nil {
+			return super.Value{}, errVal
+		}
+		return super.NewValue(to, body.Bytes()), nil
+	}
+	return super.Value{}, d.errMismatch(typ, bytes, to)
 }
 
 func (d *downcast) toEnum(typ super.Type, bytes scode.Bytes, to *super.TypeEnum) (super.Value, *super.Value) {
