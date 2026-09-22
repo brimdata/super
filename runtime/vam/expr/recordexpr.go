@@ -76,7 +76,7 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 		case *FieldElem:
 			if vec.Type() == super.TypeNone {
 				if elem.Opt {
-					s := fmt.Sprintf("non-union none assigned to optional field %s", elem.Name)
+					s := fmt.Sprintf("untyped none assigned to optional field %s", elem.Name)
 					return vector.NewStringError(r.sctx, s, vec.Len())
 				}
 				r.deleteField(elem.Name)

@@ -302,7 +302,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		rhs := c.expr(typ, e.RHS)
 		return c.binary(e.Op, e, e.LHS, e.RHS, lhs, rhs)
 	case *sem.CallExpr:
-		if e.Tag == "ok" || e.Tag == "is_ok" {
+		if e.Tag == "ok" {
 			return c.ok(typ, e)
 		}
 		var types []super.Type
@@ -431,7 +431,6 @@ func (c *checker) ok(typ super.Type, call *sem.CallExpr) super.Type {
 }
 
 func (c *checker) checkOk(typ super.Type, call *sem.CallExpr, errs []errloc) super.Type {
-	fmt.Println("ERRS", errs)
 	others, _ := stripMissing(errs)
 	if len(others) != 0 {
 		c.keepErrs(others[:1])
@@ -452,8 +451,8 @@ func defuse(typ super.Type) super.Type {
 }
 
 func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
-	if op != "==" && op != "!=" {
-		if op != "??" && hasNone(lhs) && !hasUnknown(lhs) {
+	if op != "==" && op != "!=" && op != "??" {
+		if hasNone(lhs) && !hasUnknown(lhs) {
 			c.error(lloc, fmt.Errorf("'%s': none may appear, consider ok()", op))
 			return c.unknown
 		}
@@ -587,6 +586,8 @@ func (c *checker) formRecordElems(elems []sem.RecordElem, types []super.Type) su
 			} else {
 				if elem.Opt {
 					typ = c.t.sctx.Optionize(typ)
+				} else if super.IsOptionType(typ) {
+					c.error(elem, errors.New("cannot assign option value to non-optional field"))
 				}
 				order[elem.Name] = len(fields)
 				fields = append(fields, super.NewField(elem.Name, typ))
@@ -853,7 +854,7 @@ func (c *checker) deref(loc ast.Node, inType super.Type, field string, noneish b
 		// kindcase (which is the same is case kind(e) when the cases are const string)
 		//
 		errs := c.popErrs()
-		others, missings := stripMissing(errs)
+		_, missings := stripMissing(errs)
 		recs := recTypes(typ.Types)
 		if len(missings) == len(recs) && len(recs) > 0 {
 			var in string
@@ -864,9 +865,10 @@ func (c *checker) deref(loc ast.Node, inType super.Type, field string, noneish b
 			}
 			c.error(missings[0].loc, fmt.Errorf("no such field %s in %s", field, in))
 		}
-		for _, eloc := range others {
-			c.error(eloc.loc, fmt.Errorf("type mismatch may arise: %w (within %s)", eloc.err, sup.FormatType(defuse(inType))))
-		}
+		// XXX
+		//for _, eloc := range others {
+		//	c.error(eloc.loc, fmt.Errorf("type mismatch may arise: %w (within %s)", eloc.err, sup.FormatType(defuse(inType))))
+		//}
 		return c.fuse(types)
 	}
 	c.error(loc, fmt.Errorf("'.': applied to %s", sup.FormatType(inType)))

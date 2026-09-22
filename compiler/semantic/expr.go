@@ -215,8 +215,9 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				fields[name] = struct{}{}
 				e, typ := t.expr(elem.Value, inType)
 				if elem.Opt && typ == super.TypeNone {
-					t.error(elem, fmt.Errorf("non-union none assigned to optional field %s", name))
-					typ = t.checker.unknown
+					//t.error(elem, fmt.Errorf("non-union none assigned to optional field %s", name))
+					//typ = t.checker.unknown
+					//XXX we want untyped nones to cause field to be dropped?
 				}
 				out = append(out, &sem.FieldElem{
 					Node:  elem,
@@ -812,6 +813,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 			t.error(call, err)
 			return badExpr, t.checker.unknown
 		}
+		//XXX need to type check the args and sem.NewCall...
 		return &sem.BinaryExpr{
 			Node: call,
 			Op:   "!=",
