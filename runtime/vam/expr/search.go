@@ -59,11 +59,23 @@ func NewSearchString(sctx *super.Context, s string, e Evaluator) Evaluator {
 }
 
 func (s *search) Eval(this vector.Any) vector.Any {
-	return s.applyEval(s.defuse.Eval(s.e.Eval(this)))
+	vec := s.e.Eval(this)
+	if s.fnm == nil {
+		return s.applyEval(vec)
+	}
+	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		// Only need to defuse if there's a matching field in the type since
+		// that field could be optional.
+		if !s.fnm.Match(vec.Type()) {
+			return s.applyEval(vec)
+		}
+		return s.applyEval(s.defuse.Eval(vec))
+	}, vec)
 }
 
 func (s *search) applyEval(vec vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, s.eval, vec)
+	return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, s.eval, vec)
 }
 
 func (s *search) eval(vecs ...vector.Any) vector.Any {
