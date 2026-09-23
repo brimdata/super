@@ -11,7 +11,6 @@ import (
 
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/array"
-	"github.com/apache/arrow-go/v18/arrow/memory"
 	"github.com/apache/arrow-go/v18/parquet"
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
@@ -58,7 +57,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 		Parallel:  true,
 		BatchSize: 16184,
 	}
-	fr, err := pqarrow.NewFileReader(pr, pqprops, memory.NewGoAllocator())
+	fr, err := pqarrow.NewFileReader(pr, pqprops, &poolAllocator{})
 	if err != nil {
 		return nil, err
 	}
