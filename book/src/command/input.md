@@ -62,8 +62,9 @@ For standard input or files without a recognizable extension, `super` attempts
 to detect the format by reading and parsing some of the data.
 
 To override these format inference heuristics, `-i` may be used to specify
-the input formats of command-line files or the `(format)` option of a data source
+the input formats of all files or the `(format)` option of a data source
 specified in a [from](../super-sql/operators/from.md) operator.
+The `(format)` option overrides `-i`.
 
 When `-i` is used, all of the input files must have the same format.
 Without `-i`, each file format is determined independently so you can

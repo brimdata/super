@@ -278,6 +278,9 @@ func (t *translator) asFormatArg(args []ast.OpArg) string {
 func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 	format := t.asFormatArg(args)
 	if format == "" {
+		format = t.env.ReaderOpts.Format
+	}
+	if format == "" {
 		format = sio.FormatFromPath(name)
 	}
 	typ, err := t.fileType(name, format)
