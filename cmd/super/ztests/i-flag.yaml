@@ -1,0 +1,22 @@
+script: |
+  echo === format argument overrides -i
+  super -s -i csv -c 'from in.csv (format sup)'
+  echo === -i overrides file extension
+  super -s -i sup -c "from 'file:$PWD/in.csv'"
+  super -s -i sup -c 'from in.csv'
+  super -s -i sup -c pass in.csv
+
+inputs:
+  - name: in.csv
+    data: |
+      {a:1,b:2}
+
+outputs:
+  - name: stdout
+    data: |
+      === format argument overrides -i
+      {a:1,b:2}
+      === -i overrides file extension
+      {a:1,b:2}
+      {a:1,b:2}
+      {a:1,b:2}
