@@ -193,10 +193,10 @@ type worker struct {
 }
 
 type work struct {
-	// Workers need access to the local Decoder types slice to map deserialized
-	// type IDs into shared-context types and bufferfilter needs to map local IDs
-	// to field names and we accomplish both goals using the Decoder's implementation
-	// of the super.TypeFetcher interface.
+	// Workers need access to the local Decoder types slice to map
+	// deserialized type IDs into shared-context types and we accomplish
+	// this using the Decoder's implementation of the super.TypeFetcher
+	// interface.
 	types    super.TypeFetcher
 	frame    frame
 	resultCh chan op.Result
@@ -323,11 +323,6 @@ func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 func (w *worker) wantValue(val super.Value, progress *vio.Progress) bool {
 	progress.BytesRead += int64(len(val.Bytes()))
 	progress.RecordsRead++
-	// It's tempting to call w.bufferFilter.Eval on rec.Bytes here, but that
-	// might call FieldNameFinder.Find, which could explode or return false
-	// negatives because it expects a buffer of BSUP value messages, and
-	// rec.Bytes is just a BSUP value.  (A BSUP value message is a header
-	// indicating a type ID followed by a value of that type.)
 	if w.filter == nil || expr.IsTrue(w.filter.Eval(val)) {
 		progress.BytesMatched += int64(len(val.Bytes()))
 		progress.RecordsMatched++

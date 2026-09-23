@@ -21,8 +21,7 @@ If the pattern matches for any string, then the result is `true`.  Otherwise, it
 > will be expressible for all three pattern types.
 
 The entire input value is traversed:
-* for records, each field name is traversed and each field value is traversed or descended
-if a complex type,
+* for records, each field value is traversed or descended if a complex type,
 * for arrays and sets, each element is traversed or descended if a complex type, and
 * for maps, each key and value is traversed or descended if a complex type.
 
@@ -57,30 +56,16 @@ grep("10", this)
 
 ---
 
-_Match a field name_
-
-```mdtest-spq
-# spq
-grep("foo", this)
-# input
-{foo:10}
-{bar:{s:"baz"}}
-# expected output
-{foo:10}
-```
-
----
-
 _Regular expression_
 
 ```mdtest-spq
 # spq
 grep("foo|baz", this)
 # input
-{foo:10}
+"foo"
 {bar:{s:"baz"}}
 # expected output
-{foo:10}
+"foo"
 {bar:{s:"baz"}}
 ```
 

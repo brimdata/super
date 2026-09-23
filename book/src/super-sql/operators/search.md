@@ -297,21 +297,6 @@ _Concatenation for keyword search_
 
 ---
 
-_Search expressions match fields names too_
-```mdtest-spq
-# spq
-? foo
-# input
-{foo:1}
-{bar:2}
-{foo:3}
-# expected output
-{foo:1}
-{foo:3}
-```
-
----
-
 _Boolean functions may be called_
 ```mdtest-spq
 # spq
@@ -345,17 +330,16 @@ _Search with regular expressions_
 
 ```mdtest-spq
 # spq
-? /(foo|bar)/
+? /foo|bar/
 # input
 "foo"
 {s:"bar"}
 {s:"baz"}
-{foo:1}
 # expected output
 "foo"
 {s:"bar"}
-{foo:1}
 ```
+
 ---
 
 _A prefix match using a glob_
@@ -400,9 +384,9 @@ _A glob with stars on both sides is like a string search_
 "foo"
 {s:"bar"}
 {s:"baz"}
-{a:1}
+"a"
 # expected output
 {s:"bar"}
 {s:"baz"}
-{a:1}
+"a"
 ```

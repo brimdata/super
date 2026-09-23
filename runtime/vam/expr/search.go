@@ -12,12 +12,9 @@ import (
 )
 
 type search struct {
-	sctx       *super.Context
-	defuse     *Defuse
 	e          Evaluator
 	vectorPred func(vector.Any) vector.Any
 	stringPred func([]byte) bool
-	fnm        *expr.FieldNameMatcher
 }
 
 func NewSearch(sctx *super.Context, s string, val super.Value, e Evaluator) Evaluator {
@@ -44,34 +41,31 @@ func NewSearch(sctx *super.Context, s string, val super.Value, e Evaluator) Eval
 		}
 		return eq.eval(vec, vector.NewConstFromValue(sctx, val, vec.Len()))
 	}
-	return &search{sctx, NewDefuse(sctx), e, vectorPred, stringPred, nil}
+	return &search{e, vectorPred, stringPred}
 }
 
-func NewSearchRegexp(sctx *super.Context, re *regexp.Regexp, e Evaluator) Evaluator {
-	return &search{sctx, NewDefuse(sctx), e, nil, re.Match, expr.NewFieldNameMatcher(re.Match)}
+func NewSearchRegexp(re *regexp.Regexp, e Evaluator) Evaluator {
+	return &search{e, nil, re.Match}
 }
 
-func NewSearchString(sctx *super.Context, s string, e Evaluator) Evaluator {
+func NewSearchString(s string, e Evaluator) Evaluator {
 	pred := func(b []byte) bool {
 		return expr.StringContainsFold(string(b), s)
 	}
-	return &search{sctx, NewDefuse(sctx), e, nil, pred, expr.NewFieldNameMatcher(pred)}
+	return &search{e, nil, pred}
 }
 
 func (s *search) Eval(this vector.Any) vector.Any {
-	return s.applyEval(s.defuse.Eval(s.e.Eval(this)))
+	return s.applyEval(s.e.Eval(this))
 }
 
 func (s *search) applyEval(vec vector.Any) vector.Any {
-	return vector.Apply(vector.ApplyRipUnions, s.eval, vec)
+	return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, s.eval, vec)
 }
 
 func (s *search) eval(vecs ...vector.Any) vector.Any {
 	vec := vector.Under(vecs[0])
 	typ := vec.Type()
-	if s.fnm != nil && s.fnm.Match(typ) {
-		return vector.NewConstBool(true, vec.Len())
-	}
 	if typ.Kind() == super.PrimitiveKind {
 		return s.match(vec)
 	}

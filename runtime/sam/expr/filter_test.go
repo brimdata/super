@@ -1,7 +1,6 @@
 package expr_test
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"testing"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -78,11 +76,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			assert.NoError(t, err, "filter: %q", c.filter)
 			if bf != nil {
 				expected := expectBufferFilterFalsePositives || c.expected
-				// For FieldNameFinder.Find coverage, we need to
-				// hand BufferFilter.Eval a BSUP values frame
-				// containing rec, assembled here.
-				buf := binary.AppendUvarint(nil, uint64(rec.Type().ID()))
-				buf = scode.Append(buf, rec.Bytes())
+				buf := rec.Bytes()
 				assert.Equal(t, expected, bf.Eval(sctx, buf),
 					"filter: %q\nvalues:%s\nbuffer:\n%s", c.filter, sup.FormatValue(rec), hex.Dump(buf))
 			}
@@ -377,21 +371,9 @@ func TestFilters(t *testing.T) {
 		{"i < 50", false},
 	})
 
-	// Test searching for a field name
-	runCases(t, `{foo:"bleah",rec:{SUB:"meh"}}`, []testcase{
-		{"?foo", true},
-		{"?FOO", true},
-		{"?foo.", false},
-		{"?sub", true},
-		{"?nsub.", false},
-		{"?rec.sub", true},
-		{"?c.s", true},
-	})
-
 	// Test searching a null field
 	runCases(t, "{rec:null}", []testcase{
-		{"?rec", true},
-		{"?rec.str", false},
+		{"?rec", false},
 	})
 
 	// Test searching an empty top-level record
@@ -401,7 +383,7 @@ func TestFilters(t *testing.T) {
 
 	// Test searching an empty nested record
 	runCases(t, "{empty:{}}", []testcase{
-		{"?empty", true},
+		{"?empty", false},
 	})
 
 }
