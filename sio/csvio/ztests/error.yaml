@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {error:error(null)}
   {error:error(1)}
@@ -8,8 +10,6 @@ input: |
   {error:error(",")}
   {error:error("\\u002d")}
   {error:error("\\u005c")}
-
-output-flags: -f csv
 
 output: |
   error

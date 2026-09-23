@@ -1,5 +1,7 @@
 spq: rename a := b
 
+flags: -dynamic
+
 input: |
   1
 

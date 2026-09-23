@@ -1,10 +1,10 @@
 spq: fuse
 
+flags: -f csv
+
 input: |
   {x:1}
   {y:"foo"}
-
-output-flags: -f csv
 
 output: |
   x

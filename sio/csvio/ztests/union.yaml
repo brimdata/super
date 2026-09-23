@@ -1,10 +1,10 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {a:1::(int64|string)}
   {a:"one"::(int64|string)}
-
-output-flags: -f csv
 
 output: |
   a

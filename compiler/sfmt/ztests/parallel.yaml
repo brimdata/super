@@ -9,7 +9,7 @@ outputs:
       | fork
         (
           aggregate
-              count:=count() by x:=this["@foo"]
+              count:=count() by x:=`@foo`
         )
         (
           aggregate

@@ -1,0 +1,78 @@
+script: |
+  echo === a.sup
+  super -s -c 'from a.sup'
+  echo ===
+  super -s -c 'values 1,2 | from a.sup'
+  echo ===
+  super -s -c 'values 1,2 | values (from a.sup | count())'
+  echo === fork
+  super -s -c 'fork (from a.sup) (from b.sup) | sort this'
+  echo ===
+  super -s -c 'values 1,2 | fork (from a.sup) (from b.sup) | sort this'
+  echo ===
+  super -s -c 'values 1,2 | values (fork (from a.sup) (from b.sup) | count())'
+  echo === glob
+  super -s -c 'from *.sup | sort this'
+  echo ===
+  super -s -c 'values 1,2 | from *.sup | sort this'
+  echo ===
+  super -s -c 'values 1,2 | values (from *.sup | count())'
+
+inputs:
+  - name: a.sup
+    data: |
+      "a1"
+      "a2"
+  - name: b.sup
+    data: |
+      "b1"
+      "b2"
+
+outputs:
+  - name: stdout
+    data: |
+      === a.sup
+      "a1"
+      "a2"
+      ===
+      "a1"
+      "a2"
+      "a1"
+      "a2"
+      ===
+      2
+      2
+      === fork
+      "a1"
+      "a2"
+      "b1"
+      "b2"
+      ===
+      "a1"
+      "a1"
+      "a2"
+      "a2"
+      "b1"
+      "b1"
+      "b2"
+      "b2"
+      ===
+      4
+      4
+      === glob
+      "a1"
+      "a2"
+      "b1"
+      "b2"
+      ===
+      "a1"
+      "a1"
+      "a2"
+      "a2"
+      "b1"
+      "b1"
+      "b2"
+      "b2"
+      ===
+      4
+      4

@@ -12,9 +12,9 @@ import (
 
 func DAG(main *dag.Main) string {
 	d := &canonDAG{
-		shared: shared{formatter: formatter{tab: 2}},
-		head:   true,
-		first:  true,
+		tab:   2,
+		head:  true,
+		first: true,
 	}
 	d.main(main)
 	d.flush()
@@ -27,9 +27,9 @@ func DAGSeq(seq dag.Seq) string {
 
 func DAGExpr(e dag.Expr) string {
 	d := &canonDAG{
-		shared: shared{formatter: formatter{tab: 2}},
-		head:   true,
-		first:  true,
+		tab:   2,
+		head:  true,
+		first: true,
 	}
 	d.expr(e, "")
 	d.flush()
@@ -220,6 +220,9 @@ func (c *canonDAG) recordElems(elems []dag.RecordElem) {
 		switch e := elem.(type) {
 		case *dag.Field:
 			c.write(sup.QuotedName(e.Name))
+			if e.Opt {
+				c.write("?")
+			}
 			c.write(":")
 			c.expr(e.Value, "")
 		case *dag.Spread:
@@ -303,6 +306,9 @@ func (c *canonDAG) op(p dag.Op) {
 		c.write("file %s", strings.Join(p.Paths, ","))
 		if p.Format != "" {
 			c.write(" format %s", p.Format)
+		}
+		if p.Type != "" {
+			c.write(" type %s", p.Type)
 		}
 		if p.Pushdown.Unordered {
 			c.write(" unordered")

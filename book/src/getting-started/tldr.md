@@ -38,7 +38,7 @@ cat input.csv | super -f csv -c <query> -
 ```
 ## Fuse JSON data into a unified schema and output as Parquet
 ```
-super -f parquet -o out.parquet -c fuse file.json
+super -o out.parquet -c fuse file.json
 ```
 ## Run as a calculator
 ```

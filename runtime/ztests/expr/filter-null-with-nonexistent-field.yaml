@@ -1,5 +1,7 @@
 spq: is_error(t)
 
+flags: -dynamic
+
 input: &input |
   {s:"A=B"}
   {s:"A=*"}

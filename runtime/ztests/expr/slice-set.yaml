@@ -1,5 +1,7 @@
 spq: "values c[start:end]"
 
+flags: -dynamic
+
 input: |
   {start:null,end:-1,c:set[1,2,3,4]}
   {start:1,end:null,c:set[1,2,3,4]}

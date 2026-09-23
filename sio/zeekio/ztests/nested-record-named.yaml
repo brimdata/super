@@ -1,10 +1,10 @@
 spq: pass
 
+flags: -f zeek
+
 input: |
   type record_named={b:int64}
   {a:{b:1}::record_named}
-
-output-flags: -f zeek
 
 output: |
   #separator \x09

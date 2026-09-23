@@ -2,7 +2,8 @@ skip: issue 2540... need to delete by key range
 
 script: |
   mkdir logs
-  source minio.sh
+  source s3.sh
+  aws s3api create-bucket --bucket bucket
   super db import -R logs -data s3://bucket/db babble.sup
   super db map -R logs -o count.bsup "count()"
   echo ===
@@ -15,8 +16,8 @@ script: |
 inputs:
   - name: babble.sup
     source: ../../../testdata/babble.sup
-  - name: minio.sh
-    source: ../../../testdata/minio.sh
+  - name: s3.sh
+    source: ../../../testdata/s3.sh
 
 outputs:
   - name: stdout

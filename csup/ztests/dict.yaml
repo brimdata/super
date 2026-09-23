@@ -1,5 +1,5 @@
 script: |
-  super -f csup -o out.csup -
+  super -o out.csup -
   super dev csup out.csup | super -s -c "nameof(this)=='Dict' | count()" -
 
 inputs:

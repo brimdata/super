@@ -1,5 +1,5 @@
 script: |
-  super -f csup -o test.csup -
+  super -o test.csup -
   super -s -c 'from test.csup | where b==1'
 
 inputs:

@@ -99,7 +99,7 @@ JOIN U ON x=z
 ---
 
 _Left outer join_
-```mdtest-spq-skip
+```mdtest-spq
 # spq
 WITH T(x,y) AS (
     VALUES (1,2), (3,4), (5,6)
@@ -114,15 +114,15 @@ ORDER BY x
 # input
 
 # expected output
-{x:1,y:2,z:error("missing")}
+{x:1,y:2,z:null}
 {x:3,y:4,z:3}
-{x:5,y:6,z:error("missing")}
+{x:5,y:6,z:null}
 ```
 
 ---
 
 _Right outer join_
-```mdtest-spq-skip
+```mdtest-spq
 # spq
 WITH T(x,y) AS (
     VALUES (1,2), (3,4), (5,6)
@@ -138,7 +138,7 @@ ORDER BY x
 
 # expected output
 {x:3,y:4,z:3}
-{x:error("missing"),y:error("missing"),z:2}
+{x:null,y:null,z:2}
 ```
 
 ---

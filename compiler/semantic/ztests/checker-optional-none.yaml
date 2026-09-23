@@ -1,0 +1,6 @@
+spq: 'values {x:1,y?:none}'
+
+error: |
+  non-union none assigned to optional field y at line 1, column 13:
+  values {x:1,y?:none}
+              ~~~~~~~

@@ -16,7 +16,7 @@ in [runtime/sam/expr/agg](runtime/sam/expr/agg).
 
 ## Development
 
-Compiling `super` requires Go 1.26 or later and uses [Go modules](https://github.com/golang/go/wiki/Modules).
+Compiling `super` requires Go 1.27 or later and uses [Go modules](https://github.com/golang/go/wiki/Modules).
 Compilation for 32-bit target environments is not currently supported
 (see [super/4044](https://github.com/brimdata/super/issues/4044)).
 Dependencies are specified in the [`go.mod` file](./go.mod) and fetched
@@ -37,12 +37,14 @@ go mod edit -replace=github.com/org/repo=../repo
 
 Before any PRs are merged to main, all tests must pass.
 
-Unit tests require Node.js.  To run them, execute:
+To run unit tests, execute:
 ```
 make test-unit
 ```
 
-System tests require Python 3.3 or better.  To run them, execute:
+System tests require Python 3.3 or better and the
+[AWS CLI](https://aws.amazon.com/cli/).  To run them, execute:
+
 ```
 make test-system
 ```

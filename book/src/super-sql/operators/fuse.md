@@ -36,8 +36,8 @@ fuse
 {a:1}
 {b:2}
 # expected output
-fusion({a?:1,b?:none::int64},<{a:int64}>)
-fusion({a?:none::int64,b?:2},<{b:int64}>)
+fusion({a:fusion(1::(int64|none),<int64>),b:fusion(none::(int64|none),<none>)},<{a:int64}>)
+fusion({a:fusion(none::(int64|none),<none>),b:fusion(2::(int64|none),<int64>)},<{b:int64}>)
 ```
 
 ---
@@ -64,6 +64,6 @@ fuse
 {a:[1,2]}
 {a:["foo","bar"],b:10.0.0.1}
 # expected output
-fusion({a:fusion([fusion(1::(int64|string),<int64>),fusion(2::(int64|string),<int64>)],<[int64]>),b?:none::ip},<{a:[int64]}>)
-fusion({a:fusion([fusion("foo"::(int64|string),<string>),fusion("bar"::(int64|string),<string>)],<[string]>),b?:10.0.0.1},<{a:[string],b:ip}>)
+fusion({a:fusion([fusion(1::(int64|string),<int64>),fusion(2::(int64|string),<int64>)],<[int64]>),b:fusion(none::(ip|none),<none>)},<{a:[int64]}>)
+fusion({a:fusion([fusion("foo"::(int64|string),<string>),fusion("bar"::(int64|string),<string>)],<[string]>),b:fusion(10.0.0.1::(ip|none),<ip>)},<{a:[string],b:ip}>)
 ```

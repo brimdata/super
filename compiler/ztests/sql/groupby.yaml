@@ -1,7 +1,7 @@
 script: |
-  super -s -c "select val.radius ?? error('missing') as radius,count() from shapes.json group by val.radius ?? error('missing') | sort this"
+  super -s -c "select val.radius.ok() ?? error('missing') as radius,count() from shapes.json group by val.radius.ok() ?? error('missing') | sort this"
   echo ===
-  super -s -c 'select type,sum(val.radius) from shapes.json group by type | sort this'
+  super -s -c 'select type,sum(val.radius.ok()) from shapes.json group by type | sort this'
 
 inputs:
   - name: shapes.json

@@ -1,7 +1,7 @@
 script: |
   super -s -I query.sql
   echo ===
-  super -s -c "SELECT * FROM 'data.csv' WHERE NOT Country = 'Spain';"
+  super -static -s -c "SELECT * FROM 'data.csv' WHERE NOT Country = 'Spain';"
   echo ===
   super -s -c "select 'a' || 'b' | count()"
   echo ===

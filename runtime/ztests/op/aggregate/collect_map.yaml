@@ -1,6 +1,6 @@
 spq: "collect_map(map{stock: price})"
 
-output-flags: -pretty 2
+flags: -pretty 2
 
 input: |
   {stock:"APPL",price:150.94}
@@ -24,7 +24,7 @@ output: |
 # Test union values
 spq: "collect_map(map{k:v})"
 
-output-flags: -pretty 2
+flags: -pretty 2
 
 input: |
   // Named type and union type.

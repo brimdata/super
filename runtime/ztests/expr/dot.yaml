@@ -19,7 +19,7 @@ output: |
   1
   1
   error({message:"'.': applied to non-record",on:null})
-  none
+  error({message:"no such field b",on:{}})
   error({message:"'.': applied to non-record",on:1})
   error({message:"'.': applied to non-record",on:error({message:"no such field a",on:{}})})
   error({message:"'.': applied to non-record",on:error({message:"'.': applied to non-record",on:null})})

@@ -1,9 +1,9 @@
 spq: pass
 
+flags: -f json
+
 input: &input |
   "<>&"
   {"<>&":"<>&"}
-
-output-flags: -f json
 
 output: *input

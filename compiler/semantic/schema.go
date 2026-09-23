@@ -395,7 +395,7 @@ func (j *joinUsingScope) star(n ast.Node, table string, path field.Path) ([]*sem
 			return nil, err
 		}
 		p := append(append(path, "left"), left...)
-		this := sem.NewThis(n, field.NewChain(p...))
+		this := sem.NewThis(n, field.NewChainNullish(p...))
 		out = append(out, this)
 	}
 	var err error
@@ -430,7 +430,7 @@ func (s *staticTable) star(n ast.Node, table string, path field.Path) ([]*sem.Th
 	var out []*sem.ThisExpr
 	if table == "" || s.table == table {
 		for _, col := range s.typ.Fields {
-			path := field.NewChain(path...).Append(col.Name, false)
+			path := field.NewChainNullish(path...).AppendNullish(col.Name)
 			out = append(out, sem.NewThis(n, path))
 		}
 	}

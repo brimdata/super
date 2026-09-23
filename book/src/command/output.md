@@ -7,7 +7,9 @@ preferred because they retain the full richness of the super-structured
 data model.
 
 Output is written to standard output by default or, if `-o` is specified,
-to the indicated file or directory.
+to the indicated file or directory.  If the file indicated by `-o` ends
+with a [recognized extension](formats.md), the output format is set
+accordingly unless overridden with `-f`, `-j`, `-J`, `-s`, or `-S`
 
 When writing to stdout and stdout is a terminal, the default
 output format is [SUP](../formats/sup.md).
@@ -40,7 +42,7 @@ If no query is specified with `-c`, the inputs are scanned without modification
 and output in the specified format
 providing a convenient means to convert files from one format to another, e.g.,
 ```
-super -f arrows -o out.arrows file1.json file2.parquet file3.csv
+super -o out.arrows file1.json file2.parquet file3.csv
 ```
 
 ## Pretty Printing
@@ -125,7 +127,7 @@ This creates a challenge converting the type-flexible super-structured data form
 
 For example, this seemingly simple conversion:
 ```mdtest-command fails
-echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -
+echo '{x:1}{s:"hello"}' | super -o out.parquet -
 ```
 causes this error
 ```mdtest-output
@@ -145,7 +147,7 @@ The [blend](../super-sql/operators/blend.md) operator uses
 [type fusion](../super-sql/type-fusion.md) to merge different record
 types into a blended type, e.g.,
 ```mdtest-command-skip
-echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -c blend -
+echo '{x:1}{s:"hello"}' | super -o out.parquet -c blend -
 super -s out.parquet
 ```
 which produces

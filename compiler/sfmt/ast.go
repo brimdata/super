@@ -27,9 +27,9 @@ func AST(p ast.Seq) string {
 
 func ASTExpr(e ast.Expr) string {
 	d := &canon{
-		shared: shared{formatter: formatter{tab: 2}},
-		head:   true,
-		first:  true,
+		tab:   2,
+		head:  true,
+		first: true,
 	}
 	d.expr(e, "")
 	d.flush()
@@ -185,6 +185,9 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			switch e := elem.(type) {
 			case *ast.FieldElem:
 				c.write(sup.QuotedName(e.Name.Text))
+				if e.Opt {
+					c.write("?")
+				}
 				c.write(":")
 				c.expr(e.Value, "")
 			case *ast.ExprElem:

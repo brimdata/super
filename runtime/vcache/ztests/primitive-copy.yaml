@@ -1,6 +1,6 @@
 # Exercise the logic that builds values from cached non-constant vectors.
 script: |
-  super -f csup -o test.csup -
+  super -o test.csup -
   super dev vector copy -s test.csup
 
 inputs:

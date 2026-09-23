@@ -1,8 +1,7 @@
 # Test simple array
 spq: pass
 
-input-flags: '-i json'
-output-flags: '-f json'
+flags: -i json -f json
 
 input: &input |
   {"a":[1,2,3]}
@@ -16,8 +15,7 @@ output: *input
 # Test array union
 spq: pass
 
-input-flags: '-i json'
-output-flags: '-f json'
+flags: -i json -f json
 
 input: &input |
   {"a":[1,2]}
@@ -30,7 +28,7 @@ output: *input
 # Test empty array
 spq: pass
 
-input-flags: '-i json'
+flags: -i json
 
 input: &input |
   []
@@ -43,8 +41,7 @@ output: *input
 # Test array with fusion records
 spq: pass
 
-input-flags: '-i json'
-output-flags: '-f json'
+flags: -i json -f json
 
 input: &input |
   [{"a":1},{"a":2,"b":3}]
@@ -56,8 +53,7 @@ output: *input
 # Test Union Arrays
 spq: pass
 
-input-flags: -i json
-output-flags: -f json
+flags: -i json -f json
 
 input: &input |
   []

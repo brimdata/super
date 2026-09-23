@@ -1,0 +1,8 @@
+spq: pass
+
+flags: -i sup
+
+input: '{x?:none}'
+
+error: |
+  stdio:stdin: non-union none assigned to optional field x

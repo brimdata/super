@@ -41,7 +41,7 @@ func init() {
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*db.Command)}
 	f.BoolVar(&c.delete, "d", false, "delete the branch instead of creating it")
-	c.outputFlags.DefaultFormat = "db"
+	c.outputFlags.Format = "db"
 	c.outputFlags.SetFlags(f)
 	c.poolFlags.SetFlags(f)
 	return c, nil

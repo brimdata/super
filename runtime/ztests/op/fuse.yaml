@@ -1,12 +1,12 @@
 spq: fuse
 
+flags: -fusion
+
 input: |
   {a:"hello",b:"world"}
   {b:"goodnight",c:"gracie"}
   {a:"goodnight",b:123::int32}
   {a:null,b:null,c:null}
-
-output-flags: -fusion
 
 output: |
   fusion({a:fusion("hello"::(string|null|none),<string>),b:fusion("world"::(int32|string|null),<string>),c:fusion(none::(string|null|none),<none>)},<{a:string,b:string}>)
@@ -19,14 +19,14 @@ output: |
 # Test fuse on an array of records.
 spq: fuse
 
+flags: -fusion
+
 input: |
   [{a:1}]
   [{b:2}]
   [{a:3},{b:3}]
   [{a:3,b:3}]
   [{a:null,b:null}]
-
-output-flags: -fusion
 
 output: |
   fusion([fusion({a:fusion(1::(int64|null|none),<int64>),b:fusion(none::(int64|null|none),<none>)},<{a:int64}>)],<[{a:int64}]>)
@@ -40,6 +40,8 @@ output: |
 # Test fuse on mix of complex and primitive values.
 spq: fuse
 
+flags: -fusion
+
 input: |
   {a:1}
   {a:"s"}
@@ -47,8 +49,6 @@ input: |
   "s"
   [1]
   ["s"]
-
-output-flags: -fusion
 
 output: |
   fusion({a:fusion(1::(int64|string),<int64>)}::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<{a:int64}>)
@@ -63,12 +63,12 @@ output: |
 # Test fuse on nested records.
 spq: fuse
 
+flags: -fusion
+
 input: |
   {a:"hello",r:{x:1::int32,y:2::int32}}
   {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
   {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
-
-output-flags: -fusion
 
 output: |
   fusion({a:fusion("hello"::(string|null|none),<string>),r:fusion({x:fusion(1::int32::(int32|null|none),<int32>),y:fusion(2::int32::(int32|null),<int32>),z:fusion(none::(int32|null|none),<none>)},<{x:int32,y:int32}>),s:fusion(none::(string|null|none),<none>),r2:fusion(none::(null|none|{x:int32}),<none>)},<{a:string,r:{x:int32,y:int32}}>)
@@ -79,11 +79,11 @@ output: |
 
 spq: fuse
 
+flags: -fusion
+
 input: |
   error(1)
   error("s")
-
-output-flags: -fusion
 
 output: |
   fusion(error(fusion(1::(int64|string),<int64>)),<error(int64)>)
@@ -93,12 +93,12 @@ output: |
 
 spq: fuse
 
+flags: -fusion
+
 input: |
   [1,2]
   ["foo"]
   [null]
-
-output-flags: -fusion
 
 output: |
   fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
@@ -109,12 +109,12 @@ output: |
 
 spq: fuse
 
+flags: -fusion
+
 input: |
   {a:[1,2]}
   {a:["foo"]}
   {a:[null]}
-
-output-flags: -fusion
 
 output: |
   {a:fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)}
@@ -124,6 +124,8 @@ output: |
 ---
 
 spq: fuse
+
+flags: -fusion
 
 input: |
   type p1=int64
@@ -150,8 +152,6 @@ input: |
   type er1=int64
   type er2=error(er1)
   error(1)::er2
-
-output-flags: -fusion
 
 output: |
   type a1=int64
@@ -184,8 +184,6 @@ output: |
 # Test fuse on fusion values
 spq: unnest this into ( fuse )
 
-runtime: vam
-
 input: |
   [fusion({x?:1,y?:none::int64},<{x:int64}>)]
   [fusion({x?:1,y?:none::int64},<{x:int64}>),fusion({x?:none::int64,y?:2},<{y:int64}>)]
@@ -197,3 +195,29 @@ output: |
   {y:2}
   1
   2
+
+---
+
+spq: fuse | values x
+
+flags: -fusion
+
+input: |
+  {x:{y:1}}
+  {}
+
+output: |
+  fusion({y:1}::(none|{y:int64}),<{y:int64}>)
+  error({message:"no such field x",on:{}})
+
+---
+
+spq: fuse | values x.ok() ?? 123
+
+input: |
+  {x:{y:1}}
+  {}
+
+output: |
+  {y:1}
+  123

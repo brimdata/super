@@ -1,9 +1,9 @@
 script: |
-  super -s -c "select * from j0.json join j1.json using (a)"
+  super -static -s -c "select * from j0.json join j1.json using (a)"
   echo ===
-  super -s -c "select j0.* from j0.json join j1.json using (a)"
+  super -static -s -c "select j0.* from j0.json join j1.json using (a)"
   echo ===
-  super -s -c "select j1.* from j0.json join j1.json using (a)"
+  super -static -s -c "select j1.* from j0.json join j1.json using (a)"
 
 inputs:
   - name: j0.json

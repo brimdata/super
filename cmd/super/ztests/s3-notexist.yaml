@@ -1,10 +1,11 @@
 script: |
-  source minio.sh
+  source s3.sh
+  aws s3api create-bucket --bucket bucket
   ! super -s s3://bucket/does/not/exist
 
 inputs:
-  - name: minio.sh
-    source: ../../../testdata/minio.sh
+  - name: s3.sh
+    source: ../../../testdata/s3.sh
 
 outputs:
   - name: stderr

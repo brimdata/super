@@ -432,8 +432,8 @@ func inlineRecordExprSpreads(v any) {
 		}
 		// dedupe elems from spreads
 		m := map[string]struct{}{}
-		for i := len(r.Elems) - 1; i >= 0; i-- {
-			if f, ok := r.Elems[i].(*dag.Field); ok {
+		for i, elem := range slices.Backward(r.Elems) {
+			if f, ok := elem.(*dag.Field); ok {
 				if _, ok := m[f.Name]; ok {
 					r.Elems = slices.Delete(r.Elems, i, i+1)
 				}
@@ -599,11 +599,11 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 						return newErrorMissing()
 					}
 					// Copy spread so f and y don't share dag.Exprs.
-					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Chain.Path())
+					e, liftOK = addChainToExpr(dag.CopyExpr(spread), this.Chain)
 					return e
 				}
 				// Copy e1 so f and y don't share dag.Exprs.
-				e, liftOK = addPathToExpr(dag.CopyExpr(e1), this.Chain.Path()[1:])
+				e, liftOK = addChainToExpr(dag.CopyExpr(e1), this.Chain[1:])
 				return e
 			})
 			if liftOK {
@@ -644,10 +644,10 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 					if v1TopLevelSpread == nil {
 						return newErrorMissing()
 					}
-					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Chain.Path())
+					e, mergeOK = addChainToExpr(v1TopLevelSpread, this.Chain)
 					return e
 				}
-				e, mergeOK = addPathToExpr(v1Expr, this.Chain.Path()[1:])
+				e, mergeOK = addChainToExpr(v1Expr, this.Chain[1:])
 				return e
 			}
 			var mergedOp dag.Op
@@ -690,21 +690,21 @@ func hasThisWithEmptyPath(v any) bool {
 	return found
 }
 
-// addPathToExpr is roughly equivalent to this:
+// addChainToExpr is roughly equivalent to this:
 //
-//	func simpleAddPathToExpr((e dag.Expr, path []string) dag.Expr {
+//	func simpleAddChainToExpr((e dag.Expr, path []string) dag.Expr {
 //	   for _, elem := range path {
 //	       e = &dag.Dot{Kind: "Dot", LHS: e, RHS: elem}
 //	   }
 //	   return e
 //	}
 //
-// addPathToExpr differs in a few ways:
+// addChainToExpr differs in a few ways:
 //   - It returns a dag.This when possible.
 //   - It descends to a dag.RecordExpr.Elem when possible.
 //   - It returns false when it cannot descend to a dag.RecordExpr.Elem.
-func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
-	if len(path) == 0 {
+func addChainToExpr(e dag.Expr, chain field.Chain) (dag.Expr, bool) {
+	if len(chain) == 0 {
 		return e, true
 	}
 	switch e := e.(type) {
@@ -713,14 +713,14 @@ func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
 		for _, elem := range slices.Backward(e.Elems) {
 			switch elem := elem.(type) {
 			case *dag.Field:
-				if elem.Name != path[0] {
+				if elem.Name != chain[0].ID {
 					continue
 				}
 				if spread != nil {
 					// Don't know which will win.
 					return e, false
 				}
-				return addPathToExpr(elem.Value, path[1:])
+				return addChainToExpr(elem.Value, chain[1:])
 			case *dag.Spread:
 				if spread != nil {
 					// Don't know which will win.
@@ -732,12 +732,12 @@ func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
 		if spread == nil {
 			return e, false
 		}
-		return addPathToExpr(spread.Expr, path)
+		return addChainToExpr(spread.Expr, chain)
 	case *dag.ThisExpr:
-		return dag.NewThis(slices.Concat(e.Chain, field.NewChain(path...))), true
+		return dag.NewThis(slices.Concat(e.Chain, chain)), true
 	}
-	for _, elem := range path {
-		e = &dag.DotExpr{Kind: "DotExpr", LHS: e, RHS: elem}
+	for _, elem := range chain {
+		e = &dag.DotExpr{Kind: "DotExpr", LHS: e, RHS: elem.ID, Noneish: elem.Noneish, Nullish: elem.Nullish}
 	}
 	return e, true
 }
@@ -826,8 +826,8 @@ func walkT[T any](v reflect.Value, post func(T) T) {
 // order of values in the underlying data source).  setPushdownUnordered returns
 // whether seq's input can be unordered.
 func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
-	for i := len(seq) - 1; i >= 0; i-- {
-		switch op := seq[i].(type) {
+	for _, op := range slices.Backward(seq) {
+		switch op := op.(type) {
 		case *dag.AggregateOp, *dag.CombineOp, *dag.DistinctOp, *dag.HashJoinOp, *dag.JoinOp, *dag.SortOp, *dag.TopOp,
 			*dag.HTTPScan, *dag.PoolScan,
 			*dag.CommitMetaScan, *dag.DBMetaScan, *dag.PoolMetaScan:

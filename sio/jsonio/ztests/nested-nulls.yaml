@@ -1,9 +1,9 @@
 spq: pass
 
+flags: -f json
+
 input: |
   {san:{dns:["google.com"],uri:null::([string]|null),email:null::(set[string]|null),ip:null::([ip]|null)}}
-
-output-flags: -f json
 
 output: |
   {"san":{"dns":["google.com"],"uri":null,"email":null,"ip":null}}

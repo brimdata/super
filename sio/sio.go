@@ -34,6 +34,8 @@ func Extension(format string) string {
 
 func FormatFromPath(path string) string {
 	switch filepath.Ext(path) {
+	case ".arrows":
+		return "arrows"
 	case ".bsup":
 		return "bsup"
 	case ".csup":
@@ -48,6 +50,8 @@ func FormatFromPath(path string) string {
 		return "sup"
 	case ".text", ".txt":
 		return "line"
+	case ".tsv":
+		return "tsv"
 	default:
 		return ""
 	}

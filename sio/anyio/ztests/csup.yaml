@@ -1,5 +1,5 @@
 script: |
-  super -f csup -o f -
+  super -o f -
   super -s f
   echo // standard input
   super -s -c 'from "stdio:stdin"' < f

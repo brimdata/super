@@ -62,12 +62,7 @@ func CompileBufferFilter(sctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 			return nil, nil
 		case super.TypeString:
 			pattern := norm.NFC.Bytes(literal.Bytes())
-			left := expr.NewBufferFilterForStringCase(string(pattern))
-			if left == nil {
-				return nil, nil
-			}
-			right := expr.NewBufferFilterForFieldName(string(pattern))
-			return expr.NewOrBufferFilter(left, right), nil
+			return expr.NewBufferFilterForStringCase(string(pattern)), nil
 		}
 		left := expr.NewBufferFilterForStringCase(e.Text)
 		right, err := newBufferFilterForLiteral(literal)

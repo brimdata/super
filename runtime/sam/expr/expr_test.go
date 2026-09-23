@@ -16,6 +16,7 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 	}
 	zt := ztest.ZTest{
 		SPQ:    fmt.Sprintf("values %s", e),
+		Flags:  "-dynamic",
 		Input:  &input,
 		Output: expected + "\n",
 	}

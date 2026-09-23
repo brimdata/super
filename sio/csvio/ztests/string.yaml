@@ -1,13 +1,13 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {string:""}
   {string:"\""}
   {string:","}
   {string:"-"}
   {string:"\\"}
-
-output-flags: -f csv
 
 output: |
   string

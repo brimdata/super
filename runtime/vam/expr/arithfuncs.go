@@ -43,7 +43,7 @@ func arithAddIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithAddIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -99,7 +99,7 @@ func arithAddIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -155,7 +155,7 @@ func arithAddIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -165,7 +165,7 @@ func arithAddIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
@@ -176,7 +176,7 @@ func arithAddIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -189,7 +189,7 @@ func arithAddIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -202,8 +202,8 @@ func arithAddIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
-	rconst := vector.IntValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	return vector.NewConstInt(lhs.Type(), lconst+rconst, lhs.Len())
 }
 
@@ -246,7 +246,7 @@ func arithAddUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithAddUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -302,7 +302,7 @@ func arithAddUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -358,7 +358,7 @@ func arithAddUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -368,7 +368,7 @@ func arithAddUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
@@ -379,7 +379,7 @@ func arithAddUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -392,7 +392,7 @@ func arithAddUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -405,8 +405,8 @@ func arithAddUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
-	rconst := vector.UintValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	return vector.NewConstUint(lhs.Type(), lconst+rconst, lhs.Len())
 }
 
@@ -449,7 +449,7 @@ func arithAddFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithAddFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -505,7 +505,7 @@ func arithAddFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -561,7 +561,7 @@ func arithAddFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -571,7 +571,7 @@ func arithAddFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
@@ -582,7 +582,7 @@ func arithAddFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -595,7 +595,7 @@ func arithAddFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -608,8 +608,8 @@ func arithAddFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithAddFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
-	rconst := vector.FloatValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	return vector.NewConstFloat(lhs.Type(), lconst+rconst, lhs.Len())
 }
 
@@ -652,7 +652,7 @@ func arithSubIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithSubIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -708,7 +708,7 @@ func arithSubIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -764,7 +764,7 @@ func arithSubIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -774,7 +774,7 @@ func arithSubIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
@@ -785,7 +785,7 @@ func arithSubIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -798,7 +798,7 @@ func arithSubIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -811,8 +811,8 @@ func arithSubIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
-	rconst := vector.IntValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	return vector.NewConstInt(lhs.Type(), lconst-rconst, lhs.Len())
 }
 
@@ -855,7 +855,7 @@ func arithSubUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithSubUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -911,7 +911,7 @@ func arithSubUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -967,7 +967,7 @@ func arithSubUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -977,7 +977,7 @@ func arithSubUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
@@ -988,7 +988,7 @@ func arithSubUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -1001,7 +1001,7 @@ func arithSubUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -1014,8 +1014,8 @@ func arithSubUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
-	rconst := vector.UintValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	return vector.NewConstUint(lhs.Type(), lconst-rconst, lhs.Len())
 }
 
@@ -1058,7 +1058,7 @@ func arithSubFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithSubFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1114,7 +1114,7 @@ func arithSubFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1170,7 +1170,7 @@ func arithSubFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1180,7 +1180,7 @@ func arithSubFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
@@ -1191,7 +1191,7 @@ func arithSubFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -1204,7 +1204,7 @@ func arithSubFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -1217,8 +1217,8 @@ func arithSubFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithSubFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
-	rconst := vector.FloatValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	return vector.NewConstFloat(lhs.Type(), lconst-rconst, lhs.Len())
 }
 
@@ -1261,7 +1261,7 @@ func arithMulIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithMulIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1317,7 +1317,7 @@ func arithMulIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1373,7 +1373,7 @@ func arithMulIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1383,7 +1383,7 @@ func arithMulIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
@@ -1394,7 +1394,7 @@ func arithMulIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -1407,7 +1407,7 @@ func arithMulIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -1420,8 +1420,8 @@ func arithMulIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
-	rconst := vector.IntValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	return vector.NewConstInt(lhs.Type(), lconst*rconst, lhs.Len())
 }
 
@@ -1464,7 +1464,7 @@ func arithMulUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithMulUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1520,7 +1520,7 @@ func arithMulUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1576,7 +1576,7 @@ func arithMulUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1586,7 +1586,7 @@ func arithMulUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
@@ -1597,7 +1597,7 @@ func arithMulUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -1610,7 +1610,7 @@ func arithMulUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -1623,8 +1623,8 @@ func arithMulUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
-	rconst := vector.UintValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	return vector.NewConstUint(lhs.Type(), lconst*rconst, lhs.Len())
 }
 
@@ -1667,7 +1667,7 @@ func arithMulFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithMulFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1723,7 +1723,7 @@ func arithMulFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1779,7 +1779,7 @@ func arithMulFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1789,7 +1789,7 @@ func arithMulFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
@@ -1800,7 +1800,7 @@ func arithMulFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -1813,7 +1813,7 @@ func arithMulFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -1826,8 +1826,8 @@ func arithMulFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithMulFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
-	rconst := vector.FloatValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	return vector.NewConstFloat(lhs.Type(), lconst*rconst, lhs.Len())
 }
 
@@ -1870,7 +1870,7 @@ func arithDivIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithDivIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1926,7 +1926,7 @@ func arithDivIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1982,7 +1982,7 @@ func arithDivIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -1992,7 +1992,7 @@ func arithDivIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
@@ -2003,7 +2003,7 @@ func arithDivIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -2016,7 +2016,7 @@ func arithDivIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -2029,8 +2029,8 @@ func arithDivIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
-	rconst := vector.IntValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	return vector.NewConstInt(lhs.Type(), lconst/rconst, lhs.Len())
 }
 
@@ -2073,7 +2073,7 @@ func arithDivUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithDivUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2129,7 +2129,7 @@ func arithDivUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2185,7 +2185,7 @@ func arithDivUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2195,7 +2195,7 @@ func arithDivUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
@@ -2206,7 +2206,7 @@ func arithDivUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -2219,7 +2219,7 @@ func arithDivUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -2232,8 +2232,8 @@ func arithDivUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
-	rconst := vector.UintValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	return vector.NewConstUint(lhs.Type(), lconst/rconst, lhs.Len())
 }
 
@@ -2276,7 +2276,7 @@ func arithDivFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithDivFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2332,7 +2332,7 @@ func arithDivFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2388,7 +2388,7 @@ func arithDivFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst := vector.FloatValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2398,7 +2398,7 @@ func arithDivFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFloatEmpty(lhs.Type(), n)
@@ -2409,7 +2409,7 @@ func arithDivFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -2422,7 +2422,7 @@ func arithDivFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -2435,8 +2435,8 @@ func arithDivFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithDivFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.FloatValue(lhs, 0)
-	rconst := vector.FloatValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Float).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Float).Value(0)
 	return vector.NewConstFloat(lhs.Type(), lconst/rconst, lhs.Len())
 }
 
@@ -2479,7 +2479,7 @@ func arithModIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithModIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2535,7 +2535,7 @@ func arithModIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2591,7 +2591,7 @@ func arithModIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst := vector.IntValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2601,7 +2601,7 @@ func arithModIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewIntEmpty(lhs.Type(), n)
@@ -2612,7 +2612,7 @@ func arithModIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -2625,7 +2625,7 @@ func arithModIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -2638,8 +2638,8 @@ func arithModIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.IntValue(lhs, 0)
-	rconst := vector.IntValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Int).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Int).Value(0)
 	return vector.NewConstInt(lhs.Type(), lconst%rconst, lhs.Len())
 }
 
@@ -2682,7 +2682,7 @@ func arithModUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func arithModUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2738,7 +2738,7 @@ func arithModUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2794,7 +2794,7 @@ func arithModUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst := vector.UintValue(rhs, 0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
 	for k := range n {
@@ -2804,7 +2804,7 @@ func arithModUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewUintEmpty(lhs.Type(), n)
@@ -2815,7 +2815,7 @@ func arithModUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -2828,7 +2828,7 @@ func arithModUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -2841,8 +2841,8 @@ func arithModUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func arithModUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst := vector.UintValue(lhs, 0)
-	rconst := vector.UintValue(rhs, 0)
+	lconst := lhs.(*vector.Const).Any.(*vector.Uint).Value(0)
+	rconst := rhs.(*vector.Const).Any.(*vector.Uint).Value(0)
 	return vector.NewConstUint(lhs.Type(), lconst%rconst, lhs.Len())
 }
 

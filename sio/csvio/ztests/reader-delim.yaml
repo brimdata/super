@@ -1,6 +1,6 @@
 spq: pass
 
-input-flags: -i csv -csv.delim ;
+flags: -i csv -csv.delim ;
 
 input: |
   a;b;c

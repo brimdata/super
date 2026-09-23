@@ -1,11 +1,12 @@
 script: |
-  source minio.sh
-  mv dns.parquet data/bucket
+  source s3.sh
+  aws s3api create-bucket --bucket bucket
+  aws s3 cp --quiet dns.parquet s3://bucket
   super -s -c "count()" s3://bucket/dns.parquet
 
 inputs:
-  - name: minio.sh
-    source: ../../../testdata/minio.sh
+  - name: s3.sh
+    source: ../../../testdata/s3.sh
   - name: dns.parquet
     source: ../../../sio/parquetio/ztests/dns.parquet
 

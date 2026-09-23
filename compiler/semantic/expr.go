@@ -214,6 +214,10 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				}
 				fields[name] = struct{}{}
 				e, typ := t.expr(elem.Value, inType)
+				if elem.Opt && typ == super.TypeNone {
+					t.error(elem, fmt.Errorf("non-union none assigned to optional field %s", name))
+					typ = t.checker.unknown
+				}
 				out = append(out, &sem.FieldElem{
 					Node:  elem,
 					Name:  elem.Name.Text,
@@ -419,7 +423,7 @@ func (t *translator) dot(e *ast.BinaryExpr, nullish bool, inType super.Type) (se
 	}
 	// Handle SQL double-quoted IDs without checking for this.
 	if lhs, ok := e.LHS.(*ast.DoubleQuoteExpr); ok && t.scope.sql != nil {
-		lhsID := &ast.IDExpr{ID: ast.ID{Name: lhs.Text, Loc: lhs.Loc}}
+		lhsID := &ast.IDExpr{Name: lhs.Text, Loc: lhs.Loc}
 		return t.dottedBaseCase(e, lhsID, id, nullish, inType)
 	}
 	lhs, typ := t.expr(e.LHS, inType)
@@ -497,7 +501,7 @@ func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr, inType super.Type) 
 			// Resolve directly here as column so it's not interpreted as this.
 			return t.scope.resolve(t, d, []string{"this"}, inType)
 		}
-		return t.expr(&ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name: d.Text, Loc: d.Loc}}, inType)
+		return t.expr(&ast.IDExpr{Kind: "IDExpr", Name: d.Text, Loc: d.Loc}, inType)
 	}
 	return t.expr(&ast.Primitive{
 		Kind: "Primitive",

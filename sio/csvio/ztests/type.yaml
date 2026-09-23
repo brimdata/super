@@ -1,9 +1,9 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {type:<{a:int64}>}
-
-output-flags: -f csv
 
 output: |
   type

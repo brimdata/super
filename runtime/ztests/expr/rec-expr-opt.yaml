@@ -53,3 +53,14 @@ spq: values {x?:1,y:{x?:none::string},z:1} | values {a?:1,...y,b?:1}
 output: |
   {a?:1,x?:none::string,b?:1}
 
+---
+
+spq: values {x?:this}
+
+flags: -dynamic
+
+input: |
+  none
+
+output: |
+  error("non-union none assigned to optional field x")

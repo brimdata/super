@@ -66,6 +66,18 @@ Local files are not accessible when attached to a database.
 > their use is disambiguated by the presence or absence of an attached
 > database.
 
+When the entity is a text entity recognized as a file,
+the `from` operator reads data from its upstream pipe operator.
+For each input value, the file is scanned once and the data is fed to
+the output of `from`.  If `from` is the first operator, it receives
+exactly one `null` value as input so it scans the file exactly once.
+
+When the entity is a glob recognized as a file-system glob,
+the `from` operator reads data from its upstream pipe operator.
+For each input value, all matching files are scanned once and the data
+is fed to the output of `from`.  If `from` is the first operator, it receives
+exactly one `null` value as input so it scans all matching files exactly once.
+
 When the entity is an [f-string](../expressions/f-strings.md),
 the `from` operator reads data from its upstream pipe operator
 and for each input value, the f-string expression is evaluated and
@@ -128,7 +140,7 @@ from file*.parq (format parquet)
 ### Pools
 
 When the `<entity>` argument is recognized as a [database](../../command/db.md) pool,
-the data required for the query is ready from the database and
+the data required for the query is read from the database and
 emitted to its output.
 
 The only allowed option for a pool is the commit argument having the form
@@ -163,11 +175,6 @@ is a pool.
 Data sources identified by URLs can be accessed either when attached
 or detached from a database.
 
->[!NOTE]
-> A URL computed at run time from a [non-constant f-string](../expressions/f-strings.md)
-> cannot currently be accessed while attached to a database, and fails with an
-> error of the form `<url>: cannot open in a database environment`.
-
 As a [text entity](../queries.md#text-entity), typical URLs need not be quoted though URLs with special characters must be quoted.
 
 When the `<entity>` argument begins with `http:` or `https:`
@@ -189,9 +196,7 @@ where
 * `<body>` is a [text-entity](../queries.md#text-entity) string
 to be included as the body of the HTTP request.
 
-Currently, the headers expression must evaluate to a compile-time constant though this
-may change to allow dynamic computation in a future version of SuperSQL.
-Each field of this record must either be a string or (to specify a
+Each field of the `headers` record must either be a string or (to specify a
 header option appearing multiple times with different values)
 an array or set of strings.
 
@@ -247,7 +252,7 @@ super -s -c 'from hello.json | values greeting'
 
 ---
 
-_Source super-structured from a local file_
+_Source super-structured data from a local file_
 ```mdtest-command
 echo '1 2 {x:1} {s:1::(int64|string)} {s:"hello"::(int64|string)}' > vals.sup
 super -s -c 'from vals.sup'
@@ -258,6 +263,22 @@ super -s -c 'from vals.sup'
 {x:1}
 {s:1::(int64|string)}
 {s:"hello"::(int64|string)}
+```
+
+---
+
+_Source data from a file repeatedly_
+```mdtest-command
+echo '1 2' > vals.sup
+super -s -c 'values 0,0,0 | from vals.sup'
+```
+```mdtest-output
+1
+2
+1
+2
+1
+2
 ```
 
 ---
@@ -290,17 +311,6 @@ echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
 {a:2,c:3}
 {b:3,c:4}
 {b:4,c:5}
-```
-
-_Only a non-constant f-string source lets `from` take input from upstream (any other source is an error)_
-
-```mdtest-command fails
-echo '1 2' | super -s -c "values this | from inputfile" -
-```
-```mdtest-output
-from operator cannot have parent unless its argument is a non-constant f-string at line 1, column 20:
-values this | from inputfile
-                   ~~~~~~~~~
 ```
 
 ---
@@ -407,6 +417,23 @@ super db -db example -s -c '
 "There were 3 flips"
 {flip:1,result:"heads",word:"one"}
 {flip:2,result:"tails",word:"two"}
+```
+
+---
+
+_Use an f-string to source data from pool names computed at run time_
+```mdtest-command
+super db -db example -s -c '
+  from :pools
+  | from f"{name}"
+  | sort this'
+```
+```mdtest-output
+{flip:1,result:"heads"}
+{flip:2,result:"tails"}
+{number:1,word:"one"}
+{number:2,word:"two"}
+{number:3,word:"three"}
 ```
 
 ---

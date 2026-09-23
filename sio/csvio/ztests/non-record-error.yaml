@@ -1,10 +1,10 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {a:1}
   [1,2]
-
-output-flags: -f csv
 
 output: |
   a

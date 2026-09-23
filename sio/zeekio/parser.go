@@ -37,8 +37,8 @@ var ErrBadRecordDef = errors.New("bad types/fields definition in zeek header")
 
 func NewParser(r *super.Context) *Parser {
 	return &Parser{
-		header: header{separator: " "},
-		sctx:   r,
+		separator: " ",
+		sctx:      r,
 	}
 }
 

@@ -1,5 +1,7 @@
 spq: drop boo
 
+flags: -dynamic
+
 input: &input |
   {foo:"foo1"}
   {foo:"foo2"}

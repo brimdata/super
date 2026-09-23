@@ -65,15 +65,13 @@ func (t *translator) parentJoin(in ast.Seq, seq sem.Seq, inType super.Type) (sem
 func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem.Seq) (sem.Seq, super.Type, string) {
 	switch entity := entity.(type) {
 	case *ast.GlobExpr:
-		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badType, ""
-		}
 		if t.env.IsAttached() {
 			// XXX need to get fused type from pool
 			return t.fromPoolRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), nil, ""
 		}
 		// XXX should fuse the types across the glob instead of unknown
-		return sem.Seq{t.fromFileGlob(entity, entity.Pattern, args)}, t.checker.unknown, ""
+		op := t.fromFileGlob(entity, entity.Pattern, args)
+		return append(seq, op), t.checker.unknown, ""
 	case *ast.RegexpExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
 			return bad, badType, ""
@@ -85,9 +83,6 @@ func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem
 		// XXX need to get fused type from pool
 		return t.fromPoolRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), t.checker.unknown, ""
 	case *ast.Text:
-		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badType, ""
-		}
 		if seq, typ := t.scope.lookupQuery(t, entity.Text); seq != nil {
 			return seq, typ, entity.Text
 		}
@@ -97,7 +92,7 @@ func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem
 			if typ == nil {
 				typ = t.checker.unknown
 			}
-			return sem.Seq{op}, typ, def
+			return append(seq, op), typ, def
 		}
 		return sem.Seq{op}, t.checker.unknown, def
 	case *ast.FromEval:
@@ -267,7 +262,7 @@ func (t *translator) fromName(node ast.Node, name string, args []ast.OpArg) (sem
 	if isURL(name) {
 		return t.fromURL(node, name, args), ""
 	}
-	prefix := strings.Split(filepath.Base(name), ".")[0]
+	prefix, _, _ := strings.Cut(filepath.Base(name), ".")
 	if t.env.IsAttached() {
 		return t.pool(node, name, args), prefix
 	}
@@ -282,6 +277,9 @@ func (t *translator) asFormatArg(args []ast.OpArg) string {
 
 func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 	format := t.asFormatArg(args)
+	if format == "" {
+		format = t.env.ReaderOpts.Format
+	}
 	if format == "" {
 		format = sio.FormatFromPath(name)
 	}
@@ -308,7 +306,11 @@ func (t *translator) fileType(path, format string) (super.Type, error) {
 	}
 	opts := t.env.ReaderOpts
 	opts.Format = format
-	return anyio.FileType(t.ctx, t.sctx, engine, path, opts, t.env.SampleSize)
+	typ, err := anyio.FileType(t.ctx, t.sctx, engine, path, opts, t.env.Static)
+	if typ == nil {
+		typ = t.checker.unknown
+	}
+	return typ, err
 }
 
 func (t *translator) fromFileGlob(globLoc ast.Node, pattern string, args []ast.OpArg) sem.Op {

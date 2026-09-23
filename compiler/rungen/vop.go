@@ -15,6 +15,7 @@ import (
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/runtime/vam/op/aggregate"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -96,7 +97,7 @@ func (b *Builder) compileVamFork(fork *dag.ForkOp, parent vio.Puller) ([]vio.Pul
 	var exits []vio.Puller
 	for _, seq := range fork.Paths {
 		var parent vio.Puller
-		if f != nil && !isEntry(seq) {
+		if f != nil && !isEntry(seq, false) {
 			parent = f.AddBranch()
 		}
 		exit, err := b.compileVamSeq(seq, []vio.Puller{parent})
@@ -231,6 +232,9 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		dropper := vamexpr.NewDropper(b.sctx(), fields)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{dropper}), nil
 	case *dag.FileScan:
+		if parent == nil {
+			parent = vio.NewPuller(vector.NewNull(1))
+		}
 		var metaProjection []field.Path
 		var metaFilter dag.Expr
 		if mf := o.Pushdown.MetaFilter; mf != nil {
@@ -238,7 +242,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 			metaProjection = mf.Projection
 		}
 		pushdown := b.newMetaPushdown(metaFilter, o.Pushdown.Projection, metaProjection, o.Pushdown.Unordered)
-		return vamop.NewFileScan(b.rctx, b.env, o.Paths, o.Format, pushdown), nil
+		return vamop.NewFileScan(b.rctx, b.env, parent, o.Paths, o.Format, pushdown), nil
 	case *dag.FilterOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {

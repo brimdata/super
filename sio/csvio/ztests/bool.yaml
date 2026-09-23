@@ -1,10 +1,10 @@
 spq: pass
 
+flags: -f csv
+
 input: |
   {bool:false}
   {bool:true}
-
-output-flags: -f csv
 
 output: |
   bool

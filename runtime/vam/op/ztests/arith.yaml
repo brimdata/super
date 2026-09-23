@@ -1,7 +1,7 @@
 # Test that arithmetic works on union and dynamic vectors.
 
 script: |
-  super -o t.csup -f csup -
+  super -o t.csup -
   super -s -c "from t.csup | values this,a+a,a+b,b+a,b+b"
 
 inputs:

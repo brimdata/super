@@ -5,10 +5,10 @@ script: |
   echo // ===
   super compile -C -O -dynamic 'from test.csup | where grep("csla[bB].*", x)'
   echo // ===
-  echo '{x:"a"}' | super -f csup -o x.csup -
+  echo '{x:"a"}' | super -o x.csup -
   super -s -c "SELECT x FROM x.csup WHERE x LIKE 'a%'"
   echo // ===
-  echo '{x:"a"}' | super -f parquet -o x.parquet -
+  echo '{x:"a"}' | super -o x.parquet -
   super -s -c "SELECT x FROM x.parquet WHERE x LIKE 'a%'"
 
 outputs:

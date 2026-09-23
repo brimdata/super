@@ -1,5 +1,7 @@
 spq: pass
 
+flags: -f zeek
+
 input: |
   #separator \x09
   #set_separator	,
@@ -9,8 +11,6 @@ input: |
   #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	is_orig
   #types	time	string	addr	port	addr	port	bool
   1425565514.419939	CogZFI3py5JsFZGik	192.168.1.1	80	192.168.1.2	5353	F
-
-output-flags: -f zeek
 
 output: |
   #separator \x09

@@ -37,7 +37,7 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*db.Command)}
-	c.outputFlags.DefaultFormat = "db"
+	c.outputFlags.Format = "db"
 	c.outputFlags.SetFlags(f)
 	return c, nil
 }

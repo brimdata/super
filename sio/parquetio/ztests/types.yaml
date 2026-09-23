@@ -1,5 +1,5 @@
 script: |
-  super -f parquet -o f.parquet -
+  super -o f.parquet -
   # from f.parquet uses NewVectorReader
   super -S -c 'from f.parquet'
 
@@ -91,7 +91,7 @@ outputs:
 ---
 
 script: |
-  super -f parquet -o f.parquet -
+  super -o f.parquet -
   super -s f.parquet
 
 inputs:

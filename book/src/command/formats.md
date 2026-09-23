@@ -8,8 +8,8 @@ The supported [input](input.md) and [output](output.md) formats include the foll
 | `bsup`    |  yes | `.bsup` | [BSUP](../formats/bsup.md) |
 | `csup`    |  yes | `.csup` | [CSUP](../formats/csup.md) |
 | `csv`     |  yes | `.csv` | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
-| `json`    |  yes | `.json` | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
-| `line`    |  no  | n/a | One text value per line |
+| `json`    |  yes | `.json`, `.jsonl`, `.ndjson` | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
+| `line`    |  no  | `.text`, `.txt` | n/a | One text value per line |
 | `parquet` |  yes | `.parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `sup`     |  yes | `.sup` | [SUP](../formats/sup.md) |
 | `tsv`     |  yes | `.tsv` | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
