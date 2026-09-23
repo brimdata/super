@@ -12,7 +12,6 @@ import (
 const (
 	opAnd = iota
 	opOr
-	opFieldNameFinder
 	opStringCaseFinder
 	opStringFinder
 )
@@ -22,7 +21,6 @@ type BufferFilter struct {
 	op    int
 	left  *BufferFilter
 	right *BufferFilter
-	fnf   *FieldNameFinder
 	cf    *stringsearch.CaseFinder
 	f     *stringsearch.Finder
 }
@@ -33,13 +31,6 @@ func NewAndBufferFilter(left, right *BufferFilter) *BufferFilter {
 
 func NewOrBufferFilter(left, right *BufferFilter) *BufferFilter {
 	return &BufferFilter{op: opOr, left: left, right: right}
-}
-
-func NewBufferFilterForFieldName(pattern string) *BufferFilter {
-	return &BufferFilter{
-		op:  opFieldNameFinder,
-		fnf: NewFieldNameFinder(pattern),
-	}
 }
 
 func NewBufferFilterForString(pattern string) *BufferFilter {
@@ -72,8 +63,6 @@ func (b *BufferFilter) Eval(types super.TypeFetcher, buf []byte) bool {
 		return b.left.Eval(types, buf) && b.right.Eval(types, buf)
 	case opOr:
 		return b.left.Eval(types, buf) || b.right.Eval(types, buf)
-	case opFieldNameFinder:
-		return b.fnf.Find(types, buf)
 	case opStringCaseFinder:
 		return b.cf.Next(byteconv.UnsafeString(buf)) > -1
 	case opStringFinder:
