@@ -2,7 +2,7 @@ script: |
   pty() {
     python3 -c 'import pty, sys; pty.spawn(sys.argv[1:])' "$@"
   }
-  # Verify that pty connects standard output to a terminal.
+  # Verify that pty connects standard input to a terminal.
   pty tty -s
   pty super -color=false -c 'values {a:1}'
   export SUPER_DB=test
