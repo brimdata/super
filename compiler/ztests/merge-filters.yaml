@@ -27,6 +27,7 @@ outputs:
       ===
       file /dev/null fields a
       | unnest (
+        -- correlated
         unnest [a]
         | where b and c
         | aggregate

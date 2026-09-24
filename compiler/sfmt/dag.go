@@ -160,6 +160,11 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("]")
 	case *dag.SubqueryExpr:
 		c.open("(")
+		if e.Correlated {
+			c.head = true
+			c.next()
+			c.write("-- correlated")
+		}
 		c.head = true
 		c.seq(e.Body)
 		c.close()
