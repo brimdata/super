@@ -13,10 +13,6 @@ type downcast struct {
 	defuser *Defuse
 }
 
-func newDowncast(sctx *super.Context) *downcast {
-	return NewDefuse(sctx).downcast
-}
-
 func (d *downcast) Call(args []super.Value) super.Value {
 	from, to := args[0], args[1]
 	if _, ok := super.TypeUnder(to.Type()).(*super.TypeOfType); !ok {
