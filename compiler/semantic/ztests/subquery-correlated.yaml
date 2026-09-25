@@ -23,6 +23,9 @@ script: |
   super compile -C -dag 'values (fork (from "/dev/null") (head))'
   super compile -C -dag 'values (fork (head) (head))'
   super compile -C -dag 'values (fork (head) (from "/dev/null"))'
+  echo === dag.SwitchOp
+  super compile -C -dag 'values (switch case true (from "/dev/null"))'
+
 
 outputs:
   - name: stdout
@@ -104,6 +107,15 @@ outputs:
             head 1
           )
           (
+            file /dev/null
+          ))
+      | output main
+      === dag.SwitchOp
+      null
+      | values (
+        -- correlated
+        switch
+          case true (
             file /dev/null
           ))
       | output main
