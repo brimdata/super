@@ -12,6 +12,10 @@ type HasError struct {
 	sctx *super.Context
 }
 
+func NewHasError(sctx *super.Context) expr.Function {
+	return &HasError{sctx}
+}
+
 func (h HasError) Call(args ...vector.Any) vector.Any {
 	return h.hasError(args[0])
 }

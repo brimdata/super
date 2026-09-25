@@ -20,11 +20,12 @@ import (
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
-	samfunction "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr/function"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
 )
 
@@ -196,7 +197,7 @@ func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, relTable) {
 func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
 	expr, _ := t.fstringExpr(entity.Expr, t.checker.unknown)
 	val, ok := t.maybeEval(expr)
-	if ok && !hasError(val) {
+	if ok && !t.hasError(val) {
 		if bad := t.hasFromParent(entity, seq); bad != nil {
 			return bad, ""
 		}
@@ -211,9 +212,11 @@ func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem
 	}), ""
 }
 
-func hasError(val super.Value) bool {
-	result := samfunction.HasError{}.Call([]super.Value{val})
-	return result.AsBool()
+func (t *translator) hasError(val super.Value) bool {
+	vec := sbuf.ValToVec(t.sctx, val)
+	vec = function.NewHasError(t.sctx).Call(vec)
+	val = vector.ValueAt(nil, vec, 0)
+	return val.AsBool()
 }
 
 func (t *translator) hasFromParent(loc ast.Node, seq sem.Seq) sem.Seq {
