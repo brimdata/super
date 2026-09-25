@@ -1,6 +1,7 @@
 package agg
 
 import (
+	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
@@ -19,7 +20,43 @@ func newCollect(sctx *super.Context) *collect {
 func (c *collect) NoRip() bool { return true }
 
 func (c *collect) Consume(vec vector.Any) {
-	vector.Apply(vector.ApplyRipUnions, c.consume, c.defuse.Eval(vec))
+	vec = vector.Apply(vector.ApplyRipUnions, func(vecs ...vector.Any) vector.Any {
+		return vecs[0]
+	}, c.defuse.Eval(vec))
+	if vec = filterNones(vec); vec.Len() == 0 {
+		return
+	}
+	if c.builder == nil {
+		c.builder = vbuild.NewDynamicBuilder()
+	}
+	c.builder.Write(vec)
+}
+
+func filterNones(vec vector.Any) vector.Any {
+	switch mask := nonesMask(vec); {
+	case mask.IsEmpty():
+		return vec
+	case mask.GetCardinality() == uint64(vec.Len()):
+		return vector.NewNone(0)
+	default:
+		return vector.ReversePick(vec, mask.ToArray())
+	}
+}
+
+func nonesMask(vec vector.Any) *roaring.Bitmap {
+	bm := roaring.New()
+	if dynamic, ok := vec.(*vector.Dynamic); ok {
+		for i, vec := range dynamic.Values {
+			if vec.Len() > 0 && vec.Kind() == vector.KindNone {
+				bm.AddMany(dynamic.ReverseTagMap()[i])
+			}
+		}
+		return bm
+	}
+	if vec.Len() > 0 && vec.Kind() == vector.KindNone {
+		bm.AddRange(0, uint64(vec.Len()))
+	}
+	return bm
 }
 
 func (c *collect) consume(vecs ...vector.Any) vector.Any {
