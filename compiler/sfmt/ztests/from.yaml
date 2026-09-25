@@ -12,6 +12,10 @@ script: |
   super compile -C 'from foo*'
   echo ===
   super compile -C 'from /foo/'
+  echo === f-string AST
+  super compile -C 'from f"{a+b}" (format f)'
+  echo === f-string DAG
+  super compile -C -dag 'from f"{a+b}" (format f)'
   echo ===
   super compile -C 'fork ( from path ) ( from http://host/path ) ( from name )'
   echo ===
@@ -37,6 +41,12 @@ outputs:
       from foo*
       ===
       from /foo/
+      === f-string AST
+      from f"{a+b}" ( format f )
+      === f-string DAG
+      null
+      | robot cast(a+b, <string>) format f
+      | output main
       ===
       fork
         (

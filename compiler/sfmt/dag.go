@@ -371,6 +371,18 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.PoolMetaScan:
 		c.next()
 		c.write("pool %s:%s", p.ID, p.Meta)
+	case *dag.RobotScan:
+		c.next()
+		c.write("robot ")
+		c.expr(p.Expr, "")
+		if p.Format != "" {
+			c.write(" format %s", p.Format)
+		}
+		if p.Filter != nil {
+			c.write(" filter (")
+			c.expr(p.Filter, "")
+			c.write(")")
+		}
 	case *dag.SeqScan:
 		c.next()
 		c.open("seqscan")
