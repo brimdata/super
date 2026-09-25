@@ -1,0 +1,109 @@
+script: |
+  echo === dag.FileScan
+  super compile -C -dag 'values (from "/dev/null")'
+  echo === dag.HTTPScan
+  super compile -C -dag 'values (from http://host)'
+  echo === dag.RobotScan
+  super compile -C -dag 'values (from f"{this}")'
+
+  export SUPER_DB=test
+  super db init -q
+  super db create -q test
+  echo === dag.CommitMetaScan
+  super db compile -C -dag 'values (from test@main:objects)' | sed -Ee 's/[[:alnum:]]{27}/xxx/'
+  echo === dag.DBMetaScan
+  super db compile -C -dag 'values (from :pools)' | sed -Ee 's/[[:alnum:]]{27}/xxx/'
+  echo === dag.PoolMetaScan
+  super db compile -C -dag 'values (from test:branches)' | sed -Ee 's/[[:alnum:]]{27}/xxx/'
+  echo === dag.PoolScan
+  super db compile -C -dag 'values (from test)' | sed -Ee 's/[[:alnum:]]{27}/xxx/'
+
+  echo === dag.ForkOp
+  super compile -C -dag 'values (fork (from "/dev/null") (from "/dev/null"))'
+  super compile -C -dag 'values (fork (from "/dev/null") (head))'
+  super compile -C -dag 'values (fork (head) (head))'
+  super compile -C -dag 'values (fork (head) (from "/dev/null"))'
+
+outputs:
+  - name: stdout
+    data: |
+      === dag.FileScan
+      null
+      | values (
+        file /dev/null)
+      | output main
+      === dag.HTTPScan
+      null
+      | values (
+        get http://host)
+      | output main
+      === dag.RobotScan
+      null
+      | values (
+        -- correlated
+        unknown operator: *dag.RobotScan)
+      | output main
+      === dag.CommitMetaScan
+      null
+      | values (
+        pool xxx@000000000000000000000000000:objects)
+      | output main
+      === dag.DBMetaScan
+      null
+      | values (
+        :pools)
+      | output main
+      === dag.PoolMetaScan
+      null
+      | values (
+        pool xxx:branches)
+      | output main
+      === dag.PoolScan
+      null
+      | values (
+        pool xxx)
+      | output main
+      === dag.ForkOp
+      null
+      | values (
+        fork
+          (
+            file /dev/null
+          )
+          (
+            file /dev/null
+          ))
+      | output main
+      null
+      | values (
+        -- correlated
+        fork
+          (
+            file /dev/null
+          )
+          (
+            head 1
+          ))
+      | output main
+      null
+      | values (
+        -- correlated
+        fork
+          (
+            head 1
+          )
+          (
+            head 1
+          ))
+      | output main
+      null
+      | values (
+        -- correlated
+        fork
+          (
+            head 1
+          )
+          (
+            file /dev/null
+          ))
+      | output main
