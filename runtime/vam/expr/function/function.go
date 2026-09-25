@@ -168,7 +168,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "unblend":
 		f = &Unblend{sctx}
 	case "under":
-		f = newUnder(sctx)
+		f = &Under{}
 	case "unflatten":
 		f = newUnflatten(sctx)
 	case "upcast":
