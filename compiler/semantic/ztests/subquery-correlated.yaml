@@ -44,7 +44,7 @@ outputs:
       null
       | values (
         -- correlated
-        unknown operator: *dag.RobotScan)
+        robot cast(this, <string>))
       | output main
       === dag.CommitMetaScan
       null
