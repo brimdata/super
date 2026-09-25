@@ -1370,11 +1370,23 @@ func (t *translator) scalarSubqueryCheck(n ast.Node, seq sem.Seq, thisType super
 }
 
 func isCorrelated(seq sem.Seq) bool {
-	if len(seq) >= 1 {
-		//XXX fragile
-		_, ok1 := seq[0].(*sem.FileScan)
-		_, ok2 := seq[0].(*sem.PoolScan)
-		return !(ok1 || ok2)
+	switch op := seq[0].(type) {
+	case *sem.CommitMetaScan,
+		*sem.DBMetaScan,
+		*sem.DeleteScan,
+		*sem.FileScan,
+		*sem.HTTPScan,
+		*sem.NullScan,
+		*sem.PoolMetaScan,
+		*sem.PoolScan:
+		return false
+	case *sem.ForkOp:
+		return slices.ContainsFunc(op.Paths, isCorrelated)
+	case *sem.SwitchOp:
+		// Switch output doesn't necessarily depend on input (e.g.,
+		// `switch case true ( values 1 )`), but in practice it does so
+		// precise analysis doesn't seem worth the trouble.
+		return true
 	}
 	return true
 }
