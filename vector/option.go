@@ -8,6 +8,12 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
+// An option value is stored as any vector with its option type.
+// The Any field is a None vector for none option values and any
+// other vector for some option values.  When somes or nones are
+// mixed into a single Option vector, then Any is a two-element
+// Dynamic with the first value a some and the second value a none.
+// XXX need to fix some/none order.
 type Option struct {
 	Typ *super.TypeOption
 	Any
@@ -15,31 +21,12 @@ type Option struct {
 
 var _ Any = (*Option)(nil)
 
-// XXX vec of type T because a Some(T), a None becomes Option(None),
-// or a Dynamic to have a mixture
 func NewOption(typ *super.TypeOption, vec Any) *Option {
 	return &Option{Typ: typ, Any: vec}
 }
 
-//	Make an option type as a union and all of the none type.
-//
-// XXX a subsequent PR will change this logic to make a vector.Option when
-// there is a non-union some type.
-func NewOptionNone(typ *super.TypeOption, length uint32) *Option {
-	return NewOption(typ, NewNone(length))
-}
-
-// XXX different name for maybe already
-func NewOptionSome(sctx *super.Context, vec Any) Any {
-	typ := vec.Type()
-	if super.IsOptionType(typ) {
-		return vec
-	}
-	//XXX check for vec is None?
-	return NewOption(sctx.LookupTypeOption(typ), vec)
-}
-
 func NewOptionBoth(typ *super.TypeOption, tags []uint32, some Any, none *None) Any {
+	//XXX fix some/none order
 	return NewOption(typ, NewDynamic(tags, []Any{none, some}))
 }
 
@@ -52,6 +39,7 @@ func NewOptionFromRLE(sctx *super.Context, vec Any, n uint32, rle []uint32) *Opt
 	if noneLen == 0 {
 		panic("can't be zero")
 	}
+	// XXX fix some/none order
 	// Reverse the tags since fjson presumes none is last.
 	// XXX maybe we should change Option type to have none last instead of first in Dynamic
 	for k, tag := range tags {
@@ -61,8 +49,7 @@ func NewOptionFromRLE(sctx *super.Context, vec Any, n uint32, rle []uint32) *Opt
 			tags[k] = 0
 		}
 	}
-	//fmt.Println("OPTION FROM RLE", sup.String(optionType), Format(vec))
-	//fmt.Println("NONE LEN", noneLen, "TAGS", tags)
+	// XXX fix some/none order
 	return NewOption(optionType, NewDynamic(tags, []Any{NewNone(noneLen), vec}))
 }
 
@@ -98,6 +85,7 @@ func (o *Option) Apply(f func([]uint32, Any, *None) Any) Any {
 	case *None:
 		return f(nil, nil, vec)
 	case *Dynamic:
+		// XXX fix some/none order
 		return f(vec.Tags, vec.Values[1], vec.Values[0].(*None))
 	default:
 		return f(nil, vec, nil)

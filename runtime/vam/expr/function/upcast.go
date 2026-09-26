@@ -309,7 +309,7 @@ func (u *Upcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 		option := vector.PushView(vec).(*vector.Option) //XXX Under?
 		return option.Apply(func(tags []uint32, some vector.Any, none *vector.None) vector.Any {
 			if some == nil {
-				return vector.NewOptionNone(to, none.Len())
+				return vector.NewOption(to, none)
 			}
 			some = u.upcast(some, to.Type)
 			if some == nil {
@@ -321,7 +321,7 @@ func (u *Upcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 			return vector.NewOptionBoth(to, tags, some, none)
 		})
 	case vector.KindNone:
-		return vector.NewOptionNone(to, vec.Len())
+		return vector.NewOption(to, vector.NewNone(vec.Len()))
 	}
 	vec = u.upcast(vec, to.Type)
 	if vec == nil {

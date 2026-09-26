@@ -22,7 +22,7 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 		if !ok {
 			optionType = sctx.LookupTypeOption(typ)
 		}
-		return vector.NewOptionNone(optionType, vec.Len())
+		return vector.NewOption(optionType, vector.NewNone(vec.Len()))
 	case vector.KindError:
 		return vec
 	}

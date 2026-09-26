@@ -200,7 +200,7 @@ func ripOption(o *Option) Any {
 	if d, ok := o.Any.(*Dynamic); ok {
 		optionType := super.TypeUnder(o.Type()).(*super.TypeOption)
 		nones := d.Values[0].Len()
-		return NewDynamic(d.Tags, []Any{NewOptionNone(optionType, nones), NewOption(optionType, d.Values[1])})
+		return NewDynamic(d.Tags, []Any{NewOption(optionType, NewNone(nones)), NewOption(optionType, d.Values[1])})
 	}
 	return o
 }

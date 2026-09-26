@@ -84,7 +84,7 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 			}
 			if elem.Opt {
 				if !super.IsOptionType(vec.Type()) {
-					vec = vector.NewOptionSome(r.sctx, vec)
+					vec = vector.NewOption(r.sctx.LookupTypeOption(vec.Type()), vec)
 				}
 			} else {
 				// XXX optimize view

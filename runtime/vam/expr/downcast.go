@@ -480,7 +480,7 @@ func (d *Downcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 		return vector.Apply(vector.ApplyRipOptions, func(vecs ...vector.Any) vector.Any {
 			switch vec := vecs[0].(*vector.Option).Any.(type) {
 			case *vector.None:
-				return vector.NewOptionNone(to, vec.Len())
+				return vector.NewOption(to, vector.NewNone(vec.Len()))
 			case *vector.Dynamic:
 				panic(vec)
 			default:
@@ -492,7 +492,7 @@ func (d *Downcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 			}
 		}, vec)
 	case vector.KindNone:
-		return vector.NewOptionNone(to, vec.Len())
+		return vector.NewOption(to, vector.NewNone(vec.Len()))
 	}
 	vec = d.downcast(vec, to.Type)
 	if vec == nil {

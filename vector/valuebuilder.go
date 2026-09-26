@@ -320,10 +320,10 @@ func (o *optionValueBuilder) Write(bytes scode.Bytes) {
 
 func (o *optionValueBuilder) Build(sctx *super.Context) Any {
 	if len(o.tags) == o.nones {
-		return NewOptionNone(o.typ, uint32(o.nones))
+		return NewOption(o.typ, NewNone(uint32(o.nones)))
 	}
 	if o.nones == 0 {
-		return NewOptionSome(sctx, o.values.Build(sctx))
+		return NewOption(o.typ, o.values.Build(sctx))
 	}
 	none := NewNone(uint32(o.nones))
 	some := o.values.Build(sctx)
