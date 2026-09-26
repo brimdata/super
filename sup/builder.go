@@ -59,9 +59,7 @@ func buildValue(b *scode.Builder, val Value) error {
 			return nil
 		}
 		// none is an inside an option type
-		b.BeginContainer()
-		b.Append(super.EncodeUint(0))
-		b.EndContainer()
+		super.BuildNone(b)
 		return nil
 	}
 	return fmt.Errorf("unknown ast type: %T", val)
