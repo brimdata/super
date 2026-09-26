@@ -519,7 +519,7 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 		if super.TypeUnder(typ) == super.TypeNone {
 			return &None{typ: typ}, nil
 		}
-		return &Option{value: val, typ: a.sctx.Option(typ)}, nil
+		return &Option{value: val, typ: a.sctx.LookupTypeOption(typ)}, nil
 	case *Null:
 		if super.TypeUnder(typ) != super.TypeNull {
 			return nil, fmt.Errorf("illegal null value decorator: %q", FormatType(typ))

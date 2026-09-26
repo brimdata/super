@@ -387,18 +387,8 @@ func (c *Context) LookupTypeFusion(inner Type) *TypeFusion {
 	return typ
 }
 
-func (c *Context) Option(typ Type) *TypeOption {
-	if optionType, ok := typ.(*TypeOption); ok {
-		return optionType
-	}
-	return c.LookupTypeOption(typ)
-}
-
 func (c *Context) LookupTypeOption(inner Type) *TypeOption {
-	if inner == TypeNone {
-		panic(inner)
-	}
-	if _, ok := inner.(*TypeOption); ok {
+	if _, ok := inner.(*TypeOption); ok || inner == TypeNone {
 		panic(inner)
 	}
 	c.mu.Lock()
@@ -738,11 +728,13 @@ func NullableUnion(typ Type) (*TypeUnion, int) {
 	return nil, 0
 }
 
+// Optionize returns typ is if typ is TypeNone or is already an option type;
+// otherwise, it returns typ as a new option type.
 func (c *Context) Optionize(typ Type) Type {
-	if typ == TypeNone {
+	if _, ok := typ.(*TypeOption); ok || typ == TypeNone {
 		return typ
 	}
-	return c.Option(typ)
+	return c.LookupTypeOption(typ)
 }
 
 // TypeCache wraps a TypeFetcher with an unsynchronized cache for its LookupType

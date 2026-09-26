@@ -19,17 +19,11 @@ var _ Encoder = (*UnionEncoder)(nil)
 
 func NewOptionEncoder(cctx *Context, vec *vector.Option) *OptionEncoder {
 	var tags []uint32
-	var values vector.Any
-	//XXX tighten this up assert Dynamic
-	switch vec := vec.Any.(type) {
-	case *vector.Dynamic:
+	values := vec.Any
+	if d, ok := values.(*vector.Dynamic); ok {
 		//XXX should use RLE
-		tags = vec.Tags
-		values = vec.Values[super.OptionSomeTag]
-	case *vector.None:
-		values = vec
-	default:
-		values = vec
+		tags = d.Tags
+		values = d.Values[super.OptionSomeTag]
 	}
 	return &OptionEncoder{
 		values: NewEncoder(cctx, values),

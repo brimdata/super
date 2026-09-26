@@ -425,6 +425,10 @@ func (t *TypeOption) ID() int {
 	return t.id
 }
 
+func (t *TypeOption) Kind() Kind {
+	return OptionKind
+}
+
 func (t *TypeOption) Decode(bytes scode.Bytes) (Type, scode.Bytes) {
 	it := bytes.Iter()
 	tag := DecodeUint(it.Next())
@@ -432,10 +436,6 @@ func (t *TypeOption) Decode(bytes scode.Bytes) (Type, scode.Bytes) {
 		return TypeNone, nil
 	}
 	return t.Type, it.Next()
-}
-
-func (t *TypeOption) Kind() Kind {
-	return OptionKind
 }
 
 func (t *TypeOption) Some(bytes scode.Bytes) Value {
