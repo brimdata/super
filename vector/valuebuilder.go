@@ -309,12 +309,11 @@ func newOptionValueBuilder(typ *super.TypeOption) ValueBuilder {
 
 func (o *optionValueBuilder) Write(bytes scode.Bytes) {
 	typ, bytes := o.typ.Decode(bytes)
-	//XXX fix some/none order
 	if typ == super.TypeNone {
-		o.tags = append(o.tags, 0)
+		o.tags = append(o.tags, OptionNoneTag)
 		o.nones++
 	} else {
-		o.tags = append(o.tags, 1)
+		o.tags = append(o.tags, OptionSomeTag)
 		o.values.Write(bytes)
 	}
 }

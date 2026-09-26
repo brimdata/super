@@ -1,4 +1,4 @@
-skip: hanging on my mac
+skip: this can hang on a mac... disabled until fixed
 
 script: |
   pty() {

@@ -407,6 +407,14 @@ func BeginUnion(b *scode.Builder, tag int) {
 	b.Append(EncodeUint(uint64(tag)))
 }
 
+//XXX don't forget bump CSUP and BSUP versions
+
+const (
+	//XXX fix order and unify with vector.Option*Tag
+	OptionNoneTag = 0
+	OptionSomeTag = 1
+)
+
 type TypeOption struct {
 	id   int
 	Type Type
@@ -420,13 +428,10 @@ func (t *TypeOption) ID() int {
 	return t.id
 }
 
-// Untag takes bytes of the reciever's type and returns the underlying value
-// as its type and bytes by removing the tag and determining that tag's
-// type from the union.  Untag panics if the tag is invalid.
 func (t *TypeOption) Decode(bytes scode.Bytes) (Type, scode.Bytes) {
 	it := bytes.Iter()
-	which := DecodeUint(it.Next())
-	if which == 0 {
+	tag := DecodeUint(it.Next())
+	if tag == OptionNoneTag {
 		return TypeNone, nil
 	}
 	return t.Type, it.Next()
@@ -466,19 +471,19 @@ func IsOptionType(typ Type) bool {
 
 func BeginSomeContainer(b *scode.Builder) {
 	b.BeginContainer()
-	b.Append(EncodeUint(1))
+	b.Append(EncodeUint(OptionSomeTag))
 }
 
 func BuildSome(b *scode.Builder, val scode.Bytes) {
 	b.BeginContainer()
-	b.Append(EncodeUint(1))
+	b.Append(EncodeUint(OptionSomeTag))
 	b.Append(val)
 	b.EndContainer()
 }
 
 func BuildNone(b *scode.Builder) {
 	b.BeginContainer()
-	b.Append(EncodeUint(0))
+	b.Append(EncodeUint(OptionNoneTag))
 	b.EndContainer()
 }
 
