@@ -140,7 +140,7 @@ func optionStyle(vec Any) string {
 	case *None:
 		return "none"
 	case *Dynamic:
-		return "none/some"
+		return "both"
 	default:
 		return "some"
 	}
