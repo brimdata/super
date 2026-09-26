@@ -480,24 +480,20 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	if super.IsTypeAny(typ) {
 		return a.createAny(val), nil
 	}
-	//XXX tighten up
 	if optionType, ok := typ.(*super.TypeOption); ok {
 		if option, ok := val.(*Option); ok {
 			inner, err := a.decorate(option.value, optionType.Type)
 			if err != nil {
 				return nil, err
 			}
-			// XXX
-			if optionType.Type != inner.Type() {
-				panic(optionType)
-			}
 			return &Option{typ: optionType, value: inner}, nil
 		}
 		if none, ok := val.(*None); ok {
-			// This logic adds support to differentiate between none::(T1|T2|none), which
-			// is a pure none inside of a union and none::option(T1|T2), which is a none
-			// option value.  If we allow the recursive call to happen on the deoptioned
-			// type, we'll get an error that the none is not in the union.
+			// Before we recursively call decorate on the deoptioned type,
+			// we check here for none to differentiate between none::(T1|T2|none),
+			// which is a pure none inside of a union and none::option(T1|T2),
+			// which is a none option value, i.e., option union types as none
+			// decorators must be wrapped in an option() type and cannot be implied.
 			return &Option{typ: optionType, value: none}, nil
 		}
 		inner, err := a.decorate(val, optionType.Type)
@@ -506,9 +502,6 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 		}
 		if super.IsOptionType(inner.Type()) {
 			return inner, nil
-		}
-		if optionType.Type != inner.Type() {
-			panic(optionType)
 		}
 		return &Option{typ: optionType, value: inner}, nil
 	}
@@ -544,13 +537,10 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	case *Union:
 		return a.decorateUnion(val, typ)
 	case *Option:
-		if val.typ == typ { //XXX take out?
-			return val, nil
-		}
 		if _, ok := val.value.(*None); ok {
-			//XXX check if typ is none and return error
 			return &Option{typ: a.sctx.Optionize(typ), value: val.value}, nil
 		}
+		// typ cannot be an option type as that case is handled above
 		return nil, errors.New("cannot decorate an option value with a non-option type")
 	default:
 		panic(val)

@@ -10,10 +10,9 @@ import (
 )
 
 type option struct {
-	mu   sync.Mutex
-	meta *csup.Option
-	len  uint32
-	// XXX we should store TagMap here so it doesn't have to be recomputed
+	mu     sync.Mutex
+	meta   *csup.Option
+	len    uint32
 	tags   []uint32
 	values shadow
 }
