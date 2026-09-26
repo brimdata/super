@@ -13,7 +13,7 @@ import (
 // other vector for some option values.  When somes or nones are
 // mixed into a single Option vector, then Any is a two-element
 // Dynamic with the first value a some and the second value a none.
-// XXX need to fix some/none order.
+// This design relies upon super.OptionSomeTag=0 and super.OptionNoneTag=1.
 type Option struct {
 	Typ *super.TypeOption
 	Any
@@ -26,8 +26,7 @@ func NewOption(typ *super.TypeOption, vec Any) *Option {
 }
 
 func NewOptionBoth(typ *super.TypeOption, tags []uint32, some Any, none *None) Any {
-	//XXX fix some/none order
-	return NewOption(typ, NewDynamic(tags, []Any{none, some}))
+	return NewOption(typ, NewDynamic(tags, []Any{some, none}))
 }
 
 // XXX this is called only when there's a mixture of nones and values
@@ -39,18 +38,7 @@ func NewOptionFromRLE(sctx *super.Context, vec Any, n uint32, rle []uint32) *Opt
 	if noneLen == 0 {
 		panic("can't be zero")
 	}
-	// XXX fix some/none order
-	// Reverse the tags since fjson presumes none is last.
-	// XXX maybe we should change Option type to have none last instead of first in Dynamic
-	for k, tag := range tags {
-		if tag == 0 {
-			tags[k] = 1
-		} else {
-			tags[k] = 0
-		}
-	}
-	// XXX fix some/none order
-	return NewOption(optionType, NewDynamic(tags, []Any{NewNone(noneLen), vec}))
+	return NewOption(optionType, NewDynamic(tags, []Any{vec, NewNone(noneLen)}))
 }
 
 func (*Option) Kind() Kind {
@@ -62,19 +50,19 @@ func (o *Option) Type() super.Type {
 }
 
 func (o *Option) Serialize(b *scode.Builder, slot uint32) {
-	var which uint64
+	tag := super.OptionNoneTag
 	switch vec := o.Any.(type) {
 	case *Dynamic:
 		if vec.TypeOf(slot) != super.TypeNone {
-			which = 1
+			tag = super.OptionSomeTag
 		}
 	case *None:
 	default:
-		which = 1
+		tag = super.OptionSomeTag
 	}
 	b.BeginContainer()
-	b.Append(super.EncodeUint(which))
-	if which != 0 {
+	b.Append(super.EncodeUint(uint64(tag)))
+	if tag == super.OptionSomeTag {
 		o.Any.Serialize(b, slot)
 	}
 	b.EndContainer()
@@ -85,8 +73,7 @@ func (o *Option) Apply(f func([]uint32, Any, *None) Any) Any {
 	case *None:
 		return f(nil, nil, vec)
 	case *Dynamic:
-		// XXX fix some/none order
-		return f(vec.Tags, vec.Values[1], vec.Values[0].(*None))
+		return f(vec.Tags, vec.Values[0], vec.Values[1].(*None))
 	default:
 		return f(nil, vec, nil)
 	}

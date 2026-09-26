@@ -410,9 +410,8 @@ func BeginUnion(b *scode.Builder, tag int) {
 //XXX don't forget bump CSUP and BSUP versions
 
 const (
-	//XXX fix order and unify with vector.Option*Tag
-	OptionNoneTag = 0
-	OptionSomeTag = 1
+	OptionSomeTag = 0
+	OptionNoneTag = 1
 )
 
 type TypeOption struct {

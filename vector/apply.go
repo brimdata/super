@@ -38,11 +38,10 @@ func Apply(opt ApplyOpt, eval func(...Any) Any, vecs ...Any) Any {
 		}
 	}
 	if opt&ApplyRipOptions != 0 {
-		// ApplyRipOptions really means preserve each option type as a single type
-		// vector per type... the new way of doing this is to just deoption the vector
-		// as the case where we want a dynamic to represent the somes and nones is
-		// already how mixed options are implemented.  XXX the only difference is
-		// that the dynamic on the outside will rip each option
+		// ApplyRipOptions causes any both-style options to be ripped into
+		// pure some or pure none options so that the eval callback need not
+		// worry about encountering a dynamic inside the option.  The stitching
+		// is all done here.
 		for k, vec := range vecs {
 			if option, ok := Under(vec).(*Option); ok {
 				vecs[k] = ripOption(option)
@@ -192,15 +191,14 @@ func AddNoRip(vec Any) Any {
 	return &NoRip{vec}
 }
 
-// XXX update comment
-// Take a union vector that is an option type and break it into a dynamic composed
-// not of the union elements but of the original union type where each component contains
-// exactly one non-zero vector.
+// When option is style "both", convert it to a dynamic of a pure some option and
+// a pure none option.  Otherwise, return the pure option unmodified.
 func ripOption(o *Option) Any {
 	if d, ok := o.Any.(*Dynamic); ok {
 		optionType := super.TypeUnder(o.Type()).(*super.TypeOption)
-		nones := d.Values[0].Len()
-		return NewDynamic(d.Tags, []Any{NewOption(optionType, NewNone(nones)), NewOption(optionType, d.Values[1])})
+		some := NewOption(optionType, d.Values[super.OptionSomeTag])
+		none := NewOption(optionType, d.Values[super.OptionNoneTag])
+		return NewDynamic(d.Tags, []Any{some, none})
 	}
 	return o
 }
