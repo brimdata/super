@@ -21,6 +21,28 @@ func NewOption(typ *super.TypeOption, vec Any) *Option {
 	return &Option{Typ: typ, Any: vec}
 }
 
+//	Make an option type as a union and all of the none type.
+//
+// XXX a subsequent PR will change this logic to make a vector.Option when
+// there is a non-union some type.
+func NewOptionNone(typ *super.TypeOption, length uint32) *Option {
+	return NewOption(typ, NewNone(length))
+}
+
+// XXX different name for maybe already
+func NewOptionSome(sctx *super.Context, vec Any) Any {
+	typ := vec.Type()
+	if super.IsOptionType(typ) {
+		return vec
+	}
+	//XXX check for vec is None?
+	return NewOption(sctx.LookupTypeOption(typ), vec)
+}
+
+func NewOptionBoth(typ *super.TypeOption, tags []uint32, some Any, none *None) Any {
+	return NewOption(typ, NewDynamic(tags, []Any{none, some}))
+}
+
 // XXX this is called only when there's a mixture of nones and values
 func NewOptionFromRLE(sctx *super.Context, vec Any, n uint32, rle []uint32) *Option {
 	// XXX we should store RLE natively and generate on demand so that if we
@@ -69,6 +91,17 @@ func (o *Option) Serialize(b *scode.Builder, slot uint32) {
 		o.Any.Serialize(b, slot)
 	}
 	b.EndContainer()
+}
+
+func (o *Option) Apply(f func([]uint32, Any, *None) Any) Any {
+	switch vec := o.Any.(type) {
+	case *None:
+		return f(nil, nil, vec)
+	case *Dynamic:
+		return f(vec.Tags, vec.Values[1], vec.Values[0].(*None))
+	default:
+		return f(nil, vec, nil)
+	}
 }
 
 func DeoptionWithNone(vec Any) Any {
@@ -124,21 +157,4 @@ func hasOptionTypesOrNones(vecs []Any) bool {
 		}
 		return super.IsOptionType(typ) || typ == super.TypeNone
 	}) >= 0
-}
-
-//	Make an option type as a union and all of the none type.
-//
-// XXX a subsequent PR will change this logic to make a vector.Option when
-// there is a non-union some type.
-func NewOptionNone(optionType *super.TypeOption, length uint32) *Option {
-	return NewOption(optionType, NewNone(length))
-}
-
-func NewOptionSome(sctx *super.Context, vec Any) Any {
-	typ := vec.Type()
-	if super.IsOptionType(typ) {
-		return vec
-	}
-	//XXX check for vec is None?
-	return NewOption(sctx.LookupTypeOption(typ), vec)
 }

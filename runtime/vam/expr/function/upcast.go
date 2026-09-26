@@ -307,24 +307,19 @@ func (u *Upcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 	switch vec.Kind() {
 	case vector.KindOption:
 		option := vector.PushView(vec).(*vector.Option) //XXX Under?
-		//XXX move this swith into Option.Apply()
-		switch vec := option.Any.(type) {
-		case *vector.None:
-			return vector.NewOptionNone(to, vec.Len())
-		case *vector.Dynamic:
-			some := u.upcast(vec.Values[1], to.Type)
+		return option.Apply(func(tags []uint32, some vector.Any, none *vector.None) vector.Any {
+			if some == nil {
+				return vector.NewOptionNone(to, none.Len())
+			}
+			some = u.upcast(some, to.Type)
 			if some == nil {
 				return nil
 			}
-			none := vector.NewOptionNone(to, vec.Values[0].Len())
-			return vector.NewOption(to, vector.NewDynamic(vec.Tags, []vector.Any{none, some}))
-		default:
-			vec2 := u.upcast(vec, to.Type)
-			if vec2 == nil {
-				return nil
+			if none == nil {
+				return vector.NewOption(to, some)
 			}
-			return vector.NewOption(to, vec2)
-		}
+			return vector.NewOptionBoth(to, tags, some, none)
+		})
 	case vector.KindNone:
 		return vector.NewOptionNone(to, vec.Len())
 	}
