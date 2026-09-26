@@ -25,7 +25,7 @@ func (o *optionBuilder) Write(vec vector.Any) {
 		if some == nil {
 			n := none.Len()
 			for range n {
-				o.tags = append(o.tags, vector.OptionNoneTag)
+				o.tags = append(o.tags, super.OptionNoneTag)
 			}
 			o.nones += n
 			return nil
@@ -33,7 +33,7 @@ func (o *optionBuilder) Write(vec vector.Any) {
 		if none == nil {
 			o.values.Write(some)
 			for range some.Len() {
-				o.tags = append(o.tags, vector.OptionSomeTag)
+				o.tags = append(o.tags, super.OptionSomeTag)
 			}
 			return nil
 		}

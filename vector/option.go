@@ -21,12 +21,6 @@ type Option struct {
 
 var _ Any = (*Option)(nil)
 
-const (
-	//XXX fix order (XXX also ref in FJSON and/or RLE logic?)
-	OptionNoneTag = 0
-	OptionSomeTag = 1
-)
-
 func NewOption(typ *super.TypeOption, vec Any) *Option {
 	return &Option{Typ: typ, Any: vec}
 }

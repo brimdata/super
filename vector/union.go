@@ -225,6 +225,8 @@ func (r *RLE) emit(run uint32) {
 	r.runs = append(r.runs, run)
 }
 
+// Returns tags for some/none runs presuming none tag is 1 and
+// some tag 0 (as is consistent with super.OptionSomeTag and super.OptionNoneTag)
 func buildTags(runlens []uint32, n uint32) ([]uint32, uint32) {
 	tags := make([]uint32, n)
 	off := 0

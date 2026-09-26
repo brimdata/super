@@ -310,10 +310,10 @@ func newOptionValueBuilder(typ *super.TypeOption) ValueBuilder {
 func (o *optionValueBuilder) Write(bytes scode.Bytes) {
 	typ, bytes := o.typ.Decode(bytes)
 	if typ == super.TypeNone {
-		o.tags = append(o.tags, OptionNoneTag)
+		o.tags = append(o.tags, super.OptionNoneTag)
 		o.nones++
 	} else {
-		o.tags = append(o.tags, OptionSomeTag)
+		o.tags = append(o.tags, super.OptionSomeTag)
 		o.values.Write(bytes)
 	}
 }
