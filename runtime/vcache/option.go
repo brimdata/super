@@ -68,5 +68,5 @@ func (o *option) project(loader *loader, projection field.Projection) vector.Any
 		return vector.NewOption(optionType, vec)
 	}
 	tags := o.load(loader)
-	return vector.NewOption(optionType, vector.NewDynamic(tags, []vector.Any{vector.NewNone(nones), vec}))
+	return vector.NewOptionBoth(optionType, tags, vec, vector.NewNone(nones))
 }
