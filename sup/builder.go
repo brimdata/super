@@ -258,21 +258,16 @@ func buildFusion(b *scode.Builder, f *Fusion) error {
 	return nil
 }
 
-//XXX type check that value fits in optionType.Type?
-
 func buildOption(b *scode.Builder, o *Option) error {
-	b.BeginContainer()
-	var which uint64
-	if _, ok := o.value.(*None); !ok {
-		which = 1
-	}
-	b.Append(super.EncodeUint(which))
-	if which != 0 {
+	if _, ok := o.value.(*None); ok {
+		super.BuildNone(b)
+	} else {
+		super.BeginSomeContainer(b)
 		if err := buildValue(b, o.value); err != nil {
 			return err
 		}
+		b.EndContainer()
 	}
-	b.EndContainer()
 	return nil
 }
 

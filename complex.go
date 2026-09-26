@@ -464,6 +464,11 @@ func IsOptionType(typ Type) bool {
 	return ok
 }
 
+func BeginSomeContainer(b *scode.Builder) {
+	b.BeginContainer()
+	b.Append(EncodeUint(1))
+}
+
 func BuildSome(b *scode.Builder, val scode.Bytes) {
 	b.BeginContainer()
 	b.Append(EncodeUint(1))
