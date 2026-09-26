@@ -21,38 +21,39 @@ func (o *optionBuilder) Write(vec vector.Any) {
 		return
 	}
 	option := vector.PushView(vec).(*vector.Option)
-	switch vec := option.Any.(type) {
-	case *vector.None:
-		n := vec.Len()
-		for range n {
-			o.tags = append(o.tags, 0)
+	option.Apply(func(tags []uint32, some vector.Any, none *vector.None) vector.Any {
+		if some == nil {
+			n := none.Len()
+			for range n {
+				o.tags = append(o.tags, vector.OptionNoneTag)
+			}
+			o.nones += n
+			return nil
 		}
-		o.nones += n
-	case *vector.Dynamic:
-		if len(vec.Values) != 2 {
-			panic(vec)
+		if none == nil {
+			o.values.Write(some)
+			for range some.Len() {
+				o.tags = append(o.tags, vector.OptionSomeTag)
+			}
+			return nil
 		}
-		for _, which := range vec.Tags {
-			o.tags = append(o.tags, which)
-			o.nones++
+		// both style
+		for _, tag := range tags {
+			o.tags = append(o.tags, tag)
 		}
-		o.nones += vec.Values[0].Len()
-		o.values.Write(vec.Values[1])
-	default:
-		o.values.Write(vec)
-		for range vec.Len() {
-			o.tags = append(o.tags, 1)
-		}
-	}
+		o.nones += none.Len()
+		o.values.Write(some)
+		return nil
+	})
 }
 
 func (o *optionBuilder) Build() vector.Any {
-	vals := o.values.Build()
-	if vals.Len() == 0 {
+	some := o.values.Build()
+	if some.Len() == 0 {
 		return vector.NewOption(o.typ, vector.NewNone(o.nones))
 	}
 	if o.nones == 0 {
-		return vector.NewOption(o.typ, vals)
+		return vector.NewOption(o.typ, some)
 	}
-	return vector.NewOption(o.typ, vector.NewDynamic(o.tags, []vector.Any{vector.NewNone(o.nones), vals}))
+	return vector.NewOptionBoth(o.typ, o.tags, some, vector.NewNone(o.nones))
 }

@@ -309,6 +309,7 @@ func newOptionValueBuilder(typ *super.TypeOption) ValueBuilder {
 
 func (o *optionValueBuilder) Write(bytes scode.Bytes) {
 	typ, bytes := o.typ.Decode(bytes)
+	//XXX fix some/none order
 	if typ == super.TypeNone {
 		o.tags = append(o.tags, 0)
 		o.nones++
@@ -327,7 +328,7 @@ func (o *optionValueBuilder) Build(sctx *super.Context) Any {
 	}
 	none := NewNone(uint32(o.nones))
 	some := o.values.Build(sctx)
-	return NewOption(o.typ, NewDynamic(o.tags, []Any{none, some}))
+	return NewOptionBoth(o.typ, o.tags, some, none)
 }
 
 type enumValueBuilder struct {
