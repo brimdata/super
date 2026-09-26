@@ -301,7 +301,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 
 func (w *Writer) newArrowField(name string, typ super.Type) (arrow.Field, error) {
 	var opt bool
-	if optionType, ok := typ.(*super.TypeOption); ok {
+	if optionType, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
 		opt = true
 		typ = optionType.Type
 	}
@@ -325,7 +325,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		b.AppendNull()
 		return
 	}
-	if o, ok := typ.(*super.TypeOption); ok {
+	if o, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
 		typ, bytes = o.Decode(bytes)
 		if typ == super.TypeNull || typ == super.TypeNone {
 			b.AppendNull()

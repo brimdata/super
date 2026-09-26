@@ -650,7 +650,7 @@ func pickRec(typ super.Type) ([]super.Type, int) {
 }
 
 func deoption(typ super.Type) super.Type {
-	if typ, ok := typ.(*super.TypeOption); ok {
+	if typ, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
 		return typ.Type
 	}
 	return typ

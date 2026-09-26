@@ -304,8 +304,7 @@ func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
 			if typ == super.TypeNone {
 				return nil, fmt.Errorf("%w %s", errNoneOnOption, f.Name)
 			}
-			// XXX handle named option types
-			if _, ok := typ.(*super.TypeOption); !ok {
+			if !super.IsOptionType(typ) {
 				typ = a.sctx.LookupTypeOption(typ)
 				val = &Option{
 					typ:   typ,
@@ -460,8 +459,7 @@ func (a Analyzer) convertSome(val *ast.Some) (Value, error) {
 	if v.Type() == super.TypeNone {
 		return nil, errors.New("some() cannot contain a none value")
 	}
-	//XXX named option types?
-	if _, ok := super.TypeUnder(v.Type()).(*super.TypeOption); ok {
+	if super.IsOptionType(v.Type()) {
 		return nil, errors.New("some() cannot contain an option value")
 	}
 	return &Option{
@@ -480,13 +478,13 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	if super.IsTypeAny(typ) {
 		return a.createAny(val), nil
 	}
-	if optionType, ok := typ.(*super.TypeOption); ok {
+	if optionType, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
 		if option, ok := val.(*Option); ok {
 			inner, err := a.decorate(option.value, optionType.Type)
 			if err != nil {
 				return nil, err
 			}
-			return &Option{typ: optionType, value: inner}, nil
+			return &Option{typ: typ, value: inner}, nil
 		}
 		if none, ok := val.(*None); ok {
 			// Before we recursively call decorate on the deoptioned type,
@@ -494,16 +492,13 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 			// which is a pure none inside of a union and none::option(T1|T2),
 			// which is a none option value, i.e., option union types as none
 			// decorators must be wrapped in an option() type and cannot be implied.
-			return &Option{typ: optionType, value: none}, nil
+			return &Option{typ: typ, value: none}, nil
 		}
 		inner, err := a.decorate(val, optionType.Type)
 		if err != nil {
 			return nil, err
 		}
-		if super.IsOptionType(inner.Type()) {
-			return inner, nil
-		}
-		return &Option{typ: optionType, value: inner}, nil
+		return &Option{typ: typ, value: inner}, nil
 	}
 	switch val := val.(type) {
 	case *None:

@@ -462,7 +462,7 @@ func IsNone(typ Type, bytes []byte) bool {
 }
 
 func IsOptionType(typ Type) bool {
-	_, ok := typ.(*TypeOption)
+	_, ok := TypeUnder(typ).(*TypeOption)
 	return ok
 }
 

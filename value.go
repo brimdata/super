@@ -430,7 +430,7 @@ func (v Value) DeunionIntoNameds() Value {
 }
 
 func (v Value) Deoption() Value {
-	if optionType, ok := v.Type().(*TypeOption); ok {
+	if optionType, ok := TypeUnder(v.Type()).(*TypeOption); ok {
 		typ, bytes := optionType.Decode(v.Bytes())
 		return NewValue(typ, bytes)
 	}
