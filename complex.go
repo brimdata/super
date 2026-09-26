@@ -407,8 +407,6 @@ func BeginUnion(b *scode.Builder, tag int) {
 	b.Append(EncodeUint(uint64(tag)))
 }
 
-//XXX don't forget bump CSUP and BSUP versions
-
 const (
 	OptionSomeTag = 0
 	OptionNoneTag = 1
