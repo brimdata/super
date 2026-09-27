@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/fuzz"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/require"
@@ -57,7 +57,7 @@ func TestCSUPBatchBug(t *testing.T) {
 	err = w.Push(valToVec(sctx, val2))
 	err = w.Close()
 	require.NoError(t, err)
-	p, err := csupio.NewReader(t.Context(), sctx, bytes.NewReader(b.Bytes()), nil, 1)
+	p, err := bsupio.NewReader(t.Context(), sctx, bytes.NewReader(b.Bytes()), nil, 1)
 	require.NoError(t, err)
 	defer p.Pull(true)
 	r := sbuf.PullerReader(sbuf.NewMaterializer(p))

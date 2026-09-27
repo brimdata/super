@@ -1,4 +1,4 @@
-package csupio
+package bsupio
 
 import (
 	"io"
@@ -12,10 +12,12 @@ func NewSerializer(w io.WriteCloser) *csup.Serializer {
 	return csup.NewSerializer(w)
 }
 
-type Writer struct {
+// XXX RowWriter provides a wrapper to the old BSUP format encapsulated by
+// the new framing design.
+type RowWriter struct {
 	*rows.Writer
 }
 
-func NewRowWriter(w io.WriteCloser) *Writer {
-	return &Writer{rows.NewWriter(w)}
+func NewRowWriter(w io.WriteCloser) *RowWriter {
+	return &RowWriter{rows.NewWriter(w)}
 }

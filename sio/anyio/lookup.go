@@ -6,11 +6,10 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
-	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/lineio"
@@ -30,13 +29,13 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 		return newVioPuller(sctx, r), nil
 	case "bsup":
 		//XXX need -rows flag
-		scanner, err := csup.NewRowReader(sctx, r).NewScanner(ctx, opts.Pushdown)
+		scanner, err := bsupio.NewRowReader(sctx, r).NewScanner(ctx, opts.Pushdown)
 		if err != nil {
 			return nil, err
 		}
 		return sbuf.NewDematerializer(sctx, scanner), nil
 	case "csup":
-		return csupio.NewReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
+		return bsupio.NewReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
 	case "csv":
 		return newVioPuller(sctx, csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "line":

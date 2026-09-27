@@ -24,7 +24,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ import (
 
 func ReadBSUP(sctx *super.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	reader := csup.NewRowReader(sctx, bytesReader)
+	reader := bsupio.NewRowReader(sctx, bytesReader)
 	defer reader.Close()
 	var a sbuf.Array
 	err := sio.Copy(&a, reader)
@@ -46,7 +46,7 @@ func ReadBSUP(sctx *super.Context, bs []byte) ([]super.Value, error) {
 func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
 	sctx := super.NewContext()
-	reader, err := csupio.NewReader(ctx, sctx, bytesReader, nil, 1)
+	reader, err := bsupio.NewReader(ctx, sctx, bytesReader, nil, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
 }
 
 func WriteBSUPRows(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := csup.NewRowWriter(sio.NopCloser(buf))
+	writer := bsupio.NewRowWriter(sio.NopCloser(buf))
 	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
@@ -74,7 +74,7 @@ func WriteCSUP(t testing.TB, sctx *super.Context, valuesIn []super.Value, buf *b
 
 func RunQueryBSUPRows(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	s, err := csup.NewRowReader(sctx, buf).NewScanner(t.Context(), nil)
+	s, err := bsupio.NewRowReader(sctx, buf).NewScanner(t.Context(), nil)
 	require.NoError(t, err)
 	p := sbuf.NewDematerializer(sctx, s)
 	defer p.Pull(true)
@@ -83,7 +83,7 @@ func RunQueryBSUPRows(t testing.TB, buf *bytes.Buffer, querySource string) []sup
 
 func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	p, err := csupio.NewReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
+	p, err := bsupio.NewReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
 	require.NoError(t, err)
 	defer p.Pull(true)
 	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})

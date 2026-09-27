@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
 const ext = "bsup"
@@ -186,12 +186,12 @@ func (q *Queue) deleteTailLockFile() error {
 	return q.engine.Delete(context.Background(), q.tailLockPath)
 }
 
-func (q *Queue) OpenAsBSUP(ctx context.Context, sctx *super.Context, head, tail ID) (*csup.RowReader, error) {
+func (q *Queue) OpenAsBSUP(ctx context.Context, sctx *super.Context, head, tail ID) (*bsupio.RowReader, error) {
 	r, err := q.Open(ctx, head, tail)
 	if err != nil {
 		return nil, err
 	}
-	return csup.NewRowReader(sctx, r), nil
+	return bsupio.NewRowReader(sctx, r), nil
 }
 
 func writeID(ctx context.Context, engine storage.Engine, u *storage.URI, id ID) error {

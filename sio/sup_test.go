@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,7 +39,7 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	require.NoError(t, rawDst.Close())
 
 	var out Output
-	rawSrc := csup.NewRowReader(super.NewContext(), &rawBSUP)
+	rawSrc := bsupio.NewRowReader(super.NewContext(), &rawBSUP)
 	defer rawSrc.Close()
 	supDst := supio.NewWriter(&out, supio.WriterOpts{})
 	err := sio.Copy(supDst, rawSrc)

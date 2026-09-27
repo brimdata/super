@@ -70,7 +70,7 @@ func (w *Serializer) finalizeObject() error {
 	// At this point all the vector data has been written out
 	// to the underlying spiller, so we start writing BSUP at this point.
 	var metaBuf bytes.Buffer
-	zw := NewRowWriter(sio.NopCloser(&metaBuf))
+	zw := rows.NewWriter(sio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
 	cctx := enc.cctx
 	m := sup.NewBSUPMarshalerWithContext(cctx.local)
@@ -156,22 +156,4 @@ func buildTypeDefsValue(cctx *Context) super.Value {
 		bytes = cctx.typedefs.Bytes()
 	}
 	return super.NewBytes(super.EncodeBytes(bytes))
-}
-
-// XXX RowWriter provides a wrapper to the old BSUP format encapsulated by
-// the new framing design.
-type RowWriter struct {
-	*rows.Writer
-}
-
-func NewRowWriter(w io.WriteCloser) *RowWriter {
-	return &RowWriter{rows.NewWriter(w)}
-}
-
-type RowReader struct {
-	*rows.Reader
-}
-
-func NewRowReader(sctx *super.Context, r io.Reader) *RowReader {
-	return &RowReader{rows.NewReader(sctx, r)}
 }

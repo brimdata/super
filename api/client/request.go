@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 )
 
@@ -100,7 +100,7 @@ func (r *Request) reader() (io.Reader, error) {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	zw := csup.NewRowWriter(sio.NopCloser(&buf))
+	zw := bsupio.NewRowWriter(sio.NopCloser(&buf))
 	if err := zw.Write(val); err != nil {
 		return nil, err
 	}

@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
 )
@@ -79,7 +80,7 @@ func (c *Context) unmarshal(id ID) error {
 }
 
 func (c *Context) readMeta(r io.Reader) error {
-	scanner, err := NewRowReader(c.local, r).NewScanner(context.TODO(), nil)
+	scanner, err := rows.NewReader(c.local, r).NewScanner(context.TODO(), nil)
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ func (c *Context) LoadSubtypes() *super.TypeDefs {
 }
 
 func (c *Context) readSubTypes(r io.Reader) error {
-	scanner, err := NewRowReader(c.local, r).NewScanner(context.TODO(), nil)
+	scanner, err := rows.NewReader(c.local, r).NewScanner(context.TODO(), nil)
 	if err != nil {
 		return err
 	}

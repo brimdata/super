@@ -17,11 +17,11 @@ import (
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/client/auth0"
 	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/db/branches"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
@@ -140,7 +140,7 @@ func (c *Connection) doAndUnmarshal(req *Request, v any, templates ...any) error
 		return err
 	}
 	defer res.Body.Close()
-	zr := csup.NewRowReader(super.NewContext(), res.Body)
+	zr := bsupio.NewRowReader(super.NewContext(), res.Body)
 	defer zr.Close()
 	rec, err := zr.Read()
 	if err != nil || rec == nil {

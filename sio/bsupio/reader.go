@@ -1,4 +1,4 @@
-package csupio
+package bsupio
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
@@ -144,4 +145,12 @@ func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 
 func (r *Reader) Type() (super.Type, error) {
 	return csup.FusedType(r.sctx, r.readerAt)
+}
+
+type RowReader struct {
+	*rows.Reader
+}
+
+func NewRowReader(sctx *super.Context, r io.Reader) *RowReader {
+	return &RowReader{rows.NewReader(sctx, r)}
 }

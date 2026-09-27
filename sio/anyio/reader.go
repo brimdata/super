@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
-	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/parquetio"
@@ -43,7 +43,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 
 	csupErr := isCSUPStream(track)
 	if csupErr == nil {
-		return csupio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
+		return bsupio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
 	}
 	csupErr = fmt.Errorf("csup: %w", csupErr)
 	track.Reset()
@@ -92,13 +92,13 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	//bsupOpts.Validate = true
 	//XXX rows... csup should handle both rows/cols
 	//XXX this needs to be unified... into a simple header read
-	bsupReader := csup.NewRowReader(super.NewContext(), track)
+	bsupReader := bsupio.NewRowReader(super.NewContext(), track)
 	bsupErr := match(bsupReader, "bsup", 1)
 	// Close bsupReader to ensure that it does not continue to call track.Read.
 	bsupReader.Close()
 	if bsupErr == nil {
 		//XXX rows
-		scanner, err := csup.NewRowReader(sctx, track.Reader()).NewScanner(ctx, opts.Pushdown)
+		scanner, err := bsupio.NewRowReader(sctx, track.Reader()).NewScanner(ctx, opts.Pushdown)
 		if err != nil {
 			return nil, err
 		}

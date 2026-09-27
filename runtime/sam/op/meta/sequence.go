@@ -6,13 +6,13 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
@@ -197,7 +197,7 @@ func newObjectScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, o
 	if err != nil {
 		return nil, err
 	}
-	scanner, err := csup.NewRowReader(sctx, rc).NewScanner(ctx, pushdown)
+	scanner, err := bsupio.NewRowReader(sctx, rc).NewScanner(ctx, pushdown)
 	if err != nil {
 		rc.Close()
 		return nil, err

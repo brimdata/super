@@ -1,4 +1,4 @@
-package csupio
+package bsupio
 
 import (
 	"context"

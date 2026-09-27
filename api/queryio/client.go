@@ -8,9 +8,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
@@ -26,7 +26,7 @@ type scanner struct {
 
 func NewScanner(ctx context.Context, rc io.ReadCloser) (vio.Scanner, error) {
 	sctx := super.NewContext()
-	s, err := csup.NewRowReader(sctx, rc).NewScanner(ctx, nil)
+	s, err := bsupio.NewRowReader(sctx, rc).NewScanner(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

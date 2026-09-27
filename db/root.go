@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/db/branches"
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/db/pools"
@@ -19,6 +18,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
@@ -156,7 +156,7 @@ func (r *Root) readMagic(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	zr := csup.NewRowReader(super.NewContext(), reader)
+	zr := bsupio.NewRowReader(super.NewContext(), reader)
 	defer zr.Close()
 	val, err := zr.Read()
 	if err != nil {
