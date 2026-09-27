@@ -1,3 +1,5 @@
+skip: old bsup options not available currently
+
 script: |
   super -o out.bsup in.sup
   for i in {1..7}; do

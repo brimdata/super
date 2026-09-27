@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vbuild"
@@ -70,7 +70,7 @@ func (w *Serializer) finalizeObject() error {
 	// At this point all the vector data has been written out
 	// to the underlying spiller, so we start writing BSUP at this point.
 	var metaBuf bytes.Buffer
-	zw := bsupio.NewWriter(sio.NopCloser(&metaBuf))
+	zw := NewRowWriter(sio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
 	cctx := enc.cctx
 	m := sup.NewBSUPMarshalerWithContext(cctx.local)
@@ -158,34 +158,20 @@ func buildTypeDefsValue(cctx *Context) super.Value {
 	return super.NewBytes(super.EncodeBytes(bytes))
 }
 
-// XXX ValWriter provides a temporary interface to support writing super.Values
-// to CSUP.  We should remove this at some point in factor of vector-only writes.
-type ValWriter struct {
-	sctx       *super.Context
-	serializer *Serializer
-	builder    *vector.DynamicValueBuilder
+// XXX RowWriter provides a wrapper to the old BSUP format encapsulated by
+// the new framing design.
+type RowWriter struct {
+	*rows.Writer
 }
 
-var _ sio.Writer = (*ValWriter)(nil)
-
-func NewValWriter(w io.WriteCloser) *ValWriter {
-	sctx := super.NewContext()
-	return &ValWriter{
-		sctx:       sctx,
-		serializer: NewSerializer(w),
-		builder:    vector.NewDynamicValueBuilder(),
-	}
+func NewRowWriter(w io.WriteCloser) *RowWriter {
+	return &RowWriter{rows.NewWriter(w)}
 }
 
-func (v *ValWriter) Write(val super.Value) error {
-	v.builder.Write(val)
-	return nil
+type RowReader struct {
+	*rows.Reader
 }
 
-func (v *ValWriter) Close() error {
-	err := v.serializer.Push(v.builder.Build(v.sctx))
-	if closeErr := v.serializer.Close(); err == nil {
-		err = closeErr
-	}
-	return err
+func NewRowReader(sctx *super.Context, r io.Reader) *RowReader {
+	return &RowReader{rows.NewReader(sctx, r)}
 }

@@ -12,8 +12,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/bsupbytes"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"go.uber.org/zap"
 )
@@ -173,7 +173,7 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPC
 		return Nil, table, err
 	}
 	defer r.Close()
-	zr := bsupio.NewReader(super.NewContext(), r)
+	zr := csup.NewRowReader(super.NewContext(), r)
 	defer zr.Close()
 	val, err := zr.Read()
 	if val == nil || err != nil {
@@ -187,7 +187,7 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPC
 	return at, table, err
 }
 
-func (s *Store) readSnapshot(r *bsupio.Reader, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
+func (s *Store) readSnapshot(r *csup.RowReader, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
 	table := make(map[string]Entry)
 	for {
 		val, err := r.Read()
@@ -208,7 +208,7 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	if err != nil {
 		return err
 	}
-	zw := bsupio.NewWriter(w)
+	zw := csup.NewRowWriter(w)
 	defer zw.Close()
 	if err := zw.Write(super.NewUint64(uint64(at))); err != nil {
 		return err
@@ -216,7 +216,7 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	return s.writeTable(zw, table)
 }
 
-func (s *Store) writeTable(w *bsupio.Writer, table map[string]Entry) error {
+func (s *Store) writeTable(w *csup.RowWriter, table map[string]Entry) error {
 	marshaler := sup.NewBSUPMarshaler()
 	marshaler.Decorate(sup.StylePackage)
 	for _, entry := range table {
@@ -468,7 +468,7 @@ func (s *Store) putBase(ctx context.Context, newBase, tail, oldBase ID) error {
 	if err != nil {
 		return err
 	}
-	zw := bsupio.NewWriter(w)
+	zw := csup.NewRowWriter(w)
 	defer zw.Close()
 	return s.writeTable(zw, table)
 }
@@ -482,7 +482,7 @@ func (s *Store) loadBase(ctx context.Context, base ID, unmarshaler *sup.Unmarsha
 		return make(map[string]Entry), err
 	}
 	defer r.Close()
-	zr := bsupio.NewReader(super.NewContext(), r)
+	zr := csup.NewRowReader(super.NewContext(), r)
 	defer zr.Close()
 	return s.readSnapshot(zr, unmarshaler)
 }

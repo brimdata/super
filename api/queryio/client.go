@@ -8,8 +8,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
+	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
@@ -25,7 +26,7 @@ type scanner struct {
 
 func NewScanner(ctx context.Context, rc io.ReadCloser) (vio.Scanner, error) {
 	sctx := super.NewContext()
-	s, err := bsupio.NewReader(sctx, rc).NewScanner(ctx, nil)
+	s, err := csup.NewRowReader(sctx, rc).NewScanner(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +75,11 @@ again:
 }
 
 func marshalControl(zctrl *sbuf.Control) (any, error) {
-	ctrl, ok := zctrl.Message.(*bsupio.Control)
+	ctrl, ok := zctrl.Message.(*rows.Control) //XXX
 	if !ok {
 		return nil, fmt.Errorf("unknown control type: %T", zctrl.Message)
 	}
-	if ctrl.Format != bsupio.ControlFormatSUP {
+	if ctrl.Format != rows.ControlFormatSUP { //XXX
 		return nil, fmt.Errorf("unsupported app encoding: %v", ctrl.Format)
 	}
 	value, err := sup.ParseValue(super.NewContext(), string(ctrl.Bytes))

@@ -11,7 +11,6 @@ import (
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
@@ -35,7 +34,7 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 	// Note here that writer.Close closes the Put but reader.Close does not
 	// close the Get.
 	sctx := super.NewContext()
-	reader := bsupio.NewReader(sctx, get)
+	reader := csup.NewRowReader(sctx, get)
 	puller := sbuf.NewDematerializer(sctx, sbuf.NewPuller(reader))
 	for {
 		var vec vector.Any

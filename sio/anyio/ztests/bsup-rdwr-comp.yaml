@@ -1,3 +1,5 @@
+skip: old bsup compression param not currently available
+
 script: |
   super -bsup.compress=false -o uncomp.bsup in.sup
   super  -o comp.bsup in.sup

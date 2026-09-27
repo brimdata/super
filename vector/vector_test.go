@@ -19,9 +19,9 @@ func FuzzQuery(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		bytesReader := bytes.NewReader(b)
 		querySource := fuzz.GenAscii(bytesReader)
-		context := super.NewContext()
-		types := fuzz.GenTypes(bytesReader, context, 3)
-		values := fuzz.GenValues(bytesReader, context, types)
+		sctx := super.NewContext()
+		types := fuzz.GenTypes(bytesReader, sctx, 3)
+		values := fuzz.GenValues(bytesReader, sctx, types)
 
 		// Debug
 		//for i := range values {
@@ -30,11 +30,11 @@ func FuzzQuery(f *testing.F) {
 		//}
 
 		var bsupBuf bytes.Buffer
-		fuzz.WriteBSUP(t, values, &bsupBuf)
-		resultBSUP := fuzz.RunQueryBSUP(t, &bsupBuf, querySource)
+		fuzz.WriteBSUPRows(t, values, &bsupBuf)
+		resultBSUP := fuzz.RunQueryBSUPRows(t, &bsupBuf, querySource)
 
 		var csupBuf bytes.Buffer
-		fuzz.WriteCSUP(t, values, &csupBuf)
+		fuzz.WriteCSUP(t, sctx, values, &csupBuf)
 		resultCSUP := fuzz.RunQueryCSUP(t, &csupBuf, querySource)
 
 		fuzz.CompareValues(t, resultBSUP, resultCSUP)
@@ -50,11 +50,11 @@ func BenchmarkReadBSUP(b *testing.B) {
 		valuesIn[i] = super.NewInt64(rand.Int63n(N))
 	}
 	var buf bytes.Buffer
-	fuzz.WriteBSUP(b, valuesIn, &buf)
+	fuzz.WriteBSUPRows(b, valuesIn, &buf)
 	bs := buf.Bytes()
 
 	for b.Loop() {
-		valuesOut, err := fuzz.ReadBSUP(bs)
+		valuesOut, err := fuzz.ReadBSUP(super.NewContext(), bs)
 		if err != nil {
 			panic(err)
 		}
@@ -71,7 +71,7 @@ func BenchmarkReadCSUP(b *testing.B) {
 		valuesIn[i] = super.NewValue(super.TypeInt64, super.EncodeInt(int64(rand.Intn(N))))
 	}
 	var buf bytes.Buffer
-	fuzz.WriteCSUP(b, valuesIn, &buf)
+	fuzz.WriteCSUP(b, super.NewContext(), valuesIn, &buf)
 	bs := buf.Bytes()
 
 	for b.Loop() {

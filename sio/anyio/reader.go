@@ -12,7 +12,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
-	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
@@ -29,7 +28,6 @@ type ReaderOpts struct {
 	Format            string
 	Pushdown          sbuf.Pushdown
 	ConcurrentReaders int
-	BSUP              rows.ReaderOpts //XXX rows
 	CSV               csvio.ReaderOpts
 }
 
@@ -90,16 +88,17 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	// For the matching reader, force validation to true so we are extra
 	// careful about auto-matching BSUP.  Then, once matched, relaxed
 	// validation to the user setting in the actual reader returned.
-	bsupOpts := opts.BSUP
-	bsupOpts.Validate = true
+	//bsupOpts := opts.BSUP
+	//bsupOpts.Validate = true
 	//XXX rows... csup should handle both rows/cols
-	bsupReader := rows.NewReaderWithOpts(super.NewContext(), track, bsupOpts)
+	//XXX this needs to be unified... into a simple header read
+	bsupReader := csup.NewRowReader(super.NewContext(), track)
 	bsupErr := match(bsupReader, "bsup", 1)
 	// Close bsupReader to ensure that it does not continue to call track.Read.
 	bsupReader.Close()
 	if bsupErr == nil {
 		//XXX rows
-		scanner, err := rows.NewReaderWithOpts(sctx, track.Reader(), opts.BSUP).NewScanner(ctx, opts.Pushdown)
+		scanner, err := csup.NewRowReader(sctx, track.Reader()).NewScanner(ctx, opts.Pushdown)
 		if err != nil {
 			return nil, err
 		}

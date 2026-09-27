@@ -11,12 +11,12 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/bsup"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -135,7 +135,7 @@ func (m *metaReader) nextFrame() (any, error) {
 		return &Frame{Type: "EOS", Offset: pos}, nil
 
 	}
-	if err := bsupio.CheckVersion(version); err != nil {
+	if err := rows.CheckVersion(version); err != nil { //XXX
 		return nil, err
 	}
 	code, err := r.ReadByte()

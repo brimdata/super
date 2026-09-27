@@ -24,7 +24,6 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
@@ -32,10 +31,9 @@ import (
 	"github.com/x448/float16"
 )
 
-func ReadBSUP(bs []byte) ([]super.Value, error) {
+func ReadBSUP(sctx *super.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	context := super.NewContext()
-	reader := bsupio.NewReader(context, bytesReader)
+	reader := csup.NewRowReader(sctx, bytesReader)
 	defer reader.Close()
 	var a sbuf.Array
 	err := sio.Copy(&a, reader)
@@ -61,21 +59,22 @@ func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func WriteBSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := bsupio.NewWriter(sio.NopCloser(buf))
+func WriteBSUPRows(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
+	writer := csup.NewRowWriter(sio.NopCloser(buf))
 	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 
-func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := csup.NewValWriter(sio.NopCloser(buf))
-	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
-	require.NoError(t, writer.Close())
+func WriteCSUP(t testing.TB, sctx *super.Context, valuesIn []super.Value, buf *bytes.Buffer) {
+	pusher := csup.NewSerializer(sio.NopCloser(buf))
+	vec := sbuf.Dematerialize(sctx, sbuf.NewArray(valuesIn))
+	require.NoError(t, vio.Copy(pusher, vio.NewPuller(vec)))
+	require.NoError(t, pusher.Close())
 }
 
-func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+func RunQueryBSUPRows(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	s, err := bsupio.NewReader(sctx, buf).NewScanner(t.Context(), nil)
+	s, err := csup.NewRowReader(sctx, buf).NewScanner(t.Context(), nil)
 	require.NoError(t, err)
 	p := sbuf.NewDematerializer(sctx, s)
 	defer p.Pull(true)

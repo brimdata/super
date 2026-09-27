@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/db/branches"
 	"github.com/brimdata/super/db/commits"
 	"github.com/brimdata/super/db/data"
@@ -20,7 +21,6 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -117,8 +117,8 @@ func (p *Pool) OpenCommitLog(ctx context.Context, sctx *super.Context, commit ks
 	return p.commits.OpenCommitLog(ctx, sctx, commit, ksuid.Nil)
 }
 
-func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) (*bsupio.Reader, error) {
-	return p.commits.OpenAsBSUP(ctx, sctx, commit, ksuid.Nil)
+func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) (*csup.RowReader, error) {
+	return p.commits.OpenAsBSUPRows(ctx, sctx, commit, ksuid.Nil)
 }
 
 func (p *Pool) Storage() storage.Engine {

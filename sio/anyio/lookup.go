@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup/rows"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
@@ -29,8 +29,8 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 		}
 		return newVioPuller(sctx, r), nil
 	case "bsup":
-		//XXX rows
-		scanner, err := rows.NewReaderWithOpts(sctx, r, opts.BSUP).NewScanner(ctx, opts.Pushdown)
+		//XXX need -rows flag
+		scanner, err := csup.NewRowReader(sctx, r).NewScanner(ctx, opts.Pushdown)
 		if err != nil {
 			return nil, err
 		}

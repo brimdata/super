@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -170,12 +170,12 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 	require.NoError(t, err)
 
 	var buffer bytes.Buffer
-	writer := bsupio.NewWriter(sio.NopCloser(&buffer))
+	writer := csup.NewRowWriter(sio.NopCloser(&buffer))
 	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := bsupio.NewReader(super.NewContext(), &buffer)
+	reader := csup.NewRowReader(super.NewContext(), &buffer)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	exp := sup.FormatValue(recExpected)
@@ -234,12 +234,12 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 	require.NoError(t, err)
 
 	var buffer bytes.Buffer
-	writer := bsupio.NewWriter(sio.NopCloser(&buffer))
+	writer := csup.NewRowWriter(sio.NopCloser(&buffer))
 	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := bsupio.NewReader(super.NewContext(), &buffer)
+	reader := csup.NewRowReader(super.NewContext(), &buffer)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	require.NoError(t, err)

@@ -3,15 +3,15 @@ package bsupbytes
 import (
 	"bytes"
 
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sup"
 )
 
 type Serializer struct {
 	marshaler *sup.MarshalBSUPContext
 	buffer    bytes.Buffer
-	writer    *csupio.Writer
+	writer    *csup.RowWriter
 }
 
 func NewSerializer() *Serializer {
@@ -20,7 +20,7 @@ func NewSerializer() *Serializer {
 	s := &Serializer{
 		marshaler: m,
 	}
-	s.writer = csupio.NewWriter(sio.NopCloser(&s.buffer))
+	s.writer = csup.NewRowWriter(sio.NopCloser(&s.buffer))
 	return s
 }
 

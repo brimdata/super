@@ -18,26 +18,27 @@ import (
 func FuzzCSUPRoundtripGen(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		bytesReader := bytes.NewReader(b)
-		context := super.NewContext()
-		types := fuzz.GenTypes(bytesReader, context, 3)
-		values := fuzz.GenValues(bytesReader, context, types)
-		roundtrip(t, values)
+		sctx := super.NewContext()
+		types := fuzz.GenTypes(bytesReader, sctx, 3)
+		values := fuzz.GenValues(bytesReader, sctx, types)
+		roundtrip(t, sctx, values)
 	})
 }
 
 func FuzzCSUPRoundtripBytes(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
-		values, err := fuzz.ReadBSUP(b)
+		sctx := super.NewContext()
+		values, err := fuzz.ReadBSUP(sctx, b)
 		if err != nil {
 			t.Skipf("%v", err)
 		}
-		roundtrip(t, values)
+		roundtrip(t, sctx, values)
 	})
 }
 
-func roundtrip(t *testing.T, valuesIn []super.Value) {
+func roundtrip(t *testing.T, sctx *super.Context, valuesIn []super.Value) {
 	var buf bytes.Buffer
-	fuzz.WriteCSUP(t, valuesIn, &buf)
+	fuzz.WriteCSUP(t, sctx, valuesIn, &buf)
 	valuesOut, err := fuzz.ReadCSUP(t.Context(), buf.Bytes())
 	require.NoError(t, err)
 	fuzz.CompareValues(t, valuesIn, valuesOut)

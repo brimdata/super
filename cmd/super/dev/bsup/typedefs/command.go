@@ -12,12 +12,12 @@ import (
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/bsup"
 	"github.com/brimdata/super/cmd/super/dev/csup"
+	"github.com/brimdata/super/csup/rows"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/pierrec/lz4/v4"
@@ -127,7 +127,7 @@ func (m *metaReader) nextFrame() ([]byte, error) {
 			m.off = 0
 			continue
 		}
-		if err := bsupio.CheckVersion(version); err != nil {
+		if err := rows.CheckVersion(version); err != nil { //XXX
 			return nil, err
 		}
 
@@ -180,8 +180,8 @@ func (r *reader) readUncomp(code byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if size > bsupio.MaxSize {
-		return nil, errors.New("BSUP frame too big")
+	if size > rows.MaxSize { //XXX
+		return nil, errors.New("BSUP rows frame too big")
 	}
 	out := make([]byte, size)
 	n, err := io.ReadFull(r.reader, out)
@@ -189,7 +189,7 @@ func (r *reader) readUncomp(code byte) ([]byte, error) {
 		return nil, err
 	}
 	if n != len(out) {
-		return nil, errors.New("bsupio: short read")
+		return nil, errors.New("BSUP rows: short read")
 	}
 	return out, nil
 }
@@ -212,8 +212,8 @@ func (r *reader) readComp(code byte) ([]byte, error) {
 	// the original size.
 	zlen -= 1 + scode.SizeOfUvarint(uint64(size))
 
-	if format != byte(bsupio.CompressionFormatLZ4) {
-		return nil, fmt.Errorf("bsupio: unknown compression format 0x%x", format)
+	if format != byte(rows.CompressionFormatLZ4) { //XXX
+		return nil, fmt.Errorf("BSUP rows: unknown compression format 0x%x", format)
 	}
 	compressed := make([]byte, zlen)
 	n, err := io.ReadFull(r.reader, compressed)
@@ -221,26 +221,26 @@ func (r *reader) readComp(code byte) ([]byte, error) {
 		return nil, err
 	}
 	if n != len(compressed) {
-		return nil, fmt.Errorf("bsupio: short read compression buffer (%d of %d)", n, zlen)
+		return nil, fmt.Errorf("BSUP rows: short read compression buffer (%d of %d)", n, zlen)
 	}
 	uncompressed := make([]byte, size)
 	n, err = lz4.UncompressBlock(compressed, uncompressed)
 	if err != nil {
-		return nil, fmt.Errorf("bsupio: %w", err)
+		return nil, fmt.Errorf("BSUP rows: %w", err)
 	}
 	if n != len(uncompressed) {
-		return nil, fmt.Errorf("bsupio: got %d uncompressed bytes, expected %d", n, len(uncompressed))
+		return nil, fmt.Errorf("BSUP rows: got %d uncompressed bytes, expected %d", n, len(uncompressed))
 	}
 	return uncompressed, nil
 }
 
 func (r *reader) skip(n int) error {
 	if n > 25*1024*1024 {
-		return fmt.Errorf("buffer length too big: %d", n)
+		return fmt.Errorf("BSUP rows: buffer length too big: %d", n)
 	}
 	got, err := r.reader.Discard(n)
 	if n != got {
-		return fmt.Errorf("short read: wanted to discard %d but got only %d", n, got)
+		return fmt.Errorf("BSUP rows: short read: wanted to discard %d but got only %d", n, got)
 	}
 	r.pos += int64(n)
 	return err

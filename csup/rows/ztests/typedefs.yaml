@@ -1,3 +1,5 @@
+skip: no more bsup framethresh
+
 script: |
   super -bsup.framethresh=100 -f bsup in.sup | super -i bsup -s -
 

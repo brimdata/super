@@ -11,10 +11,10 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/bsup"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -78,7 +78,7 @@ func (c *Command) Run(args []string) error {
 		return errors.New("slice start cannot be after the end")
 	}
 	sctx := super.NewContext()
-	reader := bsupio.NewReader(sctx, io.NewSectionReader(r, int64(from), int64(to-from)))
+	reader := csup.NewRowReader(sctx, io.NewSectionReader(r, int64(from), int64(to-from)))
 	defer reader.Close()
 	writer, err := c.outputFlags.Open(ctx, engine)
 	if err != nil {

@@ -15,7 +15,6 @@ import (
 
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 )
 
@@ -148,7 +147,7 @@ func readObject(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Rea
 		return vals, err
 	}
 	vals = append(vals, val)
-	metaReader := bsupio.NewReader(sctx, io.LimitReader(r, int64(hdr.MetaSize)))
+	metaReader := csup.NewRowReader(sctx, io.LimitReader(r, int64(hdr.MetaSize)))
 	for {
 		val, err := metaReader.Read()
 		if err != nil {
@@ -165,7 +164,7 @@ func readObject(sctx *super.Context, marshaler *sup.MarshalBSUPContext, r io.Rea
 	if err := metaReader.Close(); err != nil {
 		return nil, err
 	}
-	typedefsReader := bsupio.NewReader(sctx, io.LimitReader(r, int64(hdr.TypeSize)))
+	typedefsReader := csup.NewRowReader(sctx, io.LimitReader(r, int64(hdr.TypeSize)))
 	valp, err := typedefsReader.Read()
 	if err != nil {
 		return nil, err

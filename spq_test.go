@@ -21,7 +21,6 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/arrowio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
@@ -178,9 +177,6 @@ func runOneBoomerang(t *testing.T, format, data string) {
 
 	baselinePuller, err := anyio.NewReader(t.Context(), super.NewContext(), strings.NewReader(baseline), anyio.ReaderOpts{
 		Format: format,
-		BSUP: bsupio.ReaderOpts{
-			Validate: true,
-		},
 	})
 	require.NoError(t, err)
 	defer baselinePuller.Pull(true)
