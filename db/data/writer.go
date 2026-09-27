@@ -42,19 +42,7 @@ func (o *Object) NewWriter(ctx context.Context, engine storage.Engine, path *sto
 
 func (w *Writer) Write(val super.Value) error {
 	w.count++
-<<<<<<< HEAD
-	if err := w.writer.Write(val); err != nil {
-		return err
-	}
-	if w.first {
-		w.first = false
-		w.object.Min.CopyFrom(key)
-	}
-	w.object.Max.CopyFrom(key)
-	return nil
-=======
 	return w.writer.Write(val)
->>>>>>> 282f2ce8d ([no-seek-index])
 }
 
 // Abort is called when an error occurs during write. Errors are ignored
