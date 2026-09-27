@@ -7,7 +7,7 @@ import (
 	"io/fs"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
@@ -16,7 +16,7 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-// CreateVector writes the vectorized form of an existing Object in the CSUP format.
+// CreateVector writes the vectorized form of an existing Object in the BSUP format.
 func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI, id ksuid.KSUID) error {
 	get, err := engine.Get(ctx, SequenceURI(path, id))
 	if err != nil {
@@ -63,7 +63,7 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 }
 
 type VectorWriter struct {
-	*csup.Serializer
+	*bsup.Serializer
 	delete func()
 }
 
@@ -80,7 +80,7 @@ func NewVectorWriter(ctx context.Context, engine storage.Engine, path *storage.U
 		DeleteVector(context.Background(), engine, path, id)
 	}
 	return &VectorWriter{
-		Serializer: csup.NewSerializer(bufwriter.New(put)), //XXX csup
+		Serializer: bsup.NewSerializer(bufwriter.New(put)),
 		delete:     delete,
 	}, nil
 }

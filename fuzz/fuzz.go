@@ -12,12 +12,12 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/optimizer"
 	"github.com/brimdata/super/compiler/optimizer/demand"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/semantic"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -31,7 +31,7 @@ import (
 	"github.com/x448/float16"
 )
 
-func ReadBSUP(sctx *super.Context, bs []byte) ([]super.Value, error) {
+func ReadBSUPRows(sctx *super.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
 	reader := bsupio.NewRowReader(sctx, bytesReader)
 	defer reader.Close()
@@ -43,9 +43,8 @@ func ReadBSUP(sctx *super.Context, bs []byte) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
+func ReadBSUP(ctx context.Context, sctx *super.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	sctx := super.NewContext()
 	reader, err := bsupio.NewReader(ctx, sctx, bytesReader, nil, 1)
 	if err != nil {
 		return nil, err
@@ -65,8 +64,8 @@ func WriteBSUPRows(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	require.NoError(t, writer.Close())
 }
 
-func WriteCSUP(t testing.TB, sctx *super.Context, valuesIn []super.Value, buf *bytes.Buffer) {
-	pusher := csup.NewSerializer(sio.NopCloser(buf))
+func WriteBSUP(t testing.TB, sctx *super.Context, valuesIn []super.Value, buf *bytes.Buffer) {
+	pusher := bsup.NewSerializer(sio.NopCloser(buf))
 	vec := sbuf.Dematerialize(sctx, sbuf.NewArray(valuesIn))
 	require.NoError(t, vio.Copy(pusher, vio.NewPuller(vec)))
 	require.NoError(t, pusher.Close())
@@ -81,7 +80,7 @@ func RunQueryBSUPRows(t testing.TB, buf *bytes.Buffer, querySource string) []sup
 	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})
 }
 
-func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
 	p, err := bsupio.NewReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
 	require.NoError(t, err)

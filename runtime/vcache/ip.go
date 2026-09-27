@@ -4,18 +4,18 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type ip struct {
 	mu   sync.Mutex
-	meta *csup.IP
+	meta *bsup.IP
 	vals []netip.Addr
 }
 
-func newIP(meta *csup.IP) *ip {
+func newIP(meta *bsup.IP) *ip {
 	return &ip{meta: meta}
 }
 
@@ -23,7 +23,7 @@ func (i *ip) length() uint32 {
 	return i.meta.Count
 }
 
-func (*ip) unmarshal(*csup.Context, field.Projection) {}
+func (*ip) unmarshal(*bsup.Context, field.Projection) {}
 
 func (i *ip) project(loader *loader, projection field.Projection) vector.Any {
 	vec := vector.NewIP(i.load(loader))

@@ -3,19 +3,19 @@ package vcache
 import (
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type error_ struct {
 	mu     sync.Mutex
-	meta   *csup.Error
+	meta   *bsup.Error
 	len    uint32
 	values shadow
 }
 
-func newError(cctx *csup.Context, meta *csup.Error) *error_ {
+func newError(cctx *bsup.Context, meta *bsup.Error) *error_ {
 	return &error_{meta: meta, len: meta.Len(cctx)}
 }
 
@@ -23,7 +23,7 @@ func (e *error_) length() uint32 {
 	return e.len
 }
 
-func (e *error_) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (e *error_) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if e.values == nil {

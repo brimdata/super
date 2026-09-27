@@ -8,7 +8,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/csup/rows"
+	"github.com/brimdata/super/bsup/rows"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
@@ -75,11 +75,11 @@ again:
 }
 
 func marshalControl(zctrl *sbuf.Control) (any, error) {
-	ctrl, ok := zctrl.Message.(*rows.Control) //XXX
+	ctrl, ok := zctrl.Message.(*rows.Control) //XXX rows
 	if !ok {
 		return nil, fmt.Errorf("unknown control type: %T", zctrl.Message)
 	}
-	if ctrl.Format != rows.ControlFormatSUP { //XXX
+	if ctrl.Format != rows.ControlFormatSUP { //XXX rows
 		return nil, fmt.Errorf("unsupported app encoding: %v", ctrl.Format)
 	}
 	value, err := sup.ParseValue(super.NewContext(), string(ctrl.Bytes))

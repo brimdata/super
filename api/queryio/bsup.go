@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/brimdata/super/csup/rows"
+	"github.com/brimdata/super/bsup/rows"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
@@ -35,5 +35,5 @@ func (w *BSUPWriter) WriteControl(v any) error {
 	if err != nil {
 		return err
 	}
-	return w.Writer.WriteControl(buf.Bytes(), rows.ControlFormatSUP) //XXX
+	return w.Writer.WriteControl(buf.Bytes(), rows.ControlFormatSUP) //XXX rows
 }

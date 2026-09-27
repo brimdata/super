@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup/rows"
+	"github.com/brimdata/super/bsup/rows"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/fs"
 	"github.com/brimdata/super/sio"

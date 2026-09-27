@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
-	"github.com/brimdata/super/csup/rows"
+	"github.com/brimdata/super/bsup"
+	"github.com/brimdata/super/bsup/rows"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
@@ -102,7 +102,7 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 		if hdr == nil || err != nil {
 			return nil, err
 		}
-		o, err := csup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
+		o, err := bsup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 		if len(r.metaFilters) > 0 && pruneObject(r.sctx, r.metaFilters[n], o) {
 			continue
 		}
-		vo := vcache.NewObjectFromCSUP(o)
+		vo := vcache.NewObjectFromBSUP(o)
 		var proj field.Projection
 		if r.pushdown != nil {
 			proj = r.pushdown.Projection()
@@ -133,7 +133,7 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 	}
 }
 
-func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
+func pruneObject(sctx *super.Context, mf *metafilter, o *bsup.Object) bool {
 	vals := o.ProjectMetadata(sctx, mf.projection)
 	for _, val := range vals {
 		if !mf.filter.Eval(val).Equal(super.False) {
@@ -144,7 +144,7 @@ func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 }
 
 func (r *Reader) Type() (super.Type, error) {
-	return csup.FusedType(r.sctx, r.readerAt)
+	return bsup.FusedType(r.sctx, r.readerAt)
 }
 
 type RowReader struct {

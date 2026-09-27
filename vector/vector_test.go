@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/fuzz"
 )
 
@@ -29,21 +29,21 @@ func FuzzQuery(f *testing.F) {
 		//    t.Logf("value: in[%v]=%v", i, sup.String(&values[i]))
 		//}
 
+		var bsupRowsBuf bytes.Buffer
+		fuzz.WriteBSUPRows(t, values, &bsupRowsBuf)
+		resultBSUPRows := fuzz.RunQueryBSUPRows(t, &bsupRowsBuf, querySource)
+
 		var bsupBuf bytes.Buffer
-		fuzz.WriteBSUPRows(t, values, &bsupBuf)
-		resultBSUP := fuzz.RunQueryBSUPRows(t, &bsupBuf, querySource)
+		fuzz.WriteBSUP(t, sctx, values, &bsupBuf)
+		resultBSUP := fuzz.RunQueryBSUP(t, &bsupBuf, querySource)
 
-		var csupBuf bytes.Buffer
-		fuzz.WriteCSUP(t, sctx, values, &csupBuf)
-		resultCSUP := fuzz.RunQueryCSUP(t, &csupBuf, querySource)
-
-		fuzz.CompareValues(t, resultBSUP, resultCSUP)
+		fuzz.CompareValues(t, resultBSUPRows, resultBSUP)
 	})
 }
 
 const N = 10000000
 
-func BenchmarkReadBSUP(b *testing.B) {
+func BenchmarkReadBSUPRows(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
 	valuesIn := make([]super.Value, N)
 	for i := range valuesIn {
@@ -54,7 +54,7 @@ func BenchmarkReadBSUP(b *testing.B) {
 	bs := buf.Bytes()
 
 	for b.Loop() {
-		valuesOut, err := fuzz.ReadBSUP(super.NewContext(), bs)
+		valuesOut, err := fuzz.ReadBSUPRows(super.NewContext(), bs)
 		if err != nil {
 			panic(err)
 		}
@@ -71,12 +71,12 @@ func BenchmarkReadCSUP(b *testing.B) {
 		valuesIn[i] = super.NewValue(super.TypeInt64, super.EncodeInt(int64(rand.Intn(N))))
 	}
 	var buf bytes.Buffer
-	fuzz.WriteCSUP(b, super.NewContext(), valuesIn, &buf)
+	fuzz.WriteBSUP(b, super.NewContext(), valuesIn, &buf)
 	bs := buf.Bytes()
 
 	for b.Loop() {
 		bytesReader := bytes.NewReader(bs)
-		object, err := csup.NewObject(bytesReader)
+		object, err := bsup.NewObject(bytesReader)
 		if err != nil {
 			panic(err)
 		}

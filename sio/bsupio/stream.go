@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 )
 
 type stream struct {
@@ -19,11 +19,11 @@ type stream struct {
 
 type result struct {
 	off    int64
-	header csup.DataHeader
+	header bsup.DataHeader
 	err    error
 }
 
-func (s *stream) next() (*csup.DataHeader, int64, error) {
+func (s *stream) next() (*bsup.DataHeader, int64, error) {
 	s.once.Do(func() {
 		s.ch = make(chan result, runtime.GOMAXPROCS(0))
 		go s.run()
@@ -45,8 +45,8 @@ func (s *stream) next() (*csup.DataHeader, int64, error) {
 func (s *stream) run() {
 	var off int64
 	for {
-		section, err := csup.ReadSection(io.NewSectionReader(s.r, off, math.MaxInt64))
-		if err != nil || section.Type == csup.SectionObject {
+		section, err := bsup.ReadSection(io.NewSectionReader(s.r, off, math.MaxInt64))
+		if err != nil || section.Type == bsup.SectionObject {
 			select {
 			case s.ch <- result{off, section.Object, err}:
 			case <-s.ctx.Done():

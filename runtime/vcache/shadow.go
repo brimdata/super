@@ -3,7 +3,7 @@ package vcache
 import (
 	"fmt"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
@@ -15,9 +15,9 @@ import (
 // mutable shadow pieces that are dynamically loaded and maintained here.
 //
 // Shadows are created incrementally so that a sequence of projections will do the
-// minimal work unmarshaling the CSUP metadata as needed.  When processing a sequence
-// of CSUP files with a single projection, the incremental capability is not important
-// but when caching CSUP objects (e.g., in local from S3), multiple threads operating
+// minimal work unmarshaling the BSUP metadata as needed.  When processing a sequence
+// of BSUP files with a single projection, the incremental capability is not important
+// but when caching BSUP objects (e.g., in local from S3), multiple threads operating
 // concurrently on a single object benefit from incremental unmarshaling.  This is especially
 // important when processing thin projections over objects with lots of heteregenous types.
 //
@@ -37,61 +37,61 @@ import (
 // interfaces.
 type shadow interface {
 	length() uint32
-	unmarshal(*csup.Context, field.Projection)
+	unmarshal(*bsup.Context, field.Projection)
 	project(*loader, field.Projection) vector.Any
 }
 
-// newShadow decodes the CSUP metadata structure to the appropriate shadow object.
+// newShadow decodes the BSUP metadata structure to the appropriate shadow object.
 // No vector data data is actually loaded here.
-func newShadow(cctx *csup.Context, id csup.ID) shadow {
+func newShadow(cctx *bsup.Context, id bsup.ID) shadow {
 	switch meta := cctx.Lookup(id).(type) {
-	case *csup.Dynamic:
+	case *bsup.Dynamic:
 		return newDynamic(meta)
-	case *csup.Error:
+	case *bsup.Error:
 		return newError(cctx, meta)
-	case *csup.Named:
+	case *bsup.Named:
 		return newNamed(meta, newShadow(cctx, meta.Values))
-	case *csup.Record:
+	case *bsup.Record:
 		return newRecord(cctx, meta)
-	case *csup.Array:
+	case *bsup.Array:
 		return newArray(cctx, meta)
-	case *csup.Set:
+	case *bsup.Set:
 		return newSet(cctx, meta)
-	case *csup.Map:
+	case *bsup.Map:
 		return newMap(cctx, meta)
-	case *csup.Union:
+	case *bsup.Union:
 		return newUnion(cctx, meta)
-	case *csup.Enum:
+	case *bsup.Enum:
 		return newEnum(meta, newShadow(cctx, meta.Values))
-	case *csup.Fusion:
+	case *bsup.Fusion:
 		return newFusion(cctx, meta)
-	case *csup.Any:
+	case *bsup.Any:
 		return newAny(cctx, meta)
-	case *csup.Dict:
+	case *bsup.Dict:
 		return newDict(cctx, meta)
-	case *csup.Int:
+	case *bsup.Int:
 		return newInt(cctx, meta)
-	case *csup.Uint:
+	case *bsup.Uint:
 		return newUint(cctx, meta)
-	case *csup.Float:
+	case *bsup.Float:
 		return newFloat(cctx, meta)
-	case *csup.Bool:
+	case *bsup.Bool:
 		return newBool(meta)
-	case *csup.Bytes:
+	case *bsup.Bytes:
 		return newBytes(cctx, meta)
-	case *csup.IP:
+	case *bsup.IP:
 		return newIP(meta)
-	case *csup.Net:
+	case *bsup.Net:
 		return newNet(meta)
-	case *csup.Null:
+	case *bsup.Null:
 		return newNull(meta)
-	case *csup.None:
+	case *bsup.None:
 		return newNone(meta)
-	case *csup.TypeValue:
+	case *bsup.TypeValue:
 		return newTypeValue(cctx, meta)
-	case *csup.Const:
+	case *bsup.Const:
 		return newConst(cctx, meta)
-	case *csup.Empty:
+	case *bsup.Empty:
 		return newEmpty(meta)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", meta))

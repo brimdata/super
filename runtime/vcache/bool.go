@@ -3,7 +3,7 @@ package vcache
 import (
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
@@ -12,11 +12,11 @@ import (
 
 type bool_ struct {
 	mu   sync.Mutex
-	meta *csup.Bool
+	meta *bsup.Bool
 	bits *bitvec.Bits
 }
 
-func newBool(meta *csup.Bool) *bool_ {
+func newBool(meta *bsup.Bool) *bool_ {
 	return &bool_{meta: meta}
 }
 
@@ -24,7 +24,7 @@ func (b *bool_) length() uint32 {
 	return b.meta.Count
 }
 
-func (*bool_) unmarshal(*csup.Context, field.Projection) {}
+func (*bool_) unmarshal(*bsup.Context, field.Projection) {}
 
 func (b *bool_) project(loader *loader, projection field.Projection) vector.Any {
 	vec := vector.NewBool(b.load(loader))

@@ -4,18 +4,18 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type net struct {
 	mu   sync.Mutex
-	meta *csup.Net
+	meta *bsup.Net
 	vals []netip.Prefix
 }
 
-func newNet(meta *csup.Net) *net {
+func newNet(meta *bsup.Net) *net {
 	return &net{meta: meta}
 }
 
@@ -23,7 +23,7 @@ func (n *net) length() uint32 {
 	return n.meta.Count
 }
 
-func (*net) unmarshal(*csup.Context, field.Projection) {}
+func (*net) unmarshal(*bsup.Context, field.Projection) {}
 
 func (n *net) project(loader *loader, projection field.Projection) vector.Any {
 	vec := vector.NewNet(n.load(loader))

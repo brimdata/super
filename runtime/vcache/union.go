@@ -4,21 +4,21 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type union struct {
 	mu   sync.Mutex
-	meta *csup.Union
+	meta *bsup.Union
 	len  uint32
 	// XXX we should store TagMap here so it doesn't have to be recomputed
 	tags   []uint32
 	values []shadow
 }
 
-func newUnion(cctx *csup.Context, meta *csup.Union) *union {
+func newUnion(cctx *bsup.Context, meta *bsup.Union) *union {
 	return &union{
 		meta:   meta,
 		len:    meta.Len(cctx),
@@ -30,7 +30,7 @@ func (u *union) length() uint32 {
 	return u.len
 }
 
-func (u *union) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (u *union) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	for k, id := range u.meta.Values {
@@ -47,7 +47,7 @@ func (u *union) load(loader *loader) []uint32 {
 	if u.tags != nil {
 		return u.tags
 	}
-	tags, err := csup.ReadUint32s(u.meta.Tags, loader.r)
+	tags, err := bsup.ReadUint32s(u.meta.Tags, loader.r)
 	if err != nil {
 		panic(err)
 	}

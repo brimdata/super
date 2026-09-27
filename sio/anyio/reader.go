@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
@@ -41,11 +41,11 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 
 	track := NewTrack(r)
 
-	csupErr := isCSUPStream(track)
-	if csupErr == nil {
+	bsupErr := isBSUPStream(track)
+	if bsupErr == nil {
 		return bsupio.NewReader(ctx, sctx, track.Reader(), opts.Pushdown, opts.ConcurrentReaders)
 	}
-	csupErr = fmt.Errorf("csup: %w", csupErr)
+	bsupErr = fmt.Errorf("bsup: %w", bsupErr)
 	track.Reset()
 
 	parquetErr := isParquetStream(ctx, track)
@@ -92,11 +92,11 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	//bsupOpts.Validate = true
 	//XXX rows... csup should handle both rows/cols
 	//XXX this needs to be unified... into a simple header read
-	bsupReader := bsupio.NewRowReader(super.NewContext(), track)
-	bsupErr := match(bsupReader, "bsup", 1)
+	bsupRowsReader := bsupio.NewRowReader(super.NewContext(), track)
+	bsupRowsErr := match(bsupRowsReader, "bsuprows", 1)
 	// Close bsupReader to ensure that it does not continue to call track.Read.
-	bsupReader.Close()
-	if bsupErr == nil {
+	bsupRowsReader.Close()
+	if bsupRowsErr == nil {
 		//XXX rows
 		scanner, err := bsupio.NewRowReader(sctx, track.Reader()).NewScanner(ctx, opts.Pushdown)
 		if err != nil {
@@ -122,7 +122,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Reade
 	return nil, joinErrs([]error{
 		arrowsErr,
 		bsupErr,
-		csupErr,
+		bsupRowsErr,
 		csvErr,
 		jsonErr,
 		lineErr,
@@ -163,15 +163,15 @@ func isArrowStream(track *Track) error {
 	return err
 }
 
-func isCSUPStream(track *Track) error {
-	var buf [csup.HeaderSize]byte
+func isBSUPStream(track *Track) error {
+	var buf [bsup.HeaderSize]byte
 	if _, err := io.ReadFull(track, buf[:]); err != nil {
 		if errors.Is(err, io.ErrUnexpectedEOF) {
 			return errors.New("file size too small")
 		}
 		return err
 	}
-	if err := new(csup.Header{}).Deserialize(buf[:]); err != nil {
+	if err := new(bsup.Header{}).Deserialize(buf[:]); err != nil {
 		return err
 	}
 	if track.recorder != nil {
