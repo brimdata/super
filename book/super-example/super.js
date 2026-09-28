@@ -37,8 +37,8 @@ class Super {
    * @param {Object} opts - The options for the query.
    * @param {string} [opts.query] - The program to execute.
    * @param {string | ReadableStream} [opts.input] - The input data for the query.
-   * @param {'auto' | 'arrows' | 'bsup' | 'csup' | 'csv' | 'json' | 'line' | 'parquet' | 'sup' | 'tsv' | 'zeek' | 'zjson'} [opts.inputFormat] - The format of the input data.
-   * @param {'arrows' | 'bsup' | 'csup' | 'csv' | 'json' | 'line' | 'parquet' | 'sup' | 'tsv' | 'zeek' | 'zjson'} [opts.outputFormat] - The desired format of the output data.
+   * @param {'auto' | 'arrows' | 'bsup' | 'csv' | 'json' | 'line' | 'parquet' | 'sup' | 'tsv' | 'zeek' | 'zjson'} [opts.inputFormat] - The format of the input data.
+   * @param {'arrows' | 'bsup' | 'csv' | 'json' | 'line' | 'parquet' | 'sup' | 'tsv' | 'zeek' | 'zjson'} [opts.outputFormat] - The desired format of the output data.
    * @returns {Promise<any[]>} A promise that resolves to the processed query result.
    */
   run(args) {
