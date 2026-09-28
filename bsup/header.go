@@ -66,7 +66,7 @@ type Header struct {
 
 func (o Header) Serialize() []byte {
 	var bytes [HeaderSize]byte
-	bytes[0] = 'C' //XXX change
+	bytes[0] = 'C' //XXX will fix in next PR
 	bytes[1] = 'S'
 	bytes[2] = 'U'
 	bytes[3] = 'P'

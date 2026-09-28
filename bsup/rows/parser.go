@@ -11,10 +11,10 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-var errBadFormat = errors.New("malformed BSUPROW value")
+var errBadFormat = errors.New("malformed BSUPROWS value")
 
-// parser decodes the framing protocol for BSUPROW updating and resetting its
-// super context in conformance with BSUPROW framing.
+// parser decodes the framing protocol for BSUPROWS updating and resetting its
+// super context in conformance with BSUPROWS framing.
 type parser struct {
 	peeker  *peeker.Reader
 	types   *Decoder
@@ -67,7 +67,7 @@ func (p *parser) read() (frame, error) {
 		case ControlFrame:
 			return frame{}, p.decodeControl(code)
 		default:
-			return frame{}, fmt.Errorf("unknown BSUPROW message frame type: %d", typ)
+			return frame{}, fmt.Errorf("unknown BSUPROWS message frame type: %d", typ)
 		}
 	}
 }

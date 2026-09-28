@@ -8,7 +8,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/client"
-	"github.com/brimdata/super/bsup/rows"
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db"
 	dbapi "github.com/brimdata/super/db/api"
@@ -16,6 +15,7 @@ import (
 	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
@@ -52,8 +52,7 @@ func (c *testClient) TestPoolList() []pools.Config {
 	require.NoError(c, err)
 	defer r.Body.Close()
 	var confs []pools.Config
-	//XXX rows
-	zr := rows.NewReader(super.NewContext(), r.Body)
+	zr := bsupio.NewRowReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	for {
 		rec, err := zr.Read()
@@ -84,8 +83,7 @@ func (c *testClient) TestQuery(query string) string {
 	r, err := c.Connection.Query(c.Context(), srcfiles.Plain(query))
 	require.NoError(c, err)
 	defer r.Body.Close()
-	// XXX rows
-	zr := rows.NewReader(super.NewContext(), r.Body)
+	zr := bsupio.NewRowReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	var buf bytes.Buffer
 	zw := supio.NewWriter(sio.NopCloser(&buf), supio.WriterOpts{})

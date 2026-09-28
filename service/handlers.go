@@ -30,7 +30,6 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/csvio"
-	"github.com/kr/pretty"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -454,7 +453,6 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		// Force validation of BSUP when loading into the database.
 		//BSUP: bsupio.ReaderOpts{Validate: true},
 	}
-	pretty.Println("OPTS", opts)
 	sctx := super.NewContext()
 	p, err := anyio.NewReader(r.Context(), sctx, reader, opts)
 	if err != nil {

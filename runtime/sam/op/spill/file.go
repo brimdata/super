@@ -17,7 +17,7 @@ import (
 // but can be processed in multiple passes.  File implements sio.Reader and
 // sio.Writer.
 type File struct {
-	*rows.Reader //XXX use columns
+	*rows.Reader
 	*rows.Writer
 	file *os.File
 }
@@ -27,7 +27,6 @@ type File struct {
 // records via the sio.Reader interface.
 func NewFile(f *os.File) *File {
 	return &File{
-		//XXX rows
 		Writer: rows.NewWriterWithOpts(bufwriter.New(sio.NopCloser(f)), rows.WriterOpts{
 			Compress:    false, // Compression reduces write throughput; see #3973.
 			FrameThresh: rows.DefaultFrameThresh,
