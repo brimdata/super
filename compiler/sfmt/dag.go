@@ -12,9 +12,9 @@ import (
 
 func DAG(main *dag.Main) string {
 	d := &canonDAG{
-		tab:   2,
-		head:  true,
-		first: true,
+		shared: shared{formatter{tab: 2}},
+		head:   true,
+		first:  true,
 	}
 	d.main(main)
 	d.flush()
@@ -27,9 +27,9 @@ func DAGSeq(seq dag.Seq) string {
 
 func DAGExpr(e dag.Expr) string {
 	d := &canonDAG{
-		tab:   2,
-		head:  true,
-		first: true,
+		shared: shared{formatter{tab: 2}},
+		head:   true,
+		first:  true,
 	}
 	d.expr(e, "")
 	d.flush()
