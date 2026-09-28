@@ -429,22 +429,24 @@ func (v Value) DeunionIntoNameds() Value {
 	}
 }
 
+func (v Value) Deoption() Value {
+	if optionType, ok := TypeUnder(v.Type()).(*TypeOption); ok {
+		return NewValue(optionType.Decode(v.Bytes()))
+	}
+	return v
+}
+
 // to its underlying value.  It does not Deunion union values that are named types.
 func (v Value) DeoptionWithMissing(sctx *Context) Value {
-	if union, _ := OptionUnion(v.Type()); union != nil {
-		v = v.Deunion()
-		if v.Type() == TypeNone {
-			return sctx.Missing()
-		}
+	v = v.Deoption()
+	if v.Type() == TypeNone {
+		return sctx.Missing()
 	}
 	return v
 }
 
 func (v Value) IsNone() bool {
-	if IsOptionType(v.Type()) {
-		return v.Deunion().Type() == TypeNone
-	}
-	return v.Type() == TypeNone
+	return v.Deoption().Type() == TypeNone
 }
 
 // Under resolves named types and untags unions repeatedly, returning a value

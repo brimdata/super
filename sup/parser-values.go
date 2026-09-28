@@ -115,6 +115,10 @@ func (p *Parser) matchValueOrDecl() (ast.Value, *ast.TypeDecl, error) {
 		val, err := p.decorate(val, err)
 		return val, nil, err
 	}
+	if val, err := p.matchSome(name); val != nil || err != nil {
+		val, err := p.decorate(val, err)
+		return val, nil, err
+	}
 	if val, err := p.matchError(name); val != nil || err != nil {
 		val, err := p.decorate(val, err)
 		return val, nil, err
@@ -621,6 +625,27 @@ func (p *Parser) matchFusion(name string) (*ast.Fusion, error) {
 		Kind:  "Fusion",
 		Value: val,
 		Type:  tv,
+	}, nil
+}
+
+func (p *Parser) matchSome(name string) (*ast.Some, error) {
+	if name != "some" {
+		return nil, nil
+	}
+	l := p.lexer
+	if ok, err := l.match('('); !ok || err != nil {
+		return nil, noEOF(err)
+	}
+	val, err := p.matchValue()
+	if err != nil {
+		return nil, noEOF(err)
+	}
+	if ok, err := l.match(')'); !ok || err != nil {
+		return nil, noEOF(err)
+	}
+	return &ast.Some{
+		Kind:  "Some",
+		Value: val,
 	}, nil
 }
 

@@ -1,0 +1,47 @@
+spq: pass
+
+flags: -i sup
+
+input: |
+  type foo=none
+  {a?:none::option(foo)}
+
+error: |
+  stdio:stdin: option some type cannot be none
+
+---
+
+spq: pass
+
+flags: -i sup
+
+input: |
+  type foo=none
+  {a:none::foo}
+
+error: |
+  stdio:stdin: untyped none assigned to field a
+
+---
+
+spq: pass
+
+input: &input |
+  type foo=none
+  none::foo
+
+output: *input
+
+---
+
+spq: values this ?? none::bar
+
+input: |
+  type foo=none
+  type bar=foo
+  none::foo
+
+output: |
+  type foo=none
+  type bar=foo
+  none::bar

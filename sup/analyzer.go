@@ -69,7 +69,13 @@ type (
 		subtype scode.Bytes
 	}
 	None struct {
+		// Nones aren't typed but they can be named so this field holds
+		// the named type when decorated as such.
 		typ super.Type
+	}
+	Option struct {
+		typ   super.Type
+		value Value
 	}
 )
 
@@ -89,6 +95,7 @@ func (t *TypeValue) Type() super.Type { return t.typ }
 func (e *Error) Type() super.Type     { return e.typ }
 func (f *Fusion) Type() super.Type    { return f.typ }
 func (n *None) Type() super.Type      { return n.typ }
+func (o *Option) Type() super.Type    { return o.typ }
 
 type Analyzer struct {
 	sctx *super.Context
@@ -189,7 +196,7 @@ func (a *Analyzer) convertValue(val ast.Value) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &None{typ: a.sctx.Optionize(typ)}, nil
+		return &None{typ: typ}, nil
 	case *ast.Primitive:
 		return a.convertPrimitive(val)
 	case *ast.TypeValue:
@@ -206,6 +213,8 @@ func (a *Analyzer) convertValue(val ast.Value) (Value, error) {
 		return a.convertError(val)
 	case *ast.Fusion:
 		return a.convertFusion(val)
+	case *ast.Some:
+		return a.convertSome(val)
 	default:
 		panic(val)
 	}
@@ -280,7 +289,7 @@ func (a *Analyzer) convertTypeValue(tv *ast.TypeValue) (Value, error) {
 	}, nil
 }
 
-var errNoneOnOption = errors.New("non-union none assigned to optional field")
+var errNoneOnOption = errors.New("untyped none assigned to optional field")
 
 func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
 	vals := make([]Value, 0, len(val.Fields))
@@ -292,13 +301,16 @@ func (a *Analyzer) convertRecord(val *ast.Record) (Value, error) {
 		}
 		typ := val.Type()
 		if f.Opt {
-			if typ == super.TypeNone {
-				return nil, fmt.Errorf("%w %s", errNoneOnOption, f.Name)
-			}
-			typ = a.sctx.Option(typ)
-			val, err = a.createUnion(val, typ)
-			if err != nil {
-				return nil, err
+			// Wrap type in an option type if it's not already expressed as such.
+			// Note that we leave an untyped none as is and detect this condition
+			// later so that decoration can turn it into an option none.  This can be
+			// especially useful for named types.
+			if !super.IsOptionType(typ) && super.TypeUnder(typ) != super.TypeNone {
+				typ = a.sctx.LookupTypeOption(typ)
+				val = &Option{
+					typ:   typ,
+					value: val,
+				}
 			}
 		}
 		fields = append(fields, super.NewField(f.Name, typ))
@@ -440,18 +452,62 @@ func (a Analyzer) convertFusion(val *ast.Fusion) (Value, error) {
 	}, nil
 }
 
+func (a Analyzer) convertSome(val *ast.Some) (Value, error) {
+	v, err := a.convertValue(val.Value)
+	if err != nil {
+		return nil, err
+	}
+	if v.Type() == super.TypeNone {
+		return nil, errors.New("some() cannot contain a none value")
+	}
+	if super.IsOptionType(v.Type()) {
+		return nil, errors.New("some() cannot contain an option value")
+	}
+	return &Option{
+		typ:   a.sctx.LookupTypeOption(v.Type()),
+		value: v,
+	}, nil
+}
+
 func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
+	if val.Type() == typ {
+		return val, nil
+	}
 	if _, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
 		return a.createUnion(val, typ)
 	}
 	if super.IsTypeAny(typ) {
 		return a.createAny(val), nil
 	}
+	if optionType, ok := super.TypeUnder(typ).(*super.TypeOption); ok {
+		if option, ok := val.(*Option); ok {
+			inner, err := a.decorate(option.value, optionType.Type)
+			if err != nil {
+				return nil, err
+			}
+			return &Option{typ: typ, value: inner}, nil
+		}
+		if none, ok := val.(*None); ok {
+			// Untyped nones are allowed into the value structure on the first
+			// pass then decoration can turn the plain none into an option none.
+			// For example, this allows named types to decorate a complex record
+			// without having to specify the decorator on all the embedded nones.
+			return &Option{typ: typ, value: none}, nil
+		}
+		inner, err := a.decorate(val, optionType.Type)
+		if err != nil {
+			return nil, err
+		}
+		return &Option{typ: typ, value: inner}, nil
+	}
 	switch val := val.(type) {
 	case *None:
-		// None value carries the type for an optional field and
-		// the parent decoration overrides.
-		return &None{typ: a.sctx.Optionize(typ)}, nil
+		// Decorating a pure none turns it into a typed option none, unless it
+		// is a named-type none (or redundant plain none), which stays a none.
+		if super.TypeUnder(typ) == super.TypeNone {
+			return &None{typ: typ}, nil
+		}
+		return &Option{value: val, typ: a.sctx.LookupTypeOption(typ)}, nil
 	case *Null:
 		if super.TypeUnder(typ) != super.TypeNull {
 			return nil, fmt.Errorf("illegal null value decorator: %q", FormatType(typ))
@@ -475,6 +531,12 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 		return nil, fmt.Errorf("fusion values cannot be decorated: %q", FormatType(typ))
 	case *Union:
 		return a.decorateUnion(val, typ)
+	case *Option:
+		if _, ok := val.value.(*None); !ok {
+			// typ cannot be an option type as that case is handled above
+			return nil, errors.New("cannot decorate an option value with a non-option type")
+		}
+		return &Option{typ: a.sctx.Optionize(typ), value: val.value}, nil
 	default:
 		panic(val)
 	}
@@ -522,6 +584,12 @@ func (a *Analyzer) createAny(val Value) Value {
 func (a *Analyzer) decoratePrimitive(val *Primitive, decorator super.Type) (Value, error) {
 	if enumType, ok := super.TypeUnder(decorator).(*super.TypeEnum); ok {
 		return a.decorateEnum(val, enumType, decorator)
+	}
+	if optionType, ok := super.TypeUnder(decorator).(*super.TypeOption); ok {
+		return &Option{
+			typ:   optionType,
+			value: val,
+		}, nil
 	}
 	if err := primitiveOk(val.typ, decorator); err != nil {
 		return nil, err
@@ -738,6 +806,15 @@ func (a Analyzer) convertType(typ ast.Type) (super.Type, error) {
 			return nil, err
 		}
 		return a.sctx.LookupTypeFusion(typ), nil
+	case *ast.TypeOption:
+		typ, err := a.convertType(t.Type)
+		if err != nil {
+			return nil, err
+		}
+		if super.TypeUnder(typ) == super.TypeNone {
+			return nil, fmt.Errorf("option some type cannot be none")
+		}
+		return a.sctx.LookupTypeOption(typ), nil
 	}
 	return nil, fmt.Errorf("unknown type in Analyzer.convertType: %T", typ)
 }
@@ -753,7 +830,7 @@ func (a Analyzer) convertTypeRecord(typ *ast.TypeRecord) (*super.TypeRecord, err
 			if typ == super.TypeNone {
 				return nil, fmt.Errorf("%w %s", errNoneOnOption, f.Name)
 			}
-			typ = a.sctx.Option(typ)
+			typ = a.sctx.Optionize(typ)
 		}
 		fields = append(fields, super.NewField(f.Name, typ))
 	}

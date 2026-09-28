@@ -1,0 +1,32 @@
+spq: values typeof(this)
+
+input: |
+  type foo=option(int64)
+  1::foo
+  {a:2::foo}
+  none::foo
+
+output: |
+  type foo=option(int64)
+  <foo>
+  <{a:foo}>
+  <foo>
+
+---
+
+spq: |
+  type bar=option(int32)
+  values this ?? none::bar
+
+input: |
+  type foo=option(int64)
+  1::foo
+  {a:2::foo}
+  none::foo
+
+output: |
+  1
+  type foo=option(int64)
+  {a?:2::foo}
+  type bar=option(int32)
+  none::bar

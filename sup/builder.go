@@ -46,19 +46,20 @@ func buildValue(b *scode.Builder, val Value) error {
 		return buildValue(b, val.value)
 	case *Fusion:
 		return buildFusion(b, val)
+	case *Option:
+		return buildOption(b, val)
 	case *Null:
 		b.Append(nil)
 		return nil
 	case *None:
-		union, noneTag := super.OptionUnion(val.Type())
-		if union == nil {
+		typ := val.Type()
+		if typ == super.TypeNone {
 			// none is an untyped, not inside option type
 			b.Append(nil)
 			return nil
 		}
-		super.BeginUnion(b, noneTag)
-		b.Append(nil)
-		b.EndContainer()
+		// none is an inside an option type
+		super.BuildNone(b)
 		return nil
 	}
 	return fmt.Errorf("unknown ast type: %T", val)
@@ -187,7 +188,10 @@ func BuildPrimitive(b *scode.Builder, val Primitive) error {
 
 func buildRecord(b *scode.Builder, val *Record) error {
 	b.BeginContainer()
-	for _, v := range val.fields {
+	for k, v := range val.fields {
+		if super.TypeUnder(v.Type()) == super.TypeNone {
+			return fmt.Errorf("untyped none assigned to field %s", super.TypeUnder(val.Type()).(*super.TypeRecord).Fields[k].Name)
+		}
 		if err := buildValue(b, v); err != nil {
 			return err
 		}
@@ -252,6 +256,19 @@ func buildFusion(b *scode.Builder, f *Fusion) error {
 	// subtype
 	b.Append(f.subtype)
 	b.EndContainer()
+	return nil
+}
+
+func buildOption(b *scode.Builder, o *Option) error {
+	if _, ok := o.value.(*None); ok {
+		super.BuildNone(b)
+	} else {
+		super.BeginSomeContainer(b)
+		if err := buildValue(b, o.value); err != nil {
+			return err
+		}
+		b.EndContainer()
+	}
 	return nil
 }
 

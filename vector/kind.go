@@ -28,6 +28,7 @@ const (
 	KindEnum    = 17
 	KindFusion  = 19
 	KindNone    = 20
+	KindOption  = 21
 )
 
 const (
@@ -61,6 +62,8 @@ func KindFromString(v string) Kind {
 		return KindRecord
 	case "None":
 		return KindNone
+	case "Option":
+		return KindOption
 	default:
 		return KindInvalid
 	}
