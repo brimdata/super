@@ -42,11 +42,11 @@ func (n *Nulls) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (n Nulls) Marshal(m *super.Marshaler) (super.Type, error) {
+func (n Nulls) MarshalSuper(m *super.Marshaler) (super.Type, error) {
 	return m.MarshalValue(n.String())
 }
 
-func (n *Nulls) Unmarshal(u *super.Unmarshaler, val super.Value) error {
+func (n *Nulls) UnmarshalSuper(u *super.Unmarshaler, val super.Value) error {
 	if val.Type().ID() != super.IDString {
 		return fmt.Errorf("cannot unmarshal %q into order.Nulls", sup.FormatValue(val))
 	}

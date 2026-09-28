@@ -293,11 +293,13 @@ func TestUnmarshalSlice(t *testing.T) {
 
 type testMarshaler string
 
-func (m testMarshaler) Marshal(mc *super.Marshaler) (super.Type, error) {
+var _ super.CustomMarshaler = (*testMarshaler)(nil)
+
+func (m testMarshaler) MarshalSuper(mc *super.Marshaler) (super.Type, error) {
 	return mc.MarshalValue("marshal-" + string(m))
 }
 
-func (m *testMarshaler) Unmarshal(mc *super.Unmarshaler, val super.Value) error {
+func (m *testMarshaler) UnmarshalSuper(mc *super.Unmarshaler, val super.Value) error {
 	var s string
 	if err := mc.Unmarshal(val, &s); err != nil {
 		return err

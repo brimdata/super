@@ -68,7 +68,7 @@ var hackedBindings = []super.Binding{
 	{Name: "pools.Config", Template: marshalConfig{}},
 }
 
-func (p Config) Marshal(marshaler *super.Marshaler) (super.Type, error) {
+func (p Config) MarshalSuper(marshaler *super.Marshaler) (super.Type, error) {
 	marshaler.NamedBindings(hackedBindings)
 	m := marshalConfig{
 		Ts:        p.Ts,
@@ -86,7 +86,7 @@ func (p Config) Marshal(marshaler *super.Marshaler) (super.Type, error) {
 	return typ, err
 }
 
-func (p *Config) Unmarshal(unmarshaler *super.Unmarshaler, val super.Value) error {
+func (p *Config) UnmarshalSuper(unmarshaler *super.Unmarshaler, val super.Value) error {
 	unmarshaler.NamedBindings(hackedBindings)
 	var m marshalConfig
 	if err := unmarshaler.Unmarshal(val, &m); err != nil {

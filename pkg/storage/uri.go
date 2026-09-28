@@ -70,6 +70,6 @@ func (u *URI) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (u *URI) Marshal(mc *super.Marshaler) (super.Type, error) {
+func (u *URI) MarshalSuper(mc *super.Marshaler) (super.Type, error) {
 	return mc.MarshalValue(u.String())
 }

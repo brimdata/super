@@ -18,7 +18,7 @@ import (
 //XXX handle new TypeError => marshal as a SUP string?
 
 type CustomMarshaler interface {
-	Marshal(*Marshaler) (Type, error)
+	MarshalSuper(*Marshaler) (Type, error)
 }
 
 func Marshal(sctx *Context, v any) (Value, error) {
@@ -192,7 +192,7 @@ func (m *Marshaler) encodeAny(v reflect.Value) (Type, error) {
 	}
 	switch v := v.Interface().(type) {
 	case CustomMarshaler:
-		return v.Marshal(m)
+		return v.MarshalSuper(m)
 	case float16.Float16:
 		m.builder.Append(EncodeFloat16(v.Float32()))
 		return TypeFloat16, nil
@@ -554,7 +554,7 @@ func (m *Marshaler) lookupTypeNamed(t reflect.Type, typ Type) (Type, error) {
 }
 
 type CustomUnmarshaler interface {
-	Unmarshal(*Unmarshaler, Value) error
+	UnmarshalSuper(*Unmarshaler, Value) error
 }
 
 type Unmarshaler struct {
@@ -625,7 +625,7 @@ func (u *Unmarshaler) decodeAny(val Value, v reflect.Value) (x error) {
 	val = val.DeunionIntoNameds()
 	m, v := indirect(v, val)
 	if m != nil {
-		return m.Unmarshal(u, val)
+		return m.UnmarshalSuper(u, val)
 	}
 	switch v.Interface().(type) {
 	case float16.Float16:
