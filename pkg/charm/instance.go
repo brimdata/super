@@ -3,6 +3,7 @@ package charm
 import (
 	"flag"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -77,9 +78,18 @@ func parse(spec *Spec, args []string, parent Command, interiorLeaf int) (path, [
 		}
 		path = append(path, component)
 		parent = cmd
-		if err := flags.Parse(escape(args)); err != nil {
+		// These gymnastics prevent Go flags from stopping at and consuming the "--"
+		// and retains it as remaining args, which lets us implement args options
+		// passed to the query with "... -- arg arg"
+		savedArgs := args
+		var dashDashArgs []string
+		if k := slices.Index(args, "--"); k >= 0 {
+			dashDashArgs = args[k:]
+			args = args[:k]
+		}
+		if err := flags.Parse(args); err != nil {
 			if usage {
-				s := strings.Join(args, " ")
+				s := strings.Join(savedArgs, " ")
 				err = fmt.Errorf("at flag: %q: %w", s, err)
 			}
 			return path, nil, false, err
@@ -87,7 +97,7 @@ func parse(spec *Spec, args []string, parent Command, interiorLeaf int) (path, [
 		if help {
 			return path, nil, hidden, NeedHelp
 		}
-		rest := unescape(flags.Args())
+		rest := append(flags.Args(), dashDashArgs...)
 		if len(rest) != 0 {
 			spec = component.spec.lookupSub(rest[0])
 			if spec != nil {
@@ -101,31 +111,6 @@ func parse(spec *Spec, args []string, parent Command, interiorLeaf int) (path, [
 		}
 		return path, rest, false, nil
 	}
-}
-
-// escape/unescape prevents Go flags from stopping at "--" and instead treats
-// "--" as termination of flag parsing and retains it as remaining args.
-// This lets us implement args options passed to the query with "... -- arg arg"
-func escape(args []string) []string {
-	var out []string
-	for _, arg := range args {
-		if arg == "--" {
-			arg = "\x00--"
-		}
-		out = append(out, arg)
-	}
-	return out
-}
-
-func unescape(args []string) []string {
-	var out []string
-	for _, arg := range args {
-		if arg == "\x00--" {
-			arg = "--"
-		}
-		out = append(out, arg)
-	}
-	return out
 }
 
 func diff(flags *flag.FlagSet, all map[string]*flag.Flag) map[string]*flag.Flag {
