@@ -65,9 +65,9 @@ func newShadow(cctx *bsup.Context, id bsup.ID) shadow {
 		return newEnum(meta, newShadow(cctx, meta.Values))
 	case *bsup.Fusion:
 		return newFusion(cctx, meta)
-	case *csup.Option:
+	case *bsup.Option:
 		return newOption(cctx, meta)
-	case *csup.Any:
+	case *bsup.Any:
 		return newAny(cctx, meta)
 	case *bsup.Dict:
 		return newDict(cctx, meta)
