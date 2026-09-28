@@ -215,15 +215,9 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	return s.writeTable(zw, table)
 }
 
-<<<<<<< HEAD
 func (s *Store) writeTable(w *bsupio.RowWriter, table map[string]Entry) error {
-	marshaler := sup.NewBSUPMarshaler()
-	marshaler.Decorate(sup.StylePackage)
-=======
-func (s *Store) writeTable(w *bsupio.Writer, table map[string]Entry) error {
 	marshaler := super.NewMarshaler(super.NewContext())
 	marshaler.Decorate(super.StylePackage)
->>>>>>> d0eb21c33 (move the marshaler to package super and simplify naming)
 	for _, entry := range table {
 		val, err := marshaler.Marshal(entry)
 		if err != nil {
