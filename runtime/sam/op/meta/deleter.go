@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
@@ -22,7 +21,7 @@ type Deleter struct {
 	rctx        *runtime.Context
 	pool        *db.Pool
 	progress    *vio.Progress
-	unmarshaler *sup.UnmarshalBSUPContext
+	unmarshaler *super.Unmarshaler
 	done        bool
 	err         error
 	deletes     *sync.Map
@@ -36,7 +35,7 @@ func NewDeleter(rctx *runtime.Context, parent sbuf.Puller, pool *db.Pool, pushdo
 		rctx:        rctx,
 		pool:        pool,
 		progress:    progress,
-		unmarshaler: sup.NewBSUPUnmarshaler(),
+		unmarshaler: super.NewUnmarshaler(),
 		deletes:     deletes,
 	}
 }

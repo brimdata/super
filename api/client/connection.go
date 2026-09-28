@@ -22,7 +22,6 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -146,7 +145,7 @@ func (c *Connection) doAndUnmarshal(req *Request, v any, templates ...any) error
 	if err != nil || rec == nil {
 		return err
 	}
-	m := sup.NewBSUPUnmarshaler()
+	m := super.NewUnmarshaler()
 	m.Bind(templates...)
 	return m.Unmarshal(*rec, v)
 }

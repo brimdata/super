@@ -133,7 +133,7 @@ func (r *Root) writeMagic(ctx context.Context) error {
 		Version: Version,
 	}
 	serializer := bsupbytes.NewSerializer()
-	serializer.Decorate(sup.StylePackage)
+	serializer.Decorate(super.StylePackage)
 	if err := serializer.Write(magic); err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (r *Root) readMagic(ctx context.Context) error {
 		return fmt.Errorf("corrupt database version file: more than one value at %s", sup.String(last))
 	}
 	var magic Magic
-	if err := sup.UnmarshalBSUP(*val, &magic); err != nil {
+	if err := super.Unmarshal(*val, &magic); err != nil {
 		return fmt.Errorf("corrupt database version file: %w", err)
 	}
 	if magic.Magic != MagicString {
@@ -183,8 +183,8 @@ func (r *Root) readMagic(ctx context.Context) error {
 }
 
 func (r *Root) BatchifyPools(ctx context.Context, sctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := super.NewMarshaler(sctx)
+	m.Decorate(super.StylePackage)
 	pools, err := r.ListPools(ctx)
 	if err != nil {
 		return nil, err
@@ -203,8 +203,8 @@ func (r *Root) BatchifyPools(ctx context.Context, sctx *super.Context, f expr.Ev
 }
 
 func (r *Root) BatchifyBranches(ctx context.Context, sctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := super.NewMarshaler(sctx)
+	m.Decorate(super.StylePackage)
 	poolRefs, err := r.ListPools(ctx)
 	if err != nil {
 		return nil, err

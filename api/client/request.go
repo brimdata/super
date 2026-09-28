@@ -9,10 +9,10 @@ import (
 	"net/http/httptrace"
 	"time"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
 )
 
 type Request struct {
@@ -93,8 +93,8 @@ func (r *Request) reader() (io.Reader, error) {
 	if b, ok := r.Body.(io.Reader); ok {
 		return b, nil
 	}
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StylePackage)
+	m := super.NewMarshaler(super.NewContext())
+	m.Decorate(super.StylePackage)
 	val, err := m.Marshal(r.Body)
 	if err != nil {
 		return nil, err

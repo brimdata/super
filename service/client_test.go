@@ -17,7 +17,6 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +60,7 @@ func (c *testClient) TestPoolList() []pools.Config {
 			return confs
 		}
 		var pool pools.Config
-		err = sup.UnmarshalBSUP(*rec, &pool)
+		err = super.Unmarshal(*rec, &pool)
 		require.NoError(c, err)
 		confs = append(confs, pool)
 	}

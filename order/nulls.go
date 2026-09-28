@@ -11,6 +11,9 @@ import (
 // Nulls represents the position of nulls in an ordering of values.
 type Nulls bool
 
+var _ super.CustomMarshaler = (*Nulls)(nil)
+var _ super.CustomUnmarshaler = (*Nulls)(nil)
+
 const (
 	NullsLast  Nulls = false
 	NullsFirst Nulls = true
@@ -39,11 +42,11 @@ func (n *Nulls) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (n Nulls) MarshalBSUP(m *sup.MarshalBSUPContext) (super.Type, error) {
+func (n Nulls) MarshalSuper(m *super.Marshaler) (super.Type, error) {
 	return m.MarshalValue(n.String())
 }
 
-func (n *Nulls) UnmarshalBSUP(u *sup.UnmarshalBSUPContext, val super.Value) error {
+func (n *Nulls) UnmarshalSuper(u *super.Unmarshaler, val super.Value) error {
 	if val.Type().ID() != super.IDString {
 		return fmt.Errorf("cannot unmarshal %q into order.Nulls", sup.FormatValue(val))
 	}

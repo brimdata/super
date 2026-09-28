@@ -12,12 +12,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/sup"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -221,8 +221,8 @@ func (c *Core) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Core) publishEvent(w *ResponseWriter, name string, data any) {
-	marshaler := sup.NewBSUPMarshaler()
-	marshaler.Decorate(sup.StyleSimple)
+	marshaler := super.NewMarshaler(super.NewContext())
+	marshaler.Decorate(super.StyleSimple)
 	zv, err := marshaler.Marshal(data)
 	if err != nil {
 		w.Logger.Error("Error marshaling published event", zap.Error(err))

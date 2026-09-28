@@ -10,12 +10,11 @@ import (
 	"unicode/utf8"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 )
 
 type Reader struct {
 	reader    *csv.Reader
-	marshaler *sup.MarshalBSUPContext
+	marshaler *super.Marshaler
 	strings   bool
 	valid     bool
 	hdr       []string
@@ -50,7 +49,7 @@ func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
 	reader.ReuseRecord = true
 	return &Reader{
 		reader:    reader,
-		marshaler: sup.NewBSUPMarshalerWithContext(sctx),
+		marshaler: super.NewMarshaler(sctx),
 	}
 }
 

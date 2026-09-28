@@ -13,7 +13,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -28,7 +27,7 @@ type SequenceScanner struct {
 	rctx        *runtime.Context
 	pool        *db.Pool
 	progress    *vio.Progress
-	unmarshaler *sup.UnmarshalBSUPContext
+	unmarshaler *super.Unmarshaler
 	done        bool
 	err         error
 }
@@ -41,7 +40,7 @@ func NewSequenceScanner(rctx *runtime.Context, parent sbuf.Puller, pool *db.Pool
 		pruner:      pruner,
 		pool:        pool,
 		progress:    progress,
-		unmarshaler: sup.NewBSUPUnmarshaler(),
+		unmarshaler: super.NewUnmarshaler(),
 	}
 }
 
@@ -148,7 +147,7 @@ func (s *SearchScanner) Pull(done bool) (sbuf.Batch, error) {
 	}
 }
 
-func newScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, u *sup.UnmarshalBSUPContext, pruner expr.Evaluator, pushdown sbuf.Pushdown, progress *vio.Progress, val super.Value) (sbuf.Puller, *data.Object, error) {
+func newScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, u *super.Unmarshaler, pruner expr.Evaluator, pushdown sbuf.Pushdown, progress *vio.Progress, val super.Value) (sbuf.Puller, *data.Object, error) {
 	named, ok := val.Type().(*super.TypeNamed)
 	if !ok {
 		return nil, nil, errors.New("system error: SequenceScanner encountered unnamed object")

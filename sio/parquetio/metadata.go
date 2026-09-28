@@ -10,14 +10,13 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
 	"github.com/x448/float16"
 )
 
 func buildMetadataValue(sctx *super.Context, rgmd *metadata.RowGroupMetaData, colIndexes []int, colIndexToField map[int]*pqarrow.SchemaField) super.Value {
 	var paths field.List
 	var vals []super.Value
-	m := sup.NewBSUPMarshaler()
+	m := super.NewMarshaler(sctx)
 	for _, i := range colIndexes {
 		min, max, path, ok := columnChunkStats(rgmd, i, colIndexToField[i].Field.Type)
 		if !ok {

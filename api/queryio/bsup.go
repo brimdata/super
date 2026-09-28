@@ -4,21 +4,21 @@ import (
 	"bytes"
 	"io"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/bsup/rows"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
 )
 
 type BSUPWriter struct {
 	*bsupio.RowWriter
-	marshaler *sup.MarshalBSUPContext
+	marshaler *super.Marshaler
 }
 
 func NewBSUPWriter(w io.Writer) *BSUPWriter {
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StyleSimple)
+	m := super.NewMarshaler(super.NewContext())
+	m.Decorate(super.StyleSimple)
 	return &BSUPWriter{
 		RowWriter: bsupio.NewRowWriter(sio.NopCloser(w)),
 		marshaler: m,
