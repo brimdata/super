@@ -29,7 +29,6 @@ import (
 	"github.com/brimdata/super/service/srverr"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -426,7 +425,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		w.Error(err)
 		return
 	}
-	if format == "parquet" || format == "csup" {
+	if format == "parquet" || format == "bsup" {
 		// These formats require a reader that implements io.ReaderAt and
 		// io.Seeker.  Copy the reader to a temporary file and use that.
 		//
@@ -452,7 +451,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		Format: format,
 		CSV:    csvio.ReaderOpts{Delim: csvDelim},
 		// Force validation of BSUP when loading into the database.
-		BSUP: bsupio.ReaderOpts{Validate: true},
+		//BSUP: bsupio.ReaderOpts{Validate: true},
 	}
 	sctx := super.NewContext()
 	p, err := anyio.NewReader(r.Context(), sctx, reader, opts)

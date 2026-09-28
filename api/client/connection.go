@@ -61,8 +61,8 @@ func NewConnection() *Connection {
 // and a base URL derived from the hostURL argument.
 func NewConnectionTo(hostURL string) *Connection {
 	defaultHeader := http.Header{
-		"Accept":       []string{api.MediaTypeBSUP},
-		"Content-Type": []string{api.MediaTypeBSUP},
+		"Accept":       []string{api.MediaTypeBSUPRows},
+		"Content-Type": []string{api.MediaTypeBSUPRows},
 	}
 	return &Connection{
 		client:        &http.Client{},
@@ -140,7 +140,7 @@ func (c *Connection) doAndUnmarshal(req *Request, v any, templates ...any) error
 		return err
 	}
 	defer res.Body.Close()
-	zr := bsupio.NewReader(super.NewContext(), res.Body)
+	zr := bsupio.NewRowReader(super.NewContext(), res.Body)
 	defer zr.Close()
 	rec, err := zr.Read()
 	if err != nil || rec == nil {

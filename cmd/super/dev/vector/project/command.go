@@ -20,14 +20,14 @@ import (
 var spec = &charm.Spec{
 	Name:  "project",
 	Usage: "project [flags] path [field ...]",
-	Short: "read a CSUP file and run a projection as a test",
+	Short: "read a BSUP file and run a projection as a test",
 	Long: `
-The project command reads CSUP vectors from
-CSUP storage objects (local files or s3 objects) and outputs
+The project command reads BSUP vectors from
+BSUP storage objects (local files or s3 objects) and outputs
 the reconstructed BSUP row data as a projection of zero or more fields.
 If no fields are specified, all the data is projected.
 
-This command is most useful for testing the CSUP vector cache.
+This command is most useful for testing the BSUP vector cache.
 `,
 	New: newCommand,
 }
@@ -54,7 +54,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer cleanup()
 	if len(args) < 2 {
-		return errors.New("CSUP read: must be run with a single path argument followed by one or more fields")
+		return errors.New("must be run with a single path argument followed by one or more fields")
 	}
 	uri, err := storage.ParseURI(args[0])
 	if err != nil {

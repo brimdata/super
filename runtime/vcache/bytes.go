@@ -4,19 +4,19 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type bytes struct {
 	mu    sync.Mutex
-	meta  *csup.Bytes
+	meta  *bsup.Bytes
 	len   uint32
 	table *vector.BytesTable
 }
 
-func newBytes(cctx *csup.Context, meta *csup.Bytes) *bytes {
+func newBytes(cctx *bsup.Context, meta *bsup.Bytes) *bytes {
 	return &bytes{meta: meta, len: meta.Len(cctx)}
 }
 
@@ -24,7 +24,7 @@ func (b *bytes) length() uint32 {
 	return b.len
 }
 
-func (*bytes) unmarshal(*csup.Context, field.Projection) {}
+func (*bytes) unmarshal(*bsup.Context, field.Projection) {}
 
 func (b *bytes) project(loader *loader, projection field.Projection) vector.Any {
 	var vec vector.Any
@@ -54,8 +54,8 @@ func (b *bytes) load(loader *loader) vector.BytesTable {
 	return table
 }
 
-func loadBytesTable(loader *loader, offsets, bytes csup.Segment) vector.BytesTable {
-	offs, err := csup.ReadUint32s(offsets, loader.r)
+func loadBytesTable(loader *loader, offsets, bytes bsup.Segment) vector.BytesTable {
+	offs, err := bsup.ReadUint32s(offsets, loader.r)
 	if err != nil {
 		panic(err)
 	}

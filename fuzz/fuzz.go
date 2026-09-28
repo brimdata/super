@@ -12,12 +12,12 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/optimizer"
 	"github.com/brimdata/super/compiler/optimizer/demand"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/semantic"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -25,17 +25,15 @@ import (
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
 )
 
-func ReadBSUP(bs []byte) ([]super.Value, error) {
+func ReadBSUPRows(sctx *super.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	context := super.NewContext()
-	reader := bsupio.NewReader(context, bytesReader)
+	reader := bsupio.NewRowReader(sctx, bytesReader)
 	defer reader.Close()
 	var a sbuf.Array
 	err := sio.Copy(&a, reader)
@@ -45,10 +43,9 @@ func ReadBSUP(bs []byte) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
+func ReadBSUP(ctx context.Context, sctx *super.Context, bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	sctx := super.NewContext()
-	reader, err := csupio.NewReader(ctx, sctx, bytesReader, nil, 1)
+	reader, err := bsupio.NewReader(ctx, sctx, bytesReader, nil, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -61,30 +58,31 @@ func ReadCSUP(ctx context.Context, bs []byte) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func WriteBSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := bsupio.NewWriter(sio.NopCloser(buf))
+func WriteBSUPRows(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
+	writer := bsupio.NewRowWriter(sio.NopCloser(buf))
 	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 
-func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := csup.NewValWriter(sio.NopCloser(buf))
-	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
-	require.NoError(t, writer.Close())
+func WriteBSUP(t testing.TB, sctx *super.Context, valuesIn []super.Value, buf *bytes.Buffer) {
+	pusher := bsup.NewSerializer(sio.NopCloser(buf))
+	vec := sbuf.Dematerialize(sctx, sbuf.NewArray(valuesIn))
+	require.NoError(t, vio.Copy(pusher, vio.NewPuller(vec)))
+	require.NoError(t, pusher.Close())
 }
 
-func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+func RunQueryBSUPRows(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	s, err := bsupio.NewReader(sctx, buf).NewScanner(t.Context(), nil)
+	s, err := bsupio.NewRowReader(sctx, buf).NewScanner(t.Context(), nil)
 	require.NoError(t, err)
 	p := sbuf.NewDematerializer(sctx, s)
 	defer p.Pull(true)
 	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})
 }
 
-func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	p, err := csupio.NewReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
+	p, err := bsupio.NewReader(t.Context(), sctx, bytes.NewReader(buf.Bytes()), nil, 1)
 	require.NoError(t, err)
 	defer p.Pull(true)
 	return RunQuery(t, sctx, p, querySource, func(_ demand.Demand) {})
@@ -343,8 +341,8 @@ func GenType(b *bytes.Reader, context *super.Context, depth int) super.Type {
 		case 4:
 			types := GenTypes(b, context, depth)
 			// TODO There are some weird corners around unions that contain null or duplicate types eg
-			// csup_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
-			// csup_test.go:112: values have different BSUP bytes: [1 0] vs [2 2 0]
+			// bsup_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
+			// bsup_test.go:112: values have different BSUP bytes: [1 0] vs [2 2 0]
 			var unionTypes []super.Type
 			for _, typ := range types {
 				skip := false

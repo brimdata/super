@@ -4,20 +4,20 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type option struct {
 	mu     sync.Mutex
-	meta   *csup.Option
+	meta   *bsup.Option
 	len    uint32
 	tags   []uint32
 	values shadow
 }
 
-func newOption(cctx *csup.Context, meta *csup.Option) *option {
+func newOption(cctx *bsup.Context, meta *bsup.Option) *option {
 	return &option{
 		meta: meta,
 		len:  meta.Len(cctx),
@@ -28,7 +28,7 @@ func (o *option) length() uint32 {
 	return o.len
 }
 
-func (o *option) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (o *option) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if o.values == nil {
@@ -43,7 +43,7 @@ func (o *option) load(loader *loader) []uint32 {
 	if o.tags != nil {
 		return o.tags
 	}
-	tags, err := csup.ReadUint32s(o.meta.Tags, loader.r)
+	tags, err := bsup.ReadUint32s(o.meta.Tags, loader.r)
 	if err != nil {
 		panic(err)
 	}

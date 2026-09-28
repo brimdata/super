@@ -9,10 +9,10 @@ type Fusion struct {
 	Typ    *super.TypeFusion
 	Values Any
 	// The TypeValue vectors are always created as typedefs, whether
-	// loaded from CSUP, built from a fuse operation, built from JSON
+	// loaded from BSUP, built from a fuse operation, built from JSON
 	// etc.  They are only materialized into the query context when
 	// absoluately necessary to perform less common operations that require
-	// detailed types.  When coming from CSUP, the typedefs are lazily loaded
+	// detailed types.  When coming from BSUP, the typedefs are lazily loaded
 	// and often never even read from storage.
 	Subtypes *TypeValue
 }

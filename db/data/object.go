@@ -39,7 +39,7 @@ func (k FileKind) Description() string {
 	}
 }
 
-var fileRegex = regexp.MustCompile(`([0-9A-Za-z]{27}-(data|meta)).bsup$`)
+var fileRegex = regexp.MustCompile(`([0-9A-Za-z]{27}-(data|meta)).bsuprows$`)
 
 // XXX this won't work right until we integrate segID
 func FileMatch(s string) (kind FileKind, id ksuid.KSUID, ok bool) {
@@ -113,7 +113,7 @@ func (o Object) SequenceURI(path *storage.URI) *storage.URI {
 }
 
 func SequenceURI(path *storage.URI, id ksuid.KSUID) *storage.URI {
-	return path.JoinPath(fmt.Sprintf("%s.bsup", id))
+	return path.JoinPath(fmt.Sprintf("%s.bsuprows", id))
 }
 
 func (o Object) VectorURI(path *storage.URI) *storage.URI {
@@ -121,7 +121,7 @@ func (o Object) VectorURI(path *storage.URI) *storage.URI {
 }
 
 func VectorURI(path *storage.URI, id ksuid.KSUID) *storage.URI {
-	return path.JoinPath(fmt.Sprintf("%s.csup", id))
+	return path.JoinPath(fmt.Sprintf("%s.bsup", id))
 }
 
 // Remove deletes the object.

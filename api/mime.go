@@ -10,8 +10,8 @@ import (
 const (
 	MediaTypeAny         = "*/*"
 	MediaTypeArrowStream = "application/vnd.apache.arrow.stream"
+	MediaTypeBSUPRows    = "application/x-bsuprows"
 	MediaTypeBSUP        = "application/x-bsup"
-	MediaTypeCSUP        = "application/x-csup"
 	MediaTypeCSV         = "text/csv"
 	MediaTypeJSON        = "application/json"
 	MediaTypeLine        = "application/x-line"
@@ -45,10 +45,10 @@ func MediaTypeToFormat(s string, dflt string) (string, error) {
 		return dflt, nil
 	case MediaTypeArrowStream:
 		return "arrows", nil
+	case MediaTypeBSUPRows:
+		return "bsuprows", nil
 	case MediaTypeBSUP:
 		return "bsup", nil
-	case MediaTypeCSUP:
-		return "csup", nil
 	case MediaTypeCSV:
 		return "csv", nil
 	case MediaTypeJSON:
@@ -73,10 +73,10 @@ func FormatToMediaType(format string) (string, error) {
 	switch format {
 	case "arrows":
 		return MediaTypeArrowStream, nil
+	case "bsuprows":
+		return MediaTypeBSUPRows, nil
 	case "bsup":
 		return MediaTypeBSUP, nil
-	case "csup":
-		return MediaTypeCSUP, nil
 	case "csv":
 		return MediaTypeCSV, nil
 	case "json":

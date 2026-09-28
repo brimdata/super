@@ -11,7 +11,7 @@ import (
 type Serializer struct {
 	marshaler *sup.MarshalBSUPContext
 	buffer    bytes.Buffer
-	writer    *bsupio.Writer
+	writer    *bsupio.RowWriter
 }
 
 func NewSerializer() *Serializer {
@@ -20,7 +20,7 @@ func NewSerializer() *Serializer {
 	s := &Serializer{
 		marshaler: m,
 	}
-	s.writer = bsupio.NewWriter(sio.NopCloser(&s.buffer))
+	s.writer = bsupio.NewRowWriter(sio.NopCloser(&s.buffer))
 	return s
 }
 

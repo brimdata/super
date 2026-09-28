@@ -1,7 +1,0 @@
-script: |
-  ! super -i bsup /dev/zero
-
-outputs:
-  - name: stderr
-    data: |
-      /dev/zero: BSUP version mismatch: expected 6, found 0

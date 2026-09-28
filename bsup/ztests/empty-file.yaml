@@ -1,0 +1,19 @@
+skip: "fails with '/dev/null: Super Columnar requires a seekable input'"
+
+script: |
+  super -i bsup /dev/null
+
+outputs:
+  - name: stdout
+    data: ""
+  - name: stderr
+    data: ""
+
+---
+
+script: |
+  super -o test.bsup -c 'values false | where this'
+
+outputs:
+  - name: test.bsup
+    data: ""

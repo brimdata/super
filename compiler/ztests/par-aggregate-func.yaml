@@ -4,7 +4,7 @@ script: |
   super db create -q -orderby s:asc test
   super db compile -P 2 -C "from test | union(s) by n:=len(s)" | sed -e 's/pool .*/.../'
   echo ===
-  super compile -C -P 2 -dynamic 'from test.csup | summarize count(a) by b'
+  super compile -C -P 2 -dynamic 'from test.bsup | summarize count(a) by b'
 
 outputs:
   - name: stdout
@@ -26,7 +26,7 @@ outputs:
           union:=union(s) by n:=n
       | output main
       ===
-      file test.csup format csup unordered fields a,b
+      file test.bsup format bsup unordered fields a,b
       | scatter
         (
           aggregate partials-out

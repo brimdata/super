@@ -28,7 +28,7 @@ import (
 const (
 	Version     = 5
 	PoolsTag    = "pools"
-	MagicFile   = "superdb.bsup"
+	MagicFile   = "superdb.bsuprows"
 	MagicString = "SUPERDB"
 )
 
@@ -156,7 +156,7 @@ func (r *Root) readMagic(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	zr := bsupio.NewReader(super.NewContext(), reader)
+	zr := bsupio.NewRowReader(super.NewContext(), reader)
 	defer zr.Close()
 	val, err := zr.Read()
 	if err != nil {

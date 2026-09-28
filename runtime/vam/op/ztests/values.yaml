@@ -1,6 +1,6 @@
 script: |
-  super -o t.csup -
-  super -s -c "from t.csup | values a >= 1, a >= b, a >= 1 or a >= b"
+  super -o t.bsup -
+  super -s -c "from t.bsup | values a >= 1, a >= b, a >= 1 or a >= b"
 
 inputs:
   - name: stdin

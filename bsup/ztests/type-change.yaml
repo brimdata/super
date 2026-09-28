@@ -1,0 +1,18 @@
+script: |
+  ! super -o out.bsup -
+
+inputs:
+  - name: stdin
+    data: |
+      type foo={a:string,b:int64}
+      {a:"hello",b:1}::foo
+      type foo={a:string,c:int64}
+      {a:"there",c:2}::foo
+      {a:"goodbye",b:3}
+      type foo={a:string,d:int64}
+      {a:"world",d:4}::foo
+
+outputs:
+  - name: stderr
+    data: |
+      stdio:stdin: type "foo" redefined

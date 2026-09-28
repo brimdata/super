@@ -2,7 +2,7 @@ package vcache
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
@@ -15,11 +15,11 @@ func (*empty) length() uint32 {
 	return 0
 }
 
-func newEmpty(meta *csup.Empty) *empty {
+func newEmpty(meta *bsup.Empty) *empty {
 	return &empty{typ: meta.Type}
 }
 
-func (e *empty) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (e *empty) unmarshal(cctx *bsup.Context, projection field.Projection) {
 }
 
 func (e *empty) project(loader *loader, projection field.Projection) vector.Any {

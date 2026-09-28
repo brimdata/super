@@ -1,5 +1,5 @@
 script: |
-  super -s a.log b.bsup
+  super -s a.log b.bsuprows
 
 inputs:
   - name: a.log
@@ -13,7 +13,7 @@ inputs:
       #types	port
       80
   # type port=uint16 {src_port:81::port}
-  - name: b.bsup
+  - name: b.bsuprows
     data: !!binary dHlwZSBwb3J0PXVpbnQxNiB7c3JjX3BvcnQ6ODE6OnBvcnR9Cg==
 
 outputs:

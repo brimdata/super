@@ -3,20 +3,20 @@ package vcache
 import (
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type set struct {
 	mu     sync.Mutex
-	meta   *csup.Set
+	meta   *bsup.Set
 	len    uint32
 	offs   []uint32
 	values shadow
 }
 
-func newSet(cctx *csup.Context, meta *csup.Set) *set {
+func newSet(cctx *bsup.Context, meta *bsup.Set) *set {
 	return &set{meta: meta, len: meta.Len(cctx)}
 }
 
@@ -24,7 +24,7 @@ func (s *set) length() uint32 {
 	return s.len
 }
 
-func (s *set) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (s *set) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.values == nil {
@@ -49,7 +49,7 @@ func (s *set) load(loader *loader) []uint32 {
 	if s.offs != nil {
 		return s.offs
 	}
-	offs, err := csup.ReadUint32s(s.meta.Lengths, loader.r)
+	offs, err := bsup.ReadUint32s(s.meta.Lengths, loader.r)
 	if err != nil {
 		panic(err)
 	}

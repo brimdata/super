@@ -3,21 +3,21 @@ package vcache
 import (
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 )
 
 type dict struct {
 	mu     sync.Mutex
-	meta   *csup.Dict
+	meta   *bsup.Dict
 	len    uint32
 	values shadow
 	counts []uint32 // number of each entry indexed by dict offset
 	index  []byte   // dict offset of each value in vector
 }
 
-func newDict(cctx *csup.Context, meta *csup.Dict) *dict {
+func newDict(cctx *bsup.Context, meta *bsup.Dict) *dict {
 	return &dict{meta: meta, len: meta.Len(cctx)}
 }
 
@@ -25,7 +25,7 @@ func (d *dict) length() uint32 {
 	return d.len
 }
 
-func (d *dict) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (d *dict) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.values == nil {
@@ -50,7 +50,7 @@ func (d *dict) load(loader *loader) ([]byte, []uint32) {
 	if err := d.meta.Index.Read(loader.r, d.index); err != nil {
 		panic(err)
 	}
-	v, err := csup.ReadUint32s(d.meta.Counts, loader.r)
+	v, err := bsup.ReadUint32s(d.meta.Counts, loader.r)
 	if err != nil {
 		panic(err)
 	}

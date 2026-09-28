@@ -17,7 +17,7 @@ type Writer struct {
 	object      *Object
 	byteCounter *writeCounter
 	count       uint64
-	writer      *bsupio.Writer
+	writer      *bsupio.RowWriter
 	sortKey     order.SortKey
 	first       bool
 }
@@ -34,7 +34,7 @@ func (o *Object) NewWriter(ctx context.Context, engine storage.Engine, path *sto
 	return &Writer{
 		object:      o,
 		byteCounter: counter,
-		writer:      bsupio.NewWriter(counter),
+		writer:      bsupio.NewRowWriter(counter),
 		sortKey:     sortKey,
 		first:       true,
 	}, nil

@@ -1,0 +1,7 @@
+script: |
+  seq 100 | super -o out.bsup -c "{x:this}" -
+  super dev bsup out.bsup | super -s -c "nameof(this)=='Dict'" -
+
+outputs:
+  - name: stdout
+    data: |

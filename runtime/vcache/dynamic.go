@@ -4,7 +4,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
@@ -12,12 +12,12 @@ import (
 
 type dynamic struct {
 	mu     sync.Mutex
-	meta   *csup.Dynamic
+	meta   *bsup.Dynamic
 	tags   []uint32 // need not be loaded for unordered dynamics
 	values []shadow
 }
 
-func newDynamic(meta *csup.Dynamic) *dynamic {
+func newDynamic(meta *bsup.Dynamic) *dynamic {
 	return &dynamic{meta: meta, values: make([]shadow, len(meta.Values))}
 }
 
@@ -25,7 +25,7 @@ func (d *dynamic) length() uint32 {
 	return d.meta.Length
 }
 
-func (d *dynamic) unmarshal(cctx *csup.Context, projection field.Projection) {
+func (d *dynamic) unmarshal(cctx *bsup.Context, projection field.Projection) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	for k := range d.values {
@@ -51,7 +51,7 @@ func (d *dynamic) load(r io.ReaderAt) ([]uint32, bitvec.Bits) {
 	if d.tags != nil {
 		return d.tags, bitvec.Zero
 	}
-	tags, err := csup.ReadUint32s(d.meta.Tags, r)
+	tags, err := bsup.ReadUint32s(d.meta.Tags, r)
 	if err != nil {
 		panic(err)
 	}

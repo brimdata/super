@@ -1,8 +1,8 @@
 script: |
-  super -o test.csup test.sup
+  super -o test.bsup test.sup
   super -o test.json test.sup
   super -o test.parquet -c blend test.sup
-  for format in csup json parquet sup; do
+  for format in bsup json parquet sup; do
     echo "=== $format (default)"
     super compile -dag -C "from test.$format"
     echo "=== $format (static)"
@@ -22,16 +22,16 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      === csup (default)
-      file test.csup format csup type {x?:int64,y?:int64}
+      === bsup (default)
+      file test.bsup format bsup type {x?:int64,y?:int64}
       | output main
-      === csup (static)
-      file test.csup format csup type {x?:int64,y?:int64}
+      === bsup (static)
+      file test.bsup format bsup type {x?:int64,y?:int64}
       | output main
-      === csup (default pipe)
+      === bsup (default pipe)
       file /dev/stdin
       | output main
-      === csup (static pipe)
+      === bsup (static pipe)
       cannot get file type of non-seekable input at line 1, column 6:
       from /dev/stdin
            ~~~~~~~~~~

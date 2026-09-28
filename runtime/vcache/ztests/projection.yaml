@@ -1,17 +1,17 @@
 script: |
-  super -o test.csup -
-  super dev vector project -s test.csup x y z
+  super -o test.bsup -
+  super dev vector project -s test.bsup x y z
   echo ===
-  super dev vector project -s test.csup s
+  super dev vector project -s test.bsup s
   echo ===
-  super dev vector project -s test.csup x s
+  super dev vector project -s test.bsup x s
   echo ===
-  super dev vector project -s test.csup s x
+  super dev vector project -s test.bsup s x
   echo ===
-  super dev vector project -s test.csup y w.y
+  super dev vector project -s test.bsup y w.y
   echo ===
-  echo '1 2 3' | super -o test2.csup -
-  super dev vector project -s test2.csup x
+  echo '1 2 3' | super -o test2.bsup -
+  super dev vector project -s test2.bsup x
 inputs:
   - name: stdin
     data: |
