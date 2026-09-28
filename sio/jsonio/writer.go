@@ -70,6 +70,11 @@ func (w *Writer) Write(val super.Value) error {
 }
 
 func (w *Writer) writeAny(tab int, val super.Value) {
+	// Nested none: emit null (arrowio does the same). Top-level Write still skips none.
+	if val.IsNone() {
+		w.writeColor([]byte("null"), nullColor)
+		return
+	}
 	val = val.Under()
 	if val.IsNull() {
 		w.writeColor([]byte("null"), nullColor)
