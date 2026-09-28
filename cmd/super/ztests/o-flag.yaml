@@ -1,17 +1,17 @@
 script: |
-  for ext in arrows bsup csup csv json jsonl ndjson parquet sup text tsv txt; do
+  for ext in arrows bsuprows bsup csv json jsonl ndjson parquet sup text tsv txt; do
     super -o out.$ext in.sup
   done
-  for ext in arrows bsup csup parquet; do
+  for ext in arrows bsuprows bsup parquet; do
     super -i $ext -o out.$ext.sup out.$ext
   done
-  # An unknown extention yields the default output format (CSUP).
+  # An unknown extention yields the default output format (BSUP).
   super -o out.unknown in.sup
-  super -i csup -o out.unknown.sup out.unknown
+  super -i bsup -o out.unknown.sup out.unknown
   # Flags that set the format have precedence over -o.  (-j=t and -s=t
   # avoid collision with -J and -S on case-insensitive file systems.
   for flag in -f=sup -J -j=t -S -s=t; do
-    super $flag -o out.$flag.csup in.sup
+    super $flag -o out.$flag.bsup in.sup
   done
   # -o with a .jsonl or .ndjson extension ignores -pretty.
   super -pretty 1 -o out.-pretty.jsonl in.sup
@@ -28,9 +28,9 @@ inputs:
 outputs:
   - name: out.arrows.sup
     data: *in_sup
-  - name: out.bsup.sup
+  - name: out.bsuprows.sup
     data: *in_sup
-  - name: out.csup.sup
+  - name: out.bsup.sup
     data: *in_sup
   - name: out.csv
     data: |
@@ -64,20 +64,20 @@ outputs:
       {a:1,b:2}
   - name: out.unknown.sup
     data: *in_sup
-  - name: out.-f=sup.csup
+  - name: out.-f=sup.bsup
     data: *in_sup
-  - name: out.-J.csup
+  - name: out.-J.bsup
     data: |
       {
         "a": 1,
         "b": 2
       }
-  - name: out.-j=t.csup
+  - name: out.-j=t.bsup
     data: |
       {"a":1,"b":2}
-  - name: out.-S.csup
+  - name: out.-S.bsup
     data: *in_sup
-  - name: out.-s=t.csup
+  - name: out.-s=t.bsup
     data: |
       {a:1,b:2}
   - name: out.-pretty.jsonl

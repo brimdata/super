@@ -64,10 +64,10 @@ func (f *Flags) SetFlagsWithFormat(fs *flag.FlagSet, format string) {
 
 func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	if f.Format == "" {
-		f.Format = "csup"
+		f.Format = "bsup"
 	}
 	fUsage := fmt.Sprintf(
-		"format for output data [arrows,bsup,csup,csv,db,json,line,parquet,sup,table,tsv,zeek] (default %s)",
+		"format for output data [arrows,bsuprows,bsup,csv,db,json,line,parquet,sup,table,tsv,zeek] (default %s)",
 		f.Format)
 	fs.Func("f", fUsage, func(s string) error {
 		f.Format = s
@@ -123,7 +123,7 @@ func (f *Flags) Init() error {
 }
 
 func isBinary(fmt string) bool {
-	return fmt == "arrows" || fmt == "bsup" || fmt == "csup" || fmt == "parquet"
+	return fmt == "arrows" || fmt == "bsuprows" || fmt == "bsup" || fmt == "parquet"
 }
 
 func (f *Flags) FileName() string {

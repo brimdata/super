@@ -1,8 +1,8 @@
 script: |
   source service.sh
   super db create -q test
-  super -f csup in.sup |
-    curl -H Content-Type:application/x-csup --data-binary @- \
+  super -f bsup in.sup |
+    curl -H Content-Type:application/x-bsup --data-binary @- \
     --fail $SUPER_DB/pool/test/branch/main | super -s -c commit:=0 -
   echo //
   super db -s -c 'from test'

@@ -26,6 +26,7 @@ type scanner struct {
 
 func NewScanner(ctx context.Context, rc io.ReadCloser) (vio.Scanner, error) {
 	sctx := super.NewContext()
+	fmt.Println("NEW SCANNER")
 	s, err := bsupio.NewRowReader(sctx, rc).NewScanner(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -46,6 +47,7 @@ again:
 	batch, err := s.scanner.Pull(done)
 	if err == nil {
 		if batch != nil {
+			fmt.Println("SCANNER PULL RET", len(batch.Values()))
 			return &vector.Labeled{Any: sbuf.Dematerialize(s.sctx, batch), Label: s.channel}, nil
 		}
 		return nil, s.closer.Close()

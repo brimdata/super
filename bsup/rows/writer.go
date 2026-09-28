@@ -118,7 +118,7 @@ func (w *Writer) Write(val super.Value) error {
 
 func (w *Writer) WriteControl(b []byte, format uint8) error {
 	// Flush the compressor since we need to preserve the interleaving
-	// order of control messages and BSUP data.
+	// order of control messages and BSUPROW data.
 	if err := w.flush(); err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (w *Writer) writeBlock(blockType int, b []byte) error {
 }
 
 func (w *Writer) writeHeader(blockType, size int) error {
-	version := BSUPVersion | 0x80
+	version := Version | 0x80
 	code := blockType<<4 | (size & 0xf)
 	w.header = append(w.header[:0], byte(version))
 	w.header = append(w.header, byte(code))
@@ -173,7 +173,7 @@ func (w *Writer) writeHeader(blockType, size int) error {
 
 func (w *Writer) writeCompHeader(blockType, size, zlen int) error {
 	zlen += 1 + scode.SizeOfUvarint(uint64(size))
-	version := BSUPVersion | 0x80
+	version := Version | 0x80
 	code := (blockType << 4) | (zlen & 0xf) | 0x40
 	w.header = append(w.header[:0], byte(version))
 	w.header = append(w.header, byte(code))

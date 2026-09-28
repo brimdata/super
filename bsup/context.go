@@ -55,7 +55,7 @@ func (c *Context) TypeDefs() *super.TypeDefs {
 
 func (c *Context) Lookup(id ID) Metadata {
 	if id >= ID(len(c.metas)) {
-		panic(fmt.Sprintf("csup.Context ID (%d) out of range (len %d)", id, len(c.values)))
+		panic(fmt.Sprintf("bsup.Context ID (%d) out of range (len %d)", id, len(c.values)))
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()

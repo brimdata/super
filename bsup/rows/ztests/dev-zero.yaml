@@ -1,7 +1,7 @@
 script: |
-  ! super -i bsup /dev/zero
+  ! super -i bsuprows /dev/zero
 
 outputs:
   - name: stderr
     data: |
-      /dev/zero: BSUP version mismatch: expected 5, found 0
+      /dev/zero: BSUPROWS version mismatch: expected 5, found 0

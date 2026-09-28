@@ -61,8 +61,8 @@ func NewConnection() *Connection {
 // and a base URL derived from the hostURL argument.
 func NewConnectionTo(hostURL string) *Connection {
 	defaultHeader := http.Header{
-		"Accept":       []string{api.MediaTypeBSUP},
-		"Content-Type": []string{api.MediaTypeBSUP},
+		"Accept":       []string{api.MediaTypeBSUPRows},
+		"Content-Type": []string{api.MediaTypeBSUPRows},
 	}
 	return &Connection{
 		client:        &http.Client{},
@@ -330,6 +330,7 @@ func (c *Connection) Compact(ctx context.Context, poolID ksuid.KSUID, branchName
 func (c *Connection) Load(ctx context.Context, poolID ksuid.KSUID, branchName, contentType string, r io.Reader, message api.CommitMessage) (api.CommitResponse, error) {
 	path := urlPath("pool", poolID.String(), "branch", branchName)
 	req := c.NewRequest(ctx, http.MethodPost, path, r)
+	fmt.Println("CONTENT TYPE", contentType)
 	req.Header.Set("Content-Type", contentType)
 	if err := encodeCommitMessage(req, message); err != nil {
 		return api.CommitResponse{}, err

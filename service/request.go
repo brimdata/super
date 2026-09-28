@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"net/url"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -175,6 +177,7 @@ func (r *Request) Unmarshal(w *ResponseWriter, body any, templates ...any) bool 
 	if !ok {
 		return false
 	}
+	fmt.Println("FORMAT", format)
 	p, err := anyio.NewReader(r.Context(), super.NewContext(), r.Body, anyio.ReaderOpts{Format: format})
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
@@ -201,6 +204,9 @@ func (r *Request) Unmarshal(w *ResponseWriter, body any, templates ...any) bool 
 
 func (r *Request) format(w *ResponseWriter, dflt string) (string, bool) {
 	format, err := api.MediaTypeToFormat(r.Header.Get("Content-Type"), dflt)
+	fmt.Println("REQ FORMAT", dflt, format)
+	debug.PrintStack()
+	fmt.Println("===")
 	if err != nil {
 		var uerr *api.ErrUnsupportedMimeType
 		if errors.As(err, &uerr) && uerr.Type == "application/x-www-form-urlencoded" {

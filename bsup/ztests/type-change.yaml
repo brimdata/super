@@ -1,5 +1,5 @@
 script: |
-  ! super -o out.csup -
+  ! super -o out.bsup -
 
 inputs:
   - name: stdin

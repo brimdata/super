@@ -44,7 +44,7 @@ func ReadSection(r io.ReaderAt) (Section, error) {
 	case SectionFooter:
 		s.Footer, err = ReadFooter(io.NewSectionReader(r, int64(h.Size()), math.MaxInt64))
 	default:
-		panic(fmt.Sprintf("invalid CSUP section type: %c", h.SectionType))
+		panic(fmt.Sprintf("invalid BSUP section type: %c", h.SectionType))
 	}
 	if err == io.EOF {
 		err = io.ErrUnexpectedEOF
@@ -66,7 +66,7 @@ type Header struct {
 
 func (o Header) Serialize() []byte {
 	var bytes [HeaderSize]byte
-	bytes[0] = 'C'
+	bytes[0] = 'C' //XXX change
 	bytes[1] = 'S'
 	bytes[2] = 'U'
 	bytes[3] = 'P'
@@ -77,15 +77,15 @@ func (o Header) Serialize() []byte {
 
 func (o *Header) Deserialize(bytes []byte) error {
 	if len(bytes) != HeaderSize || bytes[0] != 'C' || bytes[1] != 'S' || bytes[2] != 'U' || bytes[3] != 'P' {
-		return errors.New("invalid CSUP header")
+		return errors.New("invalid BSUP header")
 	}
 	o.Version = binary.LittleEndian.Uint32(bytes[4:])
 	o.SectionType = SectionType(bytes[8])
 	if o.Version != Version {
-		return fmt.Errorf("CSUP version mismatch: expected %d, found %d", Version, o.Version)
+		return fmt.Errorf("BSUP version mismatch: expected %d, found %d", Version, o.Version)
 	}
 	if o.SectionType != SectionObject && o.SectionType != SectionFooter {
-		return fmt.Errorf("invalid CSUP section type %c", o.SectionType)
+		return fmt.Errorf("invalid BSUP section type %c", o.SectionType)
 	}
 	return nil
 }
@@ -99,7 +99,7 @@ func ReadHeader(r io.ReaderAt) (Header, error) {
 		return Header{}, err
 	}
 	if cc < HeaderSize {
-		return Header{}, fmt.Errorf("short CSUP file: %d bytes read", cc)
+		return Header{}, fmt.Errorf("short BSUP file: %d bytes read", cc)
 	}
 	var h Header
 	if err := h.Deserialize(bytes[:]); err != nil {
@@ -122,7 +122,7 @@ func ReadDataHeader(r io.ReaderAt) (DataHeader, error) {
 		return DataHeader{}, err
 	}
 	if n < DataHeaderSize {
-		return DataHeader{}, fmt.Errorf("short CSUP object header: %d bytes read", n)
+		return DataHeader{}, fmt.Errorf("short BSUP object header: %d bytes read", n)
 	}
 	var h DataHeader
 	if err := h.Deserialize(bytes[:]); err != nil {
@@ -150,13 +150,13 @@ func (o *DataHeader) Deserialize(bytes []byte) error {
 	o.DataSize = binary.LittleEndian.Uint64(bytes[16:])
 	o.Root = binary.LittleEndian.Uint32(bytes[24:])
 	if o.MetaSize > MaxMetaSize {
-		return fmt.Errorf("CSUP metadata section too big: %d bytes", o.MetaSize)
+		return fmt.Errorf("BSUP metadata section too big: %d bytes", o.MetaSize)
 	}
 	if o.MetaSize > MaxTypeSize {
-		return fmt.Errorf("CSUP type section too big: %d bytes", o.TypeSize)
+		return fmt.Errorf("BSUP type section too big: %d bytes", o.TypeSize)
 	}
 	if o.DataSize > MaxDataSize {
-		return fmt.Errorf("CSUP data section too big: %d bytes", o.DataSize)
+		return fmt.Errorf("BSUP data section too big: %d bytes", o.DataSize)
 	}
 	return nil
 }
@@ -172,7 +172,7 @@ func ReadFooter(r io.ReaderAt) (Footer, error) {
 		return Footer{}, err
 	}
 	if cc < FooterSize {
-		return Footer{}, fmt.Errorf("short CSUP footer: %d bytes read", cc)
+		return Footer{}, fmt.Errorf("short BSUP footer: %d bytes read", cc)
 	}
 	var f Footer
 	f.Deserialize(bytes[:])
@@ -205,7 +205,7 @@ func ReadTrailer(r io.ReaderAt) (Trailer, error) {
 		return Trailer{}, err
 	}
 	if cc < TrailerSize {
-		return Trailer{}, fmt.Errorf("short CSUP trailer: %d bytes read", cc)
+		return Trailer{}, fmt.Errorf("short BSUP trailer: %d bytes read", cc)
 	}
 	var t Trailer
 	t.Deserialize(bytes[:])
@@ -224,8 +224,8 @@ func (t Trailer) Serialize() []byte {
 }
 
 func (t *Trailer) Deserialize(bytes []byte) error {
-	if len(bytes) != TrailerSize || string(bytes[12:16]) != "CSUP" {
-		return errors.New("invalid CSUP trailer")
+	if len(bytes) != TrailerSize || string(bytes[12:16]) != "CSUP" { //XXX
+		return errors.New("invalid BSUP trailer")
 	}
 	t.Size = binary.LittleEndian.Uint64(bytes)
 	t.MetaSize = binary.LittleEndian.Uint32(bytes[8:])

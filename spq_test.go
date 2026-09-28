@@ -44,7 +44,7 @@ func TestSPQ(t *testing.T) {
 		require.NoError(t, err)
 		// disabling arrow until we get nullable working without unions in unions
 		//runAllBoomerangs(t, "arrows", data)
-		runAllBoomerangs(t, "csup", data)
+		runAllBoomerangs(t, "bsup", data)
 		runAllBoomerangs(t, "parquet", data)
 		runAllBoomerangs(t, "sup", data)
 		runAllFusionBoomerangs(t, data)

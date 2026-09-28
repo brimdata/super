@@ -34,7 +34,7 @@ func (s *Segment) Read(r io.ReaderAt, b []byte) error {
 		return nil
 	}
 	if len(b) < int(s.MemLength) {
-		return fmt.Errorf("csup: segment read: %w", io.ErrShortBuffer)
+		return fmt.Errorf("bsup: segment read: %w", io.ErrShortBuffer)
 	}
 	b = b[:s.MemLength]
 	switch s.CompressionFormat {
@@ -53,11 +53,11 @@ func (s *Segment) Read(r io.ReaderAt, b []byte) error {
 			return err
 		}
 		if n != int(s.MemLength) {
-			return fmt.Errorf("csup: got %d uncompressed bytes, expected %d", n, s.MemLength)
+			return fmt.Errorf("bsup: got %d uncompressed bytes, expected %d", n, s.MemLength)
 		}
 		return nil
 	default:
-		return fmt.Errorf("csup: unknown compression format 0x%x", s.CompressionFormat)
+		return fmt.Errorf("bsup: unknown compression format 0x%x", s.CompressionFormat)
 	}
 }
 

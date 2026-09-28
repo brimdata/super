@@ -1,6 +1,6 @@
 script: |
-  super -o t.csup -
-  super -s -c 'from t.csup | where x.y==1'
+  super -o t.bsup -
+  super -s -c 'from t.bsup | where x.y==1'
 
 inputs:
   - name: stdin

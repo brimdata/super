@@ -1,5 +1,5 @@
 script: |
-  super -f bsup -i sup - | super -i bsup -s -
+  super -f bsuprows -i sup - | super -i bsuprows -s -
 
 inputs:
   - name: stdin

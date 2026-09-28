@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/sio/bsupio"
 )
 
-const ext = "bsup"
+const ext = "bsuprows"
 
 var (
 	ErrEmpty  = errors.New("empty log")
@@ -186,7 +186,7 @@ func (q *Queue) deleteTailLockFile() error {
 	return q.engine.Delete(context.Background(), q.tailLockPath)
 }
 
-func (q *Queue) OpenAsBSUP(ctx context.Context, sctx *super.Context, head, tail ID) (*bsupio.RowReader, error) {
+func (q *Queue) OpenAsBSUPRows(ctx context.Context, sctx *super.Context, head, tail ID) (*bsupio.RowReader, error) {
 	r, err := q.Open(ctx, head, tail)
 	if err != nil {
 		return nil, err

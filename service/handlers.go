@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -30,6 +31,7 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/csvio"
+	"github.com/kr/pretty"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -66,6 +68,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		return
 	}
 	flusher, _ := w.ResponseWriter.(http.Flusher)
+	fmt.Println("QUERY WRITER", w.Format)
 	writer, err := queryio.NewWriter(sctx, sio.NopCloser(w), w.Format, flusher, ctrl)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
@@ -133,6 +136,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 			}
 			var label string
 			batch, label = sbuf.Unlabel(batch)
+			fmt.Println("WRITE BATCH", len(batch.Values()))
 			if err := writer.WriteBatch(label, batch); err != nil {
 				w.Logger.Warn("Error writing batch", zap.Error(err))
 				handleError(err)
@@ -399,6 +403,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
+	fmt.Println("FORMAT", format)
 	var csvDelim rune
 	if s := r.URL.Query().Get("csv.delim"); s != "" {
 		if len(s) != 1 {
@@ -425,7 +430,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		w.Error(err)
 		return
 	}
-	if format == "parquet" || format == "csup" {
+	if format == "parquet" || format == "bsup" {
 		// These formats require a reader that implements io.ReaderAt and
 		// io.Seeker.  Copy the reader to a temporary file and use that.
 		//
@@ -453,6 +458,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		// Force validation of BSUP when loading into the database.
 		//BSUP: bsupio.ReaderOpts{Validate: true},
 	}
+	pretty.Println("OPTS", opts)
 	sctx := super.NewContext()
 	p, err := anyio.NewReader(r.Context(), sctx, reader, opts)
 	if err != nil {

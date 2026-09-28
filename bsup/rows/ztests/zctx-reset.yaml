@@ -1,9 +1,9 @@
 # Test that type contexts are properly reset and reusable after stream boundaries
 
 script: |
-  super in.sup > s.bsup
-  super in.sup >> s.bsup
-  super -s s.bsup
+  super in.sup > s.bsuprows
+  super in.sup >> s.bsuprows
+  super -s s.bsuprows
 
 inputs:
   - name: in.sup

@@ -1,12 +1,12 @@
 script: |
-  super compile -C -O -dynamic 'from test.csup | where x LIKE "cslab%"'
+  super compile -C -O -dynamic 'from test.bsup | where x LIKE "cslab%"'
   echo // ===
-  super compile -C -O -dynamic 'from test.csup | where grep("^csla[bB].*", x)'
+  super compile -C -O -dynamic 'from test.bsup | where grep("^csla[bB].*", x)'
   echo // ===
-  super compile -C -O -dynamic 'from test.csup | where grep("csla[bB].*", x)'
+  super compile -C -O -dynamic 'from test.bsup | where grep("csla[bB].*", x)'
   echo // ===
-  echo '{x:"a"}' | super -o x.csup -
-  super -s -c "SELECT x FROM x.csup WHERE x LIKE 'a%'"
+  echo '{x:"a"}' | super -o x.bsup -
+  super -s -c "SELECT x FROM x.bsup WHERE x LIKE 'a%'"
   echo // ===
   echo '{x:"a"}' | super -o x.parquet -
   super -s -c "SELECT x FROM x.parquet WHERE x LIKE 'a%'"
@@ -14,7 +14,7 @@ script: |
 outputs:
   - name: stdout
     data: |
-      file test.csup format csup filter (regexp_search(r"(?s)^cslab.*?$", x))
+      file test.bsup format bsup filter (regexp_search(r"(?s)^cslab.*?$", x))
          pruner (
            expr compare("cslab", x.max, true)<=0 and compare("cslac", x.min, true)>0
            fields x.max,x.min
@@ -22,7 +22,7 @@ outputs:
       | where regexp_search(r"(?s)^cslab.*?$", x)
       | output main
       // ===
-      file test.csup format csup filter (regexp_search(r"^csla[bB].*", x))
+      file test.bsup format bsup filter (regexp_search(r"^csla[bB].*", x))
          pruner (
            expr compare("csla", x.max, true)<=0 and compare("cslb", x.min, true)>0
            fields x.max,x.min
@@ -30,7 +30,7 @@ outputs:
       | where regexp_search(r"^csla[bB].*", x)
       | output main
       // ===
-      file test.csup format csup filter (regexp_search(r"csla[bB].*", x))
+      file test.bsup format bsup filter (regexp_search(r"csla[bB].*", x))
       | where regexp_search(r"csla[bB].*", x)
       | output main
       // ===

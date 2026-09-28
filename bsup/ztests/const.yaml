@@ -1,6 +1,6 @@
 script: |
-  super -o out.csup -
-  super dev csup -s out.csup
+  super -o out.bsup -
+  super dev bsup -s out.bsup
 
 inputs:
   - name: stdin

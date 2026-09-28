@@ -1,12 +1,12 @@
 script: |
-  super -o o1.csup p1.sup
-  super -s -o o1.sup o1.csup
-  super -o o2.csup p2.sup
-  super -s -o o2.sup o2.csup
-  super -o o3.csup p3.sup
-  super -s -o o3.sup o3.csup
-  super -o o4.csup p4.sup
-  super -s -o o4.sup o4.csup
+  super -o o1.bsup p1.sup
+  super -s -o o1.sup o1.bsup
+  super -o o2.bsup p2.sup
+  super -s -o o2.sup o2.bsup
+  super -o o3.bsup p3.sup
+  super -s -o o3.sup o3.bsup
+  super -o o4.bsup p4.sup
+  super -s -o o4.sup o4.bsup
 
 inputs:
   - name: p1.sup

@@ -1,7 +1,7 @@
 skip: "fails with '/dev/null: Super Columnar requires a seekable input'"
 
 script: |
-  super -i csup /dev/null
+  super -i bsup /dev/null
 
 outputs:
   - name: stdout
@@ -12,8 +12,8 @@ outputs:
 ---
 
 script: |
-  super -o test.csup -c 'values false | where this'
+  super -o test.bsup -c 'values false | where this'
 
 outputs:
-  - name: test.csup
+  - name: test.bsup
     data: ""

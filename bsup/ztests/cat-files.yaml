@@ -1,10 +1,10 @@
 script: |
-  super -o a.csup a.sup
-  super -o b.csup b.sup
-  cat a.csup b.csup > test.csup
-  super -s test.csup
+  super -o a.bsup a.sup
+  super -o b.bsup b.sup
+  cat a.bsup b.bsup > test.bsup
+  super -s test.bsup
   echo // ===
-  super dev csup -s -type test.csup
+  super dev bsup -s -type test.bsup
 
 inputs:
   - name: a.sup

@@ -86,7 +86,7 @@ func (s *Store) Get(ctx context.Context, commit ksuid.KSUID) (*Object, error) {
 }
 
 func (s *Store) pathOf(commit ksuid.KSUID) *storage.URI {
-	return s.path.JoinPath(commit.String() + ".bsup")
+	return s.path.JoinPath(commit.String() + ".bsuprows")
 }
 
 func (s *Store) Put(ctx context.Context, o *Object) error {
@@ -199,7 +199,7 @@ func (s *Store) putSnapshot(ctx context.Context, commit ksuid.KSUID, snap *Snaps
 }
 
 func (s *Store) snapshotPathOf(commit ksuid.KSUID) *storage.URI {
-	return s.path.JoinPath(commit.String() + ".snap.bsup")
+	return s.path.JoinPath(commit.String() + ".snap.bsuprows")
 }
 
 func (s *Store) getBase(ctx context.Context, commit ksuid.KSUID) (*Snapshot, error) {
@@ -220,7 +220,7 @@ func (s *Store) putBase(ctx context.Context, snap *Snapshot, commit ksuid.KSUID)
 }
 
 func (s *Store) basePathOf(commit ksuid.KSUID) *storage.URI {
-	return s.path.JoinPath(commit.String() + ".base.bsup")
+	return s.path.JoinPath(commit.String() + ".base.bsuprows")
 }
 
 // Path return the entire path from the commit object to the root

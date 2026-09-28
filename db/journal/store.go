@@ -109,7 +109,7 @@ func (s *Store) load(ctx context.Context) error {
 		}
 		at = tail
 	}
-	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), head, at)
+	r, err := s.journal.OpenAsBSUPRows(ctx, super.NewContext(), head, at)
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func (s *Store) putBase(ctx context.Context, newBase, tail, oldBase ID) error {
 	if err != nil {
 		return err
 	}
-	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), newBase, tail)
+	r, err := s.journal.OpenAsBSUPRows(ctx, super.NewContext(), newBase, tail)
 	if err != nil {
 		return err
 	}

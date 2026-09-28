@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"math"
+	"runtime/debug"
 	"sync/atomic"
 
 	"github.com/brimdata/super"
@@ -39,11 +40,13 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 	}
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
-		return nil, errors.New("Super Columnar requires a seekable input")
+		debug.PrintStack()
+		return nil, errors.New("BSUP requires a seekable input")
 	}
 	var buf [1]byte
 	if _, err := ra.ReadAt(buf[:], 0); err != nil && !errors.Is(err, io.EOF) {
-		return nil, errors.New("Super Columnar requires a seekable input")
+		debug.PrintStack()
+		return nil, errors.New("BSUP requires a seekable input")
 	}
 	var metaFilters []*metafilter
 	if p != nil {

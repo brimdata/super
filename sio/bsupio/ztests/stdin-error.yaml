@@ -1,6 +1,6 @@
 script: |
-  super -o t.csup in.sup
-  ! cat t.csup | super -i csup -
+  super -o t.bsup in.sup
+  ! cat t.bsup | super -i bsup -
 
 inputs:
   - name: in.sup
@@ -11,4 +11,4 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      stdio:stdin: Super Columnar requires a seekable input
+      stdio:stdin: BSUP requires a seekable input

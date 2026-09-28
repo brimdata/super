@@ -1,9 +1,9 @@
 # Test that type names are properly reset and reusable after stream boundaries.
 
 script: |
-  super -c "head 1" in.sup > t1.bsup
-  super -c "tail 2" in.sup > t2.bsup
-  cat t1.bsup t2.bsup |super - | super -s -
+  super -c "head 1" in.sup > t1.bsuprows
+  super -c "tail 2" in.sup > t2.bsuprows
+  cat t1.bsuprows t2.bsuprows |super - | super -s -
 
 inputs:
   - name: in.sup
