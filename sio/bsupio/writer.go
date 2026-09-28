@@ -13,7 +13,8 @@ func NewSerializer(w io.WriteCloser) *bsup.Serializer {
 }
 
 // XXX RowWriter provides a wrapper to the old BSUP format encapsulated by
-// the new framing design.
+// the new framing design.  This is here because we'll integrate BSUP ROWS into
+// BSUP in a future PR.
 type RowWriter struct {
 	*rows.Writer
 }

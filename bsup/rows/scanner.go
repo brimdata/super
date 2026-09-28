@@ -13,7 +13,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -65,7 +64,6 @@ func newScanner(ctx context.Context, sctx *super.Context, r io.Reader, pushdown 
 }
 
 func (s *scanner) Pull(done bool) (sbuf.Batch, error) {
-	fmt.Println("PULL")
 	s.once.Do(s.start)
 	if done {
 		s.cancel()
@@ -94,13 +92,6 @@ func (s *scanner) Pull(done bool) (sbuf.Batch, error) {
 					s.eof = true
 					s.err = result.Err
 					s.cancel()
-				}
-			}
-			if result.Batch != nil {
-				fmt.Println("RET BATCH", len(result.Batch.Values()), result.Err)
-				vals := result.Batch.Values()
-				for _, val := range vals {
-					fmt.Println("VAL", sup.String(val))
 				}
 			}
 			return result.Batch, result.Err

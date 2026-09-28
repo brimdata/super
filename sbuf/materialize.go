@@ -1,13 +1,11 @@
 package sbuf
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -57,12 +55,9 @@ func Materialize(vec vector.Any) Batch {
 func Dematerialize(sctx *super.Context, batch Batch) vector.Any {
 	builder := vector.NewDynamicValueBuilder()
 	for _, val := range batch.Values() {
-		fmt.Println("WRITE VAL", sup.String(val))
 		builder.Write(val)
 	}
-	vec := builder.Build(sctx)
-	fmt.Println("VEC", vector.Format(vec))
-	return vec
+	return builder.Build(sctx)
 }
 
 func ValToVec(sctx *super.Context, val super.Value) vector.Any {

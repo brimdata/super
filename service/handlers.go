@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -68,7 +67,6 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		return
 	}
 	flusher, _ := w.ResponseWriter.(http.Flusher)
-	fmt.Println("QUERY WRITER", w.Format)
 	writer, err := queryio.NewWriter(sctx, sio.NopCloser(w), w.Format, flusher, ctrl)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
@@ -136,7 +134,6 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 			}
 			var label string
 			batch, label = sbuf.Unlabel(batch)
-			fmt.Println("WRITE BATCH", len(batch.Values()))
 			if err := writer.WriteBatch(label, batch); err != nil {
 				w.Logger.Warn("Error writing batch", zap.Error(err))
 				handleError(err)
@@ -403,7 +400,6 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	fmt.Println("FORMAT", format)
 	var csvDelim rune
 	if s := r.URL.Query().Get("csv.delim"); s != "" {
 		if len(s) != 1 {

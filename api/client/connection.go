@@ -330,7 +330,6 @@ func (c *Connection) Compact(ctx context.Context, poolID ksuid.KSUID, branchName
 func (c *Connection) Load(ctx context.Context, poolID ksuid.KSUID, branchName, contentType string, r io.Reader, message api.CommitMessage) (api.CommitResponse, error) {
 	path := urlPath("pool", poolID.String(), "branch", branchName)
 	req := c.NewRequest(ctx, http.MethodPost, path, r)
-	fmt.Println("CONTENT TYPE", contentType)
 	req.Header.Set("Content-Type", contentType)
 	if err := encodeCommitMessage(req, message); err != nil {
 		return api.CommitResponse{}, err

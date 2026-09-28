@@ -15,7 +15,6 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/vector/vio"
-	"github.com/kr/pretty"
 )
 
 var Spec = &charm.Spec{
@@ -74,7 +73,6 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	pretty.Println("QUERY FLAGS", c.queryFlags.Query)
 	query, err := db.Query(ctx, c.queryFlags.Query)
 	if err != nil {
 		w.Close()
@@ -84,17 +82,6 @@ func (c *Command) Run(args []string) error {
 	out := map[string]vio.Pusher{
 		"main":  w,
 		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
-	}
-	for {
-		vec, err := query.Pull(false)
-		if err != nil {
-			panic(err)
-		}
-		if vec == nil {
-			return nil
-		}
-		pretty.Println("MAIN PULL", vec)
-		//fmt.Println("MAIN PULL", vector.Format(vec))
 	}
 	err = vio.CopyMux(out, query)
 	if closeErr := w.Close(); err == nil {

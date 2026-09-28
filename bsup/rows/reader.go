@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/kr/pretty"
 )
 
 const (
@@ -56,7 +55,6 @@ func NewReaderWithOpts(sctx *super.Context, reader io.Reader, opts ReaderOpts) *
 	if opts.Threads == 0 {
 		opts.Threads = runtime.GOMAXPROCS(0)
 	}
-	pretty.Println("NEW READER OPTS", opts)
 	return &Reader{
 		sctx:   sctx,
 		reader: reader,
