@@ -84,7 +84,7 @@ func (c *Command) Run(args []string) error {
 		return nil
 	}
 	if len(args) > 0 {
-		ast.PrependFileScan(args)
+		args = ast.PrependFileScan(args)
 	}
 	env := exec.NewEnvironment(storage.NewLocalEngine(), nil)
 	env.Dynamic = c.inputFlags.Dynamic
