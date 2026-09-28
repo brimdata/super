@@ -38,14 +38,14 @@ func (f *frame) free() {
 
 func (f *frame) decompress() error {
 	if f.fmt != CompressionFormatLZ4 {
-		return fmt.Errorf("bsuprows: unknown compression format 0x%x", f.fmt)
+		return fmt.Errorf("bsup-rows: unknown compression format 0x%x", f.fmt)
 	}
 	n, err := lz4.UncompressBlock(f.zbuf.data, f.ubuf.data)
 	if err != nil {
-		return fmt.Errorf("bsuprows: %w", err)
+		return fmt.Errorf("bsup-rows: %w", err)
 	}
 	if n != len(f.ubuf.data) {
-		return fmt.Errorf("bsuprows: got %d uncompressed bytes, expected %d", n, len(f.ubuf.data))
+		return fmt.Errorf("bsup-rows: got %d uncompressed bytes, expected %d", n, len(f.ubuf.data))
 	}
 	return nil
 }

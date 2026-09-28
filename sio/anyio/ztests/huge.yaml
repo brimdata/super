@@ -1,27 +1,23 @@
 script: |
-  source service.sh
-  super db create -q test
-  ! super db load -q -use test -
-
-inputs:
-  - name: stdin
-    data: |
-      This file contains no records.
-  - name: service.sh
+  ! yes ' ' | head -c $((11 * 1024 * 1024)) > huge.sup
+  echo 0 >> huge.sup
+  super -s huge.sup
+  ! cat huge.sup | super -s -
 
 outputs:
+  - name: stdout
+    data: |
+      0
   - name: stderr
     data: |
       stdio:stdin: format detection error
       	arrows: schema message length exceeds 1 MiB
       	bsup: invalid BSUP header
-      	bsuprows: bsup-rows version mismatch: expected 6, found 0
+      	bsuprows: bsup-rows version mismatch: expected 5, found 0
       	csv: line 1: delimiter ',' not found
-      	json: line 1: invalid JSON value
+      	json: buffer exceeded max size trying to infer input format
       	line: auto-detection not supported
       	parquet: invalid header
-      	sup: line 1: syntax error
+      	sup: buffer exceeded max size trying to infer input format
       	tsv: line 1: delimiter '\t' not found
       	zeek: line 1: bad types/fields definition in zeek header
-      status code 400: no records in request
-

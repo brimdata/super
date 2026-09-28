@@ -40,7 +40,7 @@ func (b *batch) Unref() {
 		}
 		batchPool.Put(b)
 	} else if refs < 0 {
-		panic("bsupio: negative batch reference count")
+		panic("bsup-rows: negative batch reference count")
 	}
 }
 

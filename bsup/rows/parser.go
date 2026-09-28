@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-var errBadFormat = errors.New("malformed BSUPROWS value")
+var errBadFormat = errors.New("malformed bsup-rows value")
 
 // parser decodes the framing protocol for BSUPROWS updating and resetting its
 // super context in conformance with BSUPROWS framing.
@@ -29,7 +29,7 @@ func CheckVersion(code byte) error {
 		version = int(code & 0x7f)
 	}
 	if version != Version {
-		return fmt.Errorf("BSUPROWS version mismatch: expected %d, found %d", Version, version)
+		return fmt.Errorf("bsup-rows version mismatch: expected %d, found %d", Version, version)
 	}
 	return nil
 }
@@ -67,7 +67,7 @@ func (p *parser) read() (frame, error) {
 		case ControlFrame:
 			return frame{}, p.decodeControl(code)
 		default:
-			return frame{}, fmt.Errorf("unknown BSUPROWS message frame type: %d", typ)
+			return frame{}, fmt.Errorf("unknown bsup-rows message frame type: %d", typ)
 		}
 	}
 }
@@ -161,10 +161,10 @@ func (p *parser) readFrame(code byte) ([]byte, error) {
 		return nil, err
 	}
 	if size < 1 {
-		return nil, fmt.Errorf("bsuprows: frame length (%d) too small", size)
+		return nil, fmt.Errorf("bsup-rows: frame length (%d) too small", size)
 	}
 	if size > p.maxSize {
-		return nil, fmt.Errorf("bsuprows: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
+		return nil, fmt.Errorf("bsup-rows: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
 	}
 	b, err := p.peeker.Read(size)
 	if err == peeker.ErrBufferOverflow {
@@ -194,10 +194,10 @@ func (p *parser) readCompressedFrame(code byte) (frame, error) {
 		return frame{}, err
 	}
 	if size < 1 {
-		return frame{}, fmt.Errorf("bsuprows: frame length (%d) too small", size)
+		return frame{}, fmt.Errorf("bsup-rows: frame length (%d) too small", size)
 	}
 	if size > p.maxSize {
-		return frame{}, fmt.Errorf("bsuprows: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
+		return frame{}, fmt.Errorf("bsup-rows: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
 	}
 	// The size of the compressed buffer needs to be adjusted by the
 	// byte for the format and the variable-length bytes to encode

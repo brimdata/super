@@ -309,7 +309,7 @@ func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 	}
 	typ, err := w.typeCache.LookupType(id)
 	if err != nil {
-		return fmt.Errorf("bsupio: %w", err)
+		return fmt.Errorf("bsup-rows: %w", err)
 	}
 	*valRef = super.NewValue(typ, b)
 	if w.validate {
