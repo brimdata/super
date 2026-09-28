@@ -17,16 +17,10 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-type RecordBatchReader interface {
-	Read() (arrow.RecordBatch, error)
-	Release()
-	Schema() *arrow.Schema
-}
-
 // Reader is a sio.Reader for the Arrow IPC stream format.
 type Reader struct {
-	sctx *super.Context
-	rbr  RecordBatchReader
+	sctx      *super.Context
+	ipcReader *ipc.Reader
 
 	topLevelFields   []arrow.Field
 	topLevelType     *super.TypeRecord
@@ -46,28 +40,20 @@ func NewReader(sctx *super.Context, r io.Reader) (*Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	ar, err := NewReaderFromRecordReader(sctx, ipcReader)
+	fields := ipcReader.Schema().Fields()
+	rr := &Reader{
+		sctx:             sctx,
+		ipcReader:        ipcReader,
+		topLevelFields:   fields,
+		unionTagMappings: map[*super.TypeUnion][]int{},
+	}
+	typ, err := rr.newTypeFromDataType(arrow.StructOf(fields...))
 	if err != nil {
 		ipcReader.Release()
 		return nil, err
 	}
-	return ar, nil
-}
-
-func NewReaderFromRecordReader(sctx *super.Context, rbr RecordBatchReader) (*Reader, error) {
-	fields := rbr.Schema().Fields()
-	r := &Reader{
-		sctx:             sctx,
-		rbr:              rbr,
-		topLevelFields:   fields,
-		unionTagMappings: map[*super.TypeUnion][]int{},
-	}
-	typ, err := r.newTypeFromDataType(arrow.StructOf(fields...))
-	if err != nil {
-		return nil, err
-	}
-	r.topLevelType = typ.(*super.TypeRecord)
-	return r, nil
+	rr.topLevelType = typ.(*super.TypeRecord)
+	return rr, nil
 }
 
 func (r *Reader) Type() (super.Type, error) {
@@ -85,9 +71,9 @@ func UniquifyFieldNames(fields []super.Field) {
 }
 
 func (r *Reader) Close() error {
-	if r.rbr != nil {
-		r.rbr.Release()
-		r.rbr = nil
+	if r.ipcReader != nil {
+		r.ipcReader.Release()
+		r.ipcReader = nil
 	}
 	if r.batch != nil {
 		r.batch.Release()
@@ -98,7 +84,7 @@ func (r *Reader) Close() error {
 
 func (r *Reader) Read() (*super.Value, error) {
 	for r.batch == nil {
-		batch, err := r.rbr.Read()
+		batch, err := r.ipcReader.Read()
 		if err != nil {
 			if err == io.EOF {
 				return nil, nil
