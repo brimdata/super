@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func FuzzCSUPRoundtripGen(f *testing.F) {
+func FuzzBSUPRoundtripGen(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		bytesReader := bytes.NewReader(b)
 		sctx := super.NewContext()
@@ -25,7 +25,7 @@ func FuzzCSUPRoundtripGen(f *testing.F) {
 	})
 }
 
-func FuzzCSUPRoundtripBytes(f *testing.F) {
+func FuzzBSUPRoundtripBytes(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		sctx := super.NewContext()
 		values, err := fuzz.ReadBSUP(t.Context(), sctx, b)

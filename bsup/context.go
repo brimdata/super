@@ -135,15 +135,15 @@ func (c *Context) readSubTypes(r io.Reader) error {
 		}
 		if batch == nil {
 			if len(vals) != 1 {
-				return errors.New("CSUP metadata typedefs section must be a single bytes value")
+				return errors.New("BSUP metadata typedefs section must be a single bytes value")
 			}
 			val := vals[0]
 			if val.Type() != super.TypeBytes {
-				return errors.New("CSUP metadata typedefs section must be a bytes type")
+				return errors.New("BSUP metadata typedefs section must be a bytes type")
 			}
 			defs, ok := super.NewTypeDefsFromBytes(val.Bytes())
 			if !ok {
-				return errors.New("CSUP metadata typedefs has invalid format")
+				return errors.New("BSUP metadata typedefs has invalid format")
 			}
 			c.typedefs = defs
 			return nil
