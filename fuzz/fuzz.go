@@ -341,8 +341,8 @@ func GenType(b *bytes.Reader, context *super.Context, depth int) super.Type {
 		case 4:
 			types := GenTypes(b, context, depth)
 			// TODO There are some weird corners around unions that contain null or duplicate types eg
-			// csup_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
-			// csup_test.go:112: values have different BSUP bytes: [1 0] vs [2 2 0]
+			// bsup_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
+			// bsup_test.go:112: values have different BSUP bytes: [1 0] vs [2 2 0]
 			var unionTypes []super.Type
 			for _, typ := range types {
 				skip := false

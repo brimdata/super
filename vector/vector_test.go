@@ -64,7 +64,7 @@ func BenchmarkReadBSUPRows(b *testing.B) {
 	}
 }
 
-func BenchmarkReadCSUP(b *testing.B) {
+func BenchmarkReadBSUP(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
 	valuesIn := make([]super.Value, N)
 	for i := range valuesIn {

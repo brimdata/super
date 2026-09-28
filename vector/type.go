@@ -17,8 +17,8 @@ type TypeValue struct {
 
 // TypesLoader is an interface to load types as IDs and a TypeDefs table so
 // they do not pollute the query type context and are converted only when
-// needed.  For example, the CSUP reader reads the typedefs table only when
-// there is a runtime call to do so, and the CSUP writer loads types as
+// needed.  For example, the BSUP reader reads the typedefs table only when
+// there is a runtime call to do so, and the BSUP writer loads types as
 // TypeDefs for merging and writing to metadata without ever needing to
 // create any super.Types.
 type TypesLoader interface {

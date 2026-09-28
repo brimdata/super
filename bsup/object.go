@@ -1,20 +1,3 @@
-//XXX update comment
-// Package csup implements the reading and writing of CSUP serialization objects.
-// The CSUP format is described at https://github.com/brimdata/super/blob/main/docs/formats/csup.md.
-//
-// A CSUP object is created by allocating an Encoder for any top-level type
-// via NewEncoder, which recursively descends into the type, allocating an Encoder
-// for each node in the type tree.  The top-level BSUP body is written via a call
-// to Write.  Each vector buffers its data in memory until the object is encoded.
-//
-// After all of the data is written, a metadata section is written describing
-// the layout of all the vector data obtained by calling the Metadata method
-// on the Encoder interface.
-//
-// Data is read from a CSUP object by reading the metadata and materializing any
-// needed vectors for a query.  This is handled by vcache and no reading is implemented
-// in this package.
-
 package bsup
 
 import (
@@ -51,7 +34,7 @@ func NewObjectFromHeader(r io.ReaderAt, hdr DataHeader) (*Object, error) {
 		return nil, err
 	}
 	if hdr.Root >= uint32(len(cctx.values)) {
-		return nil, fmt.Errorf("CSUP root ID %d larger than values table (len %d)", hdr.Root, len(cctx.values))
+		return nil, fmt.Errorf("BSUP root ID %d larger than values table (len %d)", hdr.Root, len(cctx.values))
 	}
 	cctx.subtypesReader = io.NewSectionReader(r, off+int64(hdr.MetaSize), int64(hdr.TypeSize))
 	return &Object{

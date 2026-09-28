@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/bsup/rows"
 )
 
-// NewSerializer returns a new CSUP serializer that outputs to w.
+// NewSerializer returns a new BSUP serializer that outputs to w.
 func NewSerializer(w io.WriteCloser) *bsup.Serializer {
 	return bsup.NewSerializer(w)
 }

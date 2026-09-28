@@ -10,7 +10,7 @@ import (
 var Spec = &charm.Spec{
 	Name:  "vector",
 	Usage: "vector sub-command [arguments...]",
-	Short: "run specified CSUP vector test",
+	Short: "run specified BSUP vector test",
 	Long: `
 vector runs various tests of the vector cache and runtime as specified by its sub-command.`,
 	New: New,

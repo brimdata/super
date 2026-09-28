@@ -21,7 +21,7 @@ import (
 var spec = &charm.Spec{
 	Name:  "search",
 	Usage: "search [flags] filter_expr",
-	Short: "run a CSUP optimized search on a database",
+	Short: "run a BSUP optimized search on a database",
 	New:   newCommand,
 }
 

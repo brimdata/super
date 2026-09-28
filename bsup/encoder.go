@@ -17,13 +17,13 @@ type Encoder interface {
 	// Vectors may be encoded concurrently and errgroup.Group is used to sync
 	// and return errors.
 	Encode(*errgroup.Group)
-	// Metadata returns the data structure conforming to the CSUP specification
+	// Metadata returns the data structure conforming to the BSUP specification
 	// describing the layout of vectors.  This is called after all data is
 	// written and encoded by the Encode with the result marshaled to build
-	// the header section of the CSUP object.  An offset is passed down into
+	// the header section of the BSUP object.  An offset is passed down into
 	// the traversal representing where in the data section the vector data
 	// will land.  This is called in a sequential fashion (no parallelism) so
-	// that the metadata can be computed and the CSUP header written before the
+	// that the metadata can be computed and the BSUP header written before the
 	// vector data is written via Emit.
 	Metadata(*Context, uint64) (uint64, ID)
 	Emit(w io.Writer) error
@@ -141,7 +141,7 @@ func NewPrimitiveEncoder(cctx *Context, vec vector.Any, root bool) Encoder {
 	case *vector.None:
 		return NewNoneEncoder(vec.Len())
 	default:
-		panic(fmt.Sprintf("unsupported type in CSUP file: %T", vec))
+		panic(fmt.Sprintf("unsupported type in BSUP file: %T", vec))
 	}
 }
 

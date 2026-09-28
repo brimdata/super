@@ -107,7 +107,7 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 			return nil, err
 		}
 		// XXX using the query context for the metadata filter unnecessarily
-		// pollutes the type context.  We should use the csup local context for
+		// pollutes the type context.  We should use the BSUP local context for
 		// this filtering but this will require a little compiler refactoring to be
 		// able to build runtime expressions that use different type contexts.
 		if len(r.metaFilters) > 0 && pruneObject(r.sctx, r.metaFilters[n], o) {

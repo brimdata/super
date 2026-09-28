@@ -17,7 +17,7 @@ import (
 var maxObjectSize uint32 = 120_000
 
 // Serializer implements the vio.Pusher interface. A Pusher creates a vector
-// CSUP object from a stream of vector.Any.
+// BSUP object from a stream of vector.Any.
 type Serializer struct {
 	writer    io.WriteCloser
 	dynamic   *vbuild.DynamicBuilder
@@ -65,7 +65,7 @@ func (w *Serializer) finalizeObject() error {
 	enc := NewDynamicEncoder(vec)
 	root, dataSize, err := enc.Encode()
 	if err != nil {
-		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
+		return fmt.Errorf("system error: could not encode BSUP metadata: %w", err)
 	}
 	// At this point all the vector data has been written out
 	// to the underlying spiller, so we start writing BSUP at this point.
@@ -78,36 +78,36 @@ func (w *Serializer) finalizeObject() error {
 	for id := range len(cctx.metas) {
 		val, err := m.Marshal(cctx.Lookup(ID(id)))
 		if err != nil {
-			return fmt.Errorf("could not marshal CSUP metadata: %w", err)
+			return fmt.Errorf("could not marshal BSUP metadata: %w", err)
 		}
 		if err := zw.Write(val); err != nil {
-			return fmt.Errorf("could not write CSUP metadata: %w", err)
+			return fmt.Errorf("could not write BSUP metadata: %w", err)
 		}
 	}
 	zw.EndStream()
 	metaSize := zw.Position()
 	if err := zw.Write(buildTypeDefsValue(cctx)); err != nil {
-		return fmt.Errorf("could not write CSUP metadata: %w", err)
+		return fmt.Errorf("could not write BSUP metadata: %w", err)
 	}
 	zw.EndStream()
 	typeSize := zw.Position() - metaSize
 	// Header
 	if _, err := w.writer.Write(Header{Version, SectionObject}.Serialize()); err != nil {
-		return fmt.Errorf("system error: could not write CSUP header: %w", err)
+		return fmt.Errorf("system error: could not write BSUP header: %w", err)
 	}
 	// DataHeader
 	o := DataHeader{uint64(metaSize), uint64(typeSize), dataSize, uint32(root)}
 	if _, err := w.writer.Write(o.Serialize()); err != nil {
-		return fmt.Errorf("system error: could not write CSUP header: %w", err)
+		return fmt.Errorf("system error: could not write BSUP header: %w", err)
 	}
 	w.size += HeaderSize + o.Size()
 	// Metadata section
 	if _, err := w.writer.Write(metaBuf.Bytes()); err != nil {
-		return fmt.Errorf("system error: could not write CSUP metadata section: %w", err)
+		return fmt.Errorf("system error: could not write BSUP metadata section: %w", err)
 	}
 	// Data section
 	if err := enc.Emit(w.writer); err != nil {
-		return fmt.Errorf("system error: could not write CSUP data section: %w", err)
+		return fmt.Errorf("system error: could not write BSUP data section: %w", err)
 	}
 	// Set new dynamic so we can write the next object.
 	w.dynamic = vbuild.NewDynamicBuilder()

@@ -817,7 +817,7 @@ const (
 // its type system and by fusion types and type values that implement
 // vector.TypeLoader so that types may be materialized into the query
 // Context on demand only when needed.  This data structure is designed
-// to be serialized and deserialized as a whole into CSUP and BSUP formats.
+// to be serialized and deserialized as a whole into the BSUP format.
 type TypeDefs struct {
 	offsets []uint32
 	bytes   []byte
@@ -1476,8 +1476,8 @@ func (t *TypeDefsMapper) lookupType(id uint32) Type {
 
 // A TypeDefsMerger recodes typedefs from an external table to a shared table
 // on demand as external ID are looked up and converted to shared IDs.  This is
-// used, for example, by the CSUP writer to collapse multiple typedefs tables
-// into one table to be written to the CSUP metadata and copying only the typedefs
+// used, for example, by the BSUP writer to collapse multiple typedefs tables
+// into one table to be written to the BSUP metadata and copying only the typedefs
 // that are used by subtypes in the serialized fusion vectors.  LookupID panics if any
 // malformed data is encountered.
 type TypeDefsMerger struct {

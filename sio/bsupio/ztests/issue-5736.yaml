@@ -1,7 +1,7 @@
 script: |
-  super -o bluesky.csup -
+  super -o bluesky.bsup -
   super -s -c "
-    from 'bluesky.csup'
+    from 'bluesky.bsup'
     | where kind=='commit' and commit.operation=='create'
     | count()
         by

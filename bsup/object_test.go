@@ -28,9 +28,9 @@ func TestObjectProjectMetadata(t *testing.T) {
 	}
 	require.NoError(t, w.Push(builder.Build(sctx)))
 	require.NoError(t, w.Close())
-	csupBytes := b.Bytes()
+	bsupBytes := b.Bytes()
 
-	o, err := bsup.NewObject(bytes.NewReader(csupBytes))
+	o, err := bsup.NewObject(bytes.NewReader(bsupBytes))
 	require.NoError(t, err)
 	p := field.NewProjection(field.DottedList("b.d,a"))
 	values := o.ProjectMetadata(super.NewContext(), p)
@@ -52,9 +52,9 @@ func TestObjectProjectMetadataForUnion(t *testing.T) {
 	w := bsup.NewSerializer(sio.NopCloser(&b))
 	require.NoError(t, w.Push(builder.Build(sctx)))
 	require.NoError(t, w.Close())
-	csupBytes := b.Bytes()
+	bsupBytes := b.Bytes()
 
-	o, err := bsup.NewObject(bytes.NewReader(csupBytes))
+	o, err := bsup.NewObject(bytes.NewReader(bsupBytes))
 	require.NoError(t, err)
 	p := field.NewProjection(field.DottedList("a,b,c,d"))
 	values := o.ProjectMetadata(super.NewContext(), p)

@@ -216,7 +216,7 @@ func (t Trailer) Serialize() []byte {
 	var bytes [TrailerSize]byte
 	binary.LittleEndian.PutUint64(bytes[:], t.Size)
 	binary.LittleEndian.PutUint32(bytes[8:], t.MetaSize)
-	bytes[12] = 'C'
+	bytes[12] = 'C' //XXX will fix in next PR
 	bytes[13] = 'S'
 	bytes[14] = 'U'
 	bytes[15] = 'P'
@@ -224,7 +224,7 @@ func (t Trailer) Serialize() []byte {
 }
 
 func (t *Trailer) Deserialize(bytes []byte) error {
-	if len(bytes) != TrailerSize || string(bytes[12:16]) != "CSUP" { //XXX
+	if len(bytes) != TrailerSize || string(bytes[12:16]) != "CSUP" { //XXX will fix in next PR
 		return errors.New("invalid BSUP trailer")
 	}
 	t.Size = binary.LittleEndian.Uint64(bytes)

@@ -1,6 +1,6 @@
 script: |
-  super -o test.csup -
-  super -s -c 'from test.csup | where b==1'
+  super -o test.bsup -
+  super -s -c 'from test.bsup | where b==1'
 
 inputs:
   - name: stdin
