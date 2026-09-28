@@ -38,9 +38,7 @@ func (o *optionBuilder) Write(vec vector.Any) {
 			return nil
 		}
 		// both style
-		for _, tag := range tags {
-			o.tags = append(o.tags, tag)
-		}
+		o.tags = append(o.tags, tags...)
 		o.nones += none.Len()
 		o.values.Write(some)
 		return nil

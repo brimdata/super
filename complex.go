@@ -418,7 +418,7 @@ type TypeOption struct {
 }
 
 func NewTypeOption(id int, typ Type) *TypeOption {
-	return &TypeOption{id: id, Type: typ}
+	return &TypeOption{id, typ}
 }
 
 func (t *TypeOption) ID() int {

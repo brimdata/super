@@ -304,10 +304,9 @@ func (u *Upcast) toFusion(vec vector.Any, to *super.TypeFusion) vector.Any {
 }
 
 func (u *Upcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
-	switch vec.Kind() {
-	case vector.KindOption:
-		option := vector.PushView(vec).(*vector.Option) //XXX Under?
-		return option.Apply(func(tags []uint32, some vector.Any, none *vector.None) vector.Any {
+	switch vec := vector.Under(vec).(type) {
+	case *vector.Option:
+		return vec.Apply(func(tags []uint32, some vector.Any, none *vector.None) vector.Any {
 			if some == nil {
 				return vector.NewOption(to, none)
 			}
@@ -320,8 +319,10 @@ func (u *Upcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 			}
 			return vector.NewOptionBoth(to, tags, some, none)
 		})
-	case vector.KindNone:
+	case *vector.None:
 		return vector.NewOption(to, vector.NewNone(vec.Len()))
+	case *vector.View:
+		return u.toOption(vector.PushView(vec), to)
 	}
 	vec = u.upcast(vec, to.Type)
 	if vec == nil {

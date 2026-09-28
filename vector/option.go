@@ -22,7 +22,7 @@ type Option struct {
 var _ Any = (*Option)(nil)
 
 func NewOption(typ *super.TypeOption, vec Any) *Option {
-	return &Option{Typ: typ, Any: vec}
+	return &Option{typ, vec}
 }
 
 func NewOptionBoth(typ *super.TypeOption, tags []uint32, some Any, none *None) Any {
@@ -52,11 +52,11 @@ func (o *Option) Type() super.Type {
 func (o *Option) Serialize(b *scode.Builder, slot uint32) {
 	tag := super.OptionNoneTag
 	switch vec := o.Any.(type) {
+	case *None:
 	case *Dynamic:
 		if vec.TypeOf(slot) != super.TypeNone {
 			tag = super.OptionSomeTag
 		}
-	case *None:
 	default:
 		tag = super.OptionSomeTag
 	}

@@ -728,8 +728,8 @@ func NullableUnion(typ Type) (*TypeUnion, int) {
 	return nil, 0
 }
 
-// Optionize returns typ is if typ is TypeNone or is already an option type;
-// otherwise, it returns typ as a new option type.
+// Optionize returns typ if typ is TypeNone or is already an option type;
+// otherwise, it returns a new option type for typ.
 func (c *Context) Optionize(typ Type) Type {
 	if _, ok := typ.(*TypeOption); ok || typ == TypeNone {
 		return typ

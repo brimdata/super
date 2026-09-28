@@ -52,8 +52,7 @@ func (o *option) load(loader *loader) []uint32 {
 }
 
 func (o *option) project(loader *loader, projection field.Projection) vector.Any {
-	sctx := loader.sctx
-	typ, err := sctx.TranslateType(o.meta.Type)
+	typ, err := loader.sctx.TranslateType(o.meta.Type)
 	if err != nil {
 		panic(err)
 	}

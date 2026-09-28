@@ -65,7 +65,6 @@ func (k Kind) String() string {
 		return "option"
 	case ErrorKind:
 		return "error"
-
 	default:
 		return fmt.Sprintf("<unknown kind: %d>", k)
 	}

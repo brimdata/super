@@ -489,7 +489,7 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 		}
 		if none, ok := val.(*None); ok {
 			// Untyped nones are allowed into the value structure on the first
-			// pass then decoration can turn the plain none into and an option none.
+			// pass then decoration can turn the plain none into an option none.
 			// For example, this allows named types to decorate a complex record
 			// without having to specify the decorator on all the embedded nones.
 			return &Option{typ: typ, value: none}, nil
@@ -502,7 +502,7 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	}
 	switch val := val.(type) {
 	case *None:
-		// Decorating a pure none turns into into a typed option none, unless it
+		// Decorating a pure none turns it into a typed option none, unless it
 		// is a named-type none (or redundant plain none), which stays a none.
 		if super.TypeUnder(typ) == super.TypeNone {
 			return &None{typ: typ}, nil
@@ -532,11 +532,11 @@ func (a *Analyzer) decorate(val Value, typ super.Type) (Value, error) {
 	case *Union:
 		return a.decorateUnion(val, typ)
 	case *Option:
-		if _, ok := val.value.(*None); ok {
-			return &Option{typ: a.sctx.Optionize(typ), value: val.value}, nil
+		if _, ok := val.value.(*None); !ok {
+			// typ cannot be an option type as that case is handled above
+			return nil, errors.New("cannot decorate an option value with a non-option type")
 		}
-		// typ cannot be an option type as that case is handled above
-		return nil, errors.New("cannot decorate an option value with a non-option type")
+		return &Option{typ: a.sctx.Optionize(typ), value: val.value}, nil
 	default:
 		panic(val)
 	}
