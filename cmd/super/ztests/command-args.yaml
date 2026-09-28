@@ -1,0 +1,51 @@
+script: |
+  super -s -c "values args" -- a b c
+
+outputs:
+  - name: stdout
+    data: |
+      ["a","b","c"]
+
+---
+
+script: |
+  super -s -c "values args" --
+
+outputs:
+  - name: stdout
+    data: |
+      []
+
+---
+
+script: |
+  super -s -c "values args" in.sup --
+
+inputs:
+  - name: in.sup
+    data: |
+      null
+      null
+
+outputs:
+  - name: stdout
+    data: |
+      []
+      []
+
+---
+
+script: |
+  super -s -c "values args" - --
+
+inputs:
+  - name: stdin
+    data: |
+      null
+      null
+
+outputs:
+  - name: stdout
+    data: |
+      []
+      []

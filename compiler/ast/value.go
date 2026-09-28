@@ -24,11 +24,10 @@ func (*Decorated) valueNode()  {}
 
 type (
 	Primitive struct {
-		Kind    string `json:"kind" unpack:""`
-		Type    string `json:"type"`
-		Text    string `json:"text"`
-		TextPos int    `json:"text_pos"`
-		Loc     `json:"loc"`
+		Kind string `json:"kind" unpack:""`
+		Type string `json:"type"`
+		Text string `json:"text"`
+		Loc  `json:"loc"`
 	}
 	Record struct {
 		Kind   string  `json:"kind" unpack:""`

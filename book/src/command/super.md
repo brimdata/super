@@ -17,7 +17,7 @@ Instead, your shell is your REPL and the `super` command lets you:
 
 The `super` command is invoked either by itself to run a query:
 ```
-super [ -c <query> | -I <query-file> ] [ options ] [ <path> ... ]
+super [ -c <query> | -I <query-file> ] [ options ] [ <path> ... ] [ -- [ <arg> ... ]]
 ```
 or with a [sub-command](sub-commands.md):
 ```
@@ -32,6 +32,17 @@ SuperDB query engine detached from the database storage layer.
 
 The [input data](input.md) may be specified as command-line paths or
 referenced within the query.
+One or more `<path>` arguments act as if a
+[from](../super-sql/operators/from.md) operator has been prepended to
+the query specified.  When no query is specified,
+the inputs are scanned with no query applied.
+
+Arguments may be passed from the command-line into the query using
+`--` to terminate the input path specifications and indicate subsequent query arguments.
+All of the shell arguments after `--` are assembled into a string array
+called `args` as a
+[constant](../super-sql/declarations/constants.md)
+appearing in the main scope of the query.
 
 For built-in command help and a listing of all available options,
 simply run `super` without any arguments.

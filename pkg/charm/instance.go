@@ -3,6 +3,7 @@ package charm
 import (
 	"flag"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -77,9 +78,18 @@ func parse(spec *Spec, args []string, parent Command, interiorLeaf int) (path, [
 		}
 		path = append(path, component)
 		parent = cmd
+		// These gymnastics prevent Go flags from stopping at and consuming the "--"
+		// and retains it as remaining args, which lets us implement args options
+		// passed to the query with "... -- arg arg"
+		savedArgs := args
+		var dashDashArgs []string
+		if k := slices.Index(args, "--"); k >= 0 {
+			dashDashArgs = args[k:]
+			args = args[:k]
+		}
 		if err := flags.Parse(args); err != nil {
 			if usage {
-				s := strings.Join(args, " ")
+				s := strings.Join(savedArgs, " ")
 				err = fmt.Errorf("at flag: %q: %w", s, err)
 			}
 			return path, nil, false, err
@@ -87,7 +97,7 @@ func parse(spec *Spec, args []string, parent Command, interiorLeaf int) (path, [
 		if help {
 			return path, nil, hidden, NeedHelp
 		}
-		rest := flags.Args()
+		rest := append(flags.Args(), dashDashArgs...)
 		if len(rest) != 0 {
 			spec = component.spec.lookupSub(rest[0])
 			if spec != nil {

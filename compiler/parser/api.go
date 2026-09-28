@@ -2,6 +2,7 @@ package parser
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/srcfiles"
@@ -36,11 +37,50 @@ func (a *AST) ConvertToDeleteWhere(pool, branch string) error {
 	return nil
 }
 
-func (a *AST) PrependFileScan(paths []string) {
-	a.seq.Prepend(&ast.FileScan{
-		Kind:  "FileScan",
-		Paths: paths,
-	})
+func (a *AST) PrependFileScan(paths []string) []string {
+	var args []string
+	if k := slices.Index(paths, "--"); k >= 0 {
+		args = paths[k+1:]
+		paths = paths[:k]
+	}
+	if len(paths) > 0 {
+		a.seq.Prepend(&ast.FileScan{
+			Kind:  "FileScan",
+			Paths: paths,
+		})
+	}
+	if args != nil {
+		a.seq = []ast.Op{
+			&ast.ScopeOp{
+				Kind: "ScopeOp",
+				Decls: []ast.Decl{
+					&ast.ConstDecl{
+						Kind: "ConstDecl",
+						Name: &ast.ID{Name: "args"},
+						Expr: stringArray(args),
+					},
+				},
+				Body: a.seq,
+			},
+		}
+	}
+	return paths
+}
+
+func stringArray(in []string) ast.Expr {
+	var elems []ast.ArrayElem
+	for _, s := range in {
+		e := &ast.Primitive{
+			Kind: "Primitive",
+			Type: "string",
+			Text: s,
+		}
+		elems = append(elems, &ast.ExprElem{Kind: "ExprElem", Expr: e})
+	}
+	return &ast.ArrayExpr{
+		Kind:  "ArrayExpr",
+		Elems: elems,
+	}
 }
 
 // ParseText parses a query text in string form.
