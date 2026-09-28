@@ -475,8 +475,8 @@ func (d *Downcast) toError(vec vector.Any, to *super.TypeError) vector.Any {
 }
 
 func (d *Downcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
-	switch vec.Kind() {
-	case vector.KindOption:
+	switch vec := vector.Under(vec).(type) {
+	case *vector.Option:
 		return vector.Apply(vector.ApplyRipOptions, func(vecs ...vector.Any) vector.Any {
 			switch vec := vecs[0].(*vector.Option).Any.(type) {
 			case *vector.None:
@@ -491,8 +491,10 @@ func (d *Downcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 				return vector.NewOption(to, vec2)
 			}
 		}, vec)
-	case vector.KindNone:
+	case *vector.None:
 		return vector.NewOption(to, vector.NewNone(vec.Len()))
+	case *vector.View:
+		return d.toOption(vector.PushView(vec), to)
 	}
 	vec = d.downcast(vec, to.Type)
 	if vec == nil {
