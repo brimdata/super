@@ -7,13 +7,12 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 
 type LogReader struct {
 	ctx       context.Context
-	marshaler *sup.MarshalBSUPContext
+	marshaler *super.Marshaler
 	store     *Store
 	cursor    ksuid.KSUID
 	stop      ksuid.KSUID
@@ -22,8 +21,8 @@ type LogReader struct {
 var _ sio.Reader = (*LogReader)(nil)
 
 func newLogReader(ctx context.Context, sctx *super.Context, store *Store, leaf, stop ksuid.KSUID) *LogReader {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StyleSimple)
+	m := super.NewMarshaler(sctx)
+	m.Decorate(super.StyleSimple)
 	return &LogReader{
 		ctx:       ctx,
 		marshaler: m,

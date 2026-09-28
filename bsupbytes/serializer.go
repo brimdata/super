@@ -3,20 +3,20 @@ package bsupbytes
 import (
 	"bytes"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
 )
 
 type Serializer struct {
-	marshaler *sup.MarshalBSUPContext
+	marshaler *super.Marshaler
 	buffer    bytes.Buffer
 	writer    *bsupio.RowWriter
 }
 
 func NewSerializer() *Serializer {
-	m := sup.NewBSUPMarshaler()
-	m.Decorate(sup.StyleSimple)
+	m := super.NewMarshaler(super.NewContext())
+	m.Decorate(super.StyleSimple)
 	s := &Serializer{
 		marshaler: m,
 	}
@@ -24,16 +24,16 @@ func NewSerializer() *Serializer {
 	return s
 }
 
-func (s *Serializer) Decorate(style sup.TypeStyle) {
+func (s *Serializer) Decorate(style super.TypeStyle) {
 	s.marshaler.Decorate(style)
 }
 
 func (s *Serializer) Write(v any) error {
-	rec, err := s.marshaler.Marshal(v)
+	val, err := s.marshaler.Marshal(v)
 	if err != nil {
 		return err
 	}
-	return s.writer.Write(rec)
+	return s.writer.Write(val)
 }
 
 // Bytes returns a slice holding the serialized values.  Close must be called

@@ -20,7 +20,6 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 )
 
@@ -115,7 +114,8 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 }
 
 func (s *Shared) writeValue(ctx context.Context, v any) error {
-	val, err := sup.MarshalBSUP(v)
+	sctx := super.NewContext()
+	val, err := super.Marshal(sctx, v)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (s *Shared) writeValue(ctx context.Context, v any) error {
 	if err != nil {
 		return err
 	}
-	err = vio.Copy(writer, sbuf.ValToPuller(super.NewContext(), val))
+	err = vio.Copy(writer, sbuf.ValToPuller(sctx, val))
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

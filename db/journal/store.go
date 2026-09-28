@@ -14,7 +14,6 @@ import (
 	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
 	"go.uber.org/zap"
 )
 
@@ -160,13 +159,13 @@ func updateTable(table map[string]Entry, e Entry) {
 	}
 }
 
-func (s *Store) newUnmarshaler() *sup.UnmarshalBSUPContext {
-	unmarshaler := sup.NewBSUPUnmarshaler()
+func (s *Store) newUnmarshaler() *super.Unmarshaler {
+	unmarshaler := super.NewUnmarshaler()
 	unmarshaler.Bind(s.keyTypes...)
 	return unmarshaler
 }
 
-func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPContext) (ID, map[string]Entry, error) {
+func (s *Store) getSnapshot(ctx context.Context, unmarshaler *super.Unmarshaler) (ID, map[string]Entry, error) {
 	table := make(map[string]Entry)
 	r, err := s.journal.engine.Get(ctx, s.snapshotURI())
 	if err != nil {
@@ -187,7 +186,7 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPC
 	return at, table, err
 }
 
-func (s *Store) readSnapshot(r *bsupio.RowReader, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
+func (s *Store) readSnapshot(r *bsupio.RowReader, unmarshaler *super.Unmarshaler) (map[string]Entry, error) {
 	table := make(map[string]Entry)
 	for {
 		val, err := r.Read()
@@ -216,9 +215,15 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	return s.writeTable(zw, table)
 }
 
+<<<<<<< HEAD
 func (s *Store) writeTable(w *bsupio.RowWriter, table map[string]Entry) error {
 	marshaler := sup.NewBSUPMarshaler()
 	marshaler.Decorate(sup.StylePackage)
+=======
+func (s *Store) writeTable(w *bsupio.Writer, table map[string]Entry) error {
+	marshaler := super.NewMarshaler(super.NewContext())
+	marshaler.Decorate(super.StylePackage)
+>>>>>>> d0eb21c33 (move the marshaler to package super and simplify naming)
 	for _, entry := range table {
 		val, err := marshaler.Marshal(entry)
 		if err != nil {
@@ -357,7 +362,7 @@ func (s *Store) commitWithConstraint(ctx context.Context, key string, c Constrai
 
 func (s *Store) commit(ctx context.Context, fn func() error, entries ...Entry) error {
 	serializer := bsupbytes.NewSerializer()
-	serializer.Decorate(sup.StylePackage)
+	serializer.Decorate(super.StylePackage)
 	for _, e := range entries {
 		if err := serializer.Write(e); err != nil {
 			return err
@@ -473,7 +478,7 @@ func (s *Store) putBase(ctx context.Context, newBase, tail, oldBase ID) error {
 	return s.writeTable(zw, table)
 }
 
-func (s *Store) loadBase(ctx context.Context, base ID, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
+func (s *Store) loadBase(ctx context.Context, base ID, unmarshaler *super.Unmarshaler) (map[string]Entry, error) {
 	r, err := s.journal.engine.Get(ctx, s.baseURI(base))
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {

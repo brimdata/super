@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/sup"
 )
 
 type EventsClient struct {
 	rc          io.ReadCloser
-	unmarshaler *sup.UnmarshalContext
+	unmarshaler *super.Unmarshaler
 }
 
 func newEventsClient(resp *Response) *EventsClient {
-	unmarshaler := sup.NewUnmarshaler()
+	unmarshaler := super.NewUnmarshaler()
 	unmarshaler.Bind(
 		api.EventPool{},
 		api.EventBranch{},
@@ -32,8 +33,12 @@ func (l *EventsClient) Recv() (string, any, error) {
 	if err != nil {
 		return "", nil, err
 	}
+	val, err := sup.ParseValue(super.NewContext(), data)
+	if err != nil {
+		return "", nil, err
+	}
 	var v any
-	if err := l.unmarshaler.Unmarshal(data, &v); err != nil {
+	if err := l.unmarshaler.Unmarshal(val, &v); err != nil {
 		return "", nil, err
 	}
 	return kind, v, err

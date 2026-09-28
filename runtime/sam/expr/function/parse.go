@@ -6,16 +6,15 @@ import (
 	"strconv"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 )
 
 type ParseURI struct {
 	sctx      *super.Context
-	marshaler *sup.MarshalBSUPContext
+	marshaler *super.Marshaler
 }
 
 func NewParseURI(sctx *super.Context) *ParseURI {
-	return &ParseURI{sctx, sup.NewBSUPMarshalerWithContext(sctx)}
+	return &ParseURI{sctx, super.NewMarshaler(sctx)}
 }
 
 func (p *ParseURI) Call(args []super.Value) super.Value {

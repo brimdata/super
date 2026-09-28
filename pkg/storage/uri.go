@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 )
 
 type URI url.URL
+
+var _ super.CustomMarshaler = (*URI)(nil)
 
 // ParseURI parses the path using `url.Parse`. If the provided uri does not
 // contain a scheme, the scheme is set to file. Relative paths are
@@ -69,6 +70,6 @@ func (u *URI) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (u *URI) MarshalBSUP(mc *sup.MarshalBSUPContext) (super.Type, error) {
+func (u *URI) Marshal(mc *super.Marshaler) (super.Type, error) {
 	return mc.MarshalValue(u.String())
 }

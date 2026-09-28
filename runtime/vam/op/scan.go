@@ -124,13 +124,13 @@ type result struct {
 
 type objectPuller struct {
 	parent      sbuf.Puller
-	unmarshaler *sup.UnmarshalBSUPContext
+	unmarshaler *super.Unmarshaler
 }
 
 func newObjectPuller(parent sbuf.Puller) *objectPuller {
 	return &objectPuller{
 		parent:      parent,
-		unmarshaler: sup.NewBSUPUnmarshaler(),
+		unmarshaler: super.NewUnmarshaler(),
 	}
 }
 

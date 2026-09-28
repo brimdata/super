@@ -19,8 +19,8 @@ import (
 // non-overlapping Partitions.
 type Slicer struct {
 	parent      sbuf.Puller
-	marshaler   *sup.MarshalBSUPContext
-	unmarshaler *sup.UnmarshalBSUPContext
+	marshaler   *super.Marshaler
+	unmarshaler *super.Unmarshaler
 	objects     []*data.Object
 	cmp         expr.CompareFn
 	min         *super.Value
@@ -29,12 +29,12 @@ type Slicer struct {
 }
 
 func NewSlicer(parent sbuf.Puller, sctx *super.Context) *Slicer {
-	m := sup.NewBSUPMarshalerWithContext(sctx)
-	m.Decorate(sup.StylePackage)
+	m := super.NewMarshaler(sctx)
+	m.Decorate(super.StylePackage)
 	return &Slicer{
 		parent:      parent,
 		marshaler:   m,
-		unmarshaler: sup.NewBSUPUnmarshaler(),
+		unmarshaler: super.NewUnmarshaler(),
 		//XXX check that nulls position is consistent for both dirs in database ops
 		cmp: expr.NewValueCompareFn(order.Asc, order.NullsLast),
 	}
