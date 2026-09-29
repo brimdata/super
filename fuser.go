@@ -24,12 +24,14 @@ func (f *Fuser) Fuse(t Type) {
 		return
 	}
 	f.types[t] = struct{}{}
+	//was := t
 	t = f.fuseInternal(t)
 	if f.typ == nil {
 		f.typ = t
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
+	//Debug("FUSE", t, "WAS", was, "NOW", f.typ)
 }
 
 // Type returns the computed supertype.
@@ -134,24 +136,11 @@ func (f *Fuser) fuse(a, b Type) Type {
 		}
 	case *TypeOption:
 		if a.Type == b {
-			return a
+			return f.fusion(a)
 		}
 		if _, ok := b.(*TypeOption); ok {
 			return f.fusion(f.sctx.MustLookupTypeUnion([]Type{a, b}))
 		}
-		//if o, ok := b.(*TypeOption); ok {
-		//	b = o.Type
-		//}
-		//inner := f.fuseInternal(a.Type)
-		//if option, ok := noFusion(inner).(*TypeOption); ok {
-		//	a = option
-		//} else {
-		//	a = f.sctx.LookupTypeOption(inner)
-		//}
-		//if o, ok := b.(*TypeOption); ok {
-		//	b = o.Type
-		//}
-		//return f.fusion(f.sctx.LookupTypeOption(f.fuse(a.Type, b)))
 	case *TypeNamed:
 		if b, ok := b.(*TypeNamed); ok && a.Name == b.Name {
 			// if we got here without match a=b above, then there are
@@ -218,8 +207,8 @@ func (f *Fuser) fuseInternal(typ Type) Type {
 		}
 	case *TypeOption:
 		inner := f.fuseInternal(typ.Type)
-		if option, ok := noFusion(inner).(*TypeOption); ok {
-			out = option
+		if t, ok := fusionOption(inner); ok {
+			out = t
 		} else {
 			out = f.sctx.LookupTypeOption(inner)
 		}
@@ -234,6 +223,15 @@ func (f *Fuser) fuseInternal(typ Type) Type {
 		out = f.fusion(out)
 	}
 	return out
+}
+
+func fusionOption(typ Type) (Type, bool) {
+	if fusion, ok := typ.(*TypeFusion); ok {
+		if option, ok := fusion.Type.(*TypeOption); ok {
+			return option, true
+		}
+	}
+	return nil, false
 }
 
 // fuseIntoUnionTypes fuses typ into types while maintaining the invariant that
