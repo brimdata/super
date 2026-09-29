@@ -34,8 +34,6 @@ func (f *Fuser) Fuse(t Type) {
 	//Debug("FUSE", was, "=>", t, "NOW", f.typ)
 }
 
-var Debug func(...any)
-
 // Type returns the computed supertype.
 func (f *Fuser) Type() Type {
 	return f.typ

@@ -79,7 +79,6 @@ func (u *Upcast) Cast(vec vector.Any, to super.Type) (vector.Any, bool) {
 }
 
 func (u *Upcast) upcast(vec vector.Any, to super.Type) vector.Any {
-	//fmt.Println("UPCAST TO", sup.String(to), vector.Format(vec))
 	if vec.Type() == to && vec.Kind() != vector.KindFusion {
 		return vec
 	}

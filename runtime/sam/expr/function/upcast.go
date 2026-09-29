@@ -220,7 +220,6 @@ func UpcastUnionTag(types []super.Type, out super.Type) int {
 			return ok && named.Name == typ.Name
 		})
 	}
-
 	k := out.Kind()
 	if k == super.PrimitiveKind {
 		id := out.ID()
