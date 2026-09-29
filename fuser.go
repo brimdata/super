@@ -24,14 +24,12 @@ func (f *Fuser) Fuse(t Type) {
 		return
 	}
 	f.types[t] = struct{}{}
-	//was := t
 	t = f.fuseInternal(t)
 	if f.typ == nil {
 		f.typ = t
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
-	//Debug("FUSE", was, "=>", t, "NOW", f.typ)
 }
 
 // Type returns the computed supertype.
