@@ -6,6 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
@@ -17,13 +18,14 @@ func (*This) Eval(val vector.Any) vector.Any {
 }
 
 type DotExpr struct {
-	sctx    *super.Context
-	defuse  *Defuse
-	entity  Evaluator
-	key     string
-	noneish bool
-	nullish bool
-	okPush  bool
+	sctx      *super.Context
+	defuse    *Defuse
+	entity    Evaluator
+	key       string
+	noneish   bool
+	nullish   bool
+	okPush    bool
+	hasFusion samfunc.FusionChecker
 }
 
 func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish, nullish bool) *DotExpr {
@@ -71,6 +73,9 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 				return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.key)), innerVecs[0])
 			}
 			out := val.Fields[i]
+			if _, ok := out.(*vector.None); ok {
+				return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.key)), innerVecs[0])
+			}
 			if hasNone(out) {
 				missing = true
 			}
@@ -115,7 +120,7 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 	// to be correct.  There are a number of other ways to avoid this slow path but let's
 	// get it working first before we make it fast.
 	// XXX we need to wire up okPush
-	if !d.okPush && missing && vec.Kind() == vector.KindFusion {
+	if !d.okPush && missing && d.hasFusion.Check(vec.Type()) {
 		return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, d.eval, d.defuse.Eval(vec))
 	}
 	return out
@@ -126,7 +131,7 @@ func hasNone(vec vector.Any) bool {
 	case *vector.None:
 		return vec.Len() > 0
 	case *vector.Union:
-		return super.IsOptionType(vec.Type()) && hasNone(vec.Dynamic())
+		return hasNone(vec.Dynamic())
 	case *vector.Option:
 		return hasNone(vec.Any)
 	case *vector.Fusion:

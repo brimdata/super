@@ -208,6 +208,12 @@ func deunion(typ super.Type, bytes scode.Bytes) (super.Type, scode.Bytes) {
 }
 
 func UpcastUnionTag(types []super.Type, out super.Type) int {
+	if k := slices.IndexFunc(types, func(t super.Type) bool {
+		option, ok := t.(*super.TypeOption)
+		return ok && option.Type == out
+	}); k >= 0 {
+		return k
+	}
 	if named, ok := out.(*super.TypeNamed); ok {
 		return slices.IndexFunc(types, func(t super.Type) bool {
 			typ, ok := t.(*super.TypeNamed)
@@ -221,6 +227,7 @@ func UpcastUnionTag(types []super.Type, out super.Type) int {
 	}
 	return slices.IndexFunc(types, func(t super.Type) bool { return !super.IsTypeNamed(t) && t.Kind() == k })
 }
+
 func (u *Upcast) toError(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeError) bool {
 	if errorType, ok := typ.(*super.TypeError); ok {
 		return u.upcast(b, errorType.Type, bytes, to.Type)

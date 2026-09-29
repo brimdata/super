@@ -74,7 +74,12 @@ func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 	case fromType == super.TypeNone:
 		// Casting a none value to a non option type.  Automatically convert
 		// the target type to it's option form.
-		return c.sctx.LookupTypeOption(to).None(), true
+		if _, ok := super.TypeUnder(to).(*super.TypeUnion); !ok {
+			// As in SUP, cannot cast nones directly to a union.  You need
+			// to use an explicit option type.  Instead, a cast to union assumes
+			// you are trying to cast the none to a union with an untyped none.
+			return c.sctx.LookupTypeOption(to).None(), true
+		}
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:
@@ -252,6 +257,9 @@ func (c *cast) toMap(from super.Value, to *super.TypeMap) (super.Value, bool) {
 }
 
 func (c *cast) toUnion(from super.Value, to *super.TypeUnion) (super.Value, bool) {
+	if typ, ok := isNoneish(to.Types); ok && !from.IsNone() {
+		return c.Cast(from, typ)
+	}
 	tag := bestUnionTag(from.Type(), to)
 	if tag < 0 {
 		from2 := from.DeunionIntoNameds()
@@ -264,6 +272,18 @@ func (c *cast) toUnion(from super.Value, to *super.TypeUnion) (super.Value, bool
 	var b scode.Builder
 	super.BuildUnion(&b, tag, from.Bytes())
 	return super.NewValue(to, b.Bytes().Body()), true
+}
+
+func isNoneish(types []super.Type) (super.Type, bool) {
+	if len(types) == 2 {
+		if types[0] == super.TypeNone {
+			return types[1], true
+		}
+		if types[1] == super.TypeNone {
+			return types[0], true
+		}
+	}
+	return nil, false
 }
 
 func (c *cast) toError(from super.Value, to *super.TypeError) (super.Value, bool) {

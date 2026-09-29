@@ -53,41 +53,33 @@ func (f *Fuser) fuse(a, b Type) Type {
 	switch a := a.(type) {
 	case *TypeRecord:
 		if b, ok := b.(*TypeRecord); ok {
-			fields := slices.Clone(a.Fields)
-			// First change all fields to optional that are in "a" but not in "b".
-			for k, field := range fields {
-				if _, ok := indexOfField(b.Fields, field.Name); !ok {
-					fields[k].Type = f.makeOption(fields[k].Type)
-				}
-			}
-			// Now fuse all the fields in "b" that are also in "a" and add the fields
-			// that are in "b" but not in "a" as they appear in "b".
-			for _, field := range b.Fields {
-				i, ok := indexOfField(fields, field.Name)
-				if ok {
-					fields[i].Type = f.fuse(fields[i].Type, field.Type)
+			var fields []Field
+			// Fuse fields in order they appear in the first record type a.
+			// If a field is present in both a and b, the field types are fused.
+			// If present in a but not b, the field is fused with type none.
+			// This is how we recover the absence of a field vs a typed none in
+			// an option-type field (aka optional field)
+			for _, field := range a.Fields {
+				var typ Type
+				if k, ok := b.IndexOfField(field.Name); ok {
+					typ = f.fuse(field.Type, b.Fields[k].Type)
 				} else {
-					typ := f.makeOption(field.Type)
-					fields = append(fields, NewField(field.Name, typ))
+					typ = f.fuse(field.Type, TypeNone)
+
 				}
+				fields = append(fields, NewField(field.Name, typ))
 			}
-			// Any fields that are completely missing from the fused record require
-			// a fusion wrapper so we can recover their missingness without
-			// defusing the parent type.
-			for k, field := range fields {
-				if _, ok := field.Type.(*TypeFusion); ok {
+			// No make sure any fields in b that are not in a are fused with
+			// none and added to the end of the new record type.
+			for _, field := range b.Fields {
+				if a.HasField(field.Name) {
 					continue
 				}
-				if _, ok := indexOfField(a.Fields, field.Name); !ok {
-					fields[k].Type = f.fusion(field.Type)
-					continue
-				}
-				if _, ok := indexOfField(b.Fields, field.Name); !ok {
-					fields[k].Type = f.fusion(field.Type)
-				}
+				typ := f.fuse(field.Type, TypeNone)
+				fields = append(fields, NewField(field.Name, typ))
 			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
-			if recChanged(a, fusedRec) || recChanged(b, fusedRec) {
+			if recChanged(fusedRec, a) || recChanged(fusedRec, b) {
 				return f.fusion(fusedRec)
 			}
 			return fusedRec
@@ -133,10 +125,9 @@ func (f *Fuser) fuse(a, b Type) Type {
 			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
 	case *TypeOption:
-		if o, ok := b.(*TypeOption); ok {
-			b = o.Type
+		if b, ok := b.(*TypeOption); ok {
+			return f.fusion(f.sctx.LookupTypeOption(noFusion(f.fuse(a.Type, b.Type))))
 		}
-		return f.fusion(f.sctx.LookupTypeOption(f.fuse(a.Type, b)))
 	case *TypeNamed:
 		if b, ok := b.(*TypeNamed); ok && a.Name == b.Name {
 			// if we got here without match a=b above, then there are
@@ -154,13 +145,6 @@ func (f *Fuser) fuse(a, b Type) Type {
 	}
 	// Neither a nor b can be an anonymous union at this point.
 	return f.fusion(f.sctx.MustLookupTypeUnion([]Type{a, b}))
-}
-
-func (f *Fuser) makeOption(t Type) Type {
-	if fusion, ok := t.(*TypeFusion); ok {
-		return f.sctx.LookupTypeFusion(f.makeOption(fusion.Type))
-	}
-	return f.sctx.Optionize(t)
 }
 
 func isAll(t Type) bool {
@@ -293,7 +277,7 @@ func recChanged(a, b *TypeRecord) bool {
 	}
 	for k, af := range a.Fields {
 		bf := b.Fields[k]
-		if af.Name != bf.Name || IsOptionType(af.Type) != IsOptionType(bf.Type) {
+		if af.Name != bf.Name {
 			return true
 		}
 	}
