@@ -55,41 +55,28 @@ func (f *Fuser) fuse(a, b Type) Type {
 	switch a := a.(type) {
 	case *TypeRecord:
 		if b, ok := b.(*TypeRecord); ok {
-			fields := slices.Clone(a.Fields)
-			// First change all fields to optional that are in "a" but not in "b".
-			for k, field := range fields {
-				if _, ok := indexOfField(b.Fields, field.Name); !ok {
-					fields[k].Type = f.makeOption(fields[k].Type)
-				}
+			uniq := fieldDiff(a, b)
+			uniq = append(uniq, fieldDiff(b, a)...)
+			var fields []Field
+			// Fuse the common fields
+			for _, name := range fieldIntersect(a, b) {
+				typ := f.fuse(a.Index(name).Type, b.Index(name).Type)
+				fields = append(fields, NewField(name, typ))
 			}
-			// Now fuse all the fields in "b" that are also in "a" and add the fields
-			// that are in "b" but not in "a" as they appear in "b".
-			for _, field := range b.Fields {
-				i, ok := indexOfField(fields, field.Name)
-				if ok {
-					fields[i].Type = f.fuse(fields[i].Type, field.Type)
-				} else {
-					typ := f.makeOption(field.Type)
-					fields = append(fields, NewField(field.Name, typ))
-				}
+			// Now fuse all the fields that are unique with a pure none to
+			// make them optional in the union-sense rather than the option-type sense.
+			// This is how we recover the absence of a field vs a typed none in
+			// an option-type field (aka optional field)
+			for _, name := range fieldDiff(a, b) {
+				typ := f.fuse(a.Index(name).Type, TypeNone)
+				fields = append(fields, NewField(name, typ))
 			}
-			// Any fields that are completely missing from the fused record require
-			// a fusion wrapper so we can recover their missingness without
-			// defusing the parent type.
-			for k, field := range fields {
-				if _, ok := field.Type.(*TypeFusion); ok {
-					continue
-				}
-				if _, ok := indexOfField(a.Fields, field.Name); !ok {
-					fields[k].Type = f.fusion(field.Type)
-					continue
-				}
-				if _, ok := indexOfField(b.Fields, field.Name); !ok {
-					fields[k].Type = f.fusion(field.Type)
-				}
+			for _, name := range fieldDiff(b, a) {
+				typ := f.fuse(b.Index(name).Type, TypeNone)
+				fields = append(fields, NewField(name, typ))
 			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
-			if recChanged(a, fusedRec) || recChanged(b, fusedRec) {
+			if recChanged(a, fusedRec) || recChanged(b, fusedRec) { //XXX update this?
 				return f.fusion(fusedRec)
 			}
 			return fusedRec
@@ -158,6 +145,26 @@ func (f *Fuser) fuse(a, b Type) Type {
 	}
 	// Neither a nor b can be an anonymous union at this point.
 	return f.fusion(f.sctx.MustLookupTypeUnion([]Type{a, b}))
+}
+
+func fieldIntersect(a, b *TypeRecord) []string {
+	var out []string
+	for _, f := range a.Fields {
+		if b.HasField(f.Name) {
+			out = append(out, f.Name)
+		}
+	}
+	return out
+}
+
+func fieldDiff(a, b *TypeRecord) []string {
+	var out []string
+	for _, f := range a.Fields {
+		if !b.HasField(f.Name) {
+			out = append(out, f.Name)
+		}
+	}
+	return out
 }
 
 func (f *Fuser) makeOption(t Type) Type {
