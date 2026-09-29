@@ -20,7 +20,6 @@ type Test struct {
 	Head      bool
 	Line      int
 	GoExample string
-	Runtime   string // "sam", "vam", or "" for both
 
 	// For SPQ tests
 	Input  string
