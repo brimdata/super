@@ -56,7 +56,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 
 func (c *Command) SetLeafFlags(f *flag.FlagSet) {
 	c.outputFlags.SetFlags(f)
-	c.inputFlags.SetFlags(f, false)
+	c.inputFlags.SetFlags(f)
 	c.queryFlags.SetFlags(f)
 	c.runtimeFlags.SetFlags(f)
 	f.BoolVar(&c.canon, "C", false, "display parsed AST in a textual format")

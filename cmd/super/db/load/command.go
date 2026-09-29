@@ -59,7 +59,7 @@ type Command struct {
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*db.Command)}
 	c.commitFlags.SetFlags(f)
-	c.inputFlags.SetFlags(f, true)
+	c.inputFlags.SetFlags(f)
 	c.poolFlags.SetFlags(f)
 	c.runtimeFlags.SetFlags(f)
 	return c, nil

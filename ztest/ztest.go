@@ -460,7 +460,7 @@ func (z *ZTest) runInternal(ctx context.Context) (string, error) {
 	var fs flag.FlagSet
 	var inflags inputflags.Flags
 	var outflags outputflags.Flags
-	inflags.SetFlags(&fs, true)
+	inflags.SetFlags(&fs)
 	outflags.SetFlags(&fs)
 	if err := fs.Parse(args); err != nil {
 		return "", err
