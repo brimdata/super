@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/bsup"
 	"github.com/brimdata/super/bsup/rows"
-	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/runtime/expr"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/dbio"

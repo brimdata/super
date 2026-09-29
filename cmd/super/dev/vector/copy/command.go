@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/cmd/super/dev/vector"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector/vio"
@@ -68,7 +68,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	sctx := super.NewContext()
-	puller := vam.NewProjection(sctx, object, nil)
+	puller := runtime.NewProjection(sctx, object, nil)
 	if err := vio.Copy(writer, sbuf.NewDematerializer(sctx, puller)); err != nil {
 		writer.Close()
 		return err

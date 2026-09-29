@@ -14,9 +14,9 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
+	"github.com/brimdata/super/runtime/expr/agg"
+	"github.com/brimdata/super/runtime/expr/function"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/vam/expr/agg"
-	"github.com/brimdata/super/runtime/vam/expr/function"
 	"github.com/brimdata/super/sup"
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )

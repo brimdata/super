@@ -1,0 +1,58 @@
+package op
+
+import (
+	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/expr"
+	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
+)
+
+type Values struct {
+	sctx   *super.Context
+	parent vio.Puller
+	exprs  []expr.Evaluator
+}
+
+var _ vio.Puller = (*Values)(nil)
+
+func NewValues(sctx *super.Context, parent vio.Puller, exprs []expr.Evaluator) *Values {
+	return &Values{
+		sctx:   sctx,
+		parent: parent,
+		exprs:  exprs,
+	}
+}
+
+func (v *Values) Pull(done bool) (vector.Any, error) {
+	for {
+		val, err := v.parent.Pull(done)
+		if val == nil {
+			return nil, err
+		}
+		vals := make([]vector.Any, 0, len(v.exprs))
+		for _, e := range v.exprs {
+			vals = append(vals, e.Eval(val))
+		}
+		if len(vals) == 1 {
+			return vals[0], nil
+		} else if len(vals) != 0 {
+			return interleave(vals), nil
+		}
+		// If no vals, continue the loop.
+	}
+}
+
+// XXX should work for vector.Dynamic
+func interleave(vals []vector.Any) vector.Any {
+	if len(vals) < 2 {
+		panic("interleave requires two or more vals")
+	}
+	n := vals[0].Len()
+	nvals := uint32(len(vals))
+	tags := make([]uint32, n*nvals)
+	for k := uint32(0); k < n*nvals; k++ {
+		tags[k] = k % nvals
+
+	}
+	return vector.NewDynamic(tags, vals)
+}

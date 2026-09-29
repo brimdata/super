@@ -5,8 +5,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/runtime/expr"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )

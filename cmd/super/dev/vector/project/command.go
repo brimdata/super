@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector/vio"
@@ -72,7 +72,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer object.Close()
 	sctx := super.NewContext()
-	projection := vam.NewProjection(sctx, object, paths)
+	projection := runtime.NewProjection(sctx, object, paths)
 	writer, err := c.outputFlags.Open(ctx, local)
 	if err != nil {
 		return err
