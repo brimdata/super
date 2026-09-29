@@ -133,10 +133,11 @@ func (f *Fuser) fuse(a, b Type) Type {
 			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
 	case *TypeOption:
-		if o, ok := b.(*TypeOption); ok {
-			b = o.Type
-		}
-		return f.fusion(f.sctx.LookupTypeOption(f.fuse(a.Type, b)))
+		a = f.sctx.LookupTypeOption(f.fuseInternal(a.Type))
+		//if o, ok := b.(*TypeOption); ok {
+		//	b = o.Type
+		//}
+		//return f.fusion(f.sctx.LookupTypeOption(f.fuse(a.Type, b)))
 	case *TypeNamed:
 		if b, ok := b.(*TypeNamed); ok && a.Name == b.Name {
 			// if we got here without match a=b above, then there are
