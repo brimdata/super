@@ -24,13 +24,17 @@ func (f *Fuser) Fuse(t Type) {
 		return
 	}
 	f.types[t] = struct{}{}
+	//was := t
 	t = f.fuseInternal(t)
 	if f.typ == nil {
 		f.typ = t
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
+	//Debug("FUSE", was, "=>", t, "NOW", f.typ)
 }
+
+var Debug func(...any)
 
 // Type returns the computed supertype.
 func (f *Fuser) Type() Type {
@@ -133,7 +137,21 @@ func (f *Fuser) fuse(a, b Type) Type {
 			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
 	case *TypeOption:
-		a = f.sctx.LookupTypeOption(f.fuseInternal(a.Type))
+		if a.Type == b {
+			return a
+		}
+		if _, ok := b.(*TypeOption); ok {
+			return f.fusion(f.sctx.MustLookupTypeUnion([]Type{a, b}))
+		}
+		//if o, ok := b.(*TypeOption); ok {
+		//	b = o.Type
+		//}
+		//inner := f.fuseInternal(a.Type)
+		//if option, ok := noFusion(inner).(*TypeOption); ok {
+		//	a = option
+		//} else {
+		//	a = f.sctx.LookupTypeOption(inner)
+		//}
 		//if o, ok := b.(*TypeOption); ok {
 		//	b = o.Type
 		//}
@@ -203,7 +221,12 @@ func (f *Fuser) fuseInternal(typ Type) Type {
 			out = f.sctx.MustLookupTypeUnion(Flatten(types))
 		}
 	case *TypeOption:
-		out = f.sctx.LookupTypeOption(f.fuseInternal(typ.Type))
+		inner := f.fuseInternal(typ.Type)
+		if option, ok := noFusion(inner).(*TypeOption); ok {
+			out = option
+		} else {
+			out = f.sctx.LookupTypeOption(inner)
+		}
 	case *TypeEnum:
 		return typ
 	case *TypeError:
@@ -228,6 +251,15 @@ func (f *Fuser) fuseIntoUnionTypes(types []Type, typ Type) []Type {
 			types = f.fuseIntoUnionTypes(types, t)
 		}
 		return types
+	case *TypeOption:
+		if k := slices.Index(types, typ.Type); k >= 0 {
+			types[k] = typ
+			return types
+		}
+		if slices.Contains(types, Type(typ)) {
+			return types
+		}
+		return append(types, typ)
 	case *TypeFusion:
 		return f.fuseIntoUnionTypes(types, typ.Type)
 	}

@@ -25,7 +25,7 @@ input: |
   {fixed:{x:5},var:{s:"foo",t:{x:1}}}
 
 output: |
-  <{fixed:{x:int64},var:fusion({s:string,a:fusion(option([int64])),t:fusion(option(fusion(int64|{x:int64})))})}>
+  <{fixed:{x:int64},var:fusion({s:string,a:fusion(option([int64])),t:fusion({x:int64}|option(int64))})}>
 
 ---
 
