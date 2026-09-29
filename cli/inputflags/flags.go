@@ -13,7 +13,7 @@ type Flags struct {
 	Static     bool
 }
 
-func (f *Flags) SetFlags(fs *flag.FlagSet, validate bool) {
+func (f *Flags) SetFlags(fs *flag.FlagSet) {
 	opts := &f.ReaderOpts
 	opts.CSV.Delim = ','
 	fs.Func("csv.delim", `CSV field delimiter (default ",")`, func(s string) error {
