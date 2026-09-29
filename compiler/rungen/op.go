@@ -14,14 +14,14 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/sam/expr"
+	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/infer"
 	"github.com/brimdata/super/runtime/sam/op/load"
 	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/runtime/sam/op/top"
 	"github.com/brimdata/super/runtime/sam/op/uniq"
-	vamexpr "github.com/brimdata/super/runtime/vam/expr"
-	vamop "github.com/brimdata/super/runtime/vam/op"
+	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
@@ -36,11 +36,11 @@ type Builder struct {
 	mapper          *super.TypeDefsMapper
 	env             *exec.Environment
 	progress        *vio.Progress
-	debugs          *vamop.DebugChans
+	debugs          *op.DebugChans
 	channels        map[string][]vio.Puller
 	deletes         *sync.Map
 	funcs           map[string]*dag.FuncDef
-	compiledVamUDFs map[string]*vamexpr.UDF
+	compiledVamUDFs map[string]*expr.UDF
 }
 
 func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
@@ -54,15 +54,15 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 			RecordsRead:    0,
 			RecordsMatched: 0,
 		},
-		debugs:          vamop.NewDebugChans(),
+		debugs:          op.NewDebugChans(),
 		channels:        make(map[string][]vio.Puller),
 		funcs:           make(map[string]*dag.FuncDef),
-		compiledVamUDFs: make(map[string]*vamexpr.UDF),
+		compiledVamUDFs: make(map[string]*expr.UDF),
 	}
 }
 
 // Build builds a flowgraph for main.
-func (b *Builder) Build(main *dag.Main) (map[string]vio.Puller, *vamop.DebugChans, error) {
+func (b *Builder) Build(main *dag.Main) (map[string]vio.Puller, *op.DebugChans, error) {
 	if !isEntry(main.Body, true) {
 		return nil, nil, errors.New("internal error: DAG entry point is not a data source")
 	}
@@ -98,7 +98,7 @@ func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KS
 	}
 	cache := b.env.DB().VectorCache()
 	project, _ := optimizer.FieldsOf(filter)
-	search, err := vamop.NewSearcher(b.rctx, cache, l, pool, e, project)
+	search, err := op.NewSearcher(b.rctx, cache, l, pool, e, project)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	// Scanners in alphatbetical order.
 	//
 	case *dag.CommitMetaScan:
-		var pruner expr.Evaluator
+		var pruner samexpr.Evaluator
 		if v.Tap && v.KeyPruner != nil {
 			var err error
 			pruner, err = compileExpr(v.KeyPruner)
@@ -153,7 +153,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		var pruner expr.Evaluator
+		var pruner samexpr.Evaluator
 		if v.KeyPruner != nil {
 			pruner, err = compileExpr(v.KeyPruner)
 			if err != nil {
@@ -176,7 +176,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		var pruner expr.Evaluator
+		var pruner samexpr.Evaluator
 		if v.KeyPruner != nil {
 			pruner, err = compileExpr(v.KeyPruner)
 			if err != nil {
@@ -200,7 +200,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		var pruner expr.Evaluator
+		var pruner samexpr.Evaluator
 		if v.KeyPruner != nil {
 			pruner, err = compileExpr(v.KeyPruner)
 			if err != nil {
@@ -228,8 +228,8 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	}
 }
 
-func (b *Builder) compileAssignmentsToLvals(assignments []dag.Assignment) ([]*expr.Lval, []*expr.Lval, error) {
-	var srcs, dsts []*expr.Lval
+func (b *Builder) compileAssignmentsToLvals(assignments []dag.Assignment) ([]*samexpr.Lval, []*samexpr.Lval, error) {
+	var srcs, dsts []*samexpr.Lval
 	for _, a := range assignments {
 		src, err := b.compileLval(a.RHS)
 		if err != nil {
@@ -316,7 +316,7 @@ func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
 	return vector.ValueAt(nil, vec, 0), nil
 }
 
-func compileExpr(in dag.Expr) (expr.Evaluator, error) {
+func compileExpr(in dag.Expr) (samexpr.Evaluator, error) {
 	b := NewBuilder(runtime.NewContext(context.Background(), super.NewContext()), nil)
 	return b.compileExpr(in)
 }
