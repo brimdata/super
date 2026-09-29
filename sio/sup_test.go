@@ -30,11 +30,7 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	in := []byte(strings.TrimSpace(logs) + "\n")
 	supSrc := supio.NewReader(super.NewContext(), bytes.NewReader(in))
 	var rawBSUP Output
-	//XXX rows
-	rawDst := rows.NewWriterWithOpts(&rawBSUP, rows.WriterOpts{
-		Compress:    compress,
-		FrameThresh: rows.DefaultFrameThresh,
-	})
+	rawDst := rows.NewWriter(&rawBSUP)
 	require.NoError(t, sio.Copy(rawDst, supSrc))
 	require.NoError(t, rawDst.Close())
 

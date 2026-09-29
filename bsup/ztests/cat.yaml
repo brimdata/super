@@ -1,0 +1,56 @@
+# mix together columns and rows bsup files with cat
+
+script: |
+  super -o a-cols.bsup a.sup
+  super -o a-rows.bsup -rows a.sup
+  super -o b-cols.bsup b.sup
+  super -o b-rows.bsup -rows b.sup
+  cat a-cols.bsup b-rows.bsup a-rows.bsup b-cols.bsup > all.bsup
+  super -s all.bsup
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:1}
+      {a:"foo"}
+  - name: b.sup
+    data: |
+      {b:2}
+      {b:"bar"}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1}
+      {a:"foo"}
+      {b:2}
+      {b:"bar"}
+      {a:1}
+      {a:"foo"}
+      {b:2}
+      {b:"bar"}
+
+---
+
+# verify that container fuser fuses the super frame fused types
+
+script: |
+  super -o a-cols.bsup a.sup
+  super -o b-rows.bsup -rows b.sup
+  cat a-cols.bsup b-rows.bsup > both.bsup
+  super dev bsup -s -fused both.bsup
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:1}
+      {a:"foo"}
+  - name: b.sup
+    data: |
+      {b:2}
+      {b:"bar"}
+
+outputs:
+  - name: stdout
+    data: |
+      <{b:fusion(int64|string|none),a:fusion(int64|string|none)}>

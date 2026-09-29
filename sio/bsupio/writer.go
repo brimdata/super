@@ -7,9 +7,8 @@ import (
 	"github.com/superdb/super/bsup/rows"
 )
 
-// NewSerializer returns a new BSUP serializer that outputs to w.
-func NewSerializer(w io.WriteCloser) *bsup.Serializer {
-	return bsup.NewSerializer(w)
+func NewColumnWriter(w io.WriteCloser) *bsup.ColumnWriter {
+	return bsup.NewColumnWriter(w)
 }
 
 // XXX RowWriter provides a wrapper to the old BSUP format encapsulated by

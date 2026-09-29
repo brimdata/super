@@ -24,25 +24,21 @@ import (
 type WriterOpts struct {
 	Format    string
 	SUPFusion bool
-	//XXX rows: merge into BSUP
-	BSUP *rows.WriterOpts // Nil means use defaults via rows.NewWriter.
-	CSV  csvio.WriterOpts
-	DB   dbio.WriterOpts
-	JSON jsonio.WriterOpts
-	SUP  supio.WriterOpts
+	BSUP      bsup.WriterOpts
+	CSV       csvio.WriterOpts
+	DB        dbio.WriterOpts
+	JSON      jsonio.WriterOpts
+	SUP       supio.WriterOpts
 }
 
 func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
 	switch opts.Format {
 	case "arrows":
 		return newDefuser(arrowio.NewWriter(w)), nil
-	case "bsuprows": // this will change to use -rows flag, e.g., -f bsup -rows
-		if opts.BSUP == nil {
-			return rows.NewWriter(w), nil
-		}
-		return rows.NewWriterWithOpts(w, *opts.BSUP), nil
+	case "bsuprows": // XXX this will change to use -rows flag, e.g., -f bsup -rows
+		return rows.NewWriter(w), nil
 	case "bsup":
-		return bsup.NewSerializer(w), nil
+		return bsup.NewWriterWithOpts(w, opts.BSUP), nil
 	case "csv":
 		return newDefuser(csvio.NewWriter(w, opts.CSV)), nil
 	case "db":

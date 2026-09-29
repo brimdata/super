@@ -28,7 +28,7 @@ func TestDivergentUnions(t *testing.T) {
 	u2 := vector.NewUnion(utype, tags2, vecs2)
 
 	var buf bytes.Buffer
-	w := bsup.NewSerializer(sio.NopCloser(&buf))
+	w := bsup.NewColumnWriter(sio.NopCloser(&buf))
 	w.Push(u1)
 	w.Push(u2)
 	require.NoError(t, w.Close())

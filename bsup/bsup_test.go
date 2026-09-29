@@ -46,7 +46,7 @@ func roundtrip(t *testing.T, sctx *super.Context, valuesIn []super.Value) {
 
 func TestBSUPBatchBug(t *testing.T) {
 	var b bytes.Buffer
-	w := bsup.NewSerializer(sio.NopCloser(&b))
+	w := bsup.NewColumnWriter(sio.NopCloser(&b))
 	sctx := super.NewContext()
 	v1, err := sup.ParseValue(sctx, `{a: [1,2,3]}`)
 	require.NoError(t, err)

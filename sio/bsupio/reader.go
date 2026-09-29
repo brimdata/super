@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"io"
-	"math"
+	"runtime"
+	"sync"
 	"sync/atomic"
 
 	"github.com/superdb/super"
@@ -23,11 +24,12 @@ type Reader struct {
 	sctx *super.Context
 
 	activeReaders *atomic.Int64
-	stream        *stream
+	ch            chan result
+	container     *bsup.Container
+	once          sync.Once
 	pushdown      sbuf.Pushdown
 	metaFilters   []*metafilter
 	readerAt      io.ReaderAt
-	hasClosed     bool
 	vecs          [][]vector.Any
 }
 
@@ -67,7 +69,7 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 		ctx:           ctx,
 		sctx:          sctx,
 		activeReaders: activeReaders,
-		stream:        &stream{ctx: ctx, r: ra},
+		container:     bsup.NewContainer(sctx, ra),
 		pushdown:      p,
 		metaFilters:   metaFilters,
 		readerAt:      ra,
@@ -98,42 +100,87 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 			r.vecs[n] = r.vecs[n][:k-1]
 			return vec, nil
 		}
-		hdr, off, err := r.stream.next()
-		if hdr == nil || err != nil {
+		reader, err := r.next()
+		if reader == nil || err != nil {
 			return nil, err
 		}
-		o, err := bsup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
-		if err != nil {
-			return nil, err
-		}
-		// XXX using the query context for the metadata filter unnecessarily
-		// pollutes the type context.  We should use the BSUP local context for
-		// this filtering but this will require a little compiler refactoring to be
-		// able to build runtime expressions that use different type contexts.
-		if len(r.metaFilters) > 0 && pruneObject(r.sctx, r.metaFilters[n], o) {
-			continue
-		}
-		vo := vcache.NewObjectFromBSUP(o)
-		var proj field.Projection
-		if r.pushdown != nil {
-			proj = r.pushdown.Projection()
-		}
-		if r.pushdown != nil && r.pushdown.Unordered() {
-			r.vecs[n], err = vo.FetchUnordered(r.vecs[n][:0], r.sctx, proj)
-			if err != nil {
-				return nil, err
+		switch reader := reader.(type) {
+		case *bsup.ColumnReader:
+			// XXX using the query context for the metadata filter unnecessarily
+			// pollutes the type context.  We should use the BSUP local context for
+			// this filtering but this will require a little compiler refactoring to be
+			// able to build runtime expressions that use different type contexts.
+			if len(r.metaFilters) > 0 && pruneObject(r.sctx, r.metaFilters[n], reader) {
+				continue
 			}
-		} else {
-			vec, err := vo.Fetch(r.sctx, proj)
+			vo := vcache.NewReader(reader)
+			var proj field.Projection
+			if r.pushdown != nil {
+				proj = r.pushdown.Projection()
+			}
+			if r.pushdown != nil && r.pushdown.Unordered() {
+				r.vecs[n], err = vo.FetchUnordered(r.vecs[n][:0], r.sctx, proj)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				vec, err := vo.Fetch(r.sctx, proj)
+				if err != nil {
+					return nil, err
+				}
+				r.vecs[n] = append(r.vecs[n], vec)
+			}
+		case *bsup.RowReader:
+			vec, err := reader.Pull()
 			if err != nil {
 				return nil, err
 			}
 			r.vecs[n] = append(r.vecs[n], vec)
+		default:
+			panic(reader)
 		}
+
 	}
 }
 
-func pruneObject(sctx *super.Context, mf *metafilter, o *bsup.Object) bool {
+type result struct {
+	reader bsup.FrameReader
+	err    error
+}
+
+func (r *Reader) next() (bsup.FrameReader, error) {
+	r.once.Do(func() {
+		r.ch = make(chan result, runtime.GOMAXPROCS(0))
+		go func() {
+			for {
+				reader, err := r.container.Next()
+				select {
+				case r.ch <- result{reader, err}:
+				case <-r.ctx.Done():
+					return
+				}
+				if err != nil {
+					close(r.ch)
+					break
+				}
+			}
+		}()
+	})
+	select {
+	case r, ok := <-r.ch:
+		if !ok || r.err != nil {
+			if r.err == io.EOF {
+				return nil, nil
+			}
+			return nil, r.err
+		}
+		return r.reader, nil
+	case <-r.ctx.Done():
+		return nil, r.ctx.Err()
+	}
+}
+
+func pruneObject(sctx *super.Context, mf *metafilter, o *bsup.ColumnReader) bool {
 	vals := o.ProjectMetadata(sctx, mf.projection)
 	for _, val := range vals {
 		if !mf.filter.Eval(val).Equal(super.False) {
@@ -144,7 +191,7 @@ func pruneObject(sctx *super.Context, mf *metafilter, o *bsup.Object) bool {
 }
 
 func (r *Reader) Type() (super.Type, error) {
-	return bsup.FusedType(r.sctx, r.readerAt)
+	return r.container.FusedType(r.sctx)
 }
 
 type RowReader struct {
