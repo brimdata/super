@@ -1,4 +1,4 @@
-package infer
+package op
 
 import (
 	"net/netip"

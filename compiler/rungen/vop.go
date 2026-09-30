@@ -256,6 +256,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), o.URL, o.Format, o.Method, o.Headers, body, nil)
 	case *dag.HeadOp:
 		return op.NewHead(parent, o.Count), nil
+	case *dag.InferOp:
+		return op.NewInfer(b.rctx, parent, o.Limit), nil
 	case *dag.OutputOp:
 		b.channels[o.Name] = append(b.channels[o.Name], parent)
 		return parent, nil
