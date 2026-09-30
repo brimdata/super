@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/runtime/expr/function"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/compiler/semantic/sem"
+	"github.com/superdb/super/runtime/expr/function"
 )
 
 type funcParamLambda struct {

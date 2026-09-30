@@ -5,12 +5,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/brimdata/super/pkg/bufwriter"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/pkg/terminal"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/pkg/bufwriter"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/pkg/terminal"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
+	"github.com/superdb/super/vector/vio"
 )
 
 func NewFileFromPath(ctx context.Context, engine storage.Engine, path string, unbuffered bool, opts anyio.WriterOpts) (vio.PushCloser, error) {

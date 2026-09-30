@@ -9,9 +9,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/scode"
 	"golang.org/x/text/unicode/norm"
 )
 

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsupbytes"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/pkg/nano"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsupbytes"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/pkg/nano"
 )
 
 var ErrEmptyTransaction = errors.New("empty transaction")

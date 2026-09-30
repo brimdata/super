@@ -3,8 +3,8 @@ package vector
 import (
 	"net/netip"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
 )
 
 type IP struct {

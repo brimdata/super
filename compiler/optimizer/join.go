@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/brimdata/super/compiler/dag"
+	"github.com/superdb/super/compiler/dag"
 )
 
 func liftFiltersIntoJoins(seq dag.Seq) dag.Seq {

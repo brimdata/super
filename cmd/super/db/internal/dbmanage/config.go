@@ -3,7 +3,7 @@ package dbmanage
 import (
 	"time"
 
-	"github.com/brimdata/super/db/pools"
+	"github.com/superdb/super/db/pools"
 )
 
 const DefaultInterval = time.Minute

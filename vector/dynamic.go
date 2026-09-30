@@ -3,8 +3,8 @@ package vector
 import (
 	"sync/atomic"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
 )
 
 // Dynamic is an ordered sequence of values taken from one or more

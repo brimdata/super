@@ -1,11 +1,11 @@
 package op
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vbuild"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vbuild"
+	"github.com/superdb/super/vector/vio"
 )
 
 type cachedSubquery struct {

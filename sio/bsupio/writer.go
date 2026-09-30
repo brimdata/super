@@ -3,8 +3,8 @@ package bsupio
 import (
 	"io"
 
-	"github.com/brimdata/super/bsup"
-	"github.com/brimdata/super/bsup/rows"
+	"github.com/superdb/super/bsup"
+	"github.com/superdb/super/bsup/rows"
 )
 
 // NewSerializer returns a new BSUP serializer that outputs to w.

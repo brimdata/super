@@ -1,12 +1,12 @@
 package op
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr"
-	"github.com/brimdata/super/runtime/expr/function"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr"
+	"github.com/superdb/super/runtime/expr/function"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Fuse struct {

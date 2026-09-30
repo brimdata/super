@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/brimdata/super/pkg/charm"
+	"github.com/superdb/super/pkg/charm"
 )
 
 var Logout = &charm.Spec{

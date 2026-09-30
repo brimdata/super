@@ -3,12 +3,12 @@ package exec
 import (
 	"context"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/db/commits"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/runtime/sam/expr/extent"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/db/commits"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/runtime/sam/expr/extent"
 )
 
 // XXX for backward compat keep this for now, and return branchstats for pool/main

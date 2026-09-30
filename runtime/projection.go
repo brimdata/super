@@ -1,12 +1,12 @@
 package runtime
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime/vcache"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime/vcache"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Projection struct {

@@ -4,10 +4,10 @@ import (
 	"flag"
 	"time"
 
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/pkg/storage/cache"
 	"github.com/go-redis/redis/v8"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/pkg/storage/cache"
 )
 
 type Flags struct {

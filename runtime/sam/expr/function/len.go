@@ -1,7 +1,7 @@
 package function
 
 import (
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 func TypeLength(typ super.Type) int {

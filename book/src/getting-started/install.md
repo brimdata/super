@@ -7,7 +7,7 @@ SuperDB's new query language for super-structured data.
 
 Several options for installation are available:
 * download and install pre-built binaries via links on the
-  [GitHub Releases page](https://github.com/brimdata/super/releases),
+  [GitHub Releases page](https://github.com/superdb/super/releases),
 * automatically install a pre-built binary for a Mac or Linux environment
   with [Homebrew](#homebrew), or
 * [build from source code](#building-from-source).
@@ -28,7 +28,7 @@ brew install super
 With Go installed, you can easily build `super` from source:
 
 ```bash
-go install github.com/brimdata/super/cmd/super@main
+go install github.com/superdb/super/cmd/super@main
 ```
 
 This installs the `super` binary in your `$GOPATH/bin`.

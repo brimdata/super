@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	"github.com/brimdata/super/sio/anyio"
+	"github.com/superdb/super/sio/anyio"
 )
 
 type Flags struct {

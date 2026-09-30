@@ -3,16 +3,16 @@ package data_test
 import (
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/sup"
 )
 
 func TestDataReaderWriterVector(t *testing.T) {

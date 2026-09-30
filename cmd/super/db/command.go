@@ -5,16 +5,16 @@ import (
 	"flag"
 	"os"
 
-	"github.com/brimdata/super/cli/dbflags"
-	"github.com/brimdata/super/cli/outputflags"
-	"github.com/brimdata/super/cli/queryflags"
-	"github.com/brimdata/super/cli/runtimeflags"
-	"github.com/brimdata/super/cmd/super/root"
-	"github.com/brimdata/super/pkg/charm"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/cli/dbflags"
+	"github.com/superdb/super/cli/outputflags"
+	"github.com/superdb/super/cli/queryflags"
+	"github.com/superdb/super/cli/runtimeflags"
+	"github.com/superdb/super/cmd/super/root"
+	"github.com/superdb/super/pkg/charm"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/supio"
+	"github.com/superdb/super/vector/vio"
 )
 
 var Spec = &charm.Spec{

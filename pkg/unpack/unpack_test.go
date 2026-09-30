@@ -3,9 +3,9 @@ package unpack_test
 import (
 	"testing"
 
-	"github.com/brimdata/super/pkg/unpack"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/pkg/unpack"
 )
 
 type Expr any

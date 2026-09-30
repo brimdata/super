@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"regexp/syntax"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 // Boolean is a function that takes a Value and returns a boolean result

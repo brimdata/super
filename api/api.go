@@ -3,12 +3,12 @@ package api
 import (
 	"context"
 
-	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/compiler/srcfiles"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/vector/vio"
 )
 
 const RequestIDHeader = "X-Request-ID"

@@ -12,16 +12,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/compiler"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/superdb/super"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/compiler"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/runtime"
 	"go.uber.org/zap"
 )
 

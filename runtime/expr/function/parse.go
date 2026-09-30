@@ -3,12 +3,12 @@ package function
 import (
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr"
-	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr"
+	samfunc "github.com/superdb/super/runtime/sam/expr/function"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sio/supio"
+	"github.com/superdb/super/vector"
 )
 
 type ParseURI struct {

@@ -3,8 +3,8 @@ package reglob_test
 import (
 	"testing"
 
-	"github.com/brimdata/super/pkg/reglob"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/pkg/reglob"
 )
 
 func TestReglob(t *testing.T) {

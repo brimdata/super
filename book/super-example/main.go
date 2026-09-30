@@ -13,14 +13,14 @@ import (
 	"strings"
 	"syscall/js"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler"
-	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler"
+	"github.com/superdb/super/compiler/parser"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
+	"github.com/superdb/super/vector/vio"
 	"github.com/teamortix/golang-wasm/wasm"
 )
 

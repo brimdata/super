@@ -1,7 +1,7 @@
 package sbuf
 
 import (
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 func Label(label string, batch Batch) Batch {

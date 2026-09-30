@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/brimdata/super/pkg/terminal"
 	"github.com/kr/text"
+	"github.com/superdb/super/pkg/terminal"
 )
 
 // splitFlags is like strings.Split with a comma and also trims whitespace

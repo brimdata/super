@@ -3,8 +3,8 @@ package nano_test
 import (
 	"testing"
 
-	"github.com/brimdata/super/pkg/nano"
 	"github.com/stretchr/testify/assert"
+	"github.com/superdb/super/pkg/nano"
 )
 
 func TestSubSpan(t *testing.T) {

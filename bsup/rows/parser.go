@@ -6,9 +6,9 @@ import (
 	"io"
 	"slices"
 
-	"github.com/brimdata/super/pkg/peeker"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super/pkg/peeker"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
 )
 
 var errBadFormat = errors.New("malformed bsup-rows value")

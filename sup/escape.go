@@ -23,7 +23,7 @@ const hexdigits = "0123456789abcdef"
 
 // QuotedString quotes and escapes a SUP string for serialization in accordance
 // with the SUP spec.  It was copied and modified
-// [with attribution](https://github.com/brimdata/super/blob/main/acknowledgments.txt)
+// [with attribution](https://github.com/superdb/super/blob/main/acknowledgments.txt)
 // from the encoding/json package in the Go source code.
 func QuotedString(s string) string {
 	var b strings.Builder
@@ -91,7 +91,7 @@ func Unhex(b byte) byte {
 // All values are true except for the ASCII control characters (0-31), the
 // double quote ("), and the backslash character ("\").
 //
-// This code was copied [with attribution](https://github.com/brimdata/super/blob/main/acknowledgments.txt)
+// This code was copied [with attribution](https://github.com/superdb/super/blob/main/acknowledgments.txt)
 // from the encoding/json package in the Go source code.
 var safeSet = [utf8.RuneSelf]bool{
 	' ':      true,

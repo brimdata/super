@@ -8,16 +8,16 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup/rows"
-	"github.com/brimdata/super/cli/outputflags"
-	"github.com/brimdata/super/cmd/super/dev/bsuprows"
-	"github.com/brimdata/super/pkg/charm"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup/rows"
+	"github.com/superdb/super/cli/outputflags"
+	"github.com/superdb/super/cmd/super/dev/bsuprows"
+	"github.com/superdb/super/pkg/charm"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/vector/vio"
 )
 
 var Frames = &charm.Spec{

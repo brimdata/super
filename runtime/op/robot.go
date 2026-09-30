@@ -1,13 +1,13 @@
 package op
 
 import (
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/exec"
+	"github.com/superdb/super/runtime/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Robot struct {

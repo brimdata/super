@@ -10,7 +10,7 @@ enable = true
 [output.html]
 additional-css = ["super-example/super-example.css", "copy-button/copy-button.css", "admonitions/admonitions.css", "trademark/trademark.css"]
 additional-js = ["super-example.bundle.js", "copy-button/copy-button.js"]
-git-repository-url = "https://github.com/brimdata/super/tree/main/book"
+git-repository-url = "https://github.com/superdb/super/tree/main/book"
 no-section-label = true
 
 [output.html.playground]

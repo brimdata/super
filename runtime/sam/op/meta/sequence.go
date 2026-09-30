@@ -5,16 +5,16 @@ import (
 	"errors"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op/merge"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/op/merge"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 // SequenceScanner implements an op that pulls metadata partitions to scan

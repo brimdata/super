@@ -5,10 +5,10 @@ import (
 	"slices"
 	"unicode/utf8"
 
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/sup"
 )
 
 func maybeNewRangePruner(pred dag.Expr, sortKeys order.SortKeys) dag.Expr {

@@ -3,14 +3,14 @@ package sort
 import (
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/runtime/sam/op/spill"
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/op"
+	"github.com/superdb/super/runtime/sam/op/spill"
+	"github.com/superdb/super/sbuf"
 )
 
 // MemMaxBytes specifies the maximum amount of memory that each sort proc

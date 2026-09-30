@@ -3,7 +3,7 @@ package agg
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type fuse struct {

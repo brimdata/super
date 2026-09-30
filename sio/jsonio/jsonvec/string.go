@@ -1,7 +1,7 @@
 package jsonvec
 
 import (
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 	"golang.org/x/text/unicode/norm"
 )
 

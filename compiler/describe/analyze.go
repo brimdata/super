@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/optimizer"
-	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/compiler/semantic"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime/exec"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/compiler/optimizer"
+	"github.com/superdb/super/compiler/parser"
+	"github.com/superdb/super/compiler/semantic"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime/exec"
 )
 
 type Info struct {

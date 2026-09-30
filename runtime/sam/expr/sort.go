@@ -8,9 +8,9 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/sio"
 )
 
 type SortExpr struct {

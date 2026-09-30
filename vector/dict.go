@@ -1,7 +1,7 @@
 package vector
 
 import (
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super/scode"
 )
 
 type Dict struct {

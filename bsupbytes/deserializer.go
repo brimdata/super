@@ -3,8 +3,8 @@ package bsupbytes
 import (
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio/bsupio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio/bsupio"
 )
 
 type Deserializer struct {

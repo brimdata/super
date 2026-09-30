@@ -3,9 +3,9 @@ package super_test
 import (
 	"testing"
 
-	"github.com/brimdata/super"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
 )
 
 func TestContextLookupByValueAndLookupTypeValue(t *testing.T) {

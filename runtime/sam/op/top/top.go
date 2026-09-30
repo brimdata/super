@@ -3,10 +3,10 @@ package top
 import (
 	"container/heap"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op/sort"
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/op/sort"
+	"github.com/superdb/super/sbuf"
 )
 
 // Top produces the first N values that sort would produce with the same arguments.

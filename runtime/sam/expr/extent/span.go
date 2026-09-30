@@ -3,10 +3,10 @@ package extent
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sup"
 )
 
 // For now, we do slow-path stuff here but the interface will allow us

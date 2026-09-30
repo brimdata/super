@@ -5,16 +5,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op/merge"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/op/merge"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/supio"
 )
 
 var omTestInputs = []string{

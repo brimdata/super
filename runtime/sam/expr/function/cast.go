@@ -4,10 +4,10 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sup"
 )
 
 type Caster interface {

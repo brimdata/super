@@ -17,12 +17,12 @@ import (
 	"github.com/apache/arrow-go/v18/arrow/float16"
 	"github.com/apache/arrow-go/v18/arrow/ipc"
 	"github.com/apache/arrow-go/v18/arrow/memory"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
 )
 
 var (

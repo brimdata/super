@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sup"
 )
 
 func FormatValues(vec Any) string {

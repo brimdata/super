@@ -1,7 +1,7 @@
 package vector
 
 import (
-	"github.com/brimdata/super/vector/bitvec"
+	"github.com/superdb/super/vector/bitvec"
 )
 
 // Pick takes any vector vec and an index and returns a new vector consisting of the

@@ -3,11 +3,11 @@ package runtime
 import (
 	"context"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/dbid"
-	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/parser"
+	"github.com/superdb/super/dbid"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Compiler interface {

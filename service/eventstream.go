@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
 )
 
 type event struct {

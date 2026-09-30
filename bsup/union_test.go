@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/vector"
 )
 
 func TestDivergentUnions(t *testing.T) {

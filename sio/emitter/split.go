@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Split struct {

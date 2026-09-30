@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type Encoder struct {

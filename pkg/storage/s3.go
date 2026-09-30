@@ -9,7 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
-	"github.com/brimdata/super/pkg/s3io"
+	"github.com/superdb/super/pkg/s3io"
 )
 
 type S3Engine struct {

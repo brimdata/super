@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio"
 )
 
 func TestScannerContext(t *testing.T) {

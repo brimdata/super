@@ -1,7 +1,7 @@
 package optimizer
 
 import (
-	"github.com/brimdata/super/compiler/dag"
+	"github.com/superdb/super/compiler/dag"
 )
 
 // IsCountByString returns whether o represents "count() by <top-level field>"

@@ -1,8 +1,8 @@
 package branches
 
 import (
-	"github.com/brimdata/super/pkg/nano"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/pkg/nano"
 )
 
 type Config struct {

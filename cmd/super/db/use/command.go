@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/brimdata/super/cli/poolflags"
-	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/dbid"
-	"github.com/brimdata/super/pkg/charm"
+	"github.com/superdb/super/cli/poolflags"
+	"github.com/superdb/super/cmd/super/db"
+	"github.com/superdb/super/dbid"
+	"github.com/superdb/super/pkg/charm"
 )
 
 //XXX should use be called connect?

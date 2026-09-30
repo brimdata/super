@@ -1,7 +1,7 @@
 package function
 
 import (
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 )
 
 type defuse struct{}

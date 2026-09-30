@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup/rows"
-	"github.com/brimdata/super/pkg/bufwriter"
-	"github.com/brimdata/super/pkg/fs"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup/rows"
+	"github.com/superdb/super/pkg/bufwriter"
+	"github.com/superdb/super/pkg/fs"
+	"github.com/superdb/super/sio"
 )
 
 // File provides a means to write a sequence of Super values to temporary

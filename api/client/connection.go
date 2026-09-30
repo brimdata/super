@@ -13,16 +13,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/api/client/auth0"
-	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/db/branches"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/sio/bsupio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/api/client/auth0"
+	"github.com/superdb/super/compiler/srcfiles"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/db/branches"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/runtime/exec"
+	"github.com/superdb/super/sio/bsupio"
 )
 
 const (

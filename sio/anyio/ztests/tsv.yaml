@@ -1,5 +1,5 @@
 # This test purposely has two null values to test the issue found in
-# brimdata/super#4911.
+# superdb/super#4911.
 script: |
   super - | super -f tsv -
 

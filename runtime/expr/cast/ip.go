@@ -3,8 +3,8 @@ package cast
 import (
 	"net/netip"
 
-	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/pkg/byteconv"
+	"github.com/superdb/super/vector"
 )
 
 func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {

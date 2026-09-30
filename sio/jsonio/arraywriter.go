@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/vector"
 )
 
 type ArrayWriter struct {

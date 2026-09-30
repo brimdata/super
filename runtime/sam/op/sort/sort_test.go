@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	opsort "github.com/brimdata/super/runtime/sam/op/sort"
-	"github.com/brimdata/super/ztest"
+	opsort "github.com/superdb/super/runtime/sam/op/sort"
+	"github.com/superdb/super/ztest"
 )
 
 // Data sets for tests:

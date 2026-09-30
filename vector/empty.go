@@ -1,9 +1,9 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sup"
 )
 
 // An Empty vector represents a vector with a type of zero length.

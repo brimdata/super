@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/scode"
 )
 
 func (p *Parser) ParseValue() (ast.Value, error) {

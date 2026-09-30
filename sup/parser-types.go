@@ -4,8 +4,8 @@ import (
 	"errors"
 	"unicode"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
 )
 
 func (p *Parser) parseType() (ast.Type, error) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super/pkg/storage"
+	"github.com/superdb/super/pkg/storage"
 )
 
 type Reader struct {

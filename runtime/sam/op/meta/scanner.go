@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/db/commits"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/db/commits"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
 )
 
 func NewDBMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, meta string) (sbuf.Scanner, error) {

@@ -3,12 +3,12 @@ package rungen
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/runtime/expr"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/runtime/expr"
+	samexpr "github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
 )
 
 func (b *Builder) compileExpr(e dag.Expr) (samexpr.Evaluator, error) {

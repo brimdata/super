@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"io"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type Reader struct {

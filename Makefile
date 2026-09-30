@@ -1,7 +1,7 @@
 export GO111MODULE=on
 
 VERSION = $(shell git describe --tags --dirty --always)
-LDFLAGS = -s -X github.com/brimdata/super/cli.version=$(VERSION)
+LDFLAGS = -s -X github.com/superdb/super/cli.version=$(VERSION)
 BUILD_COMMANDS = ./cmd/super
 
 ifeq ($(GO),$(shell command -v go 2>/dev/null))
@@ -9,7 +9,7 @@ ifeq ($(GO),$(shell command -v go 2>/dev/null))
 endif
 
 ifeq "$(filter-out 386 arm mips mipsle, $(shell go env GOARCH))" ""
-$(error 32-bit architectures are unsupported; see https://github.com/brimdata/super/issues/4044)
+$(error 32-bit architectures are unsupported; see https://github.com/superdb/super/issues/4044)
 endif
 
 # This enables a shortcut to run a single test from the ./ztests suite, e.g.:

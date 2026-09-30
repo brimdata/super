@@ -8,14 +8,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/cli/outputflags"
-	"github.com/brimdata/super/cmd/super/dev/bsuprows"
-	"github.com/brimdata/super/pkg/charm"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/cli/outputflags"
+	"github.com/superdb/super/cmd/super/dev/bsuprows"
+	"github.com/superdb/super/pkg/charm"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/vector/vio"
 )
 
 var spec = &charm.Spec{

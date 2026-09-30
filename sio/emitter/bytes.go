@@ -3,9 +3,9 @@ package emitter
 import (
 	"bytes"
 
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Bytes struct {

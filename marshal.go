@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/scode"
 	"github.com/x448/float16"
 )
 

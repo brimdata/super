@@ -1,8 +1,8 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
 )
 
 type Int struct {

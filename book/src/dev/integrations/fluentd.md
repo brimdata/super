@@ -62,7 +62,7 @@ directory in our `$PATH`, then the [database service](../../command/db.md#super-
 was started with a specified storage path.
 
 ```
-wget https://github.com/brimdata/super/releases/download/v1.17.0/zed-v1.17.0.linux-amd64.tar.gz
+wget https://github.com/superdb/super/releases/download/v1.17.0/zed-v1.17.0.linux-amd64.tar.gz
 tar xzvf zed-v1.17.0.linux-amd64.tar.gz
 sudo mv zed /usr/local/bin
 zed -lake $HOME/lake serve -manage 5m
@@ -360,7 +360,7 @@ storage that contain the granular commits that have already been rolled into
 larger objects by compaction.
 
 >[!NOTE]
-> As described in issue [super/4934](https://github.com/brimdata/super/issues/4934),
+> As described in issue [super/4934](https://github.com/superdb/super/issues/4934),
 > even after running `super db vacuum`, some files related to commit history are
 > currently still left behind below the lake storage path. The issue describes
 > manual steps that can be taken to remove these files safely, if desired.
@@ -400,4 +400,4 @@ article can be improved.
 If you're having difficulty, interested in loading or shaping other data
 sources, or just have feedback, please join our
 [public Slack](https://www.brimdata.io/join-slack/) and speak up or
-[open an issue](https://github.com/brimdata/super/issues/new/choose). Thanks!
+[open an issue](https://github.com/superdb/super/issues/new/choose). Thanks!

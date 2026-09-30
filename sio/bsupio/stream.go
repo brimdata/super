@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/brimdata/super/bsup"
+	"github.com/superdb/super/bsup"
 )
 
 type stream struct {

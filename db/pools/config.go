@@ -1,14 +1,14 @@
 package pools
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/db/journal"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/db/journal"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/pkg/storage"
 )
 
 type Config struct {

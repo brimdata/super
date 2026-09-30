@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/supio"
 )
 
 func TestWriter(t *testing.T) {

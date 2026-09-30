@@ -6,12 +6,12 @@ import (
 	"io"
 	"maps"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsupbytes"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/runtime/sam/expr/extent"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsupbytes"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/runtime/sam/expr/extent"
 )
 
 var ErrWriteConflict = errors.New("write conflict")

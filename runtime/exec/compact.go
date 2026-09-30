@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/db/commits"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/sam/op/meta"
-	"github.com/brimdata/super/sbuf"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/db/commits"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/sam/op/meta"
+	"github.com/superdb/super/sbuf"
 )
 
 func Compact(ctx context.Context, _ *db.Root, pool *db.Pool, branchName string, objectIDs []ksuid.KSUID, writeVectors bool, author, message, info string) (ksuid.KSUID, error) {

@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup/rows"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup/rows"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/sio/supio"
 )
 
 type Output struct {

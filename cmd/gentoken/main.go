@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/brimdata/super/pkg/charm"
-	"github.com/brimdata/super/service/auth"
+	"github.com/superdb/super/pkg/charm"
+	"github.com/superdb/super/service/auth"
 )
 
 var CLI = &charm.Spec{

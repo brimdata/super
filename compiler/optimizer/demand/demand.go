@@ -3,7 +3,7 @@ package demand
 import (
 	"maps"
 
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super/pkg/field"
 )
 
 type Demand interface {

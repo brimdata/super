@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sup"
 )
 
 // Nulls represents the position of nulls in an ordering of values.

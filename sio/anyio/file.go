@@ -5,11 +5,11 @@ import (
 	"errors"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/vector"
 )
 
 // Open uses engine to open path for reading.  path is a local file path or a

@@ -1,7 +1,7 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type Enum struct {

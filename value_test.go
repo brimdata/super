@@ -3,9 +3,9 @@ package super_test
 import (
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/stretchr/testify/assert"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
 )
 
 func BenchmarkValueUnder(b *testing.B) {

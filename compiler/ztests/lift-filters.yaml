@@ -5,7 +5,7 @@ script: |
   echo ===
   super compile -C -O -dynamic 'from f | values {a:{b:c}} | where a.b==1'
   echo ===
-  # https://github.com/brimdata/super/issues/6223
+  # https://github.com/superdb/super/issues/6223
   super compile -C -O -dynamic 'from f |values {a:b,c,d} | where a+1 between c and d'
   echo ===
   super compile -C -O -dynamic 'from f | values {a:{...b,...c}} | where a.d'

@@ -4,13 +4,13 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Deleter struct {

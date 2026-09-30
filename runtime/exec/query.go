@@ -1,9 +1,9 @@
 package exec
 
 import (
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 // Query runs a flowgraph as a sbuf.Puller and implements a Close() method

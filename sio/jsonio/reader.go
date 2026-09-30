@@ -9,12 +9,12 @@ import (
 
 	"github.com/bytedance/sonic/ast"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/jsonio/jsonvec"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/byteconv"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio/jsonio/jsonvec"
+	"github.com/superdb/super/vector"
 )
 
 var VecBatchSize uint32 = 10 * 1024

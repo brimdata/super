@@ -7,13 +7,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/peeker"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/peeker"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/op"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector/vio"
 )
 
 type scanner struct {

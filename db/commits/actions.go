@@ -3,10 +3,10 @@ package commits
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/pkg/nano"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/pkg/nano"
 )
 
 type Action interface {

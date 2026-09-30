@@ -3,8 +3,8 @@ package vector
 import (
 	"flag"
 
-	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/pkg/charm"
+	"github.com/superdb/super/cmd/super/db"
+	"github.com/superdb/super/pkg/charm"
 )
 
 var spec = &charm.Spec{

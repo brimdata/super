@@ -105,7 +105,7 @@ we'd love to hear your feedback via our
 
 ### SuperDB Desktop - Coming Soon
 
-[SuperDB Desktop](https://github.com/brimdata/zui) is an Electron-based
+[SuperDB Desktop](https://github.com/superdb/zui) is an Electron-based
 desktop app to explore, query, and shape data in a SuperDB database.
 It combines a search experience with a SQL query and has some really slick
 design for dealing with complex and large JSON data.
@@ -121,7 +121,7 @@ See the [contributing guide](CONTRIBUTING.md) on how you can help improve SuperD
 
 Join our [public Slack](https://www.brimdata.io/join-slack/) workspace for announcements, Q&A, and to trade tips!
 
-[tests-img]: https://github.com/brimdata/super/workflows/Tests/badge.svg
-[tests]: https://github.com/brimdata/super/actions?query=workflow%3ATests
-[gopkg-img]: https://pkg.go.dev/badge/github.com/brimdata/super
-[gopkg]: https://pkg.go.dev/github.com/brimdata/super
+[tests-img]: https://github.com/superdb/super/workflows/Tests/badge.svg
+[tests]: https://github.com/superdb/super/actions?query=workflow%3ATests
+[gopkg-img]: https://pkg.go.dev/badge/github.com/superdb/super
+[gopkg]: https://pkg.go.dev/github.com/superdb/super

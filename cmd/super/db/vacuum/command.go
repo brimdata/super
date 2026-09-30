@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/brimdata/super/cli/poolflags"
-	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/pkg/charm"
-	"github.com/brimdata/super/pkg/plural"
+	"github.com/superdb/super/cli/poolflags"
+	"github.com/superdb/super/cmd/super/db"
+	"github.com/superdb/super/pkg/charm"
+	"github.com/superdb/super/pkg/plural"
 )
 
 var spec = &charm.Spec{

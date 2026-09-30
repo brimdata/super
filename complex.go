@@ -6,7 +6,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super/scode"
 )
 
 type TypeArray struct {

@@ -3,7 +3,7 @@ package bsup
 import (
 	"io"
 
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 

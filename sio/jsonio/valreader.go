@@ -7,7 +7,7 @@ import (
 	"io"
 	"slices"
 
-	"github.com/brimdata/super/pkg/jsonskip"
+	"github.com/superdb/super/pkg/jsonskip"
 )
 
 const maxSize = 512 * 1024 * 1024

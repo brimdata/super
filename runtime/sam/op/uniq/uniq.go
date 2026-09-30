@@ -3,10 +3,10 @@ package uniq
 import (
 	"bytes"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
 )
 
 type Op struct {

@@ -8,15 +8,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/brimdata/super/cli/auto"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/pkg/terminal"
-	"github.com/brimdata/super/pkg/terminal/color"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sio/emitter"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/cli/auto"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/pkg/terminal"
+	"github.com/superdb/super/pkg/terminal/color"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
+	"github.com/superdb/super/sio/emitter"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Flags struct {

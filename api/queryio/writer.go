@@ -4,14 +4,14 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sio/jsonio"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
+	"github.com/superdb/super/sio/jsonio"
+	"github.com/superdb/super/vector/vio"
 )
 
 type controlWriter interface {

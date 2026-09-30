@@ -6,7 +6,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 )
 
 type stream struct {

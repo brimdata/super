@@ -3,11 +3,11 @@ package function
 import (
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/grok"
-	"github.com/brimdata/super/runtime/expr"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/grok"
+	"github.com/superdb/super/runtime/expr"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
 )
 
 type Grok struct {

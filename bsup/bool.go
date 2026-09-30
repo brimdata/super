@@ -3,9 +3,9 @@ package bsup
 import (
 	"io"
 
-	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
+	"github.com/superdb/super/pkg/byteconv"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/bitvec"
 	"golang.org/x/sync/errgroup"
 )
 

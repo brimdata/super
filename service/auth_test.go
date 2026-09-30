@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/api/client"
-	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/service"
-	"github.com/brimdata/super/service/auth"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/api/client"
+	"github.com/superdb/super/compiler/srcfiles"
+	"github.com/superdb/super/service"
+	"github.com/superdb/super/service/auth"
 )
 
 func testAuthConfig() service.AuthConfig {

@@ -8,8 +8,8 @@ import (
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/parquet/metadata"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/field"
 	"github.com/x448/float16"
 )
 

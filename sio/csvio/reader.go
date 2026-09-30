@@ -9,7 +9,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type Reader struct {

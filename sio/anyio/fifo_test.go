@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/storage"
 )
 
 func TestOpenFifoCancelation(t *testing.T) {

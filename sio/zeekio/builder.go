@@ -6,11 +6,11 @@ import (
 	"net/netip"
 	"unicode/utf8"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio/arrowio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/byteconv"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sio/arrowio"
 	"golang.org/x/text/unicode/norm"
 )
 

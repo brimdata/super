@@ -5,12 +5,12 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/brimdata/super/cli/poolflags"
-	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/charm"
-	"github.com/brimdata/super/pkg/units"
+	"github.com/superdb/super/cli/poolflags"
+	"github.com/superdb/super/cmd/super/db"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/charm"
+	"github.com/superdb/super/pkg/units"
 )
 
 var spec = &charm.Spec{

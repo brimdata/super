@@ -3,9 +3,9 @@ package expr
 import (
 	"math"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr/cast"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr/cast"
+	"github.com/superdb/super/vector"
 )
 
 type unaryMinus struct {

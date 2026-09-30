@@ -3,8 +3,8 @@ package bsuprows
 import (
 	"flag"
 
-	"github.com/brimdata/super/cmd/super/dev"
-	"github.com/brimdata/super/pkg/charm"
+	"github.com/superdb/super/cmd/super/dev"
+	"github.com/superdb/super/pkg/charm"
 )
 
 // XXX this dev command will be integrated with the bsup command in a future PR

@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/pkg/storage"
 )
 
 func newQueue(ctx context.Context, t *testing.T) *Queue {

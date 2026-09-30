@@ -1,9 +1,9 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/byteconv"
+	"github.com/superdb/super/scode"
 )
 
 type Bytes struct {

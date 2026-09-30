@@ -4,14 +4,14 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/expr"
-	"github.com/brimdata/super/runtime/vcache"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/expr"
+	"github.com/superdb/super/runtime/vcache"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector"
 )
 
 type Searcher struct {

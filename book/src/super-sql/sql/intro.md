@@ -327,7 +327,7 @@ SuperSQL's goal is to be (mostly) compatible with the
 the [PostgreSQL](https://www.postgresql.org/) dialect.
 
 In addition to SQL tests in the
-[SuperDB GitHub repository](https://github.com/brimdata/super),
+[SuperDB GitHub repository](https://github.com/superdb/super),
 PostgreSQL compatibility is tested using
 [sqllogictest](https://sqlite.org/sqllogictest/doc/trunk/about.wiki) queries
 from [SQLite](https://sqlite.org/).
@@ -340,12 +340,12 @@ addressed in future SuperDB releases.
 
 |**Issue**|**Description**|
 |---------|----------------|
-|[super#6549](https://github.com/brimdata/super/issues/6549)|SQL: Correlated subqueries|
-|[super#6033](https://github.com/brimdata/super/issues/6033)|SQL: INTERSECT and EXCEPT|
-|[super#6074](https://github.com/brimdata/super/issues/6074)|SQL: Large cartesian product causes very long query runtime|
-|[super#6536](https://github.com/brimdata/super/issues/6536)|SQL: Signed zero|
-|[super#6517](https://github.com/brimdata/super/issues/6517)|SQL: Promoting return types to common type of arguments|
-|[super#7347](https://github.com/brimdata/super/issues/7347)|SQL: CAST of a non-integer to INTEGER truncates instead of rounding|
+|[super#6549](https://github.com/superdb/super/issues/6549)|SQL: Correlated subqueries|
+|[super#6033](https://github.com/superdb/super/issues/6033)|SQL: INTERSECT and EXCEPT|
+|[super#6074](https://github.com/superdb/super/issues/6074)|SQL: Large cartesian product causes very long query runtime|
+|[super#6536](https://github.com/superdb/super/issues/6536)|SQL: Signed zero|
+|[super#6517](https://github.com/superdb/super/issues/6517)|SQL: Promoting return types to common type of arguments|
+|[super#7347](https://github.com/superdb/super/issues/7347)|SQL: CAST of a non-integer to INTEGER truncates instead of rounding|
 
 Additional details on how the tests are assembled and executed can be found in
-the [sqllogic-ztests repo](https://github.com/brimdata/sqllogic-ztests).
+the [sqllogic-ztests repo](https://github.com/superdb/sqllogic-ztests).

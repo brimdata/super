@@ -19,7 +19,7 @@ the [new beta JSON type](https://clickhouse.com/blog/a-new-powerful-json-data-ty
 and the [BSUP](../formats/bsup.md) format used by `super`.
 
 The detailed steps shown [below](#appendix-2-running-the-tests) can be reproduced via
-[automated scripts](https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf).
+[automated scripts](https://github.com/superdb/super/blob/main/scripts/super-cmd-perf).
 As of this writing in December 2024, [results](#the-test-results) were gathered on an AWS
 [`m6idn.2xlarge`](https://aws.amazon.com/ec2/instance-types/m6i/) instance
 with the following software versions:
@@ -151,7 +151,7 @@ WHERE id LIKE '%in case you have any feedback 😊%'
   OR payload.member.type LIKE '%in case you have any feedback 😊%'
 ```
 There are 486 such fields.  You can review the entire query in
-[`search+.sql`](https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf/queries/search%2B.sql).
+[`search+.sql`](https://github.com/superdb/super/blob/main/scripts/super-cmd-perf/queries/search%2B.sql).
 
 To query the data stored with the ClickHouse JSON type, field
 references needed to be rewritten relative to the named column `v`.
@@ -416,7 +416,7 @@ super gharchive_gz/*.json.gz > gha.bsup
 ## Appendix 2: Running the Tests
 
 This appendix provides the raw tests and output from the [most recent archived run](https://super-cmd-perf.s3.us-east-2.amazonaws.com/2024-12-27_21-58-22.tgz)
-of the tests via [automated scripts](https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf)
+of the tests via [automated scripts](https://github.com/superdb/super/blob/main/scripts/super-cmd-perf)
 on an AWS [`m6idn.2xlarge`](https://aws.amazon.com/ec2/instance-types/m6i/) instance.
 
 ### Search Test

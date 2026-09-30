@@ -1,8 +1,8 @@
 package jsonvec
 
 import (
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/bitvec"
 )
 
 type Bool struct {

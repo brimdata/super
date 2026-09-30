@@ -5,14 +5,14 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/compiler/parser"
+	"github.com/superdb/super/compiler/semantic/sem"
+	"github.com/superdb/super/compiler/srcfiles"
+	"github.com/superdb/super/runtime/exec"
+	"github.com/superdb/super/sup"
 )
 
 // Analyze performs a semantic analysis of the AST, translating it from AST

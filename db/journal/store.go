@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsupbytes"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio/bsupio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsupbytes"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sio/bsupio"
 	"go.uber.org/zap"
 )
 
@@ -202,7 +202,7 @@ func (s *Store) readSnapshot(r *bsupio.RowReader, unmarshaler *super.Unmarshaler
 }
 
 func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) error {
-	// XXX This needs to be an atomic write for file systems: brimdata/super#4277.
+	// XXX This needs to be an atomic write for file systems: superdb/super#4277.
 	w, err := s.journal.engine.Put(ctx, s.snapshotURI())
 	if err != nil {
 		return err

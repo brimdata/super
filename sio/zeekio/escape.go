@@ -5,7 +5,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super/sup"
 )
 
 // shouldEscape determines if the given code point at the given position

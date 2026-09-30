@@ -130,7 +130,7 @@ super -s -c 'SELECT collect("Phone Number") as numbers FROM example.parquet'
 
 _Source data from a URL_
 ```
-super -s -c "SELECT name FROM https://api.github.com/repos/brimdata/super"
+super -s -c "SELECT name FROM https://api.github.com/repos/superdb/super"
 ```
 ```
 {name:"super"}

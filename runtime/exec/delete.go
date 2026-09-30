@@ -3,9 +3,9 @@ package exec
 import (
 	"sync"
 
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/vector/vio"
 )
 
 type DeleteQuery struct {

@@ -3,8 +3,8 @@ package vector
 import (
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/field"
 )
 
 type RecordBuilder struct {

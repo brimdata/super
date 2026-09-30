@@ -3,9 +3,9 @@ package expr
 import (
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/scode"
 )
 
 type This struct{}

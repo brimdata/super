@@ -6,17 +6,17 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime/expr"
-	"github.com/brimdata/super/runtime/expr/agg"
-	"github.com/brimdata/super/runtime/op"
-	"github.com/brimdata/super/runtime/op/aggregate"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime/expr"
+	"github.com/superdb/super/runtime/expr/agg"
+	"github.com/superdb/super/runtime/op"
+	"github.com/superdb/super/runtime/op/aggregate"
+	samexpr "github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 // compile compiles a DAG into a graph of runtime operators, and returns

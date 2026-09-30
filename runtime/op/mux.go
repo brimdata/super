@@ -6,9 +6,9 @@ import (
 	"runtime/debug"
 	"sync"
 
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 // Catcher wraps an Puller that recovers panics and turns them into errors.

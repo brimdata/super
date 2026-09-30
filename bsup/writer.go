@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup/rows"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vbuild"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup/rows"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vbuild"
+	"github.com/superdb/super/vector/vio"
 )
 
 var maxObjectSize uint32 = 120_000

@@ -11,7 +11,7 @@ which is aspirationally backward-compatible with
 
 > [!NOTE]
 > The SuperDB source is available as a
-> [GitHub repository](https://github.com/brimdata/super).  Pre-built binaries
+> [GitHub repository](https://github.com/superdb/super).  Pre-built binaries
 > may be [downloaded and installed](getting-started/install.md)
 > via customary mechanisms.
 
@@ -27,7 +27,7 @@ for super-structured data with the introduction of:
 * the super-structured [data model](formats/model.md),
 * several super-structured serialization [formats](formats/intro.md),
 * a SQL-compatible [query language](super-sql/intro.md) adapted for super-structured data,
-* a super-structured [query engine](https://github.com/brimdata/super/tree/main/runtime), and
+* a super-structured [query engine](https://github.com/superdb/super/tree/main/runtime), and
 * a super-structured [database format](command/db.md#concepts) compatible with
   cloud object stores.
 
@@ -448,7 +448,7 @@ and results that need not fit in a uniform table.
 
 > [!NOTE]
 > Case insensitive column names in SQL clauses are not yet supported.
-> ([super#6066](https://github.com/brimdata/super/issues/6066))
+> ([super#6066](https://github.com/superdb/super/issues/6066))
 
 With this approach, SuperSQL can be adopted and used for existing use cases
 based on legacy SQL while incrementally expanding and embracing
@@ -475,7 +475,7 @@ an easier and broader approach for modern data._
 > We'd love your feedback and we hope to build a thriving community around
 > SuperDB so please feel free to reach out to us via
 > * [Slack](https://www.brimdata.io/join-slack/)
-> * [GitHub issues](https://github.com/brimdata/super/issues), or
-> * [GitHub pull requests](https://github.com/brimdata/super/pulls).
+> * [GitHub issues](https://github.com/superdb/super/issues), or
+> * [GitHub pull requests](https://github.com/superdb/super/pulls).
 >
 > See you online!

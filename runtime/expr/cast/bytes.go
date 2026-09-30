@@ -1,7 +1,7 @@
 package cast
 
 import (
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 )
 
 func castToBytes(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {

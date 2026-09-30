@@ -1,10 +1,10 @@
 package rungen
 
 import (
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
 )
 
 type pushdown struct {

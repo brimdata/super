@@ -1,11 +1,11 @@
 package function
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr"
+	samexpr "github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/expr/function"
+	"github.com/superdb/super/vector"
 )
 
 type caster struct {

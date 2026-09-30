@@ -10,9 +10,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/scode"
 )
 
 // Implied returns true for primitive types whose type can be inferred

@@ -3,15 +3,15 @@ package compiler
 import (
 	goruntime "runtime"
 
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/optimizer"
-	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/dbid"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/compiler/optimizer"
+	"github.com/superdb/super/compiler/parser"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/dbid"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/exec"
+	"github.com/superdb/super/vector/vio"
 )
 
 var Parallelism = goruntime.GOMAXPROCS(0) //XXX

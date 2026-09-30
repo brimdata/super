@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/service/srverr"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/service/srverr"
 	"go.uber.org/zap"
 )
 

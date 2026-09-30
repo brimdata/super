@@ -3,8 +3,8 @@ package vector
 import (
 	"testing"
 
-	"github.com/brimdata/super"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
 )
 
 func TestNewUnionVerifyPanics(t *testing.T) {

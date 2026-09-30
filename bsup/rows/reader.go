@@ -7,9 +7,9 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
 )
 
 const (

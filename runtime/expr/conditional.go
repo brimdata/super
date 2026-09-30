@@ -2,8 +2,8 @@ package expr
 
 import (
 	"github.com/RoaringBitmap/roaring/v2"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/vector"
 )
 
 type conditional struct {

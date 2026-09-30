@@ -11,16 +11,16 @@ easy to import into other Go projects straight from the GitHub repo.
 
 Some of the key packages are:
 
-* [super](https://pkg.go.dev/github.com/brimdata/super) - Super values and types
-* [sup](https://pkg.go.dev/github.com/brimdata/super/sup) - SUP support
-* [sio](https://pkg.go.dev/github.com/brimdata/super/sio) - I/O interfaces for Super data following the Reader/Writer patterns
-* [sio/bsupio](https://pkg.go.dev/github.com/brimdata/super/sio/bsupio) - BSUP reader/writer
-* [sio/supio](https://pkg.go.dev/github.com/brimdata/super/sio/supio) - SUP reader/writer
-* [db/api](https://pkg.go.dev/github.com/brimdata/super/db/api) - interact with a SuperDB database
+* [super](https://pkg.go.dev/github.com/superdb/super) - Super values and types
+* [sup](https://pkg.go.dev/github.com/superdb/super/sup) - SUP support
+* [sio](https://pkg.go.dev/github.com/superdb/super/sio) - I/O interfaces for Super data following the Reader/Writer patterns
+* [sio/bsupio](https://pkg.go.dev/github.com/superdb/super/sio/bsupio) - BSUP reader/writer
+* [sio/supio](https://pkg.go.dev/github.com/superdb/super/sio/supio) - SUP reader/writer
+* [db/api](https://pkg.go.dev/github.com/superdb/super/db/api) - interact with a SuperDB database
 
 To install in your local Go project, simply run:
 ```
-go get github.com/brimdata/super@main
+go get github.com/superdb/super@main
 ```
 
 ## Examples
@@ -36,9 +36,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio/supio"
+	"github.com/superdb/super/sup"
 )
 
 func main() {
@@ -68,7 +68,7 @@ cd example
 go mod init example
 cat > main.go
 # [paste from above]
-go get github.com/brimdata/super@main
+go get github.com/superdb/super@main
 go mod tidy
 ```
 To run type:
@@ -104,12 +104,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/db/api"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/srcfiles"
+	"github.com/superdb/super/db/api"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/sbuf"
 )
 
 func main() {

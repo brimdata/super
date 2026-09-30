@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/compiler/semantic/sem"
+	"github.com/superdb/super/pkg/field"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries

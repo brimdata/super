@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"cmp"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/sam/expr/coerce"
+	"github.com/superdb/super/scode"
 )
 
 type Evaluator interface {

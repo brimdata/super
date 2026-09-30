@@ -5,8 +5,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio"
 )
 
 // Batch is an interface to a bundle of values.  Reference counting allows

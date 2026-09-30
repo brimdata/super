@@ -1,7 +1,7 @@
 package jsonvec
 
 import (
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 )
 
 var _ Value = (*Array)(nil)

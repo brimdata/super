@@ -3,8 +3,8 @@ package coerce
 import (
 	"strconv"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/byteconv"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/byteconv"
 	"github.com/x448/float16"
 )
 

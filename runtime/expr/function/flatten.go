@@ -1,10 +1,10 @@
 package function
 
 import (
-	"github.com/brimdata/super"
-	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	samfunc "github.com/superdb/super/runtime/sam/expr/function"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
 )
 
 type flatten struct {

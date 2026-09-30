@@ -1,7 +1,7 @@
 package op
 
 import (
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super/sbuf"
 )
 
 const BatchLen = 100

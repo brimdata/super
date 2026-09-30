@@ -3,7 +3,7 @@ package semantic
 import (
 	"slices"
 
-	"github.com/brimdata/super/compiler/semantic/sem"
+	"github.com/superdb/super/compiler/semantic/sem"
 )
 
 // eqSeq performs a deep-equal comparison of a and b

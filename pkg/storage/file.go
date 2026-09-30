@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	pkgfs "github.com/brimdata/super/pkg/fs"
+	pkgfs "github.com/superdb/super/pkg/fs"
 )
 
 type FileSystem struct {

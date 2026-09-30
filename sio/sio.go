@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 func Extension(format string) string {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/brimdata/super/pkg/unpack"
+	"github.com/superdb/super/pkg/unpack"
 )
 
 var unpacker = unpack.New(

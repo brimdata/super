@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type ParseURI struct {

@@ -3,7 +3,7 @@ package coerce
 import (
 	"math"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 func IntBits(typ super.Type) int {
