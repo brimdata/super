@@ -184,10 +184,10 @@ fork
 # input
 
 # expected output
-{x?:1,y?:2,z?:none::int64}
-{x?:3,y?:4,z?:none::int64}
-{x?:5,y?:6,z?:none::int64}
-{x?:none::int64,y?:none::int64,z?:2}
-{x?:none::int64,y?:none::int64,z?:3}
+{x:1::(int64|none),y:2::(int64|none),z:none::(int64|none)}
+{x:3::(int64|none),y:4::(int64|none),z:none::(int64|none)}
+{x:5::(int64|none),y:6::(int64|none),z:none::(int64|none)}
+{x:none::(int64|none),y:none::(int64|none),z:2::(int64|none)}
+{x:none::(int64|none),y:none::(int64|none),z:3::(int64|none)}
 ```
 ---

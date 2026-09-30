@@ -216,6 +216,24 @@ func (c *Context) MustLookupTypeUnion(types []Type) *TypeUnion {
 	return typ
 }
 
+func (c *Context) UnionWithNone(typ Type) *TypeUnion {
+	if typ == TypeNone {
+		panic("cannot create none-only union")
+	}
+	var types []Type
+	if union, ok := typ.(*TypeUnion); ok {
+		for _, t := range union.Types {
+			if t == TypeNone {
+				return union
+			}
+		}
+		types = slices.Clone(union.Types)
+	} else {
+		types = []Type{typ}
+	}
+	return c.MustLookupTypeUnion(append(types, TypeNone))
+}
+
 func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
 	c.mu.Lock()
 	defer c.mu.Unlock()

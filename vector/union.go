@@ -59,7 +59,7 @@ func NewUnionFromRLE(typ *super.TypeUnion, rle []uint32, vecs []Any) *Union {
 
 func NewUnionOptionRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) *Union {
 	typ := vec.Type()
-	optionType := sctx.Option(typ)
+	optionType := sctx.UnionWithNone(typ)
 	if union, ok := vec.(*Union); ok {
 		// If it's a union, let's make it an option type by adding type none at the end.
 		// We don't (yet) bother trying to run-length encode these since there are more
