@@ -24,14 +24,12 @@ func (f *Fuser) Fuse(t Type) {
 		return
 	}
 	f.types[t] = struct{}{}
-	//was := t
 	t = f.fuseInternal(t)
 	if f.typ == nil {
 		f.typ = t
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
-	//Debug("FUSE", t, "WAS", was, "NOW", f.typ)
 }
 
 // Type returns the computed supertype.
@@ -56,8 +54,9 @@ func (f *Fuser) fuse(a, b Type) Type {
 	case *TypeRecord:
 		if b, ok := b.(*TypeRecord); ok {
 			var fields []Field
-			// Now fuse all the fields that are unique with a pure none to
-			// make them optional in the union-sense rather than the option-type sense.
+			// Fuse fields in order they appear in the first record type a.
+			// If a field is present in both a and b, the field types are fused.
+			// If present in a but not b, the field is fused with type none.
 			// This is how we recover the absence of a field vs a typed none in
 			// an option-type field (aka optional field)
 			for _, field := range a.Fields {
@@ -70,6 +69,8 @@ func (f *Fuser) fuse(a, b Type) Type {
 				}
 				fields = append(fields, NewField(field.Name, typ))
 			}
+			// No make sure any fields in b that are not in a are fused with
+			// none and added to the end of the new record type.
 			for _, field := range b.Fields {
 				if a.HasField(field.Name) {
 					continue
@@ -78,7 +79,7 @@ func (f *Fuser) fuse(a, b Type) Type {
 				fields = append(fields, NewField(field.Name, typ))
 			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
-			if recChanged(a, fusedRec) || recChanged(b, fusedRec) { //XXX update this?
+			if recChanged(a, fusedRec) || recChanged(b, fusedRec) {
 				return f.fusion(fusedRec)
 			}
 			return fusedRec
@@ -146,26 +147,6 @@ func (f *Fuser) fuse(a, b Type) Type {
 	return f.fusion(f.sctx.MustLookupTypeUnion([]Type{a, b}))
 }
 
-func fieldIntersect(a, b *TypeRecord) []string {
-	var out []string
-	for _, f := range a.Fields {
-		if b.HasField(f.Name) {
-			out = append(out, f.Name)
-		}
-	}
-	return out
-}
-
-func fieldDiff(a, b *TypeRecord) []string {
-	var out []string
-	for _, f := range a.Fields {
-		if !b.HasField(f.Name) {
-			out = append(out, f.Name)
-		}
-	}
-	return out
-}
-
 func (f *Fuser) makeOption(t Type) Type {
 	if fusion, ok := t.(*TypeFusion); ok {
 		return f.sctx.LookupTypeFusion(f.makeOption(fusion.Type))
@@ -226,15 +207,6 @@ func (f *Fuser) fuseInternal(typ Type) Type {
 	return out
 }
 
-func fusionOption(typ Type) (Type, bool) {
-	if fusion, ok := typ.(*TypeFusion); ok {
-		if option, ok := fusion.Type.(*TypeOption); ok {
-			return option, true
-		}
-	}
-	return nil, false
-}
-
 // fuseIntoUnionTypes fuses typ into types while maintaining the invariant that
 // types contains at most one type of each complex kind but no unions.
 func (f *Fuser) fuseIntoUnionTypes(types []Type, typ Type) []Type {
@@ -246,15 +218,6 @@ func (f *Fuser) fuseIntoUnionTypes(types []Type, typ Type) []Type {
 			types = f.fuseIntoUnionTypes(types, t)
 		}
 		return types
-		/*	case *TypeOption:
-			if k := slices.Index(types, typ.Type); k >= 0 {
-				types[k] = typ
-				return types
-			}
-			if slices.Contains(types, Type(typ)) {
-				return types
-			}
-			return append(types, typ) */
 	case *TypeFusion:
 		return f.fuseIntoUnionTypes(types, typ.Type)
 	}

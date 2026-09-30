@@ -1,13 +1,10 @@
 package infer
 
 import (
-	"fmt"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
 )
 
 type Op struct {
@@ -138,7 +135,6 @@ func (c *converter) convert(val super.Value) (super.Value, bool) {
 			if converted, ok := c.caster.Cast(val, to); ok {
 				return converted, true
 			}
-			fmt.Println("CAST FAIL TO", sup.String(to), "VAL", sup.String(val))
 			return c.rctx.Sctx.WrapError("inference cast failed (try larger sample size)", val), true
 		}
 		return val, true
