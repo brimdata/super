@@ -79,7 +79,7 @@ func (f *Fuser) fuse(a, b Type) Type {
 				fields = append(fields, NewField(field.Name, typ))
 			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
-			if recChanged(a, fusedRec) || recChanged(b, fusedRec) {
+			if recChanged(fusedRec, a) || recChanged(fusedRec, b) {
 				return f.fusion(fusedRec)
 			}
 			return fusedRec
@@ -145,13 +145,6 @@ func (f *Fuser) fuse(a, b Type) Type {
 	}
 	// Neither a nor b can be an anonymous union at this point.
 	return f.fusion(f.sctx.MustLookupTypeUnion([]Type{a, b}))
-}
-
-func (f *Fuser) makeOption(t Type) Type {
-	if fusion, ok := t.(*TypeFusion); ok {
-		return f.sctx.LookupTypeFusion(f.makeOption(fusion.Type))
-	}
-	return f.sctx.Optionize(t)
 }
 
 func isAll(t Type) bool {
@@ -284,7 +277,7 @@ func recChanged(a, b *TypeRecord) bool {
 	}
 	for k, af := range a.Fields {
 		bf := b.Fields[k]
-		if af.Name != bf.Name || IsOptionType(af.Type) != IsOptionType(bf.Type) {
+		if af.Name != bf.Name {
 			return true
 		}
 	}

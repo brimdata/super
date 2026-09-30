@@ -6,6 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
@@ -17,13 +18,14 @@ func (*This) Eval(val vector.Any) vector.Any {
 }
 
 type DotExpr struct {
-	sctx    *super.Context
-	defuse  *Defuse
-	entity  Evaluator
-	key     string
-	noneish bool
-	nullish bool
-	okPush  bool
+	sctx      *super.Context
+	defuse    *Defuse
+	entity    Evaluator
+	key       string
+	noneish   bool
+	nullish   bool
+	okPush    bool
+	hasFusion samfunc.FusionChecker
 }
 
 func NewDotExpr(sctx *super.Context, record Evaluator, field string, noneish, nullish bool) *DotExpr {
@@ -71,7 +73,12 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 				return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.key)), innerVecs[0])
 			}
 			out := val.Fields[i]
+			if _, ok := out.(*vector.None); ok {
+				return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.key)), innerVecs[0])
+			}
+			//fmt.Println("OUT", vector.Format(out))
 			if hasNone(out) {
+				//fmt.Println("MISSING")
 				missing = true
 			}
 			return out
@@ -107,6 +114,7 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 		return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", op), innerVecs[0])
 	}
 	out := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, eval, vec)
+	//fmt.Println("FIRST TRY", missing, vector.Format(out))
 	// If there were any structured errors or none values (e.g., because we hit a none
 	// inside a fusion and thus should be an error), then we take the slow path
 	// by defusing and starting over.  One simple optimization we can do is okPush
@@ -115,7 +123,9 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 	// to be correct.  There are a number of other ways to avoid this slow path but let's
 	// get it working first before we make it fast.
 	// XXX we need to wire up okPush
-	if !d.okPush && missing && vec.Kind() == vector.KindFusion {
+	if !d.okPush && missing && d.hasFusion.Check(vec.Type()) {
+		//defused := d.defuse.Eval(vec)
+		//("REAPPLY", vector.Format(defused))
 		return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, d.eval, d.defuse.Eval(vec))
 	}
 	return out
