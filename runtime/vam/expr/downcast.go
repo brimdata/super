@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"fmt"
 	"math"
 	"slices"
 
@@ -168,15 +169,16 @@ func (d *Downcast) toRecord(vec vector.Any, to *super.TypeRecord) vector.Any {
 		if !ok {
 			return d.errSubtype(vec, to)
 		}
-		if super.IsOptionType(toField.Type) {
-			fromFieldType := rec.Typ.Fields[i].Type
-			if f, ok := fromFieldType.(*super.TypeFusion); ok {
-				fromFieldType = f.Type
-			}
-			if !super.IsOptionType(fromFieldType) {
-				return d.errSubtype(vec, to)
-			}
-		}
+		/*
+			if super.IsOptionType(toField.Type) {
+				fromFieldType := rec.Typ.Fields[i].Type
+				if f, ok := fromFieldType.(*super.TypeFusion); ok {
+					fromFieldType = f.Type
+				}
+				if !super.IsOptionType(fromFieldType) {
+					return d.errSubtype(vec, to)
+				}
+			}*/
 		fields = append(fields, d.downcast(rec.Fields[i], toField.Type))
 	}
 	return vector.Apply(vector.ApplyNone, func(vecs ...vector.Any) vector.Any {
@@ -494,7 +496,8 @@ func (d *Downcast) toOption(vec vector.Any, to *super.TypeOption) vector.Any {
 	case *vector.None:
 		return vector.NewOption(to, vector.NewNone(vec.Len()))
 	case *vector.View:
-		return d.toOption(vector.PushView(vec), to)
+		fmt.Println("toOption TO", sup.String(to), vector.Format(vec))
+		return vector.NewView(d.toOption(vec.Any, to), vec.Index)
 	}
 	vec = d.downcast(vec, to.Type)
 	if vec == nil {

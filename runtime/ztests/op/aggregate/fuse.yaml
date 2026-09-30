@@ -117,7 +117,7 @@ input: |
   {x?:2,y:3}
 
 output: |
-  fusion({x?:int64,y:fusion(int64|none)})>
+  <fusion({x?:int64,y:fusion(int64|none)})>
 
 ---
 
