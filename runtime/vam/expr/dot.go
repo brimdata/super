@@ -76,9 +76,7 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 			if _, ok := out.(*vector.None); ok {
 				return vector.NewWrappedError(d.sctx, fmt.Sprintf("no such field %s", sup.QuotedName(d.key)), innerVecs[0])
 			}
-			//fmt.Println("OUT", vector.Format(out))
 			if hasNone(out) {
-				//fmt.Println("MISSING")
 				missing = true
 			}
 			return out
@@ -114,7 +112,6 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 		return vector.NewWrappedError(d.sctx, fmt.Sprintf("'%s': applied to non-record", op), innerVecs[0])
 	}
 	out := vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, eval, vec)
-	//fmt.Println("FIRST TRY", missing, vector.Format(out))
 	// If there were any structured errors or none values (e.g., because we hit a none
 	// inside a fusion and thus should be an error), then we take the slow path
 	// by defusing and starting over.  One simple optimization we can do is okPush
@@ -124,8 +121,6 @@ func (d *DotExpr) eval(outerVecs ...vector.Any) vector.Any {
 	// get it working first before we make it fast.
 	// XXX we need to wire up okPush
 	if !d.okPush && missing && d.hasFusion.Check(vec.Type()) {
-		//defused := d.defuse.Eval(vec)
-		//("REAPPLY", vector.Format(defused))
 		return vector.Apply(vector.ApplyRipFusions|vector.ApplyRipUnions, d.eval, d.defuse.Eval(vec))
 	}
 	return out
@@ -138,7 +133,6 @@ func hasNone(vec vector.Any) bool {
 	case *vector.Union:
 		return hasNone(vec.Dynamic())
 	case *vector.Option:
-		// XXX this should be false?  i.e., we only need to defuse on pure none?
 		return hasNone(vec.Any)
 	case *vector.Fusion:
 		return hasNone(vec.Values)
