@@ -24,14 +24,14 @@ func (f *Fuser) Fuse(t Type) {
 		return
 	}
 	f.types[t] = struct{}{}
-	//was := t
+	was := t
 	t = f.fuseInternal(t)
 	if f.typ == nil {
 		f.typ = t
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
-	//Debug("FUSE", t, "WAS", was, "NOW", f.typ)
+	Debug("FUSE", t, "WAS", was, "NOW", f.typ)
 }
 
 // Type returns the computed supertype.
@@ -55,8 +55,6 @@ func (f *Fuser) fuse(a, b Type) Type {
 	switch a := a.(type) {
 	case *TypeRecord:
 		if b, ok := b.(*TypeRecord); ok {
-			uniq := fieldDiff(a, b)
-			uniq = append(uniq, fieldDiff(b, a)...)
 			var fields []Field
 			// Fuse the common fields
 			for _, name := range fieldIntersect(a, b) {
@@ -122,11 +120,8 @@ func (f *Fuser) fuse(a, b Type) Type {
 			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
 	case *TypeOption:
-		if a.Type == b {
-			return f.fusion(a)
-		}
-		if _, ok := b.(*TypeOption); ok {
-			return f.fusion(f.sctx.MustLookupTypeUnion([]Type{a, b}))
+		if b, ok := b.(*TypeOption); ok {
+			return f.fusion(f.sctx.LookupTypeOption(noFusion(f.fuse(a.Type, b.Type))))
 		}
 	case *TypeNamed:
 		if b, ok := b.(*TypeNamed); ok && a.Name == b.Name {
@@ -213,12 +208,7 @@ func (f *Fuser) fuseInternal(typ Type) Type {
 			out = f.sctx.MustLookupTypeUnion(Flatten(types))
 		}
 	case *TypeOption:
-		inner := f.fuseInternal(typ.Type)
-		if t, ok := fusionOption(inner); ok {
-			out = t
-		} else {
-			out = f.sctx.LookupTypeOption(inner)
-		}
+		out = f.sctx.LookupTypeOption(f.fuseInternal(typ.Type))
 	case *TypeEnum:
 		return typ
 	case *TypeError:
@@ -252,15 +242,15 @@ func (f *Fuser) fuseIntoUnionTypes(types []Type, typ Type) []Type {
 			types = f.fuseIntoUnionTypes(types, t)
 		}
 		return types
-	case *TypeOption:
-		if k := slices.Index(types, typ.Type); k >= 0 {
-			types[k] = typ
-			return types
-		}
-		if slices.Contains(types, Type(typ)) {
-			return types
-		}
-		return append(types, typ)
+		/*	case *TypeOption:
+			if k := slices.Index(types, typ.Type); k >= 0 {
+				types[k] = typ
+				return types
+			}
+			if slices.Contains(types, Type(typ)) {
+				return types
+			}
+			return append(types, typ) */
 	case *TypeFusion:
 		return f.fuseIntoUnionTypes(types, typ.Type)
 	}
