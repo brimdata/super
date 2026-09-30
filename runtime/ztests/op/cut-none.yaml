@@ -8,4 +8,4 @@ input: |
 output: |
   {z:error({message:"no such field z",on:{}}),q:1}
   {z:3,q:1}
-  {z:3,q:1}
+  {z?:3,q:1}

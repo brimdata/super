@@ -14,7 +14,6 @@ type RecordElem interface {
 
 type FieldElem struct {
 	Name string
-	Opt  bool
 	Expr Evaluator
 }
 
@@ -75,21 +74,8 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 		switch elem := r.elems[k].(type) {
 		case *FieldElem:
 			if vec.Type() == super.TypeNone {
-				if elem.Opt {
-					s := fmt.Sprintf("untyped none assigned to optional field %s", elem.Name)
-					return vector.NewStringError(r.sctx, s, vec.Len())
-				}
 				r.deleteField(elem.Name)
 				continue
-			}
-			if elem.Opt {
-				if !super.IsOptionType(vec.Type()) {
-					vec = vector.NewOption(r.sctx.LookupTypeOption(vec.Type()), vec)
-				}
-			} else {
-				if o, ok := vector.PushView(vector.Under(vec)).(*vector.Option); ok {
-					vec = deoptionFieldValue(r.sctx, o, elem.Name)
-				}
 			}
 			r.addOrUpdateField(elem.Name, vec)
 		case *SpreadElem:

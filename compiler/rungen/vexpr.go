@@ -279,7 +279,6 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (expr.Evaluator, error
 			}
 			elems = append(elems, &expr.FieldElem{
 				Name: elem.Name,
-				Opt:  elem.Opt,
 				Expr: e,
 			})
 		case *dag.Spread:

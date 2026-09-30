@@ -214,15 +214,13 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				}
 				fields[name] = struct{}{}
 				e, typ := t.expr(elem.Value, inType)
-				if elem.Opt && typ == super.TypeNone {
-					t.error(elem, fmt.Errorf("untyped none assigned to optional field %s", name))
-					typ = t.checker.unknown
+				if elem.Opt {
+					e = &sem.CallExpr{Node: elem.Value, Tag: "some", Args: []sem.Expr{e}}
 				}
 				out = append(out, &sem.FieldElem{
 					Node:  elem,
 					Name:  elem.Name.Text,
 					Value: e,
-					Opt:   elem.Opt,
 				})
 				types = append(types, typ)
 			case *ast.SpreadElem:
@@ -234,6 +232,9 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				types = append(types, typ)
 			case *ast.ExprElem:
 				e, typ := t.expr(elem.Expr, inType)
+				if elem.Opt {
+					e = &sem.CallExpr{Node: elem.Expr, Tag: "some", Args: []sem.Expr{e}}
+				}
 				name := deriveNameFromExpr(elem.Expr)
 				if _, ok := fields[name]; ok {
 					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
@@ -243,7 +244,6 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				out = append(out, &sem.FieldElem{
 					Name:  name,
 					Value: e,
-					Opt:   elem.Opt,
 				})
 				types = append(types, typ)
 			default:
