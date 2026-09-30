@@ -7,8 +7,7 @@ a common pattern for experimentation is to
 echo <values> | super -c <query> -
 ```
 But you can also experiment with SuperDB using the browser-embedded
-playground.  The `super` binary has been
-[compiled into Web assembly](https://github.com/brimdata/superdb-wasm)
+playground.  The SuperDB code has been compiled to WebAssembly
 and executes a `super -c <query> -` command like this:
 ```mdtest-spq
 # spq
