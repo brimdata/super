@@ -92,3 +92,54 @@ input: |
 
 output: |
   <fusion(int64|option(int64))>
+
+---
+
+spq: fuse
+
+flags: -fusion
+
+input: |
+  {x:true}
+  {}
+  {x?:1}
+  {x:2}
+
+output: |
+  fusion({x:fusion(true::(int64|bool|none|option(int64)),<bool>)},<{x:bool}>)
+  fusion({x:fusion(none::(int64|bool|none|option(int64)),<none>)},<{}>)
+  fusion({x:fusion(some(1)::(int64|bool|none|option(int64)),<option(int64)>)},<{x?:int64}>)
+  fusion({x:fusion(some(2)::(int64|bool|none|option(int64)),<int64>)},<{x:int64}>)
+
+---
+
+spq: fuse | values x
+
+flags: -fusion
+
+input: |
+  {x:true}
+  {}
+  {x?:1}
+  {x:2}
+
+output: |
+  fusion(true::(int64|bool|none|option(int64)),<bool>)
+  error({message:"no such field x",on:{}})
+  fusion(some(1)::(int64|bool|none|option(int64)),<option(int64)>)
+  fusion(some(2)::(int64|bool|none|option(int64)),<int64>)
+
+---
+
+spq: fuse
+
+flags: -fusion
+
+input: |
+  {x:1}
+  {x?:2}
+
+# note no fusion on outer record
+output: |
+  {x:fusion(some(1)::(int64|option(int64)),<int64>)}
+  {x:fusion(some(2)::(int64|option(int64)),<option(int64)>)}
