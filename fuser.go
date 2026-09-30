@@ -24,14 +24,14 @@ func (f *Fuser) Fuse(t Type) {
 		return
 	}
 	f.types[t] = struct{}{}
-	was := t
+	//was := t
 	t = f.fuseInternal(t)
 	if f.typ == nil {
 		f.typ = t
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
-	Debug("FUSE", t, "WAS", was, "NOW", f.typ)
+	//Debug("FUSE", t, "WAS", was, "NOW", f.typ)
 }
 
 // Type returns the computed supertype.
@@ -56,22 +56,26 @@ func (f *Fuser) fuse(a, b Type) Type {
 	case *TypeRecord:
 		if b, ok := b.(*TypeRecord); ok {
 			var fields []Field
-			// Fuse the common fields
-			for _, name := range fieldIntersect(a, b) {
-				typ := f.fuse(a.Index(name).Type, b.Index(name).Type)
-				fields = append(fields, NewField(name, typ))
-			}
 			// Now fuse all the fields that are unique with a pure none to
 			// make them optional in the union-sense rather than the option-type sense.
 			// This is how we recover the absence of a field vs a typed none in
 			// an option-type field (aka optional field)
-			for _, name := range fieldDiff(a, b) {
-				typ := f.fuse(a.Index(name).Type, TypeNone)
-				fields = append(fields, NewField(name, typ))
+			for _, field := range a.Fields {
+				var typ Type
+				if k, ok := b.IndexOfField(field.Name); ok {
+					typ = f.fuse(field.Type, b.Fields[k].Type)
+				} else {
+					typ = f.fuse(field.Type, TypeNone)
+
+				}
+				fields = append(fields, NewField(field.Name, typ))
 			}
-			for _, name := range fieldDiff(b, a) {
-				typ := f.fuse(b.Index(name).Type, TypeNone)
-				fields = append(fields, NewField(name, typ))
+			for _, field := range b.Fields {
+				if a.HasField(field.Name) {
+					continue
+				}
+				typ := f.fuse(field.Type, TypeNone)
+				fields = append(fields, NewField(field.Name, typ))
 			}
 			fusedRec := f.sctx.MustLookupTypeRecord(fields)
 			if recChanged(a, fusedRec) || recChanged(b, fusedRec) { //XXX update this?

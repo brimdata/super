@@ -80,7 +80,7 @@ input: |
   2
 
 output: |
-  <fusion(option(int64))>
+  <fusion(int64|option(int64))>
 
 ---
 
@@ -91,4 +91,4 @@ input: |
   some(1)
 
 output: |
-  <fusion(option(int64))>
+  <fusion(int64|option(int64))>

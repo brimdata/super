@@ -126,8 +126,9 @@ func hasNone(vec vector.Any) bool {
 	case *vector.None:
 		return vec.Len() > 0
 	case *vector.Union:
-		return super.IsOptionType(vec.Type()) && hasNone(vec.Dynamic())
+		return hasNone(vec.Dynamic())
 	case *vector.Option:
+		// XXX this should be false?  i.e., we only need to defuse on pure none?
 		return hasNone(vec.Any)
 	case *vector.Fusion:
 		return hasNone(vec.Values)
