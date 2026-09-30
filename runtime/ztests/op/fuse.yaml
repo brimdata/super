@@ -9,10 +9,10 @@ input: |
   {a:null,b:null,c:null}
 
 output: |
-  fusion({a:fusion("hello"::(string|null|none),<string>),b:fusion("world"::(int32|string|null),<string>),c:fusion(none::(string|null|none),<none>)},<{a:string,b:string}>)
-  fusion({a:fusion(none::(string|null|none),<none>),b:fusion("goodnight"::(int32|string|null),<string>),c:fusion("gracie"::(string|null|none),<string>)},<{b:string,c:string}>)
-  fusion({a:fusion("goodnight"::(string|null|none),<string>),b:fusion(123::int32::(int32|string|null),<int32>),c:fusion(none::(string|null|none),<none>)},<{a:string,b:int32}>)
-  fusion({a:fusion(null::(string|null|none),<null>),b:fusion(null::(int32|string|null),<null>),c:fusion(null::(string|null|none),<null>)},<{a:null,b:null,c:null}>)
+  {a:fusion("hello"::(string|null|none),<string>),b:fusion("world"::(int32|string|null),<string>),c:fusion(none::(string|null|none),<none>)}
+  {a:fusion(none::(string|null|none),<none>),b:fusion("goodnight"::(int32|string|null),<string>),c:fusion("gracie"::(string|null|none),<string>)}
+  {a:fusion("goodnight"::(string|null|none),<string>),b:fusion(123::int32::(int32|string|null),<int32>),c:fusion(none::(string|null|none),<none>)}
+  {a:fusion(null::(string|null|none),<null>),b:fusion(null::(int32|string|null),<null>),c:fusion(null::(string|null|none),<null>)}
 
 ---
 
@@ -71,9 +71,9 @@ input: |
   {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
 
 output: |
-  fusion({a:fusion("hello"::(string|null|none),<string>),r:fusion({x:fusion(1::int32::(int32|null|none),<int32>),y:fusion(2::int32::(int32|null),<int32>),z:fusion(none::(int32|null|none),<none>)},<{x:int32,y:int32}>),s:fusion(none::(string|null|none),<none>),r2:fusion(none::(null|none|{x:int32}),<none>)},<{a:string,r:{x:int32,y:int32}}>)
-  fusion({a:fusion(none::(string|null|none),<none>),r:fusion({x:fusion(none::(int32|null|none),<none>),y:fusion(4::int32::(int32|null),<int32>),z:fusion(5::int32::(int32|null|none),<int32>)},<{y:int32,z:int32}>),s:fusion("world"::(string|null|none),<string>),r2:fusion({x:6::int32}::(null|none|{x:int32}),<{x:int32}>)},<{r:{y:int32,z:int32},s:string,r2:{x:int32}}>)
-  fusion({a:fusion(null::(string|null|none),<null>),r:fusion({x:fusion(null::(int32|null|none),<null>),y:fusion(null::(int32|null),<null>),z:fusion(null::(int32|null|none),<null>)},<{x:null,y:null,z:null}>),s:fusion(null::(string|null|none),<null>),r2:fusion(null::(null|none|{x:int32}),<null>)},<{a:null,r:{x:null,y:null,z:null},s:null,r2:null}>)
+  {a:fusion("hello"::(string|null|none),<string>),r:{x:fusion(1::int32::(int32|null|none),<int32>),y:fusion(2::int32::(int32|null),<int32>),z:fusion(none::(int32|null|none),<none>)},s:fusion(none::(string|null|none),<none>),r2:fusion(none::(null|none|{x:int32}),<none>)}
+  {a:fusion(none::(string|null|none),<none>),r:{x:fusion(none::(int32|null|none),<none>),y:fusion(4::int32::(int32|null),<int32>),z:fusion(5::int32::(int32|null|none),<int32>)},s:fusion("world"::(string|null|none),<string>),r2:fusion({x:6::int32}::(null|none|{x:int32}),<{x:int32}>)}
+  {a:fusion(null::(string|null|none),<null>),r:{x:fusion(null::(int32|null|none),<null>),y:fusion(null::(int32|null),<null>),z:fusion(null::(int32|null|none),<null>)},s:fusion(null::(string|null|none),<null>),r2:fusion(null::(null|none|{x:int32}),<null>)}
 
 ---
 
