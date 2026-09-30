@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/vam/op"
+	"github.com/brimdata/super/runtime/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector/vio"
 )

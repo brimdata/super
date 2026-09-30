@@ -7,10 +7,10 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/runtime/expr"
+	"github.com/brimdata/super/runtime/expr/function"
+	"github.com/brimdata/super/runtime/op"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/vam/expr"
-	"github.com/brimdata/super/runtime/vam/expr/function"
-	"github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector/vio"
 	"golang.org/x/text/unicode/norm"

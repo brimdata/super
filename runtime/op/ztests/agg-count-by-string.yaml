@@ -1,0 +1,25 @@
+# Test runtime/op.CountbyString
+
+script: |
+  # Create a VNG file in which x is constant-encoded, y is dictionary-encoded,
+  # and z is neither to test all three encodings.
+  {
+    seq -f '{x: "0", y: "1", z: "%.0f"}' 257
+    seq -f '{x: "0", y: "2", z: "%.0f"}' 257
+  } | super -o t.bsup -
+  super -s -c 'from t.bsup | count() by x'
+  super -s -c 'from t.bsup | count() by y | sort y'
+  super -s -c 'from t.bsup | count(distinct x) by y | sort y'
+  super -s -c 'from t.bsup | count() by z | z == "257"'
+  super -s -c 'from t.bsup | count() filter (y=="1") by z | z == "257"'
+
+outputs:
+  - name: stdout
+    data: |
+      {x:"0",count:514}
+      {y:"1",count:257}
+      {y:"2",count:257}
+      {y:"1",count:1}
+      {y:"2",count:1}
+      {z:"257",count:2}
+      {z:"257",count:1}
