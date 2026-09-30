@@ -1,82 +1,85 @@
-package infer
+package op
 
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/runtime/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
-type Op struct {
-	rctx      *runtime.Context
-	parent    sbuf.Puller
+type Infer struct {
+	rctx   *runtime.Context
+	parent vio.Puller
+	limit  int
+
 	converter *converter
-	limit     int
+	defuse    *expr.Defuse
 	needEOS   bool
 }
 
-func New(rctx *runtime.Context, parent sbuf.Puller, limit int) *Op {
-	return &Op{
+func NewInfer(rctx *runtime.Context, parent vio.Puller, limit int) *Infer {
+	return &Infer{
 		rctx:   rctx,
 		parent: parent,
 		limit:  limit,
+		defuse: expr.NewDefuse(rctx.Sctx),
 	}
 }
 
-func (o *Op) Pull(done bool) (sbuf.Batch, error) {
+func (i *Infer) Pull(done bool) (vector.Any, error) {
 	if done {
-		o.eos()
-		return o.parent.Pull(true)
+		i.eos()
+		return i.parent.Pull(true)
 	}
-	if o.needEOS {
-		o.eos()
+	if i.needEOS {
+		i.eos()
 		return nil, nil
 	}
-	if o.converter == nil {
-		o.converter = newConverter(o.rctx, o.limit)
+	if i.converter == nil {
+		i.converter = newConverter(i.rctx, i.limit)
 	}
 	for {
-		batch, err := o.parent.Pull(false)
+		vec, err := i.parent.Pull(false)
 		if err != nil {
-			o.eos()
+			i.eos()
 			return nil, err
 		}
-		if batch == nil {
-			batch, err := o.converter.finish()
-			if err != nil {
-				o.eos()
+		if vec == nil {
+			vec, err := i.converter.drain(vector.NewDynamicValueBuilder(), true)
+			if vec == nil || err != nil {
+				i.eos()
 				return nil, err
 			}
-			if batch != nil {
-				o.needEOS = true
-			} else {
-				o.eos()
-			}
-			return batch, nil
+			i.needEOS = true
+			return vec, nil
 		}
-		batch, err = o.converter.process(batch)
+		vec = i.defuse.Eval(vec)
+		vec, err = i.converter.process(vec)
 		if err != nil {
-			o.eos()
+			i.eos()
 			return nil, err
 		}
-		if batch != nil {
-			return batch, nil
+		if vec != nil {
+			return vec, nil
 		}
 	}
 }
 
-func (o *Op) eos() {
-	o.converter = nil
-	o.needEOS = false
+func (i *Infer) eos() {
+	i.converter = nil
+	i.needEOS = false
 }
 
 type converter struct {
 	rctx   *runtime.Context
 	queues map[super.Type][]super.Value
 	caster function.Caster
-	defuse *function.Defuse
 	target map[super.Type]super.Type
 	limit  int
+	sb     scode.Builder
 }
 
 func newConverter(rctx *runtime.Context, limit int) *converter {
@@ -84,34 +87,27 @@ func newConverter(rctx *runtime.Context, limit int) *converter {
 		rctx:   rctx,
 		queues: make(map[super.Type][]super.Value),
 		caster: function.NewCaster(rctx.Sctx),
-		defuse: function.NewDefuse(rctx.Sctx),
 		target: make(map[super.Type]super.Type),
 		limit:  limit,
 	}
 }
 
-func (c *converter) process(batch sbuf.Batch) (sbuf.Batch, error) {
-	var out sbuf.Array
-	for _, val := range batch.Values() {
+func (c *converter) process(vec vector.Any) (vector.Any, error) {
+	b := vector.NewDynamicValueBuilder()
+	for i := range vec.Len() {
+		val := vector.ValueAt(&c.sb, vec, i)
 		if val, ok := c.convert(val); ok {
-			out.Append(val)
+			b.Write(val)
 		}
 	}
-	batch.Unref()
-	if err := c.drain(&out, false); err != nil {
-		return nil, err
-	}
-	if len(out.Values()) != 0 {
-		return &out, nil
-	}
-	return nil, nil
+	return c.drain(b, false)
 }
 
-func (c *converter) drain(out *sbuf.Array, force bool) error {
+func (c *converter) drain(b *vector.DynamicValueBuilder, force bool) (vector.Any, error) {
 	for typ, q := range c.queues {
 		// The queues can get big, so we mind the context.
 		if err := c.rctx.Err(); err != nil {
-			return err
+			return nil, err
 		}
 		if force || (c.limit != 0 && len(q) >= c.limit) {
 			c.infer(q)
@@ -121,15 +117,18 @@ func (c *converter) drain(out *sbuf.Array, force bool) error {
 				if !ok {
 					panic(c)
 				}
-				out.Append(val)
+				b.Write(val)
 			}
 		}
 	}
-	return nil
+	vec := b.Build(c.rctx.Sctx)
+	if vec.Len() == 0 {
+		return nil, nil
+	}
+	return vec, nil
 }
 
 func (c *converter) convert(val super.Value) (super.Value, bool) {
-	val = c.defuse.Call([]super.Value{val})
 	if to, ok := c.target[val.Type()]; ok {
 		if to != nil {
 			if converted, ok := c.caster.Cast(val, to); ok {
@@ -143,17 +142,6 @@ func (c *converter) convert(val super.Value) (super.Value, bool) {
 		return val, true
 	}
 	return super.Value{}, false
-}
-
-func (c *converter) finish() (sbuf.Batch, error) {
-	var out sbuf.Array
-	if err := c.drain(&out, true); err != nil {
-		return nil, err
-	}
-	if len(out.Values()) != 0 {
-		return &out, nil
-	}
-	return nil, nil
 }
 
 func (c *converter) enq(val super.Value) bool {
