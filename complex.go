@@ -227,7 +227,10 @@ func (t *TypeRecord) IndexOfField(field string) (int, bool) {
 }
 
 func (t *TypeRecord) Index(field string) Field {
-	k, _ := t.LUT[field]
+	k, ok := t.LUT[field]
+	if !ok {
+		panic(field)
+	}
 	return t.Fields[k]
 }
 

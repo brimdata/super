@@ -69,7 +69,7 @@ func (f *Fuser) fuse(a, b Type) Type {
 				}
 				fields = append(fields, NewField(field.Name, typ))
 			}
-			// No make sure any fields in b that are not in a are fused with
+			// Now make sure any fields in b that are not in a are fused with
 			// none and added to the end of the new record type.
 			for _, field := range b.Fields {
 				if a.HasField(field.Name) {

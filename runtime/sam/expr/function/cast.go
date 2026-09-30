@@ -75,9 +75,12 @@ func (c *cast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 		// Casting a none value to a non option type.  Automatically convert
 		// the target type to it's option form.
 		if _, ok := super.TypeUnder(to).(*super.TypeUnion); !ok {
-			// As in SUP, cannot cast nones directly to a union.  You need
-			// to use an explicit option type.  Instead, a cast to union assumes
-			// you are trying to cast the none to a union with an untyped none.
+			// As in SUP, a cast applied to an untyped none implieds an
+			// option type, except for unions, which casts the none to
+			// a member of the union.  If you want to cast to an option union,
+			// you need to be explicit and specify the option type.  So
+			// here we check that this is not a union and fall through below
+			// if it is.
 			return c.sctx.LookupTypeOption(to).None(), true
 		}
 	}

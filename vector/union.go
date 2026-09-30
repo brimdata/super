@@ -73,7 +73,7 @@ func NewUnionOptionRLE(sctx *super.Context, vec Any, length uint32, runlens []ui
 		// union tags are preserved and the none at tag 1 goes to the last tag (noneTag).
 		tags, noneLen := buildTags(runlens, length)
 		vecs = append(vecs, NewNone(noneLen))
-		from := 0
+		var from int
 		fromTags := union.Tags()
 		for k := range tags {
 			if tags[k] == 0 {
