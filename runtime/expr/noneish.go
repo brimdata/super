@@ -16,19 +16,18 @@ func NewNoneish(lhs, rhs Evaluator) *Noneish {
 func (i *Noneish) Eval(this vector.Any) vector.Any {
 	lhs := i.lhs.Eval(this)
 	rhs := i.rhs.Eval(this)
-	return vector.Apply(vector.ApplyRipUnions, i.eval, lhs, vector.AddNoRip(rhs))
+	return vector.Apply(vector.ApplyRipUnions|vector.ApplyRipFusions, i.eval, lhs, vector.AddNoRip(rhs))
 }
 
 func (i *Noneish) eval(vecs ...vector.Any) vector.Any {
 	lhs := vecs[0]
 	rhs := vecs[1]
-	super := vector.Super(lhs)
-	k := super.Kind()
+	k := lhs.Kind()
 	if k == vector.KindNull || k == vector.KindNone {
 		return rhs
 	}
 	if k == vector.KindOption {
-		if lhs, ok := vector.PushView(super).(*vector.Option); ok {
+		if lhs, ok := vector.PushView(lhs).(*vector.Option); ok {
 			return i.eval(lhs.Any, vecs[1])
 		}
 	}
