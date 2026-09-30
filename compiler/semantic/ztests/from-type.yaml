@@ -23,10 +23,10 @@ outputs:
   - name: stdout
     data: |
       === bsup (default)
-      file test.bsup format bsup type {x?:int64,y?:int64}
+      file test.bsup format bsup type {x:int64|none,y:int64|none}
       | output main
       === bsup (static)
-      file test.bsup format bsup type {x?:int64,y?:int64}
+      file test.bsup format bsup type {x:int64|none,y:int64|none}
       | output main
       === bsup (default pipe)
       file /dev/stdin
@@ -39,7 +39,7 @@ outputs:
       file test.json format json
       | output main
       === json (static)
-      file test.json format json type {x?:int64,y?:int64}
+      file test.json format json type {x:int64|none,y:int64|none}
       | output main
       === json (default pipe)
       file /dev/stdin
@@ -62,10 +62,10 @@ outputs:
       from /dev/stdin
            ~~~~~~~~~~
       === sup (default)
-      file test.sup format sup type {x?:int64,y?:int64}
+      file test.sup format sup type {x:int64|none,y:int64|none}
       | output main
       === sup (static)
-      file test.sup format sup type {x?:int64,y?:int64}
+      file test.sup format sup type {x:int64|none,y:int64|none}
       | output main
       === sup (default pipe)
       file /dev/stdin

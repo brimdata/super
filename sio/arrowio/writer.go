@@ -523,7 +523,7 @@ func nullableUnion(typ super.Type) (*super.TypeUnion, int) {
 	}
 	which := -1
 	for k := range u.Types {
-		if u.Types[k] == super.TypeNull || super.IsOptionType(u.Types[k]) {
+		if u.Types[k] == super.TypeNull || u.Types[k] == super.TypeNone || super.IsOptionType(u.Types[k]) {
 			continue
 		}
 		if which >= 0 {

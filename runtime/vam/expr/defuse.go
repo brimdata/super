@@ -8,17 +8,15 @@ import (
 )
 
 type Defuse struct {
-	sctx     *super.Context
-	downcast *Downcast
-	// This is used only for HasFusion func.
-	samdefuse *samfunc.Defuse
+	sctx      *super.Context
+	downcast  *Downcast
+	hasFusion samfunc.FusionChecker
 }
 
 func NewDefuse(sctx *super.Context) *Defuse {
 	d := &Defuse{
-		sctx:      sctx,
-		downcast:  &Downcast{sctx: sctx},
-		samdefuse: samfunc.NewDefuse(sctx),
+		sctx:     sctx,
+		downcast: &Downcast{sctx: sctx},
 	}
 	d.downcast.defuser = d
 	return d
@@ -31,7 +29,7 @@ func (d *Defuse) Eval(in vector.Any) vector.Any {
 }
 
 func (d *Defuse) eval(in vector.Any) vector.Any {
-	if !d.samdefuse.HasFusion(in.Type()) {
+	if !d.hasFusion.Check(in.Type()) {
 		return in
 	}
 	switch in.Kind() {

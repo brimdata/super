@@ -8,16 +8,15 @@ import (
 )
 
 type Defuse struct {
-	sctx     *super.Context
-	downcast *downcast
-	has      map[super.Type]bool
+	sctx      *super.Context
+	downcast  *downcast
+	hasFusion FusionChecker
 }
 
 func NewDefuse(sctx *super.Context) *Defuse {
 	d := &Defuse{
 		sctx:     sctx,
 		downcast: &downcast{sctx: sctx},
-		has:      make(map[super.Type]bool),
 	}
 	d.downcast.defuser = d
 	return d
@@ -28,7 +27,7 @@ func (d *Defuse) Call(args []super.Value) super.Value {
 }
 
 func (d *Defuse) eval(in super.Value) super.Value {
-	if !d.HasFusion(in.Type()) {
+	if !d.hasFusion.Check(in.Type()) {
 		return in
 	}
 	switch typ := in.Type().(type) {
@@ -155,27 +154,36 @@ func (d *Defuse) unifyType(vals []super.Value) super.Type {
 	}
 }
 
-func (d *Defuse) HasFusion(typ super.Type) bool {
-	if fused, ok := d.has[typ]; ok {
+type FusionChecker map[super.Type]bool
+
+func (f *FusionChecker) Check(typ super.Type) bool {
+	if *f == nil {
+		*f = make(map[super.Type]bool)
+	}
+	return f.hasFusion(typ)
+}
+
+func (f FusionChecker) hasFusion(typ super.Type) bool {
+	if fused, ok := f[typ]; ok {
 		return fused
 	}
 	var has bool
 	switch typ := typ.(type) {
 	case *super.TypeRecord:
-		has = slices.ContainsFunc(typ.Fields, func(f super.Field) bool { return d.HasFusion(f.Type) })
+		has = slices.ContainsFunc(typ.Fields, func(field super.Field) bool { return f.hasFusion(field.Type) })
 	case *super.TypeArray:
-		has = d.HasFusion(typ.Type)
+		has = f.hasFusion(typ.Type)
 	case *super.TypeSet:
-		has = d.HasFusion(typ.Type)
+		has = f.hasFusion(typ.Type)
 	case *super.TypeUnion:
-		has = slices.ContainsFunc(typ.Types, d.HasFusion)
+		has = slices.ContainsFunc(typ.Types, f.hasFusion)
 	case *super.TypeMap:
-		has = d.HasFusion(typ.KeyType) || d.HasFusion(typ.ValType)
+		has = f.hasFusion(typ.KeyType) || f.hasFusion(typ.ValType)
 	case *super.TypeError:
-		has = d.HasFusion(typ.Type)
+		has = f.hasFusion(typ.Type)
 	case *super.TypeFusion:
 		has = true
 	}
-	d.has[typ] = has
+	f[typ] = has
 	return has
 }

@@ -57,6 +57,39 @@ func NewUnionFromRLE(typ *super.TypeUnion, rle []uint32, vecs []Any) *Union {
 	return &Union{dynamic: NewDynamic(nil, vecs), rle: rle, Typ: typ}
 }
 
+func NewUnionOptionRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) *Union {
+	typ := vec.Type()
+	optionType := sctx.UnionWithNone(typ)
+	if union, ok := vec.(*Union); ok {
+		// If it's a union, let's make it an option type by adding type none at the end.
+		// We don't (yet) bother trying to run-length encode these since there are more
+		// than two vectors.
+		types := slices.Clone(union.Typ.Types)
+		types = append(types, super.TypeNone)
+		vecs := slices.Clone(union.Values())
+		noneTag := uint32(len(vecs))
+		// buildTags assumes a single value at tag 0 and a none at tag 1.
+		// we'll build that then convert it from this unions tags, where the
+		// union tags are preserved and the none at tag 1 goes to the last tag (noneTag).
+		tags, noneLen := buildTags(runlens, length)
+		vecs = append(vecs, NewNone(noneLen))
+		var from int
+		fromTags := union.Tags()
+		for k := range tags {
+			if tags[k] == 0 {
+				tags[k] = fromTags[from]
+				from++
+			} else {
+				tags[k] = noneTag
+			}
+		}
+		return NewUnion(optionType, tags, vecs)
+	}
+	//XXX we should use the RLEs only when substantially smaller than tags
+	vecs := []Any{vec, NewNone(noneLength(runlens))}
+	return NewUnionFromRLE(optionType, runlens, vecs)
+}
+
 // verifyUnion verifies that a created union:
 // 1. Has a vector for every type in the union.
 // 2. There are not multiple vectors with the same type.
