@@ -17,7 +17,6 @@ import (
 	"github.com/brimdata/super/runtime/expr"
 	"github.com/brimdata/super/runtime/op"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op/load"
 	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/runtime/sam/op/top"
 	"github.com/brimdata/super/runtime/sam/op/uniq"
@@ -210,8 +209,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	//
 	// Non-scanner operators in alphabetical order.
 	//
-	case *dag.LoadOp:
-		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.TopOp:
 		exprs, err := b.compileSortExprs(v.Exprs)
 		if err != nil {
