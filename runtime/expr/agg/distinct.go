@@ -85,5 +85,5 @@ func (d *distinct) Result(sctx *super.Context) vector.Any {
 
 func (d *distinct) ResultAsPartial(sctx *super.Context) vector.Any {
 	val := samagg.DistinctResultAsPartial(sctx, d.seen)
-	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
+	return sbuf.Dematerialize(sctx, val)
 }

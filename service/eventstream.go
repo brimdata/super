@@ -27,7 +27,7 @@ func (e *eventStreamWriter) writeEvent(ev event) error {
 	if err != nil {
 		return err
 	}
-	if err := w.Push(sbuf.ValToVec(super.NewContext(), ev.value)); err != nil {
+	if err := w.Push(sbuf.Dematerialize(super.NewContext(), ev.value)); err != nil {
 		return err
 	}
 	if err := w.Close(); err != nil {

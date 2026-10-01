@@ -213,7 +213,7 @@ func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem
 }
 
 func (t *translator) hasError(val super.Value) bool {
-	vec := sbuf.ValToVec(t.sctx, val)
+	vec := sbuf.Dematerialize(t.sctx, val)
 	vec = function.NewHasError(t.sctx).Call(vec)
 	val = vector.ValueAt(nil, vec, 0)
 	return val.AsBool()

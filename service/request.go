@@ -292,7 +292,7 @@ func (w *ResponseWriter) Marshal(body any) bool {
 	if zw == nil {
 		return false
 	}
-	if err := zw.Push(sbuf.ValToVec(super.NewContext(), val)); err != nil {
+	if err := zw.Push(sbuf.Dematerialize(super.NewContext(), val)); err != nil {
 		w.Error(err)
 		return false
 	}

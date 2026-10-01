@@ -101,7 +101,7 @@ func (c *Command) Run(args []string) error {
 			return fmt.Errorf("invalid BSUP section type: %c", hdr.SectionType)
 		}
 	}
-	err = writer.Push(sbuf.Dematerialize(sctx, sbuf.NewArray(vals)))
+	err = writer.Push(sbuf.Dematerialize(sctx, vals...))
 	if err2 := writer.Close(); err == nil {
 		err = err2
 	}
@@ -115,7 +115,7 @@ func (c *Command) types(r storage.Reader, w vio.PushCloser) error {
 		return err
 	}
 	val := sctx.LookupTypeValue(typ)
-	err = w.Push(sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val})))
+	err = w.Push(sbuf.Dematerialize(sctx, val))
 	if err2 := w.Close(); err == nil {
 		err = err2
 	}

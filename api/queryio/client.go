@@ -46,7 +46,8 @@ again:
 	batch, err := s.scanner.Pull(done)
 	if err == nil {
 		if batch != nil {
-			return &vector.Labeled{Any: sbuf.Dematerialize(s.sctx, batch), Label: s.channel}, nil
+			vec := sbuf.Dematerialize(s.sctx, batch.Values()...)
+			return &vector.Labeled{Any: vec, Label: s.channel}, nil
 		}
 		return nil, s.closer.Close()
 	}

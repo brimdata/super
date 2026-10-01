@@ -39,7 +39,7 @@ func (u *union) Consume(vec vector.Any) {
 
 func (u *union) Result(sctx *super.Context) vector.Any {
 	val := u.samunion.Result(sctx)
-	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
+	return sbuf.Dematerialize(sctx, val)
 }
 
 func (u *union) ConsumeAsPartial(partial vector.Any) {
@@ -79,5 +79,5 @@ func (u *union) ConsumeAsPartial(partial vector.Any) {
 
 func (u *union) ResultAsPartial(sctx *super.Context) vector.Any {
 	val := u.samunion.ResultAsPartial(sctx)
-	return sbuf.Dematerialize(sctx, sbuf.NewArray([]super.Value{val}))
+	return sbuf.Dematerialize(sctx, val)
 }
