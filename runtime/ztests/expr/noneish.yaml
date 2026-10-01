@@ -6,3 +6,14 @@ output: |
   3
   none
   4
+
+---
+
+spq: |
+  values this ?? 1
+
+input: |
+  fusion(none::(int64|none),<none>)
+
+output: |
+  1
