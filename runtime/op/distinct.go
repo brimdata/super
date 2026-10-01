@@ -16,11 +16,12 @@ type Distinct struct {
 	expr   expr.Evaluator
 
 	blocked map[string]struct{}
+	defuse  *expr.Defuse
 	key     []byte
 }
 
-func NewDistinct(sctx *super.Context, parent vio.Puller, expr expr.Evaluator) *Distinct {
-	return &Distinct{sctx, parent, expr, map[string]struct{}{}, nil}
+func NewDistinct(sctx *super.Context, parent vio.Puller, e expr.Evaluator) *Distinct {
+	return &Distinct{sctx, parent, e, map[string]struct{}{}, expr.NewDefuse(sctx), nil}
 }
 
 func (d *Distinct) Pull(done bool) (vector.Any, error) {
@@ -32,7 +33,7 @@ func (d *Distinct) Pull(done bool) (vector.Any, error) {
 		}
 		var sb scode.Builder
 		var index []uint32
-		keyVec := d.expr.Eval(vec)
+		keyVec := d.defuse.Eval(d.expr.Eval(vec))
 		// XXX In a future PR we will propagate nones as structured errors encountered here; they shouldn't be silently hidden
 		keyVec = vector.DeoptionWithNone(keyVec)
 		for i := range keyVec.Len() {
