@@ -204,7 +204,7 @@
         - [Amazon S3](dev/integrations/s3.md)
         !!- [Authentication](dev/integrations/auth.md)
         !!- [Fluentd](dev/integrations/fluentd.md)
-        - [Grafana](dev/integrations/grafana.md)
+        !!- [Grafana](dev/integrations/grafana.md)
         - [Zeek](dev/integrations/zeek/intro.md)
             - [Type System](dev/integrations/zeek/types.md)
             - [TSV Logs](dev/integrations/zeek/logs.md)
