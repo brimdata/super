@@ -258,6 +258,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vio.Puller) (vio.Puller, error
 		return op.NewHead(parent, o.Count), nil
 	case *dag.InferOp:
 		return op.NewInfer(b.rctx, parent, o.Limit), nil
+	case *dag.LoadOp:
+		return op.NewLoad(b.rctx, b.env.DB(), parent, o.Pool, o.Branch, o.Author, o.Message, o.Meta), nil
 	case *dag.OutputOp:
 		b.channels[o.Name] = append(b.channels[o.Name], parent)
 		return parent, nil
