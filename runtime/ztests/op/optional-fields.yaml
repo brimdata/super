@@ -4,6 +4,7 @@ input: |
   {a:1,b?:"foo"}
   {a:1,b?:none::string}
   {a:1,b:"foo"}
+  {a:1,b:fusion("foo"::(string|none),<string>)}
 
 output: |
   {a:1,b?:"foo"}
