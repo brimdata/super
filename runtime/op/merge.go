@@ -5,11 +5,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/brimdata/super"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	samexpr "github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Merge struct {

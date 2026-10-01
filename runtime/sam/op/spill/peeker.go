@@ -3,8 +3,8 @@ package spill
 import (
 	"context"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio"
 )
 
 type peeker struct {

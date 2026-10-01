@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/brimdata/super/compiler/ast"
+	"github.com/superdb/super/compiler/ast"
 )
 
 func sliceOf[E any](s any) []E {

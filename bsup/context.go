@@ -7,9 +7,9 @@ import (
 	"io"
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup/rows"
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup/rows"
+	"github.com/superdb/super/sbuf"
 )
 
 type Context struct {

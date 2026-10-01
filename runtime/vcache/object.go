@@ -3,11 +3,11 @@ package vcache
 import (
 	"context"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/vector"
 )
 
 // Object is the interface to load a given BSUP object from storage into

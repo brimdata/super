@@ -3,11 +3,11 @@ package sbuf
 import (
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Materializer struct {

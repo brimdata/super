@@ -4,7 +4,7 @@ import (
 	"iter"
 	"slices"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type ApplyOpt uint

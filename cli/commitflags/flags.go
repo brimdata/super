@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/user"
 
-	"github.com/brimdata/super/api"
+	"github.com/superdb/super/api"
 )
 
 func username() string {

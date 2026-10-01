@@ -66,7 +66,7 @@ For example, these are all valid SuperSQL queries:
 SELECT 'hello, world'
 SELECT * FROM table
 SELECT * FROM f1.json JOIN f2.json ON f1.id=f2.id
-SELECT watchers FROM https://api.github.com/repos/brimdata/super
+SELECT watchers FROM https://api.github.com/repos/superdb/super
 ```
 
 ## Pipe Queries
@@ -171,7 +171,7 @@ HTTP endpoint and process it with `super`, in this case, to extract the descript
 and license of a GitHub repository:
 ```sh
 super -f line -c "
-from https://api.github.com/repos/brimdata/super
+from https://api.github.com/repos/superdb/super
 | values description,license.name
 "
 ```

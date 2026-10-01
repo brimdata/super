@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/brimdata/super/api"
+	"github.com/superdb/super/api"
 )
 
 type Tokens struct {

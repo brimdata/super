@@ -3,7 +3,7 @@ package sbuf
 import (
 	"io"
 
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/vector/vio"
 )
 
 type File struct {

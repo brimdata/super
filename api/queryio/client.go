@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/bsup/rows"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/bsup/rows"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type scanner struct {

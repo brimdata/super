@@ -14,7 +14,7 @@ format as input. There is currently no backward compatibility in `super` for
 reading BSUP v1 inputs. If you have valuable saved BSUP v1 files that you
 cannot easily regenerate into v2 from their original sources, please speak up
 on [community Slack](https://www.brimdata.io/join-slack/) or
-[open an issue](https://github.com/brimdata/super/issues) for assistance.
+[open an issue](https://github.com/superdb/super/issues) for assistance.
 
 ### Added
 
@@ -29,7 +29,7 @@ on [community Slack](https://www.brimdata.io/join-slack/) or
 
 ### Changed
 
-- Change license to [SuperDB Source Available License v1.0](https://github.com/brimdata/super/blob/9343c50f2cdaf39ecfb3f90a458c552d3d0f8681/LICENSE.md) (#6755)
+- Change license to [SuperDB Source Available License v1.0](https://github.com/superdb/super/blob/9343c50f2cdaf39ecfb3f90a458c552d3d0f8681/LICENSE.md) (#6755)
 - In `collect` and `union` aggregate functions, `error("quiet")` values are now dropped and `error("missing")` values are preserved (#6710)
 - `null` values are now ignored in `concat` function and f-strings (#6730)
 - macOS `super` release artifacts are now signed and notarized (#6703)
@@ -49,7 +49,7 @@ format as input. There is currently no backward compatibility in `super` for
 reading BSUP v0 inputs. If you have valuable saved BSUP v0 files that you
 cannot easily regenerate into v1 from their original sources, please speak up
 on [community Slack](https://www.brimdata.io/join-slack/) or
-[open an issue](https://github.com/brimdata/super/issues) for assistance.
+[open an issue](https://github.com/superdb/super/issues) for assistance.
 
 ### Added
 

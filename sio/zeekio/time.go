@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/pkg/nano"
+	"github.com/superdb/super/pkg/byteconv"
+	"github.com/superdb/super/pkg/nano"
 )
 
 // formatTime formats ts as a Zeek time value.  A Zeek time value is a

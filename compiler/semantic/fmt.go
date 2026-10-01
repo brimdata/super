@@ -1,7 +1,7 @@
 package semantic
 
 import (
-	"github.com/brimdata/super/compiler/semantic/sem"
+	"github.com/superdb/super/compiler/semantic/sem"
 )
 
 func Clear(seq sem.Seq, funcs map[string]*funcDef) {

@@ -58,9 +58,9 @@ func main() {
 	fmt.Fprintln(&buf)
 	fmt.Fprintln(&buf, "package function")
 	fmt.Fprintln(&buf, "import (")
-	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector"`)
-	fmt.Fprintln(&buf, `"github.com/brimdata/super"`)
-	fmt.Fprintln(&buf, `"github.com/brimdata/super/pkg/nano"`)
+	fmt.Fprintln(&buf, `"github.com/superdb/super/vector"`)
+	fmt.Fprintln(&buf, `"github.com/superdb/super"`)
+	fmt.Fprintln(&buf, `"github.com/superdb/super/pkg/nano"`)
 	fmt.Fprintln(&buf, ")")
 	for _, fn := range funcs {
 		fmt.Fprintf(&buf, "func %s(vec vector.Any) vector.Any {\n", funcName(fn.name))

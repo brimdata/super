@@ -1,9 +1,9 @@
 package function
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/runtime/sam/expr"
 )
 
 type Compare struct {

@@ -5,15 +5,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/storage"
-	storagemock "github.com/brimdata/super/pkg/storage/mock"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/vector/vio"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/storage"
+	storagemock "github.com/superdb/super/pkg/storage/mock"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/anyio"
+	"github.com/superdb/super/sio/supio"
+	"github.com/superdb/super/vector/vio"
 	"go.uber.org/mock/gomock"
 )
 

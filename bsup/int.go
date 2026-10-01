@@ -4,9 +4,9 @@ import (
 	"cmp"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/ronanh/intcomp"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/byteconv"
 	"golang.org/x/sync/errgroup"
 )
 

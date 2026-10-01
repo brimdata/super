@@ -1,9 +1,9 @@
 package sfmt
 
 import (
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/sup"
 )
 
 type shared struct {

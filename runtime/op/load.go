@@ -1,13 +1,13 @@
 package op
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Load struct {

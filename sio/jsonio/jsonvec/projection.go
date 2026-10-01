@@ -3,8 +3,8 @@ package jsonvec
 import (
 	"encoding/json"
 
-	"github.com/brimdata/super/pkg/field"
 	"github.com/bytedance/sonic/ast"
+	"github.com/superdb/super/pkg/field"
 )
 
 type projBuilder struct {

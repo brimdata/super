@@ -3,8 +3,8 @@ package dev
 import (
 	"flag"
 
-	"github.com/brimdata/super/cmd/super/root"
-	"github.com/brimdata/super/pkg/charm"
+	"github.com/superdb/super/cmd/super/root"
+	"github.com/superdb/super/pkg/charm"
 )
 
 var Spec = &charm.Spec{

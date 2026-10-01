@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type URI url.URL

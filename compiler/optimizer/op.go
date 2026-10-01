@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
 )
 
 // analyzeSortKeys returns how an input order maps to an output order based

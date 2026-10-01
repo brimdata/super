@@ -3,9 +3,9 @@
 package function
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/vector"
 )
 
 func date_time_dayofweek(vec vector.Any) vector.Any {

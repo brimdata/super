@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/sup"
 	"github.com/x448/float16"
 )
 
@@ -455,7 +455,7 @@ func TestInterfaceBSUPMarshal(t *testing.T) {
 	m.Decorate(super.StyleFull)
 	zv, err = m.Marshal(rolls)
 	require.NoError(t, err)
-	assert.Equal(t, `"github.com/brimdata/super/sup_test.Rolls"`, sup.String(zv.Type()))
+	assert.Equal(t, `"github.com/superdb/super/sup_test.Rolls"`, sup.String(zv.Type()))
 
 	plain := []int32{1, 2, 3}
 	zv, err = m.Marshal(plain)

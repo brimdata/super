@@ -8,10 +8,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/brimdata/super/pkg/fs"
-	"github.com/brimdata/super/service/srverr"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
+	"github.com/superdb/super/pkg/fs"
+	"github.com/superdb/super/service/srverr"
 )
 
 const (

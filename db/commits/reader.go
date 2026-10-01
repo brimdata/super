@@ -5,9 +5,9 @@ import (
 	"errors"
 	"io/fs"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio"
 )
 
 type LogReader struct {

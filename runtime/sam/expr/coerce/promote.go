@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 var ErrIncompatibleTypes = errors.New("incompatible types")

@@ -432,5 +432,5 @@ screen.
 
 If you're having difficulty, interested in shaping other data sources, or
 just have feedback, please join our [public Slack](https://www.brimdata.io/join-slack/)
-and speak up or [open an issue](https://github.com/brimdata/super/issues/new/choose).
+and speak up or [open an issue](https://github.com/superdb/super/issues/new/choose).
 Thanks!

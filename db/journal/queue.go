@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio/bsupio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sio/bsupio"
 )
 
 const ext = "bsuprows"

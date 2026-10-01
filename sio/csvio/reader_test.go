@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
 )
 
 func TestNewReaderUsesContextParameter(t *testing.T) {

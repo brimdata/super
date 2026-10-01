@@ -3,8 +3,8 @@ package vector_test
 import (
 	"testing"
 
-	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/vector"
 )
 
 func TestDictRebuildDropTags(t *testing.T) {

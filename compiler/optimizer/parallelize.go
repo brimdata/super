@@ -3,8 +3,8 @@ package optimizer
 import (
 	"reflect"
 
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/order"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/order"
 )
 
 // Parallelize tries to parallelize the DAG by splitting each source

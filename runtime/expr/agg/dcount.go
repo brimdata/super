@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/axiomhq/hyperloglog"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
 )
 
 // dcount uses hyperloglog to approximate the count of unique values for

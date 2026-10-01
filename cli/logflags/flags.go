@@ -3,7 +3,7 @@ package logflags
 import (
 	"flag"
 
-	"github.com/brimdata/super/service/logger"
+	"github.com/superdb/super/service/logger"
 	"go.uber.org/zap"
 )
 

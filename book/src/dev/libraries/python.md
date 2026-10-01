@@ -1,6 +1,6 @@
 # Python
 
-The [`superdb` Python package](https://github.com/brimdata/superdb-python)
+The [`superdb` Python package](https://github.com/superdb/superdb-python)
 provides support for Python-based interaction with a
 persistent [database](../../command/db.md).  The Python package supports loading data into a
 database as well as querying and retrieving results.  The Python client
@@ -28,7 +28,7 @@ interacts with the database via the REST API provided by
 ## Installation
 
 ```
-pip3 install "git+https://github.com/brimdata/superdb-python"
+pip3 install "git+https://github.com/superdb/superdb-python"
 ```
 
 ## Example

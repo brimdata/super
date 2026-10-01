@@ -376,7 +376,7 @@ produces
 
 In the current `join` implementation, explicit entries must be provided in the
 `[field-list]` in order to copy values from the opposite input into the joined
-results (a possible future enhancement [super/2815](https://github.com/brimdata/super/issues/2815)
+results (a possible future enhancement [super/2815](https://github.com/superdb/super/issues/2815)
 may improve upon this). This can be cumbersome if your goal is to copy over many
 fields or you don't know the names of all desired fields.
 

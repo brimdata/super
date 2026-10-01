@@ -3,11 +3,11 @@ package function
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
-	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vbuild"
+	"github.com/superdb/super"
+	samfunc "github.com/superdb/super/runtime/sam/expr/function"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vbuild"
 )
 
 type Upcast struct {

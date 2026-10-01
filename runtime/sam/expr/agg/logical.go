@@ -1,7 +1,7 @@
 package agg
 
 import (
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type And struct {

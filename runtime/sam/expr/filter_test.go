@@ -4,17 +4,17 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/compiler/rungen"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/compiler/parser"
+	"github.com/superdb/super/compiler/rungen"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/exec"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sup"
 )
 
 type testcase struct {
@@ -197,8 +197,8 @@ func TestFilters(t *testing.T) {
 		{`a == "S"`, false},
 		{`a == "s"`, false},
 		{`?\u017F`, true},
-		{`?S`, false}, // Should be true; see https://github.com/brimdata/super/issues/1207.
-		{`?s`, false}, // Should be true; see https://github.com/brimdata/super/issues/1207.
+		{`?S`, false}, // Should be true; see https://github.com/superdb/super/issues/1207.
+		{`?s`, false}, // Should be true; see https://github.com/superdb/super/issues/1207.
 	})
 
 	// Test U+212A KELVIN SIGN.

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sio"
 )
 
 // MergeSort manages "runs" (files of sorted BSUP values) that are spilled to

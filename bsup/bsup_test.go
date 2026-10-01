@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup"
-	"github.com/brimdata/super/fuzz"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup"
+	"github.com/superdb/super/fuzz"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
 )
 
 func FuzzBSUPRoundtripGen(f *testing.F) {

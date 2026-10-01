@@ -5,7 +5,7 @@ import (
 	"slices"
 	"sync/atomic"
 
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 )
 
 type Puller interface {

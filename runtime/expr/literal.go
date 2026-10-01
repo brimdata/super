@@ -1,8 +1,8 @@
 package expr
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/vector"
 )
 
 type Literal struct {

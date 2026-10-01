@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/scode"
 )
 
 type Value interface {

@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 )
 
 var _ Value = (*Record)(nil)

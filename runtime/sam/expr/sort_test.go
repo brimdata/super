@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/sup"
 )
 
 func BenchmarkSort(b *testing.B) {

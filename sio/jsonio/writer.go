@@ -9,13 +9,13 @@ import (
 	"io"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/pkg/terminal/color"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/pkg/terminal/color"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
 )
 
 var (

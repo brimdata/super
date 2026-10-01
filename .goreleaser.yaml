@@ -7,7 +7,7 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -X github.com/brimdata/super/cli.version={{ .Tag }}
+      - -s -X github.com/superdb/super/cli.version={{ .Tag }}
     goarch:
       - amd64
       - arm64

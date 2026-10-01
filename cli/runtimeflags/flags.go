@@ -4,10 +4,10 @@ import (
 	"errors"
 	"flag"
 
-	"github.com/brimdata/super/cli/auto"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/pbnjay/memory"
+	"github.com/superdb/super/cli/auto"
+	"github.com/superdb/super/runtime/sam/expr/agg"
+	"github.com/superdb/super/runtime/sam/op/sort"
 )
 
 // defaultMemMaxBytes returns approximately 1/8 of total system memory,

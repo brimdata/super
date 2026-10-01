@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	"github.com/brimdata/super/dbid"
+	"github.com/superdb/super/dbid"
 )
 
 type Flags struct {

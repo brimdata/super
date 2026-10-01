@@ -6,10 +6,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector"
 )
 
 type Writer struct {

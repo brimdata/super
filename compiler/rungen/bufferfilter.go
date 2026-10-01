@@ -1,10 +1,10 @@
 package rungen
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sup"
 	"golang.org/x/text/unicode/norm"
 )
 

@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	pkgfs "github.com/brimdata/super/pkg/fs"
-	"github.com/brimdata/super/pkg/storage"
+	pkgfs "github.com/superdb/super/pkg/fs"
+	"github.com/superdb/super/pkg/storage"
 )
 
 const version = 1

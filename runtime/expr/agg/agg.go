@@ -3,8 +3,8 @@ package agg
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr"
 )
 
 func NewPattern(sctx *super.Context, op string, distinct, hasarg bool) (expr.AggPattern, error) {

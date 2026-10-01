@@ -4,11 +4,11 @@ import (
 	"context"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/bufwriter"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio/bsupio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/bufwriter"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sio/bsupio"
 )
 
 // Writer is a sio.Writer that writes a stream of sorted records into a

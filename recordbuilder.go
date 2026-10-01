@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/scode"
 )
 
 // fieldInfo encodes the structure of a particular proc that writes a

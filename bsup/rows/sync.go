@@ -4,11 +4,11 @@ import (
 	"context"
 	"io"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/peeker"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/peeker"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector/vio"
 )
 
 type scannerSync struct {

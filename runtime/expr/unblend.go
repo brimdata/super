@@ -3,8 +3,8 @@ package expr
 import (
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/vector"
 )
 
 func Unblend(sctx *super.Context, vec vector.Any) vector.Any {

@@ -82,7 +82,7 @@ In this case, the subquery is a
 > [!NOTE]
 > Correlated subqueries are not yet supported.  They are detected and a
 > compile-time error is reported when encountered.
-> ([super#6549](https://github.com/brimdata/super/issues/6549))
+> ([super#6549](https://github.com/superdb/super/issues/6549))
 
 A correlated subquery can always be rewritten as a pipe subquery using
 [unnest](../operators/unnest.md) using this pattern:

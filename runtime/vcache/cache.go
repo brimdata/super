@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/pkg/storage"
 )
 
 type Cache struct {

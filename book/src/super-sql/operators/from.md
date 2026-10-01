@@ -289,7 +289,7 @@ super -s -c 'values 0,0,0 | from vals.sup'
 
 _Source data from a URL_
 ```
-super -s -c 'from https://api.github.com/repos/brimdata/super | values name'
+super -s -c 'from https://api.github.com/repos/superdb/super | values name'
 ```
 ```
 "super"

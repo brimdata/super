@@ -1,10 +1,10 @@
 package function
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/anymath"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/anymath"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/expr/coerce"
 )
 
 type reducer struct {

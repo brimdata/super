@@ -2,7 +2,7 @@
 
 package expr
 
-import "github.com/brimdata/super/vector"
+import "github.com/superdb/super/vector"
 
 func compareEQIntFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)

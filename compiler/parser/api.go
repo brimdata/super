@@ -4,8 +4,8 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/srcfiles"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/compiler/srcfiles"
 )
 
 type AST struct {

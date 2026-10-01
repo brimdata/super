@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 const (

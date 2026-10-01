@@ -12,8 +12,8 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/brimdata/super/pkg/field"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/pkg/field"
 )
 
 type Main struct {

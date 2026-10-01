@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/araddon/dateparse"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
 )
 
 //XXX we should handle numbers in general and coercible things across unions

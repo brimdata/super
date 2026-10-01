@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"io/fs"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/bsup"
-	"github.com/brimdata/super/pkg/bufwriter"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/bsup"
+	"github.com/superdb/super/pkg/bufwriter"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio/bsupio"
+	"github.com/superdb/super/vector"
 )
 
 // CreateVector writes the vectorized form of an existing Object in the BSUP format.

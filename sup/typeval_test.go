@@ -3,9 +3,9 @@ package sup_test
 import (
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sup"
 )
 
 func TestTypeValue(t *testing.T) {

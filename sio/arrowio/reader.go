@@ -10,11 +10,11 @@ import (
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/array"
 	"github.com/apache/arrow-go/v18/arrow/ipc"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sup"
 )
 
 // Reader is a sio.Reader for the Arrow IPC stream format.

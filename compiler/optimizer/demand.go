@@ -3,8 +3,8 @@ package optimizer
 import (
 	"slices"
 
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/optimizer/demand"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/compiler/optimizer/demand"
 )
 
 func DemandForSeq(seq dag.Seq, downstreams ...demand.Demand) []demand.Demand {

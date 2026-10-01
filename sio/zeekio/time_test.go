@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brimdata/super/pkg/nano"
 	"github.com/stretchr/testify/assert"
+	"github.com/superdb/super/pkg/nano"
 )
 
 func TestFormatTime(t *testing.T) {

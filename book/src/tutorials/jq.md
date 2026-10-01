@@ -590,7 +590,7 @@ This command will grab descriptions of first 30 PRs created in the
 public `super` repository and place it in a file called `prs.json`:
 ```
 super -f json \
-  https://api.github.com/repos/brimdata/super/pulls\?state\=all\&sort\=desc\&per_page=30 \
+  https://api.github.com/repos/superdb/super/pulls\?state\=all\&sort\=desc\&per_page=30 \
   > prs.json
 ```
 

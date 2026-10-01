@@ -4,14 +4,14 @@ import (
 	"context"
 	"sync/atomic"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
+	"github.com/superdb/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 

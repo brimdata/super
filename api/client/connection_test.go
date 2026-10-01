@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/api/client/auth0"
-	"github.com/brimdata/super/bsupbytes"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/api/client/auth0"
+	"github.com/superdb/super/bsupbytes"
 )
 
 func TestClientRedirectReplay(t *testing.T) {

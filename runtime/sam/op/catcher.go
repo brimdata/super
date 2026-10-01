@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super/sbuf"
 )
 
 // Catcher wraps an Interface with a Pull method that recovers panics

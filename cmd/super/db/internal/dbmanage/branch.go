@@ -3,11 +3,11 @@ package dbmanage
 import (
 	"context"
 
-	"github.com/brimdata/super/api"
-	dbapi "github.com/brimdata/super/db/api"
-	"github.com/brimdata/super/db/pools"
-	"github.com/brimdata/super/dbid"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/api"
+	dbapi "github.com/superdb/super/db/api"
+	"github.com/superdb/super/db/pools"
+	"github.com/superdb/super/dbid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )

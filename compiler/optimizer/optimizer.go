@@ -7,13 +7,13 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/optimizer/demand"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime/exec"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/compiler/optimizer/demand"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime/exec"
 )
 
 type Optimizer struct {

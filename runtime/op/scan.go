@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/vcache"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/runtime"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/vcache"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Scanner struct {

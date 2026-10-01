@@ -3,10 +3,10 @@ package expr
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr/cast"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr/cast"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
 )
 
 func NewLiteralCast(sctx *super.Context, expr Evaluator, literal *Literal) (Evaluator, error) {

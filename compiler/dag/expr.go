@@ -3,8 +3,8 @@ package dag
 import (
 	"encoding/json"
 
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/field"
 )
 
 type MainExpr struct {

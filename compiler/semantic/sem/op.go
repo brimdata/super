@@ -11,10 +11,10 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/order"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/order"
 )
 
 // Op is the interface implemented by all AST operator nodes.

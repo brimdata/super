@@ -1,5 +1,5 @@
 # Add \a and \v when they can be be represented in a SUP string
-# (https://github.com/brimdata/super/issues/3041).
+# (https://github.com/superdb/super/issues/3041).
 spq: '? /\f\t\n\r\(\)\*\+\.\/\?\[\]\{\}/'
 
 input: &input |

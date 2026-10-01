@@ -3,9 +3,9 @@ package expr
 import (
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/assert"
+	"github.com/superdb/super"
+	"github.com/superdb/super/vector"
 )
 
 // Test that Arith.Eval handles all ops for all vector forms.

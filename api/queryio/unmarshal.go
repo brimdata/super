@@ -1,8 +1,8 @@
 package queryio
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/api"
+	"github.com/superdb/super"
+	"github.com/superdb/super/api"
 )
 
 var unmarshaler *super.Unmarshaler

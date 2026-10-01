@@ -4,13 +4,13 @@ import (
 	"errors"
 	"flag"
 
-	"github.com/brimdata/super/cli/outputflags"
-	"github.com/brimdata/super/cli/poolflags"
-	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/pkg/charm"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/cli/outputflags"
+	"github.com/superdb/super/cli/poolflags"
+	"github.com/superdb/super/cmd/super/db"
+	"github.com/superdb/super/compiler/srcfiles"
+	"github.com/superdb/super/pkg/charm"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/vector/vio"
 )
 
 var spec = &charm.Spec{

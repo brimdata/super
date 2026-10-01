@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/nano"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/nano"
 )
 
 func TestReaderCRLF(t *testing.T) {

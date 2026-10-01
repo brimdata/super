@@ -1,6 +1,6 @@
 package jsonvec
 
-import "github.com/brimdata/super/vector"
+import "github.com/superdb/super/vector"
 
 var _ Value = (*Null)(nil)
 

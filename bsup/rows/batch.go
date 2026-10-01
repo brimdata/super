@@ -4,8 +4,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sbuf"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sbuf"
 )
 
 type batch struct {

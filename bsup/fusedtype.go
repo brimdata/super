@@ -5,7 +5,7 @@ import (
 	"io"
 	"math"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 func FusedType(sctx *super.Context, r io.ReaderAt) (super.Type, error) {

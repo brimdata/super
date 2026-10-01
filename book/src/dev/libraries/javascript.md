@@ -1,6 +1,6 @@
 # JavaScript
 
-The [superdb-types library](https://github.com/brimdata/zui/tree/main/packages/superdb-types)
+The [superdb-types library](https://github.com/superdb/zui/tree/main/packages/superdb-types)
 provides support for the super data model from within
 JavaScript as well as methods for communicating with a SuperDB data lake.
 

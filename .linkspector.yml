@@ -3,13 +3,13 @@ dirs:
 useGitIgnore: true
 excludedDirs:
   - node_modules
-userAgent: 'linkspector (+https://github.com/brimdata/super; docs link check)'
+userAgent: 'linkspector (+https://github.com/superdb/super; docs link check)'
 
 ignorePatterns:
 
 # Currently not crawling links matching the following pattern due to HTTP 429 errors
-# See https://github.com/brimdata/super/pull/5887
-  - pattern: '^https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf.*$'
+# See https://github.com/superdb/super/pull/5887
+  - pattern: '^https://github.com/superdb/super/blob/main/scripts/super-cmd-perf.*$'
 
 # Not crawling the following links because of HTTP 403 (Forbidden) errors.
 # Presumably these research-oriented sites don't like being crawled.

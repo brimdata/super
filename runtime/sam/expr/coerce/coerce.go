@@ -1,8 +1,8 @@
 package coerce
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sup"
 	"golang.org/x/exp/constraints"
 )
 

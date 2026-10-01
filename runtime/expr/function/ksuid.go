@@ -1,9 +1,9 @@
 package function
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/vector"
 )
 
 type KSUID struct {

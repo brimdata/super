@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super/compiler/semantic/sem"
+	"github.com/superdb/super/pkg/field"
 )
 
 func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr, bool) {

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/brimdata/super/db/journal"
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/db/journal"
+	"github.com/superdb/super/pkg/storage"
 	"go.uber.org/zap"
 )
 

@@ -30,7 +30,7 @@ newlines (`\n`). The named patterns can then be referenced in argument `p`.
 
 The `grok` function by default includes a set of built-in named patterns
 that can be referenced in any pattern. The included named patterns can be seen
-[here](https://raw.githubusercontent.com/brimdata/super/main/pkg/grok/base.go).
+[here](https://raw.githubusercontent.com/superdb/super/main/pkg/grok/base.go).
 
 ### Comparison to Other Implementations
 
@@ -62,7 +62,7 @@ the use of the `grok` function, review the tips below.
    string. SuperSQL currently accepts this trailing `:type` syntax but effectively
    ignores it and stores all parsed values as strings. Downstream use of the
    [`cast`](../types/cast.md) function can be used instead for data type conversion
-   ([super/4928](https://github.com/brimdata/super/issues/4928)).
+   ([super/4928](https://github.com/superdb/super/issues/4928)).
 <br><br>
 2. Some Logstash Grok examples use an optional square bracket syntax for
    storing a parsed value in a nested field, e.g.,
@@ -73,12 +73,12 @@ the use of the `grok` function, review the tips below.
    dot-separated field naming convention `nested.field` can be combined
    with the downstream use of the [`nest_dotted`](../records/nest_dotted.md) function to
    store values in nested fields
-   ([super/4929](https://github.com/brimdata/super/issues/4929)).
+   ([super/4929](https://github.com/superdb/super/issues/4929)).
 <br><br>
 3. SuperSQL's regular expressions syntax does not currently support the
    "named capture" syntax shown in the
    [Logstash docs](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_custom_patterns)
-   ([super/4899](https://github.com/brimdata/super/issues/4899)).
+   ([super/4899](https://github.com/superdb/super/issues/4899)).
 
    Instead use the approach shown later in that section of the Logstash
    docs by including a custom pattern in the `definitions` argument, e.g.,
@@ -113,7 +113,7 @@ the use of the `grok` function, review the tips below.
 > pipeline that uses its
 > [Grok filter plugin](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html)
 > and send its output as JSON to SuperSQL. Issue
-> [super/3151](https://github.com/brimdata/super/issues/3151) provides some tips for
+> [super/3151](https://github.com/superdb/super/issues/3151) provides some tips for
 > getting started. If you pursue this approach, please add a comment to the
 > issue describing your use case or come talk to us on
 > [community Slack](https://www.brimdata.io/join-slack/).

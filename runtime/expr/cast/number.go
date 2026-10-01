@@ -4,11 +4,11 @@ import (
 	"strconv"
 
 	"github.com/araddon/dateparse"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/byteconv"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/runtime/sam/expr/coerce"
+	"github.com/superdb/super/vector"
 	"github.com/x448/float16"
 	"golang.org/x/exp/constraints"
 )

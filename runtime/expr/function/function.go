@@ -4,13 +4,13 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/anymath"
-	"github.com/brimdata/super/runtime/expr"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/pkg/anymath"
+	"github.com/superdb/super/runtime/expr"
+	samexpr "github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/expr/function"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
 )
 
 var (

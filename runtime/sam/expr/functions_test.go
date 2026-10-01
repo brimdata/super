@@ -3,7 +3,7 @@ package expr_test
 import (
 	"testing"
 
-	"github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/superdb/super/runtime/sam/expr/function"
 )
 
 func TestBadFunction(t *testing.T) {

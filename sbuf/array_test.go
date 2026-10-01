@@ -3,8 +3,8 @@ package sbuf
 import (
 	"testing"
 
-	"github.com/brimdata/super"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
 )
 
 func TestArrayWriteCopiesValueBytes(t *testing.T) {

@@ -3,8 +3,8 @@ package op
 import (
 	"slices"
 
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Tail struct {

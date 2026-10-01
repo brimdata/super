@@ -9,9 +9,9 @@ import (
 	"runtime/debug"
 	"unsafe"
 
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/scode"
 )
 
 var (

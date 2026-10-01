@@ -3,8 +3,8 @@ package super_test
 import (
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sup"
 )
 
 func TestFuserSamePrimitiveTypeTwice(t *testing.T) {

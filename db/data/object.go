@@ -7,11 +7,11 @@ import (
 	"io/fs"
 	"regexp"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/sam/expr/extent"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/runtime/sam/expr/extent"
 )
 
 const (

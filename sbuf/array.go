@@ -1,8 +1,8 @@
 package sbuf
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/sio"
 )
 
 // Array is a slice of of records that implements the Batch and

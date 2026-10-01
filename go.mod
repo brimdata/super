@@ -1,4 +1,4 @@
-module github.com/brimdata/super
+module github.com/superdb/super
 
 go 1.27
 

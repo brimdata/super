@@ -1,8 +1,8 @@
 package jsonvec
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/vector"
 )
 
 var _ Value = (*Float)(nil)

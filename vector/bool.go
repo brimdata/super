@@ -1,9 +1,9 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector/bitvec"
 )
 
 type Bool struct {

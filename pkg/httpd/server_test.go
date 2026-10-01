@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brimdata/super/pkg/httpd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/pkg/httpd"
 )
 
 func TestRequestContextClosure(t *testing.T) {

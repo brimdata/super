@@ -1,4 +1,4 @@
-//go:generate go tool mockgen -destination=./mock/mock_engine.go -package=mock github.com/brimdata/super/pkg/storage Engine
+//go:generate go tool mockgen -destination=./mock/mock_engine.go -package=mock github.com/superdb/super/pkg/storage Engine
 
 package storage
 

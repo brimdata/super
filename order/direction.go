@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 type Direction int

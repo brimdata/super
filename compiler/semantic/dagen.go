@@ -5,11 +5,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/compiler/semantic/sem"
+	"github.com/superdb/super/pkg/field"
+	"github.com/superdb/super/sup"
 )
 
 type dagen struct {

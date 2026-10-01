@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/pkg/fs"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/pkg/fs"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/sup"
 )
 
 func parse(path string) (ast.Value, error) {

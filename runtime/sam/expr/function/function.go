@@ -3,7 +3,7 @@ package function
 import (
 	"errors"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 var (

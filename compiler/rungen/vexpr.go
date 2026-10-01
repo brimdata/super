@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/runtime/expr"
-	"github.com/brimdata/super/runtime/expr/function"
-	"github.com/brimdata/super/runtime/op"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/compiler/dag"
+	"github.com/superdb/super/runtime/expr"
+	"github.com/superdb/super/runtime/expr/function"
+	"github.com/superdb/super/runtime/op"
+	samexpr "github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector/vio"
 	"golang.org/x/text/unicode/norm"
 )
 

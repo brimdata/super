@@ -7,16 +7,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/api/client"
-	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/api/client"
+	"github.com/superdb/super/pkg/nano"
+	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/runtime/exec"
+	"github.com/superdb/super/service"
 )
 
 func TestQuery(t *testing.T) {

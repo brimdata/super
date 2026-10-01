@@ -16,7 +16,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/brimdata/super/compiler/ast"
+	"github.com/superdb/super/compiler/ast"
 )
 
 var g = &grammar{

@@ -5,12 +5,12 @@ import (
 	"flag"
 	"os"
 
-	"github.com/brimdata/super/cli/dbflags"
-	"github.com/brimdata/super/cli/logflags"
-	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/cmd/super/db/internal/dbmanage"
-	"github.com/brimdata/super/pkg/charm"
 	"github.com/goccy/go-yaml"
+	"github.com/superdb/super/cli/dbflags"
+	"github.com/superdb/super/cli/logflags"
+	"github.com/superdb/super/cmd/super/db"
+	"github.com/superdb/super/cmd/super/db/internal/dbmanage"
+	"github.com/superdb/super/pkg/charm"
 	"go.uber.org/zap"
 )
 

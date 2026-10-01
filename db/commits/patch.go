@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/runtime/sam/expr/extent"
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/runtime/sam/expr/extent"
 )
 
 // A Patch represents a difference between a base snapshot and the patched

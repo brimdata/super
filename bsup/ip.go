@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/netip"
 
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 

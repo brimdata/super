@@ -335,7 +335,7 @@ func (l *Lexer) scanToCloseQuote(b []byte) ([]byte, error) {
 }
 
 // parseStringBytes parse unicode escapes and converts utf-16 surrogage pairs
-// into utf-8 sequences.  It was copied and modified [with attribution](https://github.com/brimdata/super/blob/main/acknowledgments.txt)
+// into utf-8 sequences.  It was copied and modified [with attribution](https://github.com/superdb/super/blob/main/acknowledgments.txt)
 // from the encoding/json package in the Go source code.
 func parseStringBytes(b *strings.Builder, bytes []byte) (string, error) {
 	k := 0

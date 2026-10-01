@@ -5,9 +5,9 @@ import (
 	"slices"
 
 	"github.com/RoaringBitmap/roaring/v2"
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector/bitvec"
 )
 
 type ValueBuilder interface {

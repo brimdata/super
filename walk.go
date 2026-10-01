@@ -3,7 +3,7 @@ package super
 import (
 	"errors"
 
-	"github.com/brimdata/super/scode"
+	"github.com/superdb/super/scode"
 )
 
 // A Visitor is called for each value in a record encountered by

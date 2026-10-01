@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/api/client/auth0"
-	"github.com/brimdata/super/pkg/charm"
 	"github.com/pkg/browser"
+	"github.com/superdb/super/api"
+	"github.com/superdb/super/api/client/auth0"
+	"github.com/superdb/super/pkg/charm"
 )
 
 var Login = &charm.Spec{

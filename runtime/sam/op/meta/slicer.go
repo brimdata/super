@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/db/commits"
-	"github.com/brimdata/super/db/data"
-	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sup"
+	"github.com/superdb/super"
+	"github.com/superdb/super/db/commits"
+	"github.com/superdb/super/db/data"
+	"github.com/superdb/super/order"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sup"
 )
 
 // Slicer implements an op that pulls data objects and organizes

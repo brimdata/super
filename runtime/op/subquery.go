@@ -3,11 +3,11 @@ package op
 import (
 	"context"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/vbuild"
-	"github.com/brimdata/super/vector/vio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vbuild"
+	"github.com/superdb/super/vector/vio"
 )
 
 // Subquery is a subquery mechanism with an Eval method to act as an expression

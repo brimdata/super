@@ -5,11 +5,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/sam/expr"
+	"github.com/superdb/super/runtime/sam/op"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/sio"
 )
 
 // Proc merges multiple upstream Pullers into one downstream Puller.

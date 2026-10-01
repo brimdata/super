@@ -3,7 +3,7 @@ package expr
 import (
 	"strings"
 
-	"github.com/brimdata/super"
+	"github.com/superdb/super"
 )
 
 // StringContainsFold is like strings.Contains but with case-insensitive

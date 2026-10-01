@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super/pkg/field"
+	"github.com/superdb/super/pkg/field"
 )
 
 type SortKey struct {

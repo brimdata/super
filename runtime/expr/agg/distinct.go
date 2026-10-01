@@ -3,12 +3,12 @@ package agg
 import (
 	"encoding/binary"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/expr"
-	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector"
+	"github.com/superdb/super"
+	"github.com/superdb/super/runtime/expr"
+	samagg "github.com/superdb/super/runtime/sam/expr/agg"
+	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/scode"
+	"github.com/superdb/super/vector"
 )
 
 type distinct struct {

@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/pkg/fs"
-	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/superdb/super/compiler/parser"
+	"github.com/superdb/super/pkg/fs"
+	"github.com/superdb/super/ztest"
 )
 
 func searchForSuperSQL() ([]string, error) {
