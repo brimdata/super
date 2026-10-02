@@ -845,6 +845,9 @@ func (t *TypeDefs) Reset() {
 }
 
 func (t *TypeDefs) Bytes() []byte {
+	if t == nil {
+		return nil
+	}
 	return t.bytes
 }
 

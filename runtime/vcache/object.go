@@ -1,12 +1,9 @@
 package vcache
 
 import (
-	"context"
-
 	"github.com/superdb/super"
 	"github.com/superdb/super/bsup"
 	"github.com/superdb/super/pkg/field"
-	"github.com/superdb/super/pkg/storage"
 	"github.com/superdb/super/vector"
 )
 
@@ -17,33 +14,11 @@ import (
 // multiple callers of Cache and the super.Context in use is passed in for
 // each vector constructed from its in-memory shadow.
 type Object struct {
-	object *bsup.Object
+	object *bsup.ColumnReader
 	root   shadow
 }
 
-// NewObject creates a new in-memory Object corresponding to a BSUP object
-// residing in storage.  The BSUP header and metadata section are read and
-// the metadata is deserialized so that vectors can be loaded into the cache
-// on demand only as needed and retained in memory for future use.
-func NewObject(ctx context.Context, engine storage.Engine, uri *storage.URI) (*Object, error) {
-	// XXX currently we open a storage.Reader for every object and never close it.
-	// We should either close after a timeout and reopen when needed or change the
-	// storage API to have a more reasonable semantics around the Put/Get not leaving
-	// a file descriptor open for every long Get.  Perhaps there should be another
-	// method for intermittent random access.
-	// XXX maybe open the reader inside Fetch if needed?
-	reader, err := engine.Get(ctx, uri)
-	if err != nil {
-		return nil, err
-	}
-	object, err := bsup.NewObject(reader)
-	if err != nil {
-		return nil, err
-	}
-	return NewObjectFromBSUP(object), nil
-}
-
-func NewObjectFromBSUP(object *bsup.Object) *Object {
+func NewReader(object *bsup.ColumnReader) *Object {
 	return &Object{object: object}
 }
 

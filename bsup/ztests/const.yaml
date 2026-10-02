@@ -12,11 +12,11 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {Version:24::uint32,SectionType:79::uint8}
-      {MetaSize:45::uint64,TypeSize:6::uint64,DataSize:0::uint64,Root:0::uint32}
+      type ColumnHeader={Version:uint16,OOB:bool,Root:uint32,FrameSize:uint64,MetadataSize:uint64,TypedefsSize:uint64,FusedTypeSize:uint64}
+      {Version:25,OOB:false,Root:0,FrameSize:191,MetadataSize:147,TypedefsSize:0,FusedTypeSize:1}::ColumnHeader
       type Const={Value:any,Count:uint32}
       {Value:1::any,Count:3}::Const
-      {Version:24::uint32,SectionType:70::uint8}
-      {MetaSize:1::uint32}
-      <int64>
-      {Size:126::uint64,MetaSize:1::uint32}
+      {Kind:"ColumnFrameFusedType",Type:<int64>}
+      type SuperFooter={Version:uint16,FooterSize:uint64,SuperFrameSize:uint64}
+      {Version:25,FooterSize:23,SuperFrameSize:191}::SuperFooter
+      {Kind:"SuperFrameFusedType",Type:<int64>}

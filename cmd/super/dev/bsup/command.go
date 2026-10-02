@@ -1,9 +1,9 @@
 package bsup
 
 import (
+	"bytes"
 	"errors"
 	"flag"
-	"fmt"
 	"io"
 
 	"github.com/superdb/super"
@@ -11,7 +11,6 @@ import (
 	"github.com/superdb/super/cli/outputflags"
 	"github.com/superdb/super/cmd/super/dev"
 	"github.com/superdb/super/sbuf"
-	"github.com/superdb/super/sio/bsupio"
 	"github.com/superdb/super/vector/vio"
 
 	"github.com/superdb/super/pkg/charm"
@@ -34,13 +33,18 @@ func init() {
 type Command struct {
 	*dev.Command
 	outputFlags outputflags.Flags
-	printTypes  bool
+	fused       bool
+	marshaler   *super.Marshaler
+	vals        []super.Value
+	writer      vio.Pusher
+	reader      io.Reader
+	sctx        *super.Context
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*dev.Command)}
 	c.outputFlags.SetFlags(f)
-	f.BoolVar(&c.printTypes, "type", false, "output fused type of file")
+	f.BoolVar(&c.fused, "fused", false, "emit container's fused type instead of meta data")
 	return c, nil
 }
 
@@ -63,184 +67,217 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer r.Close()
+	c.reader = r
 	writer, err := c.outputFlags.Open(ctx, engine)
 	if err != nil {
 		return err
 	}
-	if c.printTypes {
-		return c.types(r, writer)
-	}
-	var vals []super.Value
-	sctx := super.NewContext()
-	marshaler := super.NewMarshaler(sctx)
-	for {
-		hdr, err := readHeader(r)
-		if err != nil {
-			if err == io.EOF {
+	c.writer = writer
+	c.sctx = super.NewContext()
+	c.marshaler = super.NewMarshaler(c.sctx)
+	c.marshaler.Decorate(super.StyleSimple)
+	if c.fused {
+		if err := c.emitFused(); err != nil {
+			return err
+		}
+	} else {
+		for {
+			hdr, err := bsup.ReadHeader(r)
+			if err != nil {
+				return err
+			}
+			if hdr == nil {
 				break
 			}
-			return err
-		}
-		val, err := marshaler.Marshal(hdr)
-		if err != nil {
-			return err
-		}
-		vals = append(vals, val)
-		switch hdr.SectionType {
-		case bsup.SectionObject:
-			vals, err = readObject(sctx, marshaler, r, vals)
-			if err != nil {
+			c.marshal(hdr)
+			if err := c.frame(hdr); err != nil {
 				return err
 			}
-		case bsup.SectionFooter:
-			vals, err = readFooter(sctx, marshaler, r, vals)
-			if err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("invalid BSUP section type: %c", hdr.SectionType)
 		}
 	}
-	err = writer.Push(sbuf.Dematerialize(sctx, vals...))
+	err = c.flush()
 	if err2 := writer.Close(); err == nil {
 		err = err2
 	}
 	return err
 }
 
-func (c *Command) types(r storage.Reader, w vio.PushCloser) error {
-	sctx := super.NewContext()
-	typ, err := bsup.FusedType(sctx, r)
+func (c *Command) emitFused() error {
+	r, ok := c.reader.(io.ReaderAt)
+	if !ok {
+		return errors.New("need seekable input for -fused")
+	}
+	container := bsup.NewContainer(c.sctx, r)
+	typ, err := container.FusedType(c.sctx)
 	if err != nil {
 		return err
 	}
-	val := sctx.LookupTypeValue(typ)
-	err = w.Push(sbuf.Dematerialize(sctx, val))
-	if err2 := w.Close(); err == nil {
-		err = err2
+	return c.emit(c.sctx.LookupTypeValue(typ))
+}
+
+func (c *Command) emit(val super.Value) error {
+	c.vals = append(c.vals, val)
+	if len(c.vals) > 100 {
+		return c.flush()
 	}
+	return nil
+}
+
+func (c *Command) marshal(thing any) error {
+	val, err := c.marshaler.Marshal(thing)
+	if err != nil {
+		return err
+	}
+	return c.emit(val)
+}
+
+func (c *Command) flush() error {
+	if len(c.vals) != 0 {
+		err := c.writer.Push(sbuf.Dematerialize(c.sctx, c.vals...))
+		c.vals = c.vals[0:]
+		return err
+	}
+	return nil
+}
+
+func (c *Command) discard(n int64) error {
+	_, err := io.CopyN(io.Discard, c.reader, n)
 	return err
 }
-
-func readHeader(r io.Reader) (bsup.Header, error) {
-	var bytes [bsup.HeaderSize]byte
-	_, err := io.ReadFull(r, bytes[:])
-	if err != nil {
-		return bsup.Header{}, err
+func (c *Command) frame(hdr bsup.Header) error {
+	switch hdr := hdr.(type) {
+	case *bsup.ColumnHeader:
+		return c.columnFrame(hdr)
+	case *bsup.RowHeader:
+		return c.rowFrame(hdr)
+	case *bsup.SuperFooter:
+		return c.superFooter(hdr)
+	default:
+		panic(hdr)
 	}
-	var hdr bsup.Header
-	err = hdr.Deserialize(bytes[:])
-	return hdr, err
 }
 
-func readObject(sctx *super.Context, marshaler *super.Marshaler, r io.Reader, vals []super.Value) ([]super.Value, error) {
-	var bytes [bsup.DataHeaderSize]byte
-	if _, err := io.ReadFull(r, bytes[:]); err != nil {
-		return vals, err
-	}
-	var hdr bsup.DataHeader
-	if err := hdr.Deserialize(bytes[:]); err != nil {
-		return vals, err
-	}
-	val, err := marshaler.Marshal(hdr)
+func (c *Command) columnFrame(header *bsup.ColumnHeader) error {
+	metaBytes, err := io.ReadAll(io.LimitReader(c.reader, int64(header.MetadataSize)))
 	if err != nil {
-		return vals, err
+		return err
 	}
-	vals = append(vals, val)
-	metaReader := bsupio.NewRowReader(sctx, io.LimitReader(r, int64(hdr.MetaSize)))
+	metaReader := bsup.NewContainer(c.sctx, bytes.NewReader(metaBytes))
 	for {
-		val, err := metaReader.Read()
+		vec, err := metaReader.PullRow()
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
+			return err
 		}
-		if val == nil {
+		if vec == nil {
 			break
 		}
-		vals = append(vals, val.Copy())
+		for _, val := range sbuf.Materialize(vec).Values() {
+			c.emit(val.Copy())
+		}
 	}
-	if err := metaReader.Close(); err != nil {
-		return nil, err
+	typedefsBytes := make([]byte, header.TypedefsSize)
+	if _, err := io.ReadFull(c.reader, typedefsBytes); err != nil {
+		return err
 	}
-	typedefsReader := bsupio.NewRowReader(sctx, io.LimitReader(r, int64(hdr.TypeSize)))
-	valp, err := typedefsReader.Read()
+	if err := c.marshalTypeDefs(typedefsBytes); err != nil {
+		return err
+	}
+	fusedTypeBytes := make([]byte, header.FusedTypeSize)
+	if _, err := io.ReadFull(c.reader, fusedTypeBytes); err != nil {
+		return err
+	}
+	fusedType, err := c.sctx.LookupByValue(fusedTypeBytes)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if valp.Type() != super.TypeBytes {
-		return nil, errors.New("BSUP type section is not a bytes value")
+	if err := c.marshal(struct {
+		Kind string
+		Type super.Type
+	}{
+		Kind: "ColumnFrameFusedType",
+		Type: fusedType,
+	}); err != nil {
+		return err
 	}
-	vals, err = marshalTypeDefs(marshaler, vals, valp.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	valp, err = typedefsReader.Read()
-	if err != nil && err != io.EOF {
-		return nil, err
-	}
-	if valp != nil {
-		return nil, errors.New("BSUP type section has more than one value")
-	}
-	buf, err := io.ReadAll(io.LimitReader(r, int64(hdr.DataSize)))
-	if err == nil && len(buf) != int(hdr.DataSize) {
-		err = fmt.Errorf("truncated BSUP data: data section %d but read only %d", hdr.DataSize, len(buf))
-	}
-	return vals, err
+	_, segSize := header.SegmentsSection()
+	return c.discard(segSize)
 }
 
-func readFooter(sctx *super.Context, marshaler *super.Marshaler, r io.Reader, vals []super.Value) ([]super.Value, error) {
-	var bytes [bsup.FooterSize]byte
-	if _, err := io.ReadFull(r, bytes[:]); err != nil {
-		return vals, err
+func (c *Command) rowFrame(header *bsup.RowHeader) error {
+	fusedTypeBytes := make([]byte, header.FusedTypeSize)
+	if _, err := io.ReadFull(c.reader, fusedTypeBytes); err != nil {
+		return err
 	}
-	var f bsup.Footer
-	f.Deserialize(bytes[:])
-	val, err := marshaler.Marshal(f)
+	fusedType, err := c.sctx.LookupByValue(fusedTypeBytes)
 	if err != nil {
-		return vals, err
+		return err
 	}
-	vals = append(vals, val)
-	typeBytes := make([]byte, f.MetaSize)
-	if _, err := io.ReadFull(r, typeBytes); err != nil {
-		return vals, err
+	typedefsBytes := make([]byte, header.TypedefsSize)
+	if _, err := io.ReadFull(c.reader, typedefsBytes); err != nil {
+		return err
 	}
-	typ, err := sctx.LookupByValue(typeBytes)
-	if err != nil {
-		return vals, err
+	if err := c.marshalTypeDefs(typedefsBytes); err != nil {
+		return err
 	}
-	vals = append(vals, sctx.LookupTypeValue(typ))
-	var trailerBytes [bsup.TrailerSize]byte
-	if _, err := io.ReadFull(r, trailerBytes[:]); err != nil {
-		return vals, err
+
+	if err := c.marshal(struct {
+		Kind string
+		Type super.Type
+	}{
+		Kind: "RowFrameFusedType",
+		Type: fusedType,
+	}); err != nil {
+		return err
 	}
-	var t bsup.Trailer
-	if err := t.Deserialize(trailerBytes[:]); err != nil {
-		return vals, err
+	_, dataSize := header.DataSection()
+	if err := c.marshal(struct {
+		Kind string
+		Size int64
+	}{
+		Kind: "RowFrameData",
+		Size: dataSize,
+	}); err != nil {
+		return err
 	}
-	if val, err = marshaler.Marshal(t); err != nil {
-		return vals, err
-	}
-	vals = append(vals, val)
-	return vals, nil
+	return c.discard(dataSize)
 }
 
-func marshalTypeDefs(marshaler *super.Marshaler, vals []super.Value, bytes []byte) ([]super.Value, error) {
+func (c *Command) superFooter(header *bsup.SuperFooter) error {
+	fusedTypeBytes := make([]byte, header.TypedefsSize())
+	if _, err := io.ReadFull(c.reader, fusedTypeBytes); err != nil {
+		return err
+	}
+	fusedType, err := c.sctx.LookupByValue(fusedTypeBytes)
+	if err != nil {
+		return err
+	}
+	if err := c.discard(bsup.SuperFooterPad); err != nil {
+		return err
+	}
+	return c.marshal(struct {
+		Kind string
+		Type super.Type
+	}{
+		Kind: "SuperFrameFusedType",
+		Type: fusedType,
+	})
+}
+
+func (c *Command) marshalTypeDefs(bytes []byte) error {
 	id := uint32(super.IDTypeComplex)
 	for len(bytes) > 0 {
 		var desc any
 		bytes, desc = decodeTypeDef(id, bytes)
 		if desc != nil {
-			val, err := marshaler.Marshal(desc)
+			val, err := c.marshaler.Marshal(desc)
 			if err != nil {
-				return nil, err
+				return err
 			}
-			vals = append(vals, val)
+			c.emit(val)
 		}
 		id++
 	}
-	return vals, nil
+	return nil
 }
 
 func DecodeTypeDefs(bytes []byte, offset int) ([]any, error) {

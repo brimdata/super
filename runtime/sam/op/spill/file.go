@@ -27,11 +27,8 @@ type File struct {
 // records via the sio.Reader interface.
 func NewFile(f *os.File) *File {
 	return &File{
-		Writer: rows.NewWriterWithOpts(bufwriter.New(sio.NopCloser(f)), rows.WriterOpts{
-			Compress:    false, // Compression reduces write throughput; see #3973.
-			FrameThresh: rows.DefaultFrameThresh,
-		}),
-		file: f,
+		Writer: rows.NewWriter(bufwriter.New(sio.NopCloser(f))),
+		file:   f,
 	}
 }
 

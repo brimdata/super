@@ -428,6 +428,8 @@ func defuse(typ super.Type) super.Type {
 }
 
 func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
+	lhs = defuse(lhs)
+	rhs = defuse(rhs)
 	switch strings.ToLower(op) {
 	case "and", "or":
 		c.logical(lloc, rloc, lhs, rhs)

@@ -63,7 +63,7 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 }
 
 type VectorWriter struct {
-	*bsup.Serializer
+	*bsup.ColumnWriter
 	delete func()
 }
 
@@ -80,8 +80,8 @@ func NewVectorWriter(ctx context.Context, engine storage.Engine, path *storage.U
 		DeleteVector(context.Background(), engine, path, id)
 	}
 	return &VectorWriter{
-		Serializer: bsup.NewSerializer(bufwriter.New(put)),
-		delete:     delete,
+		ColumnWriter: bsup.NewColumnWriter(bufwriter.New(put)),
+		delete:       delete,
 	}, nil
 }
 

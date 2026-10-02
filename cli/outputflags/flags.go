@@ -45,6 +45,7 @@ func (f *Flags) setFlags(fs *flag.FlagSet) {
 	fs.IntVar(&f.pretty, "pretty", 2,
 		"tab size to pretty print JSON and Super JSON output (0 for newline-delimited output")
 	fs.StringVar(&f.outputFile, "o", "", "write data to output file")
+	fs.BoolVar(&f.BSUP.Rows, "rows", false, "output BSUP in row format instead of columns")
 	fs.StringVar(&f.split, "split", "",
 		"split output into one file per data type in this directory (but see -splitsize)")
 	fs.Var(&f.splitSize, "splitsize",

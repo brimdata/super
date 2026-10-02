@@ -23,10 +23,10 @@ outputs:
   - name: stdout
     data: |
       === bsup (default)
-      file test.bsup format bsup type {x:int64|none,y:int64|none}
+      file test.bsup format bsup type {x:fusion(int64|none),y:fusion(int64|none)}
       | output main
       === bsup (static)
-      file test.bsup format bsup type {x:int64|none,y:int64|none}
+      file test.bsup format bsup type {x:fusion(int64|none),y:fusion(int64|none)}
       | output main
       === bsup (default pipe)
       file /dev/stdin

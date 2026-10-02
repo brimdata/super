@@ -44,6 +44,7 @@ func TestSPQ(t *testing.T) {
 		require.NoError(t, err)
 		// disabling arrow until we get nullable working without unions in unions
 		//runAllBoomerangs(t, "arrows", data)
+		runAllBoomerangs(t, "bsup -rows", data)
 		runAllBoomerangs(t, "bsup", data)
 		runAllBoomerangs(t, "parquet", data)
 		runAllBoomerangs(t, "sup", data)
@@ -174,9 +175,12 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		}
 		t.Fatalf("unexpected error writing %s baseline: %s", format, err)
 	}
-
+	readerFormat := format
+	if readerFormat == "bsup -rows" {
+		readerFormat = "bsup"
+	}
 	baselinePuller, err := anyio.NewReader(t.Context(), super.NewContext(), strings.NewReader(baseline), anyio.ReaderOpts{
-		Format: format,
+		Format: readerFormat,
 	})
 	require.NoError(t, err)
 	defer baselinePuller.Pull(true)
@@ -258,7 +262,12 @@ func (u *unlabeler) Pull(done bool) (vector.Any, error) {
 
 func serialize(p vio.Puller, outputFormat string) (string, error) {
 	var b strings.Builder
-	w, err := anyio.NewWriter(sio.NopCloser(&b), anyio.WriterOpts{Format: outputFormat})
+	opts := anyio.WriterOpts{Format: outputFormat}
+	if outputFormat == "bsup -rows" {
+		opts.Format = "bsup"
+		opts.BSUP.Rows = true
+	}
+	w, err := anyio.NewWriter(sio.NopCloser(&b), opts)
 	if err != nil {
 		return "", err
 	}

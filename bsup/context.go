@@ -1,15 +1,14 @@
 package bsup
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"sync"
 
 	"github.com/superdb/super"
-	"github.com/superdb/super/bsup/rows"
 	"github.com/superdb/super/sbuf"
+	"github.com/superdb/super/vector"
 )
 
 type Context struct {
@@ -29,6 +28,7 @@ type Context struct {
 	// into the subtypes table under lock smu and clear this reader value to
 	// mark the table loaded.
 	subtypesReader io.Reader
+	subtypesSize   int64
 }
 
 type ID uint32
@@ -78,29 +78,27 @@ func (c *Context) unmarshal(id ID) error {
 	return c.uctx.Unmarshal(c.values[id], &c.metas[id])
 }
 
-func (c *Context) readMeta(r io.Reader) error {
-	scanner, err := rows.NewReader(c.local, r).NewScanner(context.TODO(), nil)
-	if err != nil {
-		return err
-	}
-	defer scanner.Pull(true)
-	var batches []sbuf.Batch
+func (c *Context) readMeta(r io.ReaderAt) error {
+	reader := NewContainer(c.local, r)
+	var vecs []vector.Any
 	var numValues int
+	// XXX in a future PR we will stitch in an sio.Reader path so we don't
+	// round trip through vectors reading the row-data metas here.
 	for {
-		batch, err := scanner.Pull(false)
+		vec, err := reader.PullRow()
 		if err != nil {
 			return err
 		}
-		if batch == nil {
+		if vec == nil {
 			c.metas = make([]Metadata, numValues)
 			c.values = make([]super.Value, 0, numValues)
-			for _, b := range batches {
-				c.values = append(c.values, b.Values()...)
+			for _, vec := range vecs {
+				c.values = append(c.values, sbuf.Materialize(vec).Values()...)
 			}
 			return nil
 		}
-		batches = append(batches, batch)
-		numValues += len(batch.Values())
+		vecs = append(vecs, vec)
+		numValues += int(vec.Len())
 	}
 }
 
@@ -121,34 +119,14 @@ func (c *Context) LoadSubtypes() *super.TypeDefs {
 }
 
 func (c *Context) readSubTypes(r io.Reader) error {
-	scanner, err := rows.NewReader(c.local, r).NewScanner(context.TODO(), nil)
-	if err != nil {
-		return err
+	bytes := make([]byte, c.subtypesSize)
+	if _, err := io.ReadFull(r, bytes); err != nil {
+		return fmt.Errorf("load subtypes failed: %w", err)
 	}
-	defer scanner.Pull(true)
-	var vals []super.Value
-	for {
-		batch, err := scanner.Pull(false)
-		if err != nil {
-			return err
-		}
-		if batch == nil {
-			if len(vals) != 1 {
-				return errors.New("BSUP metadata typedefs section must be a single bytes value")
-			}
-			val := vals[0]
-			if val.Type() != super.TypeBytes {
-				return errors.New("BSUP metadata typedefs section must be a bytes type")
-			}
-			defs, ok := super.NewTypeDefsFromBytes(val.Bytes())
-			if !ok {
-				return errors.New("BSUP metadata typedefs has invalid format")
-			}
-			c.typedefs = defs
-			return nil
-		}
-		for _, val := range batch.Values() {
-			vals = append(vals, val)
-		}
+	defs, ok := super.NewTypeDefsFromBytes(bytes)
+	if !ok {
+		return errors.New("metadata typedefs has invalid format")
 	}
+	c.typedefs = defs
+	return nil
 }

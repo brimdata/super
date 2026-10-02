@@ -162,14 +162,7 @@ func isArrowStream(track *Track) error {
 }
 
 func isBSUPStream(track *Track) error {
-	var buf [bsup.HeaderSize]byte
-	if _, err := io.ReadFull(track, buf[:]); err != nil {
-		if errors.Is(err, io.ErrUnexpectedEOF) {
-			return errors.New("file size too small")
-		}
-		return err
-	}
-	if err := new(bsup.Header{}).Deserialize(buf[:]); err != nil {
+	if err := bsup.Probe(track); err != nil {
 		return err
 	}
 	if track.recorder != nil {

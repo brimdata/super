@@ -1,6 +1,6 @@
 script: |
   while IFS= read -r line; do
-    ! printf "$line" | super -i json -
+    ! printf "$line" | super -i json -s -
   done < errors.txt
 
 inputs:

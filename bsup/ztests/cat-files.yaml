@@ -4,7 +4,7 @@ script: |
   cat a.bsup b.bsup > test.bsup
   super -s test.bsup
   echo // ===
-  super dev bsup -s -type test.bsup
+  super dev bsup -s test.bsup | super -s -c "? ColumnFrameFusedType or SuperFrameFusedType" -
 
 inputs:
   - name: a.sup
@@ -24,4 +24,7 @@ outputs:
       {c:3}
       {d:4}
       // ===
-      <{c:int64|none,d:int64|none,a:int64|none,b:int64|none}>
+      {Kind:"ColumnFrameFusedType",Type:<{a:fusion(int64|none),b:fusion(int64|none)}>}
+      {Kind:"SuperFrameFusedType",Type:<{a:fusion(int64|none),b:fusion(int64|none)}>}
+      {Kind:"ColumnFrameFusedType",Type:<{c:fusion(int64|none),d:fusion(int64|none)}>}
+      {Kind:"SuperFrameFusedType",Type:<{c:fusion(int64|none),d:fusion(int64|none)}>}

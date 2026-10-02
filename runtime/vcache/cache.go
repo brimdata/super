@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/segmentio/ksuid"
+	"github.com/superdb/super/bsup"
 	"github.com/superdb/super/pkg/storage"
 )
 
@@ -62,10 +63,16 @@ func (c *Cache) Fetch(ctx context.Context, uri *storage.URI, id ksuid.KSUID) (*O
 	if ok {
 		return object, nil
 	}
-	object, err := NewObject(ctx, c.engine, uri)
+	local := storage.NewLocalEngine()
+	r, err := local.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
+	reader, err := bsup.NewColumnReader(r)
+	if err != nil {
+		return nil, err
+	}
+	object = NewReader(reader)
 	c.mu.Lock()
 	c.objects[id] = object
 	c.mu.Unlock()

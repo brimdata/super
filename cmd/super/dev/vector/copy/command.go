@@ -5,6 +5,7 @@ import (
 	"flag"
 
 	"github.com/superdb/super"
+	"github.com/superdb/super/bsup"
 	"github.com/superdb/super/cli/outputflags"
 	"github.com/superdb/super/cmd/super/dev/vector"
 	"github.com/superdb/super/pkg/charm"
@@ -58,10 +59,15 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	local := storage.NewLocalEngine()
-	object, err := vcache.NewObject(ctx, local, uri)
+	r, err := local.Get(ctx, uri)
 	if err != nil {
 		return err
 	}
+	reader, err := bsup.NewColumnReader(r)
+	if err != nil {
+		return err
+	}
+	object := vcache.NewReader(reader)
 	defer object.Close()
 	writer, err := c.outputFlags.Open(ctx, local)
 	if err != nil {

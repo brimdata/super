@@ -20,39 +20,17 @@ type Writer struct {
 	position   int64
 	flushed    int64
 	compressor *compressor
-	opts       WriterOpts
 
 	types  *Encoder
 	values []byte
 	header []byte
 }
 
-type WriterOpts struct {
-	Compress bool
-	// FrameThresh is the minimum frame size in uncompressed bytes.
-	FrameThresh int
-}
-
-// NewWriter returns a writer to w with reasonable default options.
-// Specifically, it enables compression and sets the frame threshold to
-// DefaultFrameThresh.
-func NewWriter(w io.WriteCloser) *Writer {
-	return NewWriterWithOpts(w, WriterOpts{
-		Compress:    true,
-		FrameThresh: DefaultFrameThresh,
-	})
-}
-
 // NewWriterWithOpts returns a writer to w with opts.
-func NewWriterWithOpts(w io.WriteCloser, opts WriterOpts) *Writer {
-	var comp *compressor
-	if opts.Compress {
-		comp = &compressor{}
-	}
+func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
 		writer:     w,
-		compressor: comp,
-		opts:       opts,
+		compressor: &compressor{},
 		types:      NewEncoder(),
 	}
 }
@@ -110,7 +88,7 @@ func (w *Writer) Write(val super.Value) error {
 	id := w.types.Encode(val.Type())
 	w.values = binary.AppendUvarint(w.values, uint64(id))
 	w.values = scode.Append(w.values, val.Bytes())
-	if thresh := w.opts.FrameThresh; len(w.values) >= thresh || w.types.Len() >= thresh {
+	if thresh := DefaultFrameThresh; len(w.values) >= thresh || w.types.Len() >= thresh {
 		return w.flush()
 	}
 	return nil

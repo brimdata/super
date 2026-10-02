@@ -13,9 +13,9 @@ import (
 	"github.com/superdb/super/vector"
 )
 
-func TestObjectProjectMetadata(t *testing.T) {
+func TestProjectMetadata(t *testing.T) {
 	var b bytes.Buffer
-	w := bsup.NewSerializer(sio.NopCloser(&b))
+	w := bsup.NewColumnWriter(sio.NopCloser(&b))
 	sctx := super.NewContext()
 	supValues := []string{
 		"{a:1,b:{c:4,d:0.7}}",
@@ -30,15 +30,18 @@ func TestObjectProjectMetadata(t *testing.T) {
 	require.NoError(t, w.Close())
 	bsupBytes := b.Bytes()
 
-	o, err := bsup.NewObject(bytes.NewReader(bsupBytes))
+	c := bsup.NewContainer(super.NewContext(), bytes.NewReader(bsupBytes))
+	frame, err := c.Next()
 	require.NoError(t, err)
+	reader, ok := frame.(*bsup.ColumnReader)
+	require.Equal(t, true, ok)
 	p := field.NewProjection(field.DottedList("b.d,a"))
-	values := o.ProjectMetadata(super.NewContext(), p)
+	values := reader.ProjectMetadata(super.NewContext(), p)
 	require.Len(t, values, 1)
 	require.Equal(t, "{b:{d:{min:0.7,max:0.9}},a:{min:1,max:3}}", sup.FormatValue(values[0]))
 }
 
-func TestObjectProjectMetadataForUnion(t *testing.T) {
+func TestProjectMetadataForUnion(t *testing.T) {
 	sctx := super.NewContext()
 	supValues := []string{
 		"{a:1::(int64|string),b?:2,c:3::(int64|null),d?:{e:4}}",
@@ -49,15 +52,18 @@ func TestObjectProjectMetadataForUnion(t *testing.T) {
 		builder.Write(sup.MustParseValue(sctx, s))
 	}
 	var b bytes.Buffer
-	w := bsup.NewSerializer(sio.NopCloser(&b))
+	w := bsup.NewColumnWriter(sio.NopCloser(&b))
 	require.NoError(t, w.Push(builder.Build(sctx)))
 	require.NoError(t, w.Close())
 	bsupBytes := b.Bytes()
 
-	o, err := bsup.NewObject(bytes.NewReader(bsupBytes))
+	c := bsup.NewContainer(sctx, bytes.NewReader(bsupBytes))
+	frame, err := c.Next()
 	require.NoError(t, err)
+	reader, ok := frame.(*bsup.ColumnReader)
+	require.Equal(t, true, ok)
 	p := field.NewProjection(field.DottedList("a,b,c,d"))
-	values := o.ProjectMetadata(super.NewContext(), p)
+	values := reader.ProjectMetadata(super.NewContext(), p)
 	require.Len(t, values, 1)
 	require.Equal(t, `{a:{min:1,max:"s"},b:{min:2,max:2},c:{min:3,max:3},d:{e:{min:4,max:4}}}`, sup.FormatValue(values[0]))
 }

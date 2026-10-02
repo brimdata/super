@@ -1,8 +1,6 @@
 package sbuf
 
-import (
-	"github.com/superdb/super"
-)
+import "github.com/superdb/super"
 
 func Label(label string, batch Batch) Batch {
 	return &labeled{batch, label}

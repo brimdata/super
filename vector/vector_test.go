@@ -70,17 +70,19 @@ func BenchmarkReadBSUP(b *testing.B) {
 	for i := range valuesIn {
 		valuesIn[i] = super.NewValue(super.TypeInt64, super.EncodeInt(int64(rand.Intn(N))))
 	}
+	sctx := super.NewContext()
 	var buf bytes.Buffer
-	fuzz.WriteBSUP(b, super.NewContext(), valuesIn, &buf)
+	fuzz.WriteBSUP(b, sctx, valuesIn, &buf)
 	bs := buf.Bytes()
 
 	for b.Loop() {
 		bytesReader := bytes.NewReader(bs)
-		object, err := bsup.NewObject(bytesReader)
+		container := bsup.NewContainer(sctx, bytesReader)
+		reader, err := container.Next()
 		if err != nil {
 			panic(err)
 		}
-		_ = object
+		_ = reader
 		// TODO Expose a cheap way to get values out of vectors.
 		//if intsIn[N-1] != intsOut[N-1] {
 		//    panic("oh no")
