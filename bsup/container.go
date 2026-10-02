@@ -18,14 +18,24 @@ type Container struct {
 	sctx     *super.Context
 	readerAt io.ReaderAt
 	off      int64
+	stream   io.Reader
 }
 
 func NewContainer(sctx *super.Context, r io.ReaderAt) *Container {
 	return &Container{sctx: sctx, readerAt: r}
 }
 
+func NewStream(sctx *super.Context, r io.Reader) *Container {
+	return &Container{sctx: sctx, stream: r}
+}
+
 func (c *Container) Next() (FrameReader, error) {
 	for {
+		if c.stream != nil {
+			if err := c.preload(); err != nil {
+				return nil, err
+			}
+		}
 		h, err := readNextHeader(c.readerAt, c.off)
 		if h == nil || err != nil {
 			return nil, err
@@ -48,6 +58,10 @@ func (c *Container) Next() (FrameReader, error) {
 			panic(h)
 		}
 	}
+}
+
+func (c *Container) preload() error {
+	panic("TBD")
 }
 
 func (c *Container) PullRow() (vector.Any, error) {
@@ -77,8 +91,8 @@ func (c *Container) FusedType(sctx *super.Context) (super.Type, error) {
 			return nil, err
 		}
 		// Move off to the start of the footer.
-		off -= int64(footer.FooterSize) + SuperFooterPad
-		fusedTypeBytesSize := footer.FooterSize - SuperFooterSize
+		off -= int64(footer.FooterSize)
+		fusedTypeBytesSize := footer.FusedTypeSize()
 		if fusedTypeBytesSize != 0 {
 			fusedTypeBytes := make([]byte, fusedTypeBytesSize)
 			if err := readHeaderBytes(c.readerAt, off+SuperFooterSize, fusedTypeBytes, "super footer fused type"); err != nil {
@@ -133,7 +147,7 @@ func (c *Container) readFooterBackward(sctx *super.Context, off int64) (*SuperFo
 		return nil, fmt.Errorf("super footer illegal size 0")
 
 	}
-	footerOff := off - int64(footerSize+SuperFooterPad)
+	footerOff := off - int64(footerSize)
 	if footerOff < 0 {
 		return nil, fmt.Errorf("super footer size %d bytes, larger than buffer %d bytes", footerSize, off)
 	}
