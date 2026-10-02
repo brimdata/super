@@ -16,8 +16,6 @@ func NewCollectMap() *CollectMap {
 	return &CollectMap{entries: make(map[string]mapEntry)}
 }
 
-var _ Function = (*Collect)(nil)
-
 type mapEntry struct {
 	key super.Value
 	val super.Value

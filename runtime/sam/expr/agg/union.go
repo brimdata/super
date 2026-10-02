@@ -10,8 +10,6 @@ type Union struct {
 	size  int
 }
 
-var _ Function = (*Union)(nil)
-
 func NewUnion() *Union {
 	return &Union{
 		types: make(map[super.Type]map[string]struct{}),
