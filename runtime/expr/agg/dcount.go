@@ -22,6 +22,9 @@ func newDCount() *dcount {
 }
 
 func (d *dcount) Consume(vec vector.Any) {
+	if vec.Kind() == vector.KindNull {
+		return
+	}
 	// append type id to vals so we get a unique count where the bytes are same
 	// but the super.Type is different.
 	scratch := super.AppendInt(nil, int64(vec.Type().ID()))

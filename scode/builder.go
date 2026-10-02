@@ -50,7 +50,7 @@ func (b *Builder) EndContainer() {
 	// Pop the container body offset off the stack.
 	bodyOff := b.containers[len(b.containers)-1]
 	b.containers = b.containers[:len(b.containers)-1]
-	tag := toTag(len(b.bytes) - bodyOff)
+	tag := uint64(len(b.bytes) - bodyOff)
 	tagSize := SizeOfUvarint(tag)
 	// BeginContainer allocated one byte for the container tag.
 	tagOff := bodyOff - 1
@@ -73,9 +73,8 @@ func (b *Builder) EndContainerWithNones(nopts int, nones []int) {
 	b.containers = b.containers[:len(b.containers)-1]
 	bitLen := (nopts + 7) >> 3
 	bitSize := SizeOfUvarint(uint64(bitLen))
-	bitTag := toTag(bitLen)
 	bodyLen := len(b.bytes) - bodyOff
-	tag := toTag(bodyLen + bitSize + bitLen)
+	tag := uint64(bodyLen + bitSize + bitLen)
 	tagSize := SizeOfUvarint(tag)
 	// BeginContainer allocated one byte for the container tag.
 	tagOff := bodyOff - 1
@@ -93,7 +92,7 @@ func (b *Builder) EndContainerWithNones(nopts int, nones []int) {
 	if binary.PutUvarint(b.bytes[tagOff:], tag) != tagSize {
 		panic("bad container tag size")
 	}
-	if binary.PutUvarint(b.bytes[tagOff+tagSize:], bitTag) != bitSize {
+	if binary.PutUvarint(b.bytes[tagOff+tagSize:], uint64(bitLen)) != bitSize {
 		panic("bad container bits tag size")
 	}
 	bitsOff := tagOff + tagSize + bitSize

@@ -25,11 +25,7 @@ func (i *Iter) Next() Bytes {
 	if n <= 0 {
 		panic(fmt.Sprintf("bad uvarint: %d", n))
 	}
-	if tagIsNull(u64) {
-		*i = (*i)[n:]
-		return nil
-	}
-	end := n + tagLength(u64)
+	end := n + int(u64)
 	val := (*i)[n:end]
 	*i = (*i)[end:]
 	return Bytes(val)
@@ -43,9 +39,7 @@ func (i *Iter) NextTagAndBody() Bytes {
 	if n <= 0 {
 		panic(fmt.Sprintf("bad uvarint: %d", n))
 	}
-	if !tagIsNull(u64) {
-		n += tagLength(u64)
-	}
+	n += int(u64)
 	val := (*i)[:n]
 	*i = (*i)[n:]
 	return Bytes(val)

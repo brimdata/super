@@ -8,13 +8,11 @@ import (
 
 var appendCases = [][][]byte{
 	{},
-	{nil},
 	{[]byte{}},
-	{[]byte{}, nil},
 	{[]byte("data")},
 	{[]byte("\x00\x01\x02")},
 	{[]byte("UTF-8 \b5Ὂg̀9!℃ᾭG€�")},
-	{[]byte("data"), nil, []byte("\x1a\x2b\x3c"), []byte("UTF-8 \b5Ὂg̀9!℃ᾭG€�")},
+	{[]byte("data"), []byte{}, []byte("\x1a\x2b\x3c"), []byte("UTF-8 \b5Ὂg̀9!℃ᾭG€�")},
 	{[]byte("thisisareallylongstringdoyoulikereallylongstrings?Ithoughtyoumightlikethemsoiaddedthistothetest")},
 }
 
