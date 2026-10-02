@@ -13,10 +13,11 @@ import (
 
 	"github.com/superdb/super"
 	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sio"
 	"github.com/superdb/super/sio/bsupio"
 )
 
-const ext = "bsuprows"
+const ext = "bsup"
 
 var (
 	ErrEmpty  = errors.New("empty log")
@@ -186,12 +187,12 @@ func (q *Queue) deleteTailLockFile() error {
 	return q.engine.Delete(context.Background(), q.tailLockPath)
 }
 
-func (q *Queue) OpenAsBSUPRows(ctx context.Context, sctx *super.Context, head, tail ID) (*bsupio.RowReader, error) {
+func (q *Queue) OpenAsBSUP(ctx context.Context, sctx *super.Context, head, tail ID) (sio.ReadCloser, error) {
 	r, err := q.Open(ctx, head, tail)
 	if err != nil {
 		return nil, err
 	}
-	return bsupio.NewRowReader(sctx, r), nil
+	return bsupio.NewValueReader(ctx, sctx, r)
 }
 
 func writeID(ctx context.Context, engine storage.Engine, u *storage.URI, id ID) error {

@@ -175,7 +175,8 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := bsupio.NewRowReader(super.NewContext(), &buffer)
+	reader, err := bsupio.NewValueReader(t.Context(), super.NewContext(), &buffer)
+	require.NoError(t, err)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	exp := sup.FormatValue(recExpected)
@@ -243,7 +244,8 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := bsupio.NewRowReader(super.NewContext(), &buffer)
+	reader, err := bsupio.NewValueReader(t.Context(), super.NewContext(), &buffer)
+	require.NoError(t, err)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	require.NoError(t, err)

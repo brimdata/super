@@ -118,3 +118,30 @@ func WriteVec(w sio.Writer, vec vector.Any) error {
 	}
 	return nil
 }
+
+func NewReader(p vio.Puller) sio.Reader {
+	return &reader{puller: p}
+}
+
+type reader struct {
+	puller vio.Puller
+	vals   []super.Value
+}
+
+func (r *reader) Read() (*super.Value, error) {
+	for {
+		if len(r.vals) != 0 {
+			val := &r.vals[0]
+			r.vals = r.vals[1:]
+			return val, nil
+		}
+		vec, err := r.puller.Pull(false)
+		if vec == nil {
+			if err == nil {
+				r.puller.Pull(true)
+			}
+			return nil, err
+		}
+		r.vals = Materialize(vec).Values()
+	}
+}

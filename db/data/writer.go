@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/superdb/super"
+	"github.com/superdb/super/bsup"
 	"github.com/superdb/super/order"
 	"github.com/superdb/super/pkg/bufwriter"
 	"github.com/superdb/super/pkg/storage"
@@ -17,7 +18,7 @@ type Writer struct {
 	object      *Object
 	byteCounter *writeCounter
 	count       uint64
-	writer      *bsupio.RowWriter
+	writer      *bsup.RowWriter
 	sortKey     order.SortKey
 	first       bool
 }

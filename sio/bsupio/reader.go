@@ -1,6 +1,7 @@
 package bsupio
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/superdb/super"
 	"github.com/superdb/super/bsup"
-	"github.com/superdb/super/bsup/rows"
 	"github.com/superdb/super/pkg/field"
 	"github.com/superdb/super/runtime/sam/expr"
 	"github.com/superdb/super/runtime/vcache"
@@ -39,14 +39,11 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 	if concurrentReaders < 1 {
 		panic(concurrentReaders)
 	}
-	ra, ok := r.(io.ReaderAt)
+	ra, ok := readerAt(r)
 	if !ok {
 		return nil, errors.New("BSUP requires a seekable input")
 	}
-	var buf [1]byte
-	if _, err := ra.ReadAt(buf[:], 0); err != nil && !errors.Is(err, io.EOF) {
-		return nil, errors.New("BSUP requires a seekable input")
-	}
+
 	var metaFilters []*metafilter
 	if p != nil {
 		filter, _, err := p.MetaFilter()
@@ -75,6 +72,27 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 		readerAt:      ra,
 		vecs:          make([][]vector.Any, concurrentReaders),
 	}, nil
+}
+
+func readerAt(r io.Reader) (io.ReaderAt, bool) {
+	ra, ok := r.(io.ReaderAt)
+	if ok {
+		var buf [1]byte
+		if _, err := ra.ReadAt(buf[:], 0); err != nil && !errors.Is(err, io.EOF) {
+			return nil, false
+		}
+		return ra, true
+	}
+	return nil, false
+}
+
+// XXX replace this with streaming reader
+func NewBufferedReader(ctx context.Context, sctx *super.Context, r io.Reader) (*Reader, error) {
+	buf, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return NewReader(ctx, sctx, bytes.NewReader(buf), nil, 1)
 }
 
 type metafilter struct {
@@ -194,10 +212,22 @@ func (r *Reader) Type() (super.Type, error) {
 	return r.container.FusedType(r.sctx)
 }
 
-type RowReader struct {
-	*rows.Reader
+func NewValueReader(ctx context.Context, sctx *super.Context, r io.Reader) (sio.ReadCloser, error) {
+	puller, err := NewReader(ctx, sctx, r, nil, 1)
+	if err != nil {
+		return nil, err
+	}
+	return &valueReader{
+		Reader: sbuf.NewReader(puller),
+		puller: puller,
+	}, nil
 }
 
-func NewRowReader(sctx *super.Context, r io.Reader) *RowReader {
-	return &RowReader{rows.NewReader(sctx, r)}
+type valueReader struct {
+	sio.Reader
+	puller *Reader
+}
+
+func (v *valueReader) Close() error {
+	return nil
 }

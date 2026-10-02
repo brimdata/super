@@ -39,10 +39,6 @@ func (p *Patch) Lookup(id ksuid.KSUID) (*data.Object, error) {
 	return p.base.Lookup(id)
 }
 
-func (p *Patch) HasVector(id ksuid.KSUID) bool {
-	return p.diff.HasVector(id) || p.base.HasVector(id)
-}
-
 func (p *Patch) Select(span extent.Span, o order.Which) DataObjects {
 	objects := p.base.Select(span, o)
 	objects.Append(p.diff.Select(span, o))
@@ -83,26 +79,6 @@ func (p *Patch) DeleteObject(id ksuid.KSUID) error {
 	return nil
 }
 
-func (p *Patch) AddVector(id ksuid.KSUID) error {
-	if p.HasVector(id) {
-		return ErrExists
-	}
-	return p.diff.AddVector(id)
-}
-
-func (p *Patch) DeleteVector(id ksuid.KSUID) error {
-	if p.diff.HasVector(id) {
-		return p.diff.DeleteVector(id)
-	}
-	if !p.base.HasVector(id) {
-		return ErrNotFound
-	}
-	// Keep track of the deletions from the base so we can add the
-	// needed delete Actions when building the transaction patch.
-	p.deletedVectors = append(p.deletedVectors, id)
-	return nil
-}
-
 func (p *Patch) NewCommitObject(parent ksuid.KSUID, retries int, author, message string, meta super.Value) *Object {
 	o := NewObject(parent, author, message, meta, retries)
 	for _, id := range p.deletedObjects {
@@ -110,12 +86,6 @@ func (p *Patch) NewCommitObject(parent ksuid.KSUID, retries int, author, message
 	}
 	for _, s := range p.diff.objects {
 		o.appendAdd(s)
-	}
-	for _, id := range p.deletedVectors {
-		o.appendDeleteVector(id)
-	}
-	for id := range p.diff.vectors {
-		o.appendAddVector(id)
 	}
 	return o
 }

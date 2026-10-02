@@ -27,13 +27,6 @@ func lookupReader(ctx context.Context, sctx *super.Context, r io.Reader, opts Re
 			return nil, err
 		}
 		return newVioPuller(sctx, r), nil
-	case "bsuprows":
-		//XXX need -rows flag
-		scanner, err := bsupio.NewRowReader(sctx, r).NewScanner(ctx, opts.Pushdown)
-		if err != nil {
-			return nil, err
-		}
-		return sbuf.NewDematerializer(sctx, scanner), nil
 	case "bsup":
 		return bsupio.NewReader(ctx, sctx, r, opts.Pushdown, opts.ConcurrentReaders)
 	case "csv":

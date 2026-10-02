@@ -60,8 +60,8 @@ func NewConnection() *Connection {
 // and a base URL derived from the hostURL argument.
 func NewConnectionTo(hostURL string) *Connection {
 	defaultHeader := http.Header{
-		"Accept":       []string{api.MediaTypeBSUPRows},
-		"Content-Type": []string{api.MediaTypeBSUPRows},
+		"Accept":       []string{api.MediaTypeBSUP},
+		"Content-Type": []string{api.MediaTypeBSUP},
 	}
 	return &Connection{
 		client:        &http.Client{},
@@ -133,13 +133,16 @@ func (c *Connection) Do(req *Request) (*Response, error) {
 	}
 }
 
-func (c *Connection) doAndUnmarshal(req *Request, v any, templates ...any) error {
+func (c *Connection) doAndUnmarshal(ctx context.Context, req *Request, v any, templates ...any) error {
 	res, err := c.Do(req)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
-	zr := bsupio.NewRowReader(super.NewContext(), res.Body)
+	zr, err := bsupio.NewValueReader(ctx, super.NewContext(), res.Body)
+	if err != nil {
+		return err
+	}
 	defer zr.Close()
 	rec, err := zr.Read()
 	if err != nil || rec == nil {
@@ -199,7 +202,7 @@ func (c *Connection) Ping(ctx context.Context) (time.Duration, error) {
 func (c *Connection) Version(ctx context.Context) (string, error) {
 	req := c.NewRequest(ctx, http.MethodGet, "/version", nil)
 	var res api.VersionResponse
-	if err := c.doAndUnmarshal(req, &res); err != nil {
+	if err := c.doAndUnmarshal(ctx, req, &res); err != nil {
 		return "", err
 	}
 	return res.Version, nil
@@ -208,7 +211,7 @@ func (c *Connection) Version(ctx context.Context) (string, error) {
 func (c *Connection) PoolStats(ctx context.Context, id ksuid.KSUID) (exec.PoolStats, error) {
 	req := c.NewRequest(ctx, http.MethodGet, path.Join("/pool", id.String(), "stats"), nil)
 	var stats exec.PoolStats
-	err := c.doAndUnmarshal(req, &stats)
+	err := c.doAndUnmarshal(ctx, req, &stats)
 	if errIsStatus(err, http.StatusNotFound) {
 		err = ErrPoolNotFound
 	}
@@ -219,7 +222,7 @@ func (c *Connection) BranchGet(ctx context.Context, poolID ksuid.KSUID, branchNa
 	path := urlPath("pool", poolID.String(), "branch", branchName)
 	req := c.NewRequest(ctx, http.MethodGet, path, nil)
 	var commit api.CommitResponse
-	err := c.doAndUnmarshal(req, &commit)
+	err := c.doAndUnmarshal(ctx, req, &commit)
 	if errIsStatus(err, http.StatusNotFound) {
 		err = ErrBranchNotFound
 	}
@@ -229,7 +232,7 @@ func (c *Connection) BranchGet(ctx context.Context, poolID ksuid.KSUID, branchNa
 func (c *Connection) CreatePool(ctx context.Context, payload api.PoolPostRequest) (db.BranchMeta, error) {
 	req := c.NewRequest(ctx, http.MethodPost, "/pool", payload)
 	var meta db.BranchMeta
-	err := c.doAndUnmarshal(req, &meta)
+	err := c.doAndUnmarshal(ctx, req, &meta)
 	if errIsStatus(err, http.StatusConflict) {
 		err = ErrPoolExists
 	}
@@ -262,7 +265,7 @@ func (c *Connection) RemovePool(ctx context.Context, id ksuid.KSUID) error {
 func (c *Connection) CreateBranch(ctx context.Context, poolID ksuid.KSUID, payload api.BranchPostRequest) (branches.Config, error) {
 	req := c.NewRequest(ctx, http.MethodPost, path.Join("/pool", poolID.String()), payload)
 	var branch branches.Config
-	err := c.doAndUnmarshal(req, &branch)
+	err := c.doAndUnmarshal(ctx, req, &branch)
 	if errIsStatus(err, http.StatusConflict) {
 		err = ErrBranchExists
 	}
@@ -276,7 +279,7 @@ func (c *Connection) MergeBranch(ctx context.Context, poolID ksuid.KSUID, childB
 		return api.CommitResponse{}, err
 	}
 	var commit api.CommitResponse
-	err := c.doAndUnmarshal(req, &commit)
+	err := c.doAndUnmarshal(ctx, req, &commit)
 	return commit, err
 }
 
@@ -287,7 +290,7 @@ func (c *Connection) Revert(ctx context.Context, poolID ksuid.KSUID, branchName 
 		return api.CommitResponse{}, err
 	}
 	var commit api.CommitResponse
-	err := c.doAndUnmarshal(req, &commit)
+	err := c.doAndUnmarshal(ctx, req, &commit)
 	return commit, err
 }
 
@@ -310,17 +313,14 @@ func (c *Connection) Query(ctx context.Context, inputs []srcfiles.Input) (*Respo
 	return res, err
 }
 
-func (c *Connection) Compact(ctx context.Context, poolID ksuid.KSUID, branchName string, objects []ksuid.KSUID, writeVectors bool, message api.CommitMessage) (api.CommitResponse, error) {
+func (c *Connection) Compact(ctx context.Context, poolID ksuid.KSUID, branchName string, objects []ksuid.KSUID, message api.CommitMessage) (api.CommitResponse, error) {
 	path := urlPath("pool", poolID.String(), "branch", branchName, "compact")
-	if writeVectors {
-		path += "?vectors=T"
-	}
 	req := c.NewRequest(ctx, http.MethodPost, path, api.CompactRequest{ObjectIDs: objects})
 	if err := encodeCommitMessage(req, message); err != nil {
 		return api.CommitResponse{}, err
 	}
 	var commit api.CommitResponse
-	err := c.doAndUnmarshal(req, &commit)
+	err := c.doAndUnmarshal(ctx, req, &commit)
 	return commit, err
 }
 
@@ -334,7 +334,7 @@ func (c *Connection) Load(ctx context.Context, poolID ksuid.KSUID, branchName, c
 		return api.CommitResponse{}, err
 	}
 	var commit api.CommitResponse
-	err := c.doAndUnmarshal(req, &commit)
+	err := c.doAndUnmarshal(ctx, req, &commit)
 	return commit, err
 }
 
@@ -369,7 +369,7 @@ func (c *Connection) delete(ctx context.Context, poolID ksuid.KSUID, branchName 
 		return api.CommitResponse{}, err
 	}
 	var commit api.CommitResponse
-	err := c.doAndUnmarshal(req, &commit)
+	err := c.doAndUnmarshal(ctx, req, &commit)
 	return commit, err
 }
 
@@ -383,7 +383,7 @@ func (c *Connection) Vacate(ctx context.Context, pool string, ts nano.Ts, dryrun
 	path += "?" + vals.Encode()
 	req := c.NewRequest(ctx, http.MethodPost, path, nil)
 	var res api.VacateResponse
-	err := c.doAndUnmarshal(req, &res)
+	err := c.doAndUnmarshal(ctx, req, &res)
 	return res, err
 }
 
@@ -394,7 +394,7 @@ func (c *Connection) Vacuum(ctx context.Context, pool, revision string, dryrun b
 	}
 	req := c.NewRequest(ctx, http.MethodPost, path, nil)
 	var res api.VacuumResponse
-	err := c.doAndUnmarshal(req, &res)
+	err := c.doAndUnmarshal(ctx, req, &res)
 	return res, err
 }
 
@@ -413,7 +413,7 @@ func (c *Connection) doVector(ctx context.Context, pool, revision string, object
 		return api.CommitResponse{}, err
 	}
 	var res api.CommitResponse
-	err := c.doAndUnmarshal(req, &res)
+	err := c.doAndUnmarshal(ctx, req, &res)
 	return res, err
 }
 
@@ -430,14 +430,14 @@ func (c *Connection) SubscribeEvents(ctx context.Context) (*EventsClient, error)
 func (c *Connection) AuthMethod(ctx context.Context) (api.AuthMethodResponse, error) {
 	req := c.NewRequest(ctx, http.MethodGet, "/auth/method", nil)
 	var method api.AuthMethodResponse
-	err := c.doAndUnmarshal(req, &method)
+	err := c.doAndUnmarshal(ctx, req, &method)
 	return method, err
 }
 
 func (c *Connection) AuthIdentity(ctx context.Context) (api.AuthIdentityResponse, error) {
 	req := c.NewRequest(ctx, http.MethodGet, "/auth/identity", nil)
 	var ident api.AuthIdentityResponse
-	err := c.doAndUnmarshal(req, &ident)
+	err := c.doAndUnmarshal(ctx, req, &ident)
 	return ident, err
 }
 

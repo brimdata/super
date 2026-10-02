@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/superdb/super"
-	"github.com/superdb/super/bsup/rows"
+	"github.com/superdb/super/bsup"
 	"github.com/superdb/super/sio"
 	"github.com/superdb/super/sio/bsupio"
 	"github.com/superdb/super/sio/supio"
@@ -30,15 +30,16 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	in := []byte(strings.TrimSpace(logs) + "\n")
 	supSrc := supio.NewReader(super.NewContext(), bytes.NewReader(in))
 	var rawBSUP Output
-	rawDst := rows.NewWriter(&rawBSUP)
+	rawDst := bsup.NewRowWriter(&rawBSUP)
 	require.NoError(t, sio.Copy(rawDst, supSrc))
 	require.NoError(t, rawDst.Close())
 
 	var out Output
-	rawSrc := bsupio.NewRowReader(super.NewContext(), &rawBSUP)
+	rawSrc, err := bsupio.NewValueReader(t.Context(), super.NewContext(), &rawBSUP)
+	require.NoError(t, err)
 	defer rawSrc.Close()
 	supDst := supio.NewWriter(&out, supio.WriterOpts{})
-	err := sio.Copy(supDst, rawSrc)
+	err = sio.Copy(supDst, rawSrc)
 	if assert.NoError(t, err) {
 		assert.Equal(t, in, out.Bytes())
 	}

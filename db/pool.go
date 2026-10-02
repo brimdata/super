@@ -21,7 +21,6 @@ import (
 	"github.com/superdb/super/pkg/storage"
 	"github.com/superdb/super/runtime/sam/expr"
 	"github.com/superdb/super/sio"
-	"github.com/superdb/super/sio/bsupio"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -116,7 +115,7 @@ func (p *Pool) OpenCommitLog(ctx context.Context, sctx *super.Context, commit ks
 	return p.commits.OpenCommitLog(ctx, sctx, commit, ksuid.Nil)
 }
 
-func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) (*bsupio.RowReader, error) {
+func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) (sio.ReadCloser, error) {
 	return p.commits.OpenAsBSUPRows(ctx, sctx, commit, ksuid.Nil)
 }
 

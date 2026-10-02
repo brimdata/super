@@ -26,9 +26,9 @@ import (
 )
 
 const (
-	Version     = 5
+	Version     = 6
 	PoolsTag    = "pools"
-	MagicFile   = "superdb.bsuprows"
+	MagicFile   = "superdb.bsup"
 	MagicString = "SUPERDB"
 )
 
@@ -132,19 +132,18 @@ func (r *Root) writeMagic(ctx context.Context) error {
 		Magic:   MagicString,
 		Version: Version,
 	}
-	serializer := bsupbytes.NewSerializer()
-	serializer.Decorate(super.StylePackage)
-	if err := serializer.Write(magic); err != nil {
+	writer := bsupbytes.NewBytesWriterWithStyle(super.StylePackage)
+	if err := writer.Write(magic); err != nil {
 		return err
 	}
-	if err := serializer.Close(); err != nil {
+	if err := writer.Close(); err != nil {
 		return err
 	}
 	path := r.path.JoinPath(MagicFile)
-	err := r.engine.PutIfNotExists(ctx, path, serializer.Bytes())
+	err := r.engine.PutIfNotExists(ctx, path, writer.Bytes())
 	if err == storage.ErrNotSupported {
 		//XXX workaround for now: see issue #2686
-		reader := bytes.NewReader(serializer.Bytes())
+		reader := bytes.NewReader(writer.Bytes())
 		err = storage.Put(ctx, r.engine, path, reader)
 	}
 	return err
@@ -156,13 +155,16 @@ func (r *Root) readMagic(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	zr := bsupio.NewRowReader(super.NewContext(), reader)
-	defer zr.Close()
-	val, err := zr.Read()
+	br, err := bsupio.NewValueReader(ctx, super.NewContext(), reader)
 	if err != nil {
 		return err
 	}
-	last, err := zr.Read()
+	defer br.Close()
+	val, err := br.Read()
+	if err != nil {
+		return err
+	}
+	last, err := br.Read()
 	if err != nil {
 		return err
 	}

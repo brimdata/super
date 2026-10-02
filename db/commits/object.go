@@ -3,7 +3,6 @@ package commits
 import (
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/segmentio/ksuid"
 	"github.com/superdb/super"
@@ -54,22 +53,6 @@ func NewDeletesObject(parent ksuid.KSUID, retries int, author, message string, i
 	return o
 }
 
-func NewAddVectorsObject(parent ksuid.KSUID, author, message string, ids []ksuid.KSUID, retries int) *Object {
-	o := NewObject(parent, author, message, super.Null, retries)
-	for _, id := range ids {
-		o.appendAddVector(id)
-	}
-	return o
-}
-
-func NewDeleteVectorsObject(parent ksuid.KSUID, author, message string, ids []ksuid.KSUID, retries int) *Object {
-	o := NewObject(parent, author, message, super.Null, retries)
-	for _, id := range ids {
-		o.appendDeleteVector(id)
-	}
-	return o
-}
-
 func (o *Object) append(action Action) {
 	o.Actions = append(o.Actions, action)
 }
@@ -82,17 +65,8 @@ func (o *Object) appendDelete(id ksuid.KSUID) {
 	o.append(&Delete{Commit: o.Commit, ID: id})
 }
 
-func (o *Object) appendAddVector(id ksuid.KSUID) {
-	o.append(&AddVector{Commit: o.Commit, ID: id})
-}
-
-func (o *Object) appendDeleteVector(id ksuid.KSUID) {
-	o.append(&DeleteVector{Commit: o.Commit, ID: id})
-}
-
 func (o Object) Serialize() ([]byte, error) {
-	writer := bsupbytes.NewSerializer()
-	writer.Decorate(super.StylePackage)
+	writer := bsupbytes.NewBytesWriterWithStyle(super.StylePackage)
 	for _, action := range o.Actions {
 		if err := writer.Write(action); err != nil {
 			writer.Close()
@@ -109,12 +83,10 @@ func (o Object) Serialize() ([]byte, error) {
 	return b, nil
 }
 
-func DecodeObject(r io.Reader) (*Object, error) {
+func DecodeObject(r bsupbytes.Reader) (*Object, error) {
 	o := &Object{}
-	reader := bsupbytes.NewDeserializer(r, ActionTypes)
-	defer reader.Close()
 	for {
-		entry, err := reader.Read()
+		entry, err := r.Read()
 		if err != nil {
 			return nil, err
 		}

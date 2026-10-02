@@ -24,13 +24,13 @@ import (
 	"github.com/superdb/super/pkg/storage"
 	"github.com/superdb/super/runtime"
 	"github.com/superdb/super/runtime/exec"
-	"github.com/superdb/super/runtime/sam/op"
 	"github.com/superdb/super/sbuf"
 	"github.com/superdb/super/service/auth"
 	"github.com/superdb/super/service/srverr"
 	"github.com/superdb/super/sio"
 	"github.com/superdb/super/sio/anyio"
 	"github.com/superdb/super/sio/csvio"
+	"github.com/superdb/super/vector"
 	"go.uber.org/zap"
 )
 
@@ -84,11 +84,15 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		writer.WriteError(err)
 		status.setError(err)
 	}
-	results := make(chan op.Result)
+	type result struct {
+		vec vector.Any
+		err error
+	}
+	resultCh := make(chan result)
 	go func() {
 		for {
 			vec, err := flowgraph.Pull(false)
-			results <- op.Result{Batch: sbuf.Materialize(vec), Err: err}
+			resultCh <- result{vec, err}
 			if vec == nil || err != nil {
 				return
 			}
@@ -105,8 +109,8 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 				handleError(err)
 				return
 			}
-		case r := <-results:
-			batch, err := r.Batch, r.Err
+		case r := <-resultCh:
+			vec, err := r.vec, r.err
 			if err != nil {
 				if !errors.Is(err, journal.ErrEmpty) {
 					w.Logger.Warn("Error pulling batch", zap.Error(err))
@@ -114,16 +118,20 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 				}
 				return
 			}
-			if batch == nil {
+			if vec == nil {
 				if err := writer.WriteProgress(meter.Progress()); err != nil {
 					w.Logger.Warn("Error writing progress", zap.Error(err))
 					handleError(err)
 				}
 				return
 			}
-			if len(batch.Values()) == 0 {
-				if eoc, ok := batch.(*sbuf.EndOfChannel); ok {
-					if err := writer.WhiteChannelEnd(string(*eoc)); err != nil {
+			var label string
+			if labeled, ok := vec.(*vector.Labeled); ok {
+				label = labeled.Label
+				vec = labeled.Any
+				// A label with a null vector signals end of output channel.
+				if vec == nil {
+					if err := writer.WhiteChannelEnd(label); err != nil {
 						w.Logger.Warn("Error writing channel end", zap.Error(err))
 						handleError(err)
 						return
@@ -131,10 +139,8 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 				}
 				continue
 			}
-			var label string
-			batch, label = sbuf.Unlabel(batch)
-			if err := writer.WriteBatch(label, batch); err != nil {
-				w.Logger.Warn("Error writing batch", zap.Error(err))
+			if err := writer.Push(label, vec); err != nil {
+				w.Logger.Warn("Error writing vector", zap.Error(err))
 				handleError(err)
 				return
 			}
@@ -507,10 +513,6 @@ func handleCompact(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	writeVectors, ok := r.BoolFromQuery(w, "vectors")
-	if !ok {
-		return
-	}
 	message, ok := r.decodeCommitMessage(w)
 	if !ok {
 		return
@@ -519,7 +521,7 @@ func handleCompact(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	commit, err := exec.Compact(r.Context(), c.root, pool, branch, req.ObjectIDs, writeVectors, message.Author, message.Body, message.Meta)
+	commit, err := exec.Compact(r.Context(), c.root, pool, branch, req.ObjectIDs, message.Author, message.Body, message.Meta)
 	if err != nil {
 		w.Error(err)
 		return
@@ -643,58 +645,6 @@ func handleVacuum(c *Core, w *ResponseWriter, r *Request) {
 		return
 	}
 	w.Respond(http.StatusOK, api.VacuumResponse{ObjectIDs: oids})
-}
-
-func handleVectorPost(c *Core, w *ResponseWriter, r *Request) {
-	pool, ok := r.StringFromPath(w, "pool")
-	if !ok {
-		return
-	}
-	revision, ok := r.StringFromPath(w, "revision")
-	if !ok {
-		return
-	}
-	var req api.VectorRequest
-	if !r.Unmarshal(w, &req) {
-		return
-	}
-	message, ok := r.decodeCommitMessage(w)
-	if !ok {
-		return
-	}
-	db := dbapi.FromRoot(c.root)
-	commit, err := db.AddVectors(r.Context(), pool, revision, req.ObjectIDs, message)
-	if err != nil {
-		w.Error(err)
-		return
-	}
-	w.Respond(http.StatusOK, api.CommitResponse{Commit: commit})
-}
-
-func handleVectorDelete(c *Core, w *ResponseWriter, r *Request) {
-	pool, ok := r.StringFromPath(w, "pool")
-	if !ok {
-		return
-	}
-	revision, ok := r.StringFromPath(w, "revision")
-	if !ok {
-		return
-	}
-	var req api.VectorRequest
-	if !r.Unmarshal(w, &req) {
-		return
-	}
-	message, ok := r.decodeCommitMessage(w)
-	if !ok {
-		return
-	}
-	db := dbapi.FromRoot(c.root)
-	commit, err := db.DeleteVectors(r.Context(), pool, revision, req.ObjectIDs, message)
-	if err != nil {
-		w.Error(err)
-		return
-	}
-	w.Respond(http.StatusOK, api.CommitResponse{Commit: commit})
 }
 
 func handleAuthIdentityGet(c *Core, w *ResponseWriter, r *Request) {

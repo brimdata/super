@@ -51,7 +51,6 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	})
 	c.config.Interval = f.Duration("interval", dbmanage.DefaultInterval, "interval between updates (only applicable with -monitor")
 	f.BoolVar(&c.monitor, "monitor", false, "continuously monitor the database for updates")
-	f.BoolVar(&c.config.Vectors, "vectors", false, "create vectors for objects")
 	return c, nil
 }
 

@@ -1,7 +1,6 @@
 package journal
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -11,8 +10,10 @@ import (
 	"time"
 
 	"github.com/superdb/super"
+	"github.com/superdb/super/bsup"
 	"github.com/superdb/super/bsupbytes"
 	"github.com/superdb/super/pkg/storage"
+	"github.com/superdb/super/sio"
 	"github.com/superdb/super/sio/bsupio"
 	"go.uber.org/zap"
 )
@@ -108,7 +109,7 @@ func (s *Store) load(ctx context.Context) error {
 		}
 		at = tail
 	}
-	r, err := s.journal.OpenAsBSUPRows(ctx, super.NewContext(), head, at)
+	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), head, at)
 	if err != nil {
 		return err
 	}
@@ -172,9 +173,12 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *super.Unmarshaler)
 		return Nil, table, err
 	}
 	defer r.Close()
-	zr := bsupio.NewRowReader(super.NewContext(), r)
-	defer zr.Close()
-	val, err := zr.Read()
+	reader, err := bsupio.NewValueReader(ctx, super.NewContext(), r)
+	if err != nil {
+		return Nil, table, err
+	}
+	defer reader.Close()
+	val, err := reader.Read()
 	if val == nil || err != nil {
 		return Nil, table, err
 	}
@@ -182,11 +186,11 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *super.Unmarshaler)
 		return Nil, table, errors.New("corrupted journal snapshot")
 	}
 	at := ID(val.Uint())
-	table, err = s.readSnapshot(zr, unmarshaler)
+	table, err = s.readSnapshot(reader, unmarshaler)
 	return at, table, err
 }
 
-func (s *Store) readSnapshot(r *bsupio.RowReader, unmarshaler *super.Unmarshaler) (map[string]Entry, error) {
+func (s *Store) readSnapshot(r sio.Reader, unmarshaler *super.Unmarshaler) (map[string]Entry, error) {
 	table := make(map[string]Entry)
 	for {
 		val, err := r.Read()
@@ -215,7 +219,7 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	return s.writeTable(zw, table)
 }
 
-func (s *Store) writeTable(w *bsupio.RowWriter, table map[string]Entry) error {
+func (s *Store) writeTable(w *bsup.RowWriter, table map[string]Entry) error {
 	marshaler := super.NewMarshaler(super.NewContext())
 	marshaler.Decorate(super.StylePackage)
 	for _, entry := range table {
@@ -355,14 +359,13 @@ func (s *Store) commitWithConstraint(ctx context.Context, key string, c Constrai
 }
 
 func (s *Store) commit(ctx context.Context, fn func() error, entries ...Entry) error {
-	serializer := bsupbytes.NewSerializer()
-	serializer.Decorate(super.StylePackage)
+	writer := bsupbytes.NewBytesWriterWithStyle(super.StylePackage)
 	for _, e := range entries {
-		if err := serializer.Write(e); err != nil {
+		if err := writer.Write(e); err != nil {
 			return err
 		}
 	}
-	if err := serializer.Close(); err != nil {
+	if err := writer.Close(); err != nil {
 		return err
 	}
 	for range maxRetries {
@@ -376,7 +379,7 @@ func (s *Store) commit(ctx context.Context, fn func() error, entries ...Entry) e
 		if err != nil {
 			return err
 		}
-		if err := s.journal.CommitAt(ctx, at, serializer.Bytes()); err != nil {
+		if err := s.journal.CommitAt(ctx, at, writer.Bytes()); err != nil {
 			if os.IsExist(err) {
 				time.Sleep(time.Millisecond)
 				continue
@@ -444,7 +447,7 @@ func (s *Store) putBase(ctx context.Context, newBase, tail, oldBase ID) error {
 	if err != nil {
 		return err
 	}
-	r, err := s.journal.OpenAsBSUPRows(ctx, super.NewContext(), newBase, tail)
+	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), newBase, tail)
 	if err != nil {
 		return err
 	}
@@ -481,9 +484,12 @@ func (s *Store) loadBase(ctx context.Context, base ID, unmarshaler *super.Unmars
 		return make(map[string]Entry), err
 	}
 	defer r.Close()
-	zr := bsupio.NewRowReader(super.NewContext(), r)
-	defer zr.Close()
-	return s.readSnapshot(zr, unmarshaler)
+	reader, err := bsupio.NewValueReader(ctx, super.NewContext(), r)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+	return s.readSnapshot(reader, unmarshaler)
 }
 
 func (s *Store) baseURI(base ID) *storage.URI {
@@ -501,7 +507,11 @@ func (s *Store) WalkEntries(ctx context.Context, c func(ID, []Entry) bool) error
 		if err != nil {
 			return err
 		}
-		if c(at, s.readEntries(b)) {
+		entries, err := s.readEntries(ctx, b)
+		if err != nil {
+			return err
+		}
+		if c(at, entries) {
 			break
 		}
 		at--
@@ -509,16 +519,19 @@ func (s *Store) WalkEntries(ctx context.Context, c func(ID, []Entry) bool) error
 	return nil
 }
 
-func (s *Store) readEntries(b []byte) []Entry {
+func (s *Store) readEntries(ctx context.Context, b []byte) ([]Entry, error) {
 	var entries []Entry
-	reader := bsupbytes.NewDeserializer(bytes.NewReader(b), s.keyTypes)
+	reader, err := bsupbytes.NewBytesReader(ctx, b, s.keyTypes)
+	if err != nil {
+		return nil, err
+	}
 	for {
 		o, err := reader.Read()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		if o == nil {
-			return entries
+			return entries, nil
 		}
 		switch e := o.(Entry).(type) {
 		case *Add:

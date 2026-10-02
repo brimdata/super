@@ -18,7 +18,7 @@ func newPeeker(ctx context.Context, sctx *super.Context, filename string, ordina
 	if err != nil {
 		return nil, err
 	}
-	if err := sio.CopyWithContext(ctx, f, zr); err != nil {
+	if err := sio.CopyWithContext(ctx, f.writer, zr); err != nil {
 		f.CloseAndRemove()
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func newPeeker(ctx context.Context, sctx *super.Context, filename string, ordina
 		f.CloseAndRemove()
 		return nil, err
 	}
-	first, err := f.Read()
+	first, err := f.reader.Read()
 	if err != nil {
 		f.CloseAndRemove()
 		return nil, err
@@ -42,7 +42,7 @@ func (p *peeker) read() (*super.Value, bool, error) {
 		rec = rec.Copy().Ptr()
 	}
 	var err error
-	p.nextRecord, err = p.Read()
+	p.nextRecord, err = p.reader.Read()
 	eof := p.nextRecord == nil && err == nil
 	return rec, eof, err
 }

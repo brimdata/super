@@ -34,7 +34,10 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 	// Note here that writer.Close closes the Put but reader.Close does not
 	// close the Get.
 	sctx := super.NewContext()
-	reader := bsupio.NewRowReader(sctx, get)
+	reader, err := bsupio.NewValueReader(ctx, sctx, get)
+	if err != nil {
+		return err
+	}
 	puller := sbuf.NewDematerializer(sctx, sbuf.NewPuller(reader))
 	for {
 		var vec vector.Any
