@@ -1,0 +1,8 @@
+# A non-conforming crawler spiders into bogus /docs/* and /book/* paths: it
+# ignores the mdBook 404 page's <base href="/"> and resolves the page's relative
+# links against the deep request path, exploding into ever-deeper 404 trees
+# (each dead-end also drags ~20 CSS files with it). Serve these two prefixes as a
+# tiny, link-free 410 instead, so there is nothing to recurse on. Genuine typos
+# under other paths still get the normal branded mdBook 404 page.
+/docs/*  /gone.html  410
+/book/*  /gone.html  410
