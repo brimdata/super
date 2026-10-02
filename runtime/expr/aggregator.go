@@ -47,7 +47,7 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 	vec := a.Expr.Eval(this)
 	if a.Where == nil {
 		if a.NoRip {
-			vec = vector.AddNoRip(vec)
+			vec = &vector.NoRip{Any: vec}
 		}
 		return vec
 	}
@@ -63,7 +63,7 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 		vec = vector.Combine(nulls, index, vector.Pick(vec, index))
 	}
 	if a.NoRip {
-		vec = vector.AddNoRip(vec)
+		vec = &vector.NoRip{Any: vec}
 	}
 	return vec
 }

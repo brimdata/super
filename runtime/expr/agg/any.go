@@ -21,6 +21,12 @@ func (a *Any) Consume(vec vector.Any) {
 	}
 	slot := firstNonNullSlot(vec)
 	if slot != -1 {
+		if d, ok := vec.(*vector.Dynamic); ok {
+			// Aggregators should return a definitive type so if we have a
+			// dynamic unwrap the dynamic.
+			vec = d.Values[d.Tags[slot]]
+			slot = 0
+		}
 		a.result = vector.Pick(vec, []uint32{uint32(slot)})
 	}
 }
@@ -29,19 +35,21 @@ func firstNonNullSlot(vec vector.Any) int {
 	if vec.Len() == 0 {
 		return -1
 	}
+	if d, ok := vec.(*vector.Dynamic); ok {
+		for i, vec := range d.Values {
+			if slot := firstNonNullSlot(vec); slot != -1 {
+				return int(d.ReverseTagMap()[i][slot])
+			}
+		}
+		return -1
+	}
 	switch vec.Kind() {
 	case vector.KindNull, vector.KindNone:
 		return -1
 	case vector.KindFusion:
 		return firstNonNullSlot(vector.Super(vec))
 	case vector.KindUnion:
-		union := vec.(*vector.Union)
-		for i, vec := range union.Values() {
-			if slot := firstNonNullSlot(vec); slot != -1 {
-				return int(union.Dynamic().ReverseTagMap()[i][slot])
-			}
-		}
-		return -1
+		return firstNonNullSlot(vec.(*vector.Union).Dynamic())
 	default:
 		return 0
 	}
