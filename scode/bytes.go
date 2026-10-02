@@ -16,7 +16,6 @@ package scode
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 )
 
@@ -39,10 +38,7 @@ func (b Bytes) Body() Bytes {
 // Append appends val to dst as a tagged value and returns the
 // extended buffer.
 func Append(dst Bytes, val []byte) Bytes {
-	if val == nil {
-		return binary.AppendUvarint(dst, tagNull)
-	}
-	dst = binary.AppendUvarint(dst, toTag(len(val)))
+	dst = binary.AppendUvarint(dst, uint64(len(val)))
 	return append(dst, val...)
 }
 
@@ -64,36 +60,5 @@ func ReadTag(r io.ByteReader) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if tagIsNull(u64) {
-		return -1, nil
-	}
-	return tagLength(u64), nil
-}
-
-func DecodeTagLength(b Bytes) int {
-	u64, n := binary.Uvarint(b)
-	if n <= 0 {
-		panic(fmt.Sprintf("bad uvarint: %d", n))
-	}
-	if tagIsNull(u64) {
-		return n
-	}
-	return int(u64) + n - 1
-}
-
-func toTag(length int) uint64 {
-	return uint64(length) + 1
-}
-
-const tagNull = 0
-
-func tagIsNull(t uint64) bool {
-	return t == tagNull
-}
-
-func tagLength(t uint64) int {
-	if t == tagNull {
-		panic("tagLength called with null tag")
-	}
-	return int(t - 1)
+	return int(u64), nil
 }
