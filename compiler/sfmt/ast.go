@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/superdb/super/compiler/ast"
+	"github.com/superdb/super/runtime/expr/agg"
 	"github.com/superdb/super/runtime/expr/function"
-	"github.com/superdb/super/runtime/sam/expr/agg"
 	"github.com/superdb/super/sup"
 )
 
@@ -989,7 +989,7 @@ func isAggFunc(e ast.Expr) *ast.AggregateOp {
 	if !ok {
 		return nil
 	}
-	if _, err := agg.NewPattern(name.Name, false, true); err != nil {
+	if _, err := agg.NewPattern(nil, name.Name, false, true); err != nil {
 		return nil
 	}
 	return &ast.AggregateOp{
