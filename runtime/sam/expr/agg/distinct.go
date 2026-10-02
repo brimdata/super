@@ -6,53 +6,7 @@ import (
 
 	"github.com/superdb/super"
 	"github.com/superdb/super/scode"
-	"github.com/superdb/super/sup"
 )
-
-type distinct struct {
-	fun  Function
-	buf  []byte
-	seen map[string]struct{}
-}
-
-func newDistinct(f Function) Function {
-	return &distinct{fun: f, seen: map[string]struct{}{}}
-}
-
-func (d *distinct) Consume(val super.Value) {
-	d.buf = binary.AppendVarint(d.buf[:0], int64(val.Type().ID()))
-	d.buf = scode.Append(d.buf, val.Bytes())
-	if _, ok := d.seen[string(d.buf)]; ok {
-		return
-	}
-	d.seen[string(d.buf)] = struct{}{}
-}
-
-func (d *distinct) ConsumeAsPartial(val super.Value) {
-	if val.IsNull() {
-		return
-	}
-	arrayType, ok := val.Type().(*super.TypeArray)
-	if !ok {
-		panic(fmt.Errorf("distinct partial is not an array: %s", sup.FormatValue(val)))
-	}
-	typ := arrayType.Type
-	for it := val.ContainerIter(); !it.Done(); {
-		d.Consume(super.NewValue(typ, it.Next()))
-	}
-}
-
-func (d *distinct) Result(sctx *super.Context) super.Value {
-	for key := range d.seen {
-		d.fun.Consume(NewValueFromDistinctKey(sctx, key))
-		delete(d.seen, key)
-	}
-	return d.fun.Result(sctx)
-}
-
-func (d *distinct) ResultAsPartial(sctx *super.Context) super.Value {
-	return DistinctResultAsPartial(sctx, d.seen)
-}
 
 func DistinctResultAsPartial(sctx *super.Context, seen map[string]struct{}) super.Value {
 	vals := make([]super.Value, 0, len(seen))

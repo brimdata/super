@@ -1,38 +1,9 @@
 package agg
 
 import (
-	"fmt"
-
 	"github.com/superdb/super"
 	"github.com/superdb/super/scode"
-	"github.com/superdb/super/sup"
 )
-
-type Collect struct {
-	values []super.Value
-	size   int
-}
-
-var _ Function = (*Collect)(nil)
-
-func (c *Collect) Consume(val super.Value) {
-	if val.IsNull() {
-		return
-	}
-	c.values = append(c.values, val.Deunion().Copy())
-	c.size += len(val.Bytes())
-	for c.size > MaxValueSize {
-		// XXX See issue #1813.  For now we silently discard entries
-		// to maintain the size limit.
-		//c.MemExceeded++
-		c.size -= len(c.values[0].Bytes())
-		c.values = c.values[1:]
-	}
-}
-
-func (c *Collect) Result(sctx *super.Context) super.Value {
-	return newArray(sctx, c.values)
-}
 
 // newArray returns an array of vals. If vals is empty, newArray returns
 // super.Null.
@@ -61,22 +32,4 @@ func newArray(sctx *super.Context, vals []super.Value) super.Value {
 		typ = union
 	}
 	return super.NewValue(sctx.LookupTypeArray(typ), b.Bytes())
-}
-
-func (c *Collect) ConsumeAsPartial(val super.Value) {
-	if val.IsNull() {
-		return
-	}
-	arrayType, ok := val.Type().(*super.TypeArray)
-	if !ok {
-		panic(fmt.Errorf("collect partial: partial not an array type: %s", sup.FormatValue(val)))
-	}
-	typ := arrayType.Type
-	for it := val.ContainerIter(); !it.Done(); {
-		c.Consume(super.NewValue(typ, it.Next()))
-	}
-}
-
-func (c *Collect) ResultAsPartial(sctx *super.Context) super.Value {
-	return c.Result(sctx)
 }
