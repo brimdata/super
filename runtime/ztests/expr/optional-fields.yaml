@@ -136,8 +136,8 @@ input: |
   {a:{b?:none::int64}}
 
 output: |
-  {x?:1,y:1}
-  {x?:none::int64,y:error({message:"none assigned to non-optional field y",on?:none::int64})}
+  {x?:1,y?:1}
+  {x?:none::int64,y?:none::int64}
 
 ---
 

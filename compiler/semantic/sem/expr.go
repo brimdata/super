@@ -161,7 +161,6 @@ type (
 		ast.Node
 		Name  string
 		Value Expr
-		Opt   bool
 	}
 	SpreadElem struct {
 		ast.Node
@@ -384,7 +383,6 @@ func CopyExpr(e Expr) Expr {
 					Node:  elem.Node,
 					Name:  elem.Name,
 					Value: CopyExpr(elem.Value),
-					Opt:   elem.Opt,
 				})
 			case *SpreadElem:
 				elems = append(elems, &SpreadElem{

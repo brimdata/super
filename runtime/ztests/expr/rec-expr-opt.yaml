@@ -63,4 +63,4 @@ input: |
   none
 
 output: |
-  error("untyped none assigned to optional field x")
+  {}

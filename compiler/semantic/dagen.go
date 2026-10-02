@@ -519,7 +519,7 @@ func (d *dagen) recordElems(elems []sem.RecordElem) []dag.RecordElem {
 		case *sem.SpreadElem:
 			out = append(out, d.spread(elem.Expr))
 		case *sem.FieldElem:
-			out = append(out, &dag.Field{Kind: "Field", Name: elem.Name, Value: d.expr(elem.Value), Opt: elem.Opt})
+			out = append(out, &dag.Field{Kind: "Field", Name: elem.Name, Value: d.expr(elem.Value)})
 		default:
 			panic(elem)
 		}
