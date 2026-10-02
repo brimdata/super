@@ -52,17 +52,11 @@ func Materialize(vec vector.Any) Batch {
 	return out
 }
 
-func Dematerialize(sctx *super.Context, batch Batch) vector.Any {
+func Dematerialize(sctx *super.Context, vals ...super.Value) vector.Any {
 	builder := vector.NewDynamicValueBuilder()
-	for _, val := range batch.Values() {
+	for _, val := range vals {
 		builder.Write(val)
 	}
-	return builder.Build(sctx)
-}
-
-func ValToVec(sctx *super.Context, val super.Value) vector.Any {
-	builder := vector.NewDynamicValueBuilder()
-	builder.Write(val)
 	return builder.Build(sctx)
 }
 

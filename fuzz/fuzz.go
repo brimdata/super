@@ -66,7 +66,7 @@ func WriteBSUPRows(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 
 func WriteBSUP(t testing.TB, sctx *super.Context, valuesIn []super.Value, buf *bytes.Buffer) {
 	pusher := bsup.NewSerializer(sio.NopCloser(buf))
-	vec := sbuf.Dematerialize(sctx, sbuf.NewArray(valuesIn))
+	vec := sbuf.Dematerialize(sctx, valuesIn...)
 	require.NoError(t, vio.Copy(pusher, vio.NewPuller(vec)))
 	require.NoError(t, pusher.Close())
 }

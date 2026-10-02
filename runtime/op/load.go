@@ -65,5 +65,5 @@ func (l *Load) Pull(done bool) (vector.Any, error) {
 		return nil, err
 	}
 	val := super.NewBytes(commitID[:])
-	return sbuf.ValToVec(l.rctx.Sctx, val), nil
+	return sbuf.Dematerialize(l.rctx.Sctx, val), nil
 }

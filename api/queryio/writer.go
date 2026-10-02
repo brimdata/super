@@ -59,7 +59,7 @@ func (w *Writer) WriteBatch(channel string, batch sbuf.Batch) error {
 		}
 	}
 	defer batch.Unref()
-	return w.writer.Push(sbuf.Dematerialize(w.sctx, batch))
+	return w.writer.Push(sbuf.Dematerialize(w.sctx, batch.Values()...))
 }
 
 func (w *Writer) WhiteChannelEnd(channel string) error {
