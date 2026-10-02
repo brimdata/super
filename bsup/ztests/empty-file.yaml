@@ -12,7 +12,7 @@ outputs:
 ---
 
 script: |
-  super -s -o test.bsup -c 'values false | where this'
+  super -o test.bsup -c 'values false | where this'
 
 outputs:
   - name: test.bsup

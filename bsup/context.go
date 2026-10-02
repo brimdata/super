@@ -79,13 +79,13 @@ func (c *Context) unmarshal(id ID) error {
 }
 
 func (c *Context) readMeta(r io.ReaderAt) error {
-	reader := NewContainer(c.local, r).AsRowReader()
+	reader := NewContainer(c.local, r)
 	var vecs []vector.Any
 	var numValues int
 	// XXX in a future PR we will stitch in an sio.Reader path so we don't
 	// round trip through vectors reading the row-data metas here.
 	for {
-		vec, err := reader.Pull()
+		vec, err := reader.PullRow()
 		if err != nil {
 			return err
 		}

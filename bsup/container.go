@@ -24,10 +24,6 @@ func NewContainer(sctx *super.Context, r io.ReaderAt) *Container {
 	return &Container{sctx: sctx, readerAt: r}
 }
 
-func (c *Container) AsRowReader() *RowPuller {
-	return &RowPuller{container: c}
-}
-
 func (c *Container) Next() (FrameReader, error) {
 	for {
 		h, err := readNextHeader(c.readerAt, c.off)
@@ -52,6 +48,18 @@ func (c *Container) Next() (FrameReader, error) {
 			panic(h)
 		}
 	}
+}
+
+func (c *Container) PullRow() (vector.Any, error) {
+	next, err := c.Next()
+	if next == nil || err != nil {
+		return nil, err
+	}
+	reader, ok := next.(*RowReader)
+	if !ok {
+		return nil, errors.New("encountered non-row data")
+	}
+	return reader.Pull()
 }
 
 func (c *Container) FusedType(sctx *super.Context) (super.Type, error) {
@@ -145,7 +153,7 @@ func (c *Container) readFooterBackward(sctx *super.Context, off int64) (*SuperFo
 	return &footer, footer.check()
 }
 
-func OpenColumnReader(r io.ReaderAt) (*ColumnReader, error) {
+func NewColumnReader(r io.ReaderAt) (*ColumnReader, error) {
 	container := NewContainer(super.NewContext(), r)
 	reader, err := container.Next()
 	if err != nil {
@@ -163,20 +171,4 @@ func OpenColumnReader(r io.ReaderAt) (*ColumnReader, error) {
 		return nil, fmt.Errorf("OpenColumnReader encountered non-column frame")
 	}
 	return cr, nil
-}
-
-type RowPuller struct {
-	container *Container
-}
-
-func (r *RowPuller) Pull() (vector.Any, error) {
-	next, err := r.container.Next()
-	if next == nil || err != nil {
-		return nil, err
-	}
-	reader, ok := next.(*RowReader)
-	if !ok {
-		return nil, errors.New("encountered non-row data")
-	}
-	return reader.Pull()
 }

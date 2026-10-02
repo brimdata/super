@@ -28,10 +28,9 @@ type Writer struct {
 
 // NewWriterWithOpts returns a writer to w with opts.
 func NewWriter(w io.WriteCloser) *Writer {
-	comp := &compressor{}
 	return &Writer{
 		writer:     w,
-		compressor: comp,
+		compressor: &compressor{},
 		types:      NewEncoder(),
 	}
 }

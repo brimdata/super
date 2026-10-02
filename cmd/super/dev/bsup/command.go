@@ -162,9 +162,9 @@ func (c *Command) columnFrame(header *bsup.ColumnHeader) error {
 	if err != nil {
 		return err
 	}
-	metaReader := bsup.NewContainer(c.sctx, bytes.NewReader(metaBytes)).AsRowReader()
+	metaReader := bsup.NewContainer(c.sctx, bytes.NewReader(metaBytes))
 	for {
-		vec, err := metaReader.Pull()
+		vec, err := metaReader.PullRow()
 		if err != nil {
 			return err
 		}

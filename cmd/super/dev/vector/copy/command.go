@@ -63,7 +63,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	reader, err := bsup.OpenColumnReader(r)
+	reader, err := bsup.NewColumnReader(r)
 	if err != nil {
 		return err
 	}

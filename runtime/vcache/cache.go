@@ -68,7 +68,7 @@ func (c *Cache) Fetch(ctx context.Context, uri *storage.URI, id ksuid.KSUID) (*O
 	if err != nil {
 		return nil, err
 	}
-	reader, err := bsup.OpenColumnReader(r)
+	reader, err := bsup.NewColumnReader(r)
 	if err != nil {
 		return nil, err
 	}
