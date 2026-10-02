@@ -54,11 +54,6 @@ func SizeOfUvarint(u64 uint64) int {
 }
 
 func ReadTag(r io.ByteReader) (int, error) {
-	// The tag is zero for a null value; otherwise, it is the value's
-	// length plus one.
-	u64, err := binary.ReadUvarint(r)
-	if err != nil {
-		return 0, err
-	}
-	return int(u64), nil
+	v, err := binary.ReadUvarint(r)
+	return int(v), err
 }
