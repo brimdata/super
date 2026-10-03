@@ -26,6 +26,9 @@ import (
 	_ "github.com/superdb/super/cmd/super/db/vacuum"
 	_ "github.com/superdb/super/cmd/super/dev"
 	_ "github.com/superdb/super/cmd/super/dev/bsup"
+	_ "github.com/superdb/super/cmd/super/dev/vector/copy"
+	_ "github.com/superdb/super/cmd/super/dev/vector/project"
+	_ "github.com/superdb/super/cmd/super/dev/vector/search"
 	"github.com/superdb/super/cmd/super/root"
 )
 
