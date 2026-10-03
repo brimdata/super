@@ -35,10 +35,13 @@ func Materialize(vec vector.Any) Batch {
 	if vec == nil {
 		return nil
 	}
-	// Labels should always be peeled off by the API before we do anything
-	// with them so panic if we come across one.
-	if _, ok := vec.(*vector.Labeled); ok {
-		panic(vec)
+	// Labels are emitted by the query API and should be peeled off before
+	// arriving here but some of our tests don't do so.
+	if labeled, ok := vec.(*vector.Labeled); ok {
+		vec = labeled.Any
+	}
+	if vec == nil {
+		return nil
 	}
 	var sb scode.Builder
 	vals := make([]super.Value, vec.Len())

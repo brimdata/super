@@ -17,6 +17,7 @@ import (
 	"github.com/superdb/super/sbuf"
 	"github.com/superdb/super/sio"
 	"github.com/superdb/super/vector"
+	"github.com/superdb/super/vector/vio"
 )
 
 type Reader struct {
@@ -230,6 +231,19 @@ type valueReader struct {
 	puller *Reader
 }
 
+func (v *valueReader) Pull(done bool) (sbuf.Batch, error) {
+	vec, err := v.puller.Pull(done)
+	if vec == nil || err != nil {
+		return nil, err
+	}
+	return sbuf.Materialize(vec), nil
+}
+
 func (v *valueReader) Close() error {
 	return nil
+}
+
+func (v *valueReader) Progress() vio.Progress {
+	//XXX implements sbuf.Scanner
+	return vio.Progress{}
 }

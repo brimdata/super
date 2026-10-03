@@ -23,9 +23,8 @@ See https://superdb.org/command/db.html#super-db-compact
 
 type Command struct {
 	*db.Command
-	commitFlags  commitflags.Flags
-	poolFlags    poolflags.Flags
-	writeVectors bool
+	commitFlags commitflags.Flags
+	poolFlags   poolflags.Flags
 }
 
 func init() {
