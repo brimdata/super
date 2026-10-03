@@ -35,21 +35,17 @@ func Materialize(vec vector.Any) Batch {
 	if vec == nil {
 		return nil
 	}
-	vec, label := vector.Unlabel(vec)
-	if vec == nil {
-		eoc := EndOfChannel(label)
-		return &eoc
+	// Labels should always be peeled off by the API before we do anything
+	// with them so panic if we come across one.
+	if _, ok := vec.(*vector.Labeled); ok {
+		panic(vec)
 	}
 	var sb scode.Builder
 	vals := make([]super.Value, vec.Len())
 	for i := range vec.Len() {
 		vals[i] = vector.ValueAt(&sb, vec, i).Copy()
 	}
-	out := NewArray(vals)
-	if label != "" {
-		return Label(label, out)
-	}
-	return out
+	return NewArray(vals)
 }
 
 func Dematerialize(sctx *super.Context, vals ...super.Value) vector.Any {
