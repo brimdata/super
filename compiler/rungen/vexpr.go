@@ -333,6 +333,9 @@ func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearchExpr) (expr.Eva
 	if err != nil {
 		return nil, err
 	}
+	if pred := likePredicate(search.Pattern); pred != nil {
+		return expr.NewSearchPredicate(pred, e), nil
+	}
 	re, err := samexpr.CompileRegexp(search.Pattern)
 	if err != nil {
 		return nil, err

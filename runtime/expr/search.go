@@ -48,6 +48,11 @@ func NewSearchRegexp(re *regexp.Regexp, e Evaluator) Evaluator {
 	return &search{e, nil, re.Match}
 }
 
+// NewSearchPredicate is a PROTOTYPE helper for LIKE fast paths.
+func NewSearchPredicate(pred func([]byte) bool, e Evaluator) Evaluator {
+	return &search{e, nil, pred}
+}
+
 func NewSearchString(s string, e Evaluator) Evaluator {
 	pred := func(b []byte) bool {
 		return expr.StringContainsFold(string(b), s)
