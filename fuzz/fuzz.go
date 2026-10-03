@@ -27,6 +27,7 @@ import (
 	"github.com/superdb/super/sio"
 	"github.com/superdb/super/sio/bsupio"
 	"github.com/superdb/super/sup"
+	"github.com/superdb/super/vector"
 	"github.com/superdb/super/vector/vio"
 	"github.com/x448/float16"
 )
@@ -120,6 +121,7 @@ func RunQuery(t testing.TB, sctx *super.Context, p vio.Puller, querySource strin
 	for {
 		vec, err := query.Pull(false)
 		require.NoError(t, err)
+		vec, _ = vector.Unlabel(vec)
 		if vec == nil {
 			break
 		}

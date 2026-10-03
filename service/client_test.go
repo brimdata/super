@@ -47,7 +47,7 @@ func (c *testClient) TestBranchGet(id ksuid.KSUID) (config db.BranchMeta) {
 }
 
 func (c *testClient) TestPoolList() []pools.Config {
-	r, err := c.Query(c.Context(), srcfiles.Plain("from :pools"))
+	r, err := c.Query(c.Context(), srcfiles.Plain("from :pools"), false)
 	require.NoError(c, err)
 	defer r.Body.Close()
 	var confs []pools.Config
@@ -55,13 +55,13 @@ func (c *testClient) TestPoolList() []pools.Config {
 	require.NoError(c, err)
 	defer zr.Close()
 	for {
-		rec, err := zr.Read()
+		val, err := zr.Read()
 		require.NoError(c, err)
-		if rec == nil {
+		if val == nil {
 			return confs
 		}
 		var pool pools.Config
-		err = super.Unmarshal(*rec, &pool)
+		err = super.Unmarshal(*val, &pool)
 		require.NoError(c, err)
 		confs = append(confs, pool)
 	}
@@ -80,7 +80,7 @@ func (c *testClient) TestBranchPost(poolID ksuid.KSUID, payload api.BranchPostRe
 }
 
 func (c *testClient) TestQuery(query string) string {
-	r, err := c.Connection.Query(c.Context(), srcfiles.Plain(query))
+	r, err := c.Connection.Query(c.Context(), srcfiles.Plain(query), false)
 	require.NoError(c, err)
 	defer r.Body.Close()
 	zr, err := bsupio.NewValueReader(c.Context(), super.NewContext(), r.Body)

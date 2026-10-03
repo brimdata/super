@@ -91,7 +91,7 @@ func Copy(dst Pusher, src Puller) error {
 		if err != nil || vec == nil {
 			return err
 		}
-		vec = vector.Strip(vec)
+		vec, _ = vector.Unlabel(vec)
 		if vec == nil {
 			continue
 		}

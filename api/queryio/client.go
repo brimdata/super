@@ -16,13 +16,14 @@ import (
 
 type scanner struct {
 	sctx     *super.Context
+	ctrl     bool
 	channel  string
 	reader   *bsupio.Reader
 	closer   io.Closer
 	progress vio.Progress
 }
 
-func NewScanner(ctx context.Context, rc io.ReadCloser) (vio.Scanner, error) {
+func NewScanner(ctx context.Context, rc io.ReadCloser, ctrl bool) (vio.Scanner, error) {
 	sctx := super.NewContext()
 	r, err := bsupio.NewReader(ctx, sctx, rc, nil, 1)
 	if err != nil {
@@ -30,6 +31,7 @@ func NewScanner(ctx context.Context, rc io.ReadCloser) (vio.Scanner, error) {
 	}
 	return &scanner{
 		sctx:   sctx,
+		ctrl:   ctrl,
 		reader: r,
 		closer: rc,
 	}, nil
@@ -48,7 +50,10 @@ again:
 	vctrl, ok := vec.(*vector.Control)
 	if !ok {
 		// Mark vectors with their received channel name for the client of this lib.
-		return &vector.Labeled{Any: vec, Label: s.channel}, nil
+		if !s.ctrl {
+			vec = &vector.Labeled{Any: vec, Label: s.channel}
+		}
+		return vec, nil
 	}
 
 	ctrl, err := unmarshalControl(vctrl.Any)
@@ -60,6 +65,9 @@ again:
 		s.channel = ctrl.Channel
 		goto again
 	case *api.QueryChannelEnd:
+		if !s.ctrl {
+			goto again
+		}
 		return &vector.Labeled{Label: ctrl.Channel}, nil
 	case *api.QueryStats:
 		s.progress.Add(ctrl.Progress)

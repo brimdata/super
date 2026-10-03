@@ -121,7 +121,7 @@ func (c *Command) list(ctx context.Context, db api.Interface) error {
 	if err != nil {
 		return err
 	}
-	q, err := db.Query(ctx, srcfiles.Plain(query))
+	q, err := db.Query(ctx, srcfiles.Plain(query), false)
 	if err != nil {
 		w.Close()
 		return err

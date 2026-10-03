@@ -27,7 +27,6 @@ func TestDataReaderWriterVector(t *testing.T) {
 	require.NoError(t, w.Write(sup.MustParseValue(sctx, "{a:2,b:5}")))
 	require.NoError(t, w.Write(sup.MustParseValue(sctx, "{a:3,b:6}")))
 	require.NoError(t, w.Close(ctx))
-	require.NoError(t, data.CreateVector(ctx, engine, tmp, object.ID))
 	// Read back the BSUP file and make sure it's the same.
 	get, err := engine.Get(ctx, object.VectorURI(tmp))
 	require.NoError(t, err)

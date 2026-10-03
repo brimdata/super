@@ -73,7 +73,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	query, err := db.Query(ctx, c.queryFlags.Query)
+	query, err := db.Query(ctx, c.queryFlags.Query, false)
 	if err != nil {
 		w.Close()
 		return err

@@ -12,17 +12,6 @@ func Unlabel(vec Any) (Any, string) {
 	return vec, ""
 }
 
-func Strip(vec Any) Any {
-	switch vec := vec.(type) {
-	case *Control:
-		return vec.Any
-	case *Labeled:
-		return vec.Any
-	default:
-		return vec
-	}
-}
-
 type Control struct {
 	Any
 }
