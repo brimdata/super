@@ -91,6 +91,10 @@ func Copy(dst Pusher, src Puller) error {
 		if err != nil || vec == nil {
 			return err
 		}
+		vec = vector.Strip(vec)
+		if vec == nil {
+			continue
+		}
 		if err := dst.Push(vec); err != nil {
 			return err
 		}

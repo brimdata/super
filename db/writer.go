@@ -14,6 +14,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+//XXX need to write vectors
+
 // Writer is a sio.Writer that consumes records into memory according to
 // the pools data object threshold, sorts each resulting buffer, and writes
 // it as an immutable object to the storage system.  The presumption is that

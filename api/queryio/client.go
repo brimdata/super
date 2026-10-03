@@ -50,7 +50,8 @@ again:
 		// Mark vectors with their received channel name for the client of this lib.
 		return &vector.Labeled{Any: vec, Label: s.channel}, nil
 	}
-	ctrl, err := unmarshalControl(vctrl)
+
+	ctrl, err := unmarshalControl(vctrl.Any)
 	if err != nil {
 		return nil, err
 	}
