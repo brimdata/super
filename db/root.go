@@ -113,7 +113,7 @@ func (r *Root) createConfig(ctx context.Context) error {
 
 func (r *Root) loadConfig(ctx context.Context) error {
 	if err := r.readMagic(ctx); err != nil {
-		return err
+		return fmt.Errorf("database magic at path %s is corrupt: %w", r.path, err)
 	}
 	poolPath := r.path.JoinPath(PoolsTag)
 	var err error
