@@ -42,17 +42,15 @@ func (s *scanner) Progress() vio.Progress {
 func (s *scanner) Pull(done bool) (vector.Any, error) {
 again:
 	vec, err := s.reader.Pull(done)
-	if err == nil {
-		if vec != nil {
-			return &vector.Labeled{Any: vec, Label: s.channel}, nil
-		}
-		return nil, s.closer.Close()
-	}
-	vctrl, ok := err.(*vio.Control)
-	if !ok {
+	if vec == nil || err != nil {
 		return nil, err
 	}
-	ctrl, err := unmarshalControl(vctrl.Any)
+	vctrl, ok := vec.(*vector.Control)
+	if !ok {
+		// Mark vectors with their received channel name for the client of this lib.
+		return &vector.Labeled{Any: vec, Label: s.channel}, nil
+	}
+	ctrl, err := unmarshalControl(vctrl)
 	if err != nil {
 		return nil, err
 	}

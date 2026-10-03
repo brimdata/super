@@ -11,3 +11,7 @@ func Unlabel(vec Any) (Any, string) {
 	}
 	return vec, ""
 }
+
+type Control struct {
+	Any
+}

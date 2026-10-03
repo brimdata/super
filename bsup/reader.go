@@ -66,6 +66,10 @@ func (c *ColumnReader) DataReader() io.ReaderAt {
 	return c.dataReader
 }
 
+func (c *ColumnReader) IsControl() bool {
+	return c.header.OOB
+}
+
 func (c *ColumnReader) ProjectMetadata(sctx *super.Context, projection field.Projection) []super.Value {
 	var b scode.Builder
 	var values []super.Value

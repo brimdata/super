@@ -60,10 +60,10 @@ func (w *Writer) Push(vec vector.Any) error {
 	return sbuf.WriteVec(w, vec)
 }
 
-func (w *Writer) Write(rec super.Value) error {
+func (w *Writer) Write(val super.Value) error {
 	var v any
-	if err := unmarshaler.Unmarshal(rec, &v); err != nil {
-		return w.WriteSUP(rec)
+	if err := unmarshaler.Unmarshal(val, &v); err != nil {
+		return w.WriteSUP(val)
 	}
 	var b bytes.Buffer
 	w.formatValue(w.commits, &b, v, w.width, &w.colors)

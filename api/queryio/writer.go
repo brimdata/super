@@ -85,9 +85,11 @@ func (w *Writer) WriteControl(value any) error {
 	var err error
 	if ctrl, ok := w.writer.(controlWriter); ok {
 		err = ctrl.WriteControl(value)
-		if w.flusher != nil {
-			w.flusher.Flush()
-		}
+		//XXX don't need flush anymore becaues WriteControl causes flush
+		// in bsupio writer
+		//if w.flusher != nil {
+		//	w.flusher.Flush()
+		//}
 	}
 	return err
 }

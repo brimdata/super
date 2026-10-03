@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/netip"
 	"reflect"
-	"runtime/debug"
 	"slices"
 	"strings"
 	"time"
@@ -1030,7 +1029,6 @@ func (u *Unmarshaler) lookupGoType(typ Type, bytes scode.Bytes) (reflect.Type, e
 		// interface.
 		return u.lookupGoType(typ.Type, bytes)
 	case *TypeRecord:
-		debug.PrintStack()
 		return nil, errors.New("unmarshaling records into interface value requires type binding")
 	case *TypeArray:
 		// If we got here, we know the array type wasn't named and

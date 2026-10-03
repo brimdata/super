@@ -118,26 +118,23 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 				}
 				return
 			}
+
+			var label string
+			if labeled, ok := vec.(*vector.Labeled); ok {
+				label = labeled.Label
+				vec = labeled.Any
+			}
+			// A label with a null vector signals end of output channel.
 			if vec == nil {
 				if err := writer.WriteProgress(meter.Progress()); err != nil {
 					w.Logger.Warn("Error writing progress", zap.Error(err))
 					handleError(err)
 				}
-				return
-			}
-			var label string
-			if labeled, ok := vec.(*vector.Labeled); ok {
-				label = labeled.Label
-				vec = labeled.Any
-				// A label with a null vector signals end of output channel.
-				if vec == nil {
-					if err := writer.WhiteChannelEnd(label); err != nil {
-						w.Logger.Warn("Error writing channel end", zap.Error(err))
-						handleError(err)
-						return
-					}
+				if err := writer.WhiteChannelEnd(label); err != nil {
+					w.Logger.Warn("Error writing channel end", zap.Error(err))
+					handleError(err)
 				}
-				continue
+				return
 			}
 			if err := writer.Push(label, vec); err != nil {
 				w.Logger.Warn("Error writing vector", zap.Error(err))

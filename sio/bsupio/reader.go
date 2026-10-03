@@ -145,6 +145,9 @@ func (r *Reader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 				if err != nil {
 					return nil, err
 				}
+				if reader.IsControl() {
+					vec = &vector.Control{Any: vec}
+				}
 				r.vecs[n] = append(r.vecs[n], vec)
 			}
 		case *bsup.RowReader:
