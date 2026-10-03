@@ -28,7 +28,6 @@ type WriterOpts struct {
 // ColumnWriter implements the vio.Pusher interface. A Pusher creates a vector
 // BSUP object from a stream of vector.Any.
 type ColumnWriter struct {
-	oob     bool
 	writer  io.WriteCloser
 	dynamic *vbuild.DynamicBuilder
 	sctx    *super.Context
@@ -113,7 +112,7 @@ func (c *ColumnWriter) pushFrame() error {
 		return err
 	}
 	typedefs := cctx.typedefs.Bytes()
-	header := newColumnHeader(c.oob, root, uint64(metaDataSize), uint64(len(typedefs)), uint64(len(fusedTypeBytes)), dataSectionSize)
+	header := newColumnHeader(false, root, uint64(metaDataSize), uint64(len(typedefs)), uint64(len(fusedTypeBytes)), dataSectionSize)
 	if _, err := c.writer.Write(header.Serialize()); err != nil {
 		return fmt.Errorf("system error: could not write BSUP header: %w", err)
 	}
@@ -172,7 +171,6 @@ func writeFooter(w io.Writer, size uint64, fusedTypeBytes []byte) (uint64, error
 // RowWriter implements both vio.Pusher and sio.Writer. A Pusher creates a super frame
 // in rows format from a stream of vector.Any.
 type RowWriter struct {
-	oob        bool
 	writer     io.WriteCloser
 	typedefs   *super.TypeDefs
 	sctx       *super.Context
@@ -223,10 +221,6 @@ func (r *RowWriter) Push(vec vector.Any) error {
 }
 
 func (r *RowWriter) Write(val super.Value) error {
-	if !r.oob {
-		r.pushFrame()
-		r.oob = false
-	}
 	typ := val.Type()
 	r.serialize(typ, val.Bytes())
 	r.fuser.fuse(typ)
@@ -239,10 +233,6 @@ func (r *RowWriter) Write(val super.Value) error {
 }
 
 func (r *RowWriter) WriteControl(val super.Value) error {
-	if !r.oob {
-		r.pushFrame()
-		r.oob = true
-	}
 	typ := val.Type()
 	r.serialize(typ, val.Bytes())
 	r.len++
@@ -268,7 +258,7 @@ func (r *RowWriter) pushFrame() error {
 	// for the SuperFrame.  The ColumnFrame types will useful for future frame pruning.
 	fusedTypeBytes := r.fuser.typeBytes()
 	typedefs := r.typedefs.Bytes()
-	header := newRowHeader(r.oob, uint64(len(typedefs)), uint64(len(fusedTypeBytes)), uint64(len(r.bytes)))
+	header := newRowHeader(false, uint64(len(typedefs)), uint64(len(fusedTypeBytes)), uint64(len(r.bytes)))
 	if _, err := r.writer.Write(header.Serialize()); err != nil {
 		return fmt.Errorf("could not write BSUP header: %w", err)
 	}
