@@ -24,7 +24,7 @@ type scanner struct {
 
 func NewScanner(ctx context.Context, rc io.ReadCloser) (vio.Scanner, error) {
 	sctx := super.NewContext()
-	r, err := bsupio.NewBufferedReader(ctx, sctx, rc) //XXX
+	r, err := bsupio.NewReader(ctx, sctx, rc, nil, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s *scanner) Progress() vio.Progress {
 
 func (s *scanner) Pull(done bool) (vector.Any, error) {
 again:
-	vec, err := s.Pull(done)
+	vec, err := s.reader.Pull(done)
 	if err == nil {
 		if vec != nil {
 			return &vector.Labeled{Any: vec, Label: s.channel}, nil

@@ -41,7 +41,15 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 	}
 	ra, ok := readerAt(r)
 	if !ok {
-		return nil, errors.New("BSUP requires a seekable input")
+		// XXX This is scaffolding to get everything working and passing tests.
+		// We are committing this variation to main but soon thereafter we will
+		// add streaming support for non-seekable inputs to disable type checking
+		// and cache frames into memory one frame at a time.
+		buf, err := io.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+		ra = bytes.NewReader(buf)
 	}
 
 	var metaFilters []*metafilter
@@ -84,15 +92,6 @@ func readerAt(r io.Reader) (io.ReaderAt, bool) {
 		return ra, true
 	}
 	return nil, false
-}
-
-// XXX replace this with streaming reader
-func NewBufferedReader(ctx context.Context, sctx *super.Context, r io.Reader) (*Reader, error) {
-	buf, err := io.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-	return NewReader(ctx, sctx, bytes.NewReader(buf), nil, 1)
 }
 
 type metafilter struct {
