@@ -25,7 +25,7 @@ type decoder struct {
 	unmarshaler *super.Unmarshaler
 }
 
-func NewReader(reader sio.Reader, templates ...any) *decoder {
+func NewReader(reader sio.Reader, templates []any) *decoder {
 	u := super.NewUnmarshaler()
 	u.Bind(templates...)
 	return &decoder{
@@ -34,7 +34,7 @@ func NewReader(reader sio.Reader, templates ...any) *decoder {
 	}
 }
 
-func NewBytesReader(ctx context.Context, b []byte, templates ...any) (Reader, error) {
+func NewBytesReader(ctx context.Context, b []byte, templates []any) (Reader, error) {
 	reader, err := bsupio.NewValueReader(ctx, super.NewContext(), bytes.NewReader(b))
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (d *decoder) Read() (any, error) {
 	return action, nil
 }
 
-func Get(ctx context.Context, engine storage.Engine, uri *storage.URI, templates ...any) (ReadCloser, error) {
+func Get(ctx context.Context, engine storage.Engine, uri *storage.URI, templates []any) (ReadCloser, error) {
 	r, err := engine.Get(ctx, uri)
 	if err != nil {
 		return nil, err
