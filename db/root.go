@@ -113,7 +113,7 @@ func (r *Root) createConfig(ctx context.Context) error {
 
 func (r *Root) loadConfig(ctx context.Context) error {
 	if err := r.readMagic(ctx); err != nil {
-		return fmt.Errorf("database magic at path %s is corrupt: %w", r.path, err)
+		return err
 	}
 	poolPath := r.path.JoinPath(PoolsTag)
 	var err error
@@ -169,17 +169,17 @@ func (r *Root) readMagic(ctx context.Context) error {
 		return err
 	}
 	if last != nil {
-		return fmt.Errorf("corrupt database version file: more than one value at %s", sup.String(last))
+		return fmt.Errorf("corrupt database version file at %s: more than one value at %s", r.path, sup.String(last))
 	}
 	var magic Magic
 	if err := super.Unmarshal(*val, &magic); err != nil {
 		return fmt.Errorf("corrupt database version file: %w", err)
 	}
 	if magic.Magic != MagicString {
-		return fmt.Errorf("corrupt database version file: magic %q should be %q", magic.Magic, MagicString)
+		return fmt.Errorf("corrupt database version file at %s: magic %q should be %q", r.path, magic.Magic, MagicString)
 	}
 	if magic.Version != Version {
-		return fmt.Errorf("unsupported database version: found version %d while expecting %d", magic.Version, Version)
+		return fmt.Errorf("unsupported database version at %s: found version %d while expecting %d", r.path, magic.Version, Version)
 	}
 	return nil
 }
