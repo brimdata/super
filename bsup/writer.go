@@ -5,10 +5,12 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"runtime/debug"
 
 	"github.com/superdb/super"
 	"github.com/superdb/super/scode"
 	"github.com/superdb/super/sio"
+	"github.com/superdb/super/sup"
 	"github.com/superdb/super/vector"
 	"github.com/superdb/super/vector/vbuild"
 	"github.com/superdb/super/vector/vio"
@@ -66,6 +68,7 @@ func (c *ColumnWriter) Close() error {
 }
 
 func (c *ColumnWriter) Push(vec vector.Any) error {
+	fmt.Println("COL WRITER PUSH", vec.Len())
 	if vec.Len() != 0 {
 		c.dynamic.Write(vec)
 		if c.dynamic.Len() >= maxFrameSize {
@@ -80,6 +83,7 @@ func (c *ColumnWriter) Push(vec vector.Any) error {
 // will begin on the next Push (except for the SuperFooter size and fusion type).
 func (c *ColumnWriter) pushFrame() error {
 	vec := c.dynamic.BuildDynamic()
+	fmt.Println("COL PUSH FRAME", vec.Len())
 	if vec.Len() == 0 {
 		return nil
 	}
@@ -103,6 +107,7 @@ func (c *ColumnWriter) pushFrame() error {
 		if err != nil {
 			return fmt.Errorf("could not marshal BSUP metadata: %w", err)
 		}
+		fmt.Println("IN COL WRITER, ROW WRITER WRITE META", sup.String(val))
 		if err := rowWriter.Write(val); err != nil {
 			return fmt.Errorf("could not write BSUP metadata: %w", err)
 		}
@@ -253,6 +258,8 @@ func (r *RowWriter) pushFrame() error {
 	if len(r.bytes) == 0 {
 		return nil
 	}
+	fmt.Println("ROW PUSH FRAME", len(r.bytes), "R.LEN", r.len)
+	debug.PrintStack()
 	// Compute the fused type for just the ColumnFrame.  This type is fed into
 	// the SuperFrame fuser below so we have a type for each ColumnFrame and a type
 	// for the SuperFrame.  The ColumnFrame types will useful for future frame pruning.

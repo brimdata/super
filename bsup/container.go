@@ -1,6 +1,7 @@
 package bsup
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -32,7 +33,9 @@ func NewStream(sctx *super.Context, r io.Reader) *Container {
 func (c *Container) Next() (FrameReader, error) {
 	for {
 		if c.stream != nil {
+			fmt.Println("NEXT")
 			if err := c.preload(); err != nil {
+				fmt.Println(err)
 				return nil, err
 			}
 		}
@@ -61,7 +64,23 @@ func (c *Container) Next() (FrameReader, error) {
 }
 
 func (c *Container) preload() error {
-	panic("TBD")
+	// All frame types begin with magic(4), version(2), and framesize (8)
+	var peek [14]byte
+	if _, err := io.ReadFull(c.stream, peek[:]); err != nil {
+		return err
+	}
+	//XXX check magic, version, and maxsize
+	size := binary.LittleEndian.Uint64(peek[6:])
+	if size > MaxFrameSize {
+		panic("XXX")
+	}
+	buf := make([]byte, size)
+	copy(buf, peek[:])
+	if _, err := io.ReadFull(c.stream, buf[14:]); err != nil {
+		return err
+	}
+	c.readerAt = bytes.NewReader(buf)
+	return nil
 }
 
 func (c *Container) PullRow() (vector.Any, error) {
@@ -79,7 +98,9 @@ func (c *Container) PullRow() (vector.Any, error) {
 func (c *Container) FusedType(sctx *super.Context) (super.Type, error) {
 	off, err := fileSize(c.readerAt)
 	if err != nil {
-		return nil, err
+		// XXX need to check if -static is specified before saying we
+		// won't type check if we're in streaming mode
+		return nil, nil
 	}
 	fuser := super.NewFuser(sctx, true)
 	for off > 0 {

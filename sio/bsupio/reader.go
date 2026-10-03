@@ -29,7 +29,6 @@ type Reader struct {
 	once          sync.Once
 	pushdown      sbuf.Pushdown
 	metaFilters   []*metafilter
-	readerAt      io.ReaderAt
 	vecs          [][]vector.Any
 }
 
@@ -39,13 +38,11 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 	if concurrentReaders < 1 {
 		panic(concurrentReaders)
 	}
-	ra, ok := r.(io.ReaderAt)
-	if !ok {
-		return nil, errors.New("BSUP requires a seekable input")
-	}
-	var buf [1]byte
-	if _, err := ra.ReadAt(buf[:], 0); err != nil && !errors.Is(err, io.EOF) {
-		return nil, errors.New("BSUP requires a seekable input")
+	var container *bsup.Container
+	if ra, ok := readerAt(r); ok {
+		container = bsup.NewContainer(sctx, ra)
+	} else {
+		container = bsup.NewStream(sctx, r)
 	}
 	var metaFilters []*metafilter
 	if p != nil {
@@ -69,12 +66,22 @@ func NewReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pus
 		ctx:           ctx,
 		sctx:          sctx,
 		activeReaders: activeReaders,
-		container:     bsup.NewContainer(sctx, ra),
+		container:     container,
 		pushdown:      p,
 		metaFilters:   metaFilters,
-		readerAt:      ra,
 		vecs:          make([][]vector.Any, concurrentReaders),
 	}, nil
+}
+
+func readerAt(r io.Reader) (io.ReaderAt, bool) {
+	ra, ok := r.(io.ReaderAt)
+	if ok {
+		var buf [1]byte
+		if _, err := ra.ReadAt(buf[:], 0); err != nil && !errors.Is(err, io.EOF) {
+			return ra, true
+		}
+	}
+	return nil, false
 }
 
 type metafilter struct {

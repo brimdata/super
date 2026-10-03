@@ -337,6 +337,7 @@ func readNextHeader(r io.ReaderAt, off int64) (Header, error) {
 		}
 		return nil, err
 	}
+	fmt.Println("MAGIC", string(magic[:]))
 	switch magic := string(magic[:]); magic {
 	case SuperMagic:
 		var bytes [SuperFooterSize]byte
